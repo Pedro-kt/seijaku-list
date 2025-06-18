@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose) // Si este plugin ya maneja composeOptions, déjalo
     alias(libs.plugins.ksp) // Este es importante para Room
+    alias(libs.plugins.dagger.hilt.android)
 }
 
 android {
@@ -78,4 +79,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 }
