@@ -6,11 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Path
 
-//Anotaciones Retrofit, es para definir el tipo de peticion HTTP y la ruta deñ endpoint en este caso @GET
-//Ruta del Endpoint,
-//Parametros de consulta ( @Query ), para buscar un anime necesitamos un termino de busqueda ej: q=naruto, Retrofit permite definir estos parametros con @Query
-//Funcion suspend, como es una operacion de red (asincronico) la funcion debe ser suspend
-//Tipo de retorno, la funcion debe devolver la data class SearchAnimeResponse
+//Esto es la Interfaz de Retrofit
 
 interface JikanApiService {
 

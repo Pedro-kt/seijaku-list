@@ -10,6 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 //El app module dice a Hilt como construir el retrofit y la jikanApiService
+//Esto es el modulo de Hilt
 
 @Module
 @InstallIn(SingletonComponent::class)
