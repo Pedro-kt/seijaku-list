@@ -71,7 +71,7 @@ fun SearchScreen(
                 HorizontalDivider(Modifier.padding(top = 10.dp))
 
             }
-        }|
+        }
     }
 
 }
