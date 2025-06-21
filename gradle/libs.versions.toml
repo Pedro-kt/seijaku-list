@@ -1,20 +1,20 @@
 [versions]
-agp = "8.10.1"
-kotlin = "2.0.21"
+agp = "8.9.2"
+kotlin = "2.1.20"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.0"
 activityCompose = "1.10.1"
-composeBom = "2024.09.00"
+composeBom = "2025.05.00"
 
 #Versiones añadidas por mi
 retrofit = "2.11.0"
 gson = "2.10.1"
-room = "2.6.1" # Asegúrate que esta versión sea compatible con la de KSP (compiler)
+room = "2.6.1"
 coil = "2.6.0"
-ksp = "1.9.23-1.0.20" # O la última versión compatible con tu versión de Kotlin
+ksp = "2.1.20-2.0.1"
 hilt = "2.56.2"
 
 [libraries]
@@ -48,7 +48,7 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
 dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

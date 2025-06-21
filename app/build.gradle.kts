@@ -1,11 +1,10 @@
-// app/build.gradle.kts (MODULE LEVEL)
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose) // Si este plugin ya maneja composeOptions, déjalo
-    alias(libs.plugins.ksp) // Este es importante para Room
+    id("org.jetbrains.kotlin.kapt")
+    alias(libs.plugins.ksp)
     alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -41,8 +40,11 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions { // Este bloque es crucial y DEBE IR AQUÍ
-        kotlinCompilerExtensionVersion = "1.5.1" // Verifica la versión compatible con tu Compose BOM
+    //composeOptions { // Este bloque es crucial y DEBE IR AQUÍ
+    //    kotlinCompilerExtensionVersion = "1.6.0" // Verifica la versión compatible con tu Compose BOM
+    //}
+    hilt {
+        enableAggregatingTask = false
     }
 }
 
@@ -82,5 +84,11 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    //ksp(libs.hilt.compiler)
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Kapt
+    kapt(libs.hilt.compiler)
+
+    implementation("com.squareup:javapoet:1.13.0")
 }
