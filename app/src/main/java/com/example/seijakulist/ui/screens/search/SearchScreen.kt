@@ -1,5 +1,6 @@
 package com.example.seijakulist.ui.screens.search
 
+import androidx.compose.foundation.background
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.Button
@@ -8,9 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,7 +24,7 @@ import coil.compose.AsyncImage
 
 @Composable
 fun SearchScreen(
-    viewModel: AnimeSearchViewModel = hiltViewModel()
+    viewModel: AnimeSearchViewModel = hiltViewModel(),
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val animeList by viewModel.animeList.collectAsState()
@@ -35,10 +34,13 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(color = Color.Gray)
             .padding(16.dp)
     ) {
         TextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 30.dp),
             value = searchQuery,
             onValueChange = { newText -> viewModel.onSearchQueryChanged(newText) },
             label = { Text("Buscar anime...") },
@@ -50,6 +52,7 @@ fun SearchScreen(
         Button(
             onClick = { viewModel.searchAnimes() },
             modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
         ) {
             Text("Buscar")
         }
@@ -80,6 +83,7 @@ fun SearchScreen(
                                 elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
                                 modifier = Modifier
                                     .size(width = 190.dp, height = 270.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White)
                             ) {
                                 Column(modifier = Modifier.fillMaxSize()) {
                                     AsyncImage(
@@ -93,13 +97,16 @@ fun SearchScreen(
                                     Text(
                                         text = anime.title,
                                         modifier = Modifier.padding(start = 6.dp),
-                                        fontSize = 12.sp
+                                        fontSize = 15.sp,
+                                        color = Color.Black,
+                                        maxLines = 2
                                     )
                                     Spacer(modifier = Modifier.weight(1f))
                                     Text(
                                         text = "Puntuacion: ${anime.score}",
                                         modifier = Modifier.padding(start = 6.dp, bottom = 4.dp),
                                         fontSize = 10.sp,
+                                        color = Color.Black
                                     )
                                 }
                             }
@@ -114,14 +121,14 @@ fun SearchScreen(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "No se encontraron animes para \"$searchQuery\"",
-                    color = Color.Gray
+                    color = Color.Black
                 )
             }
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "Ingresa un término de búsqueda para encontrar animes.",
-                    color = Color.Gray,
+                    color = Color.Black,
                     fontSize = 13.sp
                 )
             }
