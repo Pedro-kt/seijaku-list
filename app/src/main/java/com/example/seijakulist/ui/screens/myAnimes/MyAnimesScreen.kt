@@ -29,11 +29,11 @@ fun MyAnimesScreen(
     navController: NavController
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().background(color = Color.DarkGray)
+        modifier = Modifier.fillMaxSize().background(color = Color(0xFF06141B))
     ) {
         TopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color(0xFF2196F3),
+                containerColor = Color(0xFF11212D),
                 titleContentColor = Color.White,
                 navigationIconContentColor = Color.White,
                 actionIconContentColor = Color.White

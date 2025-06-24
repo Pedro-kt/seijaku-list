@@ -1,6 +1,5 @@
 package com.example.seijakulist.ui.screens.profile
 
-import android.R.attr.navigationIcon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
-import com.example.seijakulist.AppNavigation
-import com.example.seijakulist.ui.navigation.AppDestinations
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,16 +27,16 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.Gray)
+            .background(color = Color(0xFF06141B))
     ) {
         TopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF2196F3)),
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF11212D)),
             title = {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Mi Perfil")
+                    Text(text = "Mi Perfil", color = Color.White)
                 }
             },
             navigationIcon = {
@@ -48,7 +45,8 @@ fun ProfileScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver atras"
+                        contentDescription = "Volver atras",
+                        tint = Color.White
                     )
                 }
             },
@@ -58,7 +56,8 @@ fun ProfileScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Settings,
-                        contentDescription = "Configuracion"
+                        contentDescription = "Configuracion",
+                        tint = Color.White
                     )
                 }
             }

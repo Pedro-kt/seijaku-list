@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.jetbrainsKotlinSerialization)
+
 }
 
 android {
@@ -91,4 +93,10 @@ dependencies {
     kapt(libs.hilt.compiler)
 
     implementation("com.squareup:javapoet:1.13.0")
+
+    //navigationCompose
+    implementation(libs.androidx.navigation.compose)
+
+    //kotlin serialization
+    implementation(libs.kotlin.serialization)
 }
