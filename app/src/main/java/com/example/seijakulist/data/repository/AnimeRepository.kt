@@ -15,5 +15,4 @@ class AnimeRepository @Inject constructor(
         return ApiService.searchAnimes(query, page)
 
     }
-
 }
