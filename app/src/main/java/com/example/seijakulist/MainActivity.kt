@@ -1,6 +1,7 @@
 package com.example.seijakulist
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -59,8 +60,24 @@ fun AppNavigation() {
         composable(AppDestinations.MY_PROFILE_ROUTE) {
             ProfileScreen(navController)
         }
-        composable(AppDestinations.ANIME_DETAIL_ROUTE) {
-            AnimeDetailScreen()
+        composable(
+            arguments = listOf(navArgument("animeId") {
+                type = NavType.IntType
+            }
+            ),
+            route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}"
+            ) { backStackEntry ->
+            val animeId = backStackEntry.arguments?.getInt(AppDestinations.ANIME_ID_KEY)
+
+            if (animeId != null) {
+                AnimeDetailScreen(navController, animeId = animeId)
+            } else {
+                //manejo de errores para mas adelante
+
+                //Log.e("NavError", "Anime ID is was null when navigating to detail screen.")
+                //navController.popBackStack()
+                Text("Error: anime no encontrado")
+            }
         }
     }
 }

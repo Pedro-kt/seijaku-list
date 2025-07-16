@@ -20,8 +20,8 @@ class GetAnimeSearchUseCase @Inject constructor(
             Anime(
                 malId = animeDto!!.malId, //tener cuidado aca, posiblemente no sea nulo nunca, (pero puede pasar que sea nulo, y generaria un crasheo)
                 title = animeDto.title,
-                image = animeDto.images?.webp?.imageUrl
-                    ?: animeDto.images?.jpg?.imageUrl
+                image = animeDto.images?.webp?.largeImageUrl
+                    ?: animeDto.images?.jpg?.largeImageUrl
                     ?: "URL de imagen predeterminada",
                 synopsis = animeDto.synopsis ?: "Synopsis no disponible",
                 score = animeDto.score ?: 0.0f

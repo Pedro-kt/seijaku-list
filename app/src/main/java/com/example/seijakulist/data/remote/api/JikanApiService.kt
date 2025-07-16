@@ -1,6 +1,6 @@
 package com.example.seijakulist.data.remote.api
 
-import com.example.seijakulist.data.remote.models.AnimeDto
+import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -20,6 +20,6 @@ interface JikanApiService {
     //Esta peticion es para darme los datos de un solo anime en especifico
     @GET("anime/{id}")
     suspend fun getAnimeDetails(
-        @Path("id") malId: Int
-    ): AnimeDto
+        @Path("id") malId: Int?
+    ): AnimeDetailResponseDto
 }

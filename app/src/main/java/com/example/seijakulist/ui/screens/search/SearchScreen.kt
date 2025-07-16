@@ -1,7 +1,6 @@
 package com.example.seijakulist.ui.screens.search
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -91,18 +90,20 @@ fun SearchScreen(
             ) {
                 items(animeList.chunked(2)) { twoAnimes ->
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        twoAnimes.forEachIndexed { index, anime ->
+                        twoAnimes.forEach { anime ->
                             ElevatedCard(
                                 elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
                                 modifier = Modifier
-                                    .size(width = 195.dp, height = 300.dp)
+                                    .weight(1f)
+                                    .height(300.dp)
                                     .clickable {
-                                        navController.navigate(AppDestinations.ANIME_DETAIL_ROUTE)
+                                        navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
                                     },
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF))
+                                colors = CardDefaults.cardColors(containerColor = Color.White)
                             ) {
                                 Column(modifier = Modifier.fillMaxSize()) {
                                     AsyncImage(
@@ -123,19 +124,20 @@ fun SearchScreen(
                                     )
                                     Spacer(modifier = Modifier.weight(1f))
                                     Text(
-                                        text = "Puntuacion: ${anime.score}",
+                                        text = "Puntuación: ${anime.score}",
                                         modifier = Modifier.padding(start = 6.dp, bottom = 4.dp),
                                         fontSize = 10.sp,
-                                        color = Color.DarkGray
+                                        color = Color.Black
                                     )
                                 }
                             }
-                            if (index < twoAnimes.lastIndex) {
-                                Spacer(modifier = Modifier.width(10.dp))
-                            }
+                        }
+                        if (twoAnimes.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
+
             }
         } else if (searchQuery.isNotBlank()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
