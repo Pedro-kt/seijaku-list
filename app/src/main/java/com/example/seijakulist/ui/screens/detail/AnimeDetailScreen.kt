@@ -180,7 +180,6 @@ fun AnimeDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-
                     ) {
                         animeDetail?.genres?.forEach { genre ->
                             genre?.name?.let {

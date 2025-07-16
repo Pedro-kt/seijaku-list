@@ -10,10 +10,10 @@
       </SelectionState>
       <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-16T17:19:01.082513747Z">
+        <DropdownSelection timestamp="2025-07-16T17:36:03.635139123Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=ZY22FRZB73" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/bustamante/.android/avd/Medium_Phone.avd" />
             </handle>
           </Target>
         </DropdownSelection>
