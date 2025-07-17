@@ -1,11 +1,16 @@
 package com.example.seijakulist.data.repository
 
 import android.util.Log
+import com.example.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.example.seijakulist.data.mapper.toAnimeDetails
 import com.example.seijakulist.data.remote.api.JikanApiService
+import com.example.seijakulist.data.remote.models.AnimeCharactersDto
+import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
 import com.example.seijakulist.data.remote.models.AnimeDetailDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
+import com.example.seijakulist.data.remote.models.StudiosDto
+import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.domain.models.AnimeDetail
 import javax.inject.Inject
 
@@ -15,20 +20,21 @@ class AnimeRepository @Inject constructor(
 
 ) {
 
-    suspend fun searchAnimes(query: String, page: Int?) : SearchAnimeResponse {
+    suspend fun searchAnimes(query: String, page: Int?): SearchAnimeResponse {
 
         return ApiService.searchAnimes(query, page)
 
     }
+
     suspend fun getAnimeDetailsById(animeId: Int): AnimeDetail {
         try {
             val responseDto: AnimeDetailResponseDto = ApiService.getAnimeDetails(animeId)
             Log.d("AnimeRepo", "Respuesta DTO de la API (con envoltorio): $responseDto")
 
-                // Accede al objeto "data" antes de mapear
+            // Accede al objeto "data" antes de mapear
             val animeDetailDto: AnimeDetailDto? = responseDto.data
 
-                // Verifica si el DTO real del anime es nulo
+            // Verifica si el DTO real del anime es nulo
             if (animeDetailDto == null) {
                 throw Exception("API did not return anime data for ID $animeId")
             }
@@ -44,5 +50,26 @@ class AnimeRepository @Inject constructor(
         }
 
     }
+
+    suspend fun getAnimeCharactersById(animeId: Int): List<AnimeCharactersDetail> {
+        val responseDto = ApiService.getAnimeCharacters(animeId)
+
+        Log.d("REPO", "Personajes brutos desde la API: ${responseDto.data.size}")
+        Log.d("REPO", "Contenido: ${responseDto.data.joinToString("\n")}")
+
+        val animeCharacterDto = responseDto.data
+
+        if (animeCharacterDto.isEmpty()) {
+            throw Exception("API did not return characters for anime ID $animeId")
+        }
+
+        val characters = animeCharacterDto.toAnimeCharactersDetail()
+
+        Log.d("REPO", "Personajes mapeados: ${characters.size}")
+        return characters
+    }
+
+
+
 
 }

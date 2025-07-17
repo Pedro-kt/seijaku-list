@@ -11,12 +11,13 @@ fun AnimeDetailDto.toAnimeDetails(): AnimeDetail {
             ?: images?.jpg?.largeImageUrl
             ?: "URL de imagen predeterminada",
         synopsis = synopsis,
-        episodes = episodes,
+        episodes = episodes ?: 0,
         duration = duration,
         genres = genres,
         score = score,
         status = status,
         animeType = animeType,
-        //aired = aired
+        aired = aired,
+        studios = studios
     )
 }

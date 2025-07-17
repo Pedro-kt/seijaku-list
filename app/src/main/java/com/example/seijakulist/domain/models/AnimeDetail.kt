@@ -1,6 +1,8 @@
 package com.example.seijakulist.domain.models
 
+import com.example.seijakulist.data.remote.models.AiredDto
 import com.example.seijakulist.data.remote.models.GenreDto
+import com.example.seijakulist.data.remote.models.StudiosDto
 
 data class AnimeDetail(
     val malId: Int,
@@ -11,7 +13,8 @@ data class AnimeDetail(
     val genres: List<GenreDto?>,
     val episodes: Int?,
     val status: String?,
-    //val aired: String?,
+    val aired: AiredDto?,
     val duration: String?,
-    val animeType: String?
+    val animeType: String?,
+    val studios: List<StudiosDto?>,
 )

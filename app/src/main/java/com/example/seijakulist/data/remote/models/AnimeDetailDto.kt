@@ -17,5 +17,6 @@ data class AnimeDetailDto(
     val score: Float?,
     val status: String?,
     @SerializedName("type") val animeType: String?,
-    //val aired: String?
+    val aired: AiredDto?,
+    @SerializedName("studios") val studios: List<StudiosDto?>
 )

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -99,7 +103,7 @@ fun SearchScreen(
                                 elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(300.dp)
+                                    .height(335.dp)
                                     .clickable {
                                         navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
                                     },
@@ -111,33 +115,56 @@ fun SearchScreen(
                                         contentDescription = "Imagen de portada de ${anime.title}",
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(225.dp)
-                                            .clip(RoundedCornerShape(bottomStart = 13.dp, bottomEnd = 13.dp)),
+                                            .height(245.dp)
+                                            .clip(
+                                                RoundedCornerShape(
+                                                    bottomStart = 13.dp,
+                                                    bottomEnd = 13.dp
+                                                )
+                                            ),
                                         contentScale = ContentScale.Crop
                                     )
+                                    Spacer(modifier = Modifier.height(6.dp))
+
                                     Text(
                                         text = anime.title,
-                                        modifier = Modifier.padding(start = 6.dp),
-                                        fontSize = 15.sp,
+                                        modifier = Modifier.padding(start = 6.dp, end = 6.dp),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
                                         color = Color.Black,
-                                        maxLines = 2
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Spacer(modifier = Modifier.weight(1f))
-                                    Text(
-                                        text = "Puntuación: ${anime.score}",
-                                        modifier = Modifier.padding(start = 6.dp, bottom = 4.dp),
-                                        fontSize = 10.sp,
-                                        color = Color.Black
-                                    )
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 6.dp, end = 6.dp, bottom = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Star,
+                                            contentDescription = "Puntuación",
+                                            tint = Color(0xFFFFD700),
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "Puntuación: ${anime.score ?: "N/A"}",
+                                            fontSize = 11.sp,
+                                            color = Color.Black
+                                        )
+                                    }
                                 }
                             }
-                        }
-                        if (twoAnimes.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f))
+                            if (twoAnimes.size == 1) {
+                                Spacer(modifier = Modifier.fillMaxWidth(0.49f)) // Para balancear el espacio
+                            }
                         }
                     }
-                }
 
+                }
             }
         } else if (searchQuery.isNotBlank()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

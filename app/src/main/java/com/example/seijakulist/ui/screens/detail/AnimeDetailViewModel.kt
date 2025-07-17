@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.AnimeDetail
+import com.example.seijakulist.domain.usecase.GetAnimeCharactersDetailUseCase
 import com.example.seijakulist.domain.usecase.GetAnimeDetailUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

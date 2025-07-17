@@ -1,6 +1,7 @@
 package com.example.seijakulist.di
 
 import com.example.seijakulist.data.remote.api.JikanApiService
+import com.example.seijakulist.domain.usecase.GetAnimeCharactersDetailUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
