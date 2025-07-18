@@ -1,6 +1,8 @@
 package com.example.seijakulist.ui.screens.detail
 
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +52,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
+import com.example.seijakulist.ui.navigation.AppDestinations
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,7 +168,7 @@ fun AnimeDetailScreen(
                             Row(
                                 modifier = Modifier.padding(
                                     start = 16.dp,
-                                    top = 220.dp,
+                                    top = 200.dp,
                                     end = 16.dp,
                                     bottom = 16.dp
                                 )
@@ -177,15 +180,17 @@ fun AnimeDetailScreen(
                                         .crossfade(true)
                                         .build(),
                                     contentDescription = "Imagen de ${animeDetail?.title}",
-                                    contentScale = ContentScale.Fit,
+                                    contentScale = ContentScale.Crop,
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(3.dp))
+                                        .width(150.dp)
+                                        .height(223.dp)
+                                        .clip(RoundedCornerShape(10.dp))
                                 )
                                 Text(
                                     "${animeDetail?.title}",
                                     modifier = Modifier.padding(
                                         start = 16.dp,
-                                        top = 96.dp,
+                                        top = 100.dp,
                                         end = 16.dp,
                                         bottom = 16.dp
                                     ),
@@ -226,7 +231,8 @@ fun AnimeDetailScreen(
                     ) {
                         Text(
                             "${animeDetail?.synopsis}",
-                            color = Color.White
+                            color = Color.White,
+                            textAlign = TextAlign.Justify
                         )
                     }
                 }
@@ -337,7 +343,7 @@ fun AnimeDetailScreen(
                                 .fillMaxWidth()
                         ) {
                             Text(
-                                "Puntuacion:",
+                                "Puntuacion de la comunidad:",
                                 textAlign = TextAlign.Start,
                                 color = Color.White
                             )
@@ -475,18 +481,32 @@ fun AnimeDetailScreen(
                                         .padding(8.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(imageUrl)
-                                            .size(Size.ORIGINAL)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = "Imagen de personaje",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .size(120.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                    )
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(LocalContext.current)
+                                                    .data(imageUrl)
+                                                    .size(Size.ORIGINAL)
+                                                    .crossfade(true)
+                                                    .build(),
+                                                contentDescription = "Imagen de personaje",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .size(120.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .clickable() {
+                                                        // ✨ AÑADE ESTOS LOGS AQUÍ ✨
+                                                        val characterIdToNavigate = character?.idCharacter // Usa '?' por seguridad si 'character' puede ser nulo
+                                                        Log.d("CharacterClick", "ID del personaje clickeado: $characterIdToNavigate")
+                                                        Log.d("CharacterClick", "Ruta de navegación: ${AppDestinations.CHARACTER_DETAIL_ROUTE}/$characterIdToNavigate")
+
+                                                        if (characterIdToNavigate != null && characterIdToNavigate != 0) { // Asume que 0 no es un ID válido
+                                                            navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/$characterIdToNavigate")
+                                                        } else {
+                                                            Log.e("CharacterClick", "ID del personaje es nulo o inválido, no se puede navegar.")
+                                                            // Opcional: mostrar un Toast al usuario
+                                                            // Toast.makeText(LocalContext.current, "No se pudo cargar la información del personaje.", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    }
+                                            )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = it.nameCharacter?.takeIf { it.isNotBlank() }

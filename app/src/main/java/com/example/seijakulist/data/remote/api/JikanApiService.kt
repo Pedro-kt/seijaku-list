@@ -3,6 +3,7 @@ package com.example.seijakulist.data.remote.api
 import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
+import com.example.seijakulist.data.remote.models.character_detail.CharacterResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Path
@@ -28,4 +29,9 @@ interface JikanApiService {
     suspend fun getAnimeCharacters(
         @Path("id") malId: Int?
     ): AnimeCharactersResponseDto
+
+    @GET("characters/{id}/full")
+    suspend fun getCharacterDetail(
+        @Path("id") characterId: Int?
+    ): CharacterResponseDto
 }

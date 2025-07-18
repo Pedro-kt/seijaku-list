@@ -3,6 +3,7 @@ package com.example.seijakulist.data.repository
 import android.util.Log
 import com.example.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.example.seijakulist.data.mapper.toAnimeDetails
+import com.example.seijakulist.data.mapper.toCharacterDetail
 import com.example.seijakulist.data.remote.api.JikanApiService
 import com.example.seijakulist.data.remote.models.AnimeCharactersDto
 import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
@@ -12,6 +13,7 @@ import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.StudiosDto
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.domain.models.AnimeDetail
+import com.example.seijakulist.domain.models.CharacterDetail
 import javax.inject.Inject
 
 class AnimeRepository @Inject constructor(
@@ -69,7 +71,23 @@ class AnimeRepository @Inject constructor(
         return characters
     }
 
+    suspend fun getCharacterDetailById(characterId: Int): CharacterDetail {
+        val responseDto = ApiService.getCharacterDetail(characterId)
 
+        Log.d("CHAR", "Personaje bruto desde la API: ${responseDto.data}")
+
+        val characterFullDetailDto = responseDto.data
+
+        if (characterFullDetailDto == null) {
+            throw Exception("API did not return detail character data for ID $characterId")
+        }
+
+        val characterDetail = characterFullDetailDto.toCharacterDetail()
+
+        Log.d("CHAR", "Personaje mapeado: $characterDetail")
+
+        return characterDetail
+    }
 
 
 }

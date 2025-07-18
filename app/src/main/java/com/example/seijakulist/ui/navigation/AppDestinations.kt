@@ -6,4 +6,8 @@ object AppDestinations {
     const val MY_PROFILE_ROUTE = "my_profile_route"
     const val ANIME_DETAIL_ROUTE = "anime_detail_route"
     const val ANIME_ID_KEY = "animeId"
+
+    const val CHARACTER_DETAIL_ROUTE = "character_detail_route"
+
+    const val CHARACTER_ID_KEY = "characterId"
 }

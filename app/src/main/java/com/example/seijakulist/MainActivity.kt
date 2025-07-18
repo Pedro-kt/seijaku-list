@@ -24,6 +24,7 @@ import dagger.hilt.android.AndroidEntryPoint
 //navegacion entre pantalla searchScreen y detallesAnime (para pasar el parametro del id)
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.seijakulist.ui.screens.characters.CharacterDetailScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -78,6 +79,22 @@ fun AppNavigation() {
                 //navController.popBackStack()
                 Text("Error: anime no encontrado")
             }
+        }
+        composable(
+            arguments = listOf(navArgument("characterId") {
+                type = NavType.IntType
+            }
+            ),
+            route = "${AppDestinations.CHARACTER_DETAIL_ROUTE}/{${AppDestinations.CHARACTER_ID_KEY}}"
+            ) { backStackEntry ->
+            val characterId = backStackEntry.arguments?.getInt(AppDestinations.CHARACTER_ID_KEY)
+
+            if (characterId !=null) {
+                CharacterDetailScreen(navController, characterId = characterId)
+            } else {
+                Text("Error: personaje no encontrado")
+            }
+
         }
     }
 }
