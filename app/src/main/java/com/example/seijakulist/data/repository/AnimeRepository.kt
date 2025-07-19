@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.example.seijakulist.data.mapper.toAnimeDetails
 import com.example.seijakulist.data.mapper.toCharacterDetail
+import com.example.seijakulist.data.mapper.toCharacterPictures
 import com.example.seijakulist.data.remote.api.JikanApiService
 import com.example.seijakulist.data.remote.models.AnimeCharactersDto
 import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
@@ -11,9 +12,11 @@ import com.example.seijakulist.data.remote.models.AnimeDetailDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.StudiosDto
+import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.domain.models.AnimeDetail
 import com.example.seijakulist.domain.models.CharacterDetail
+import com.example.seijakulist.domain.models.CharacterPictures
 import javax.inject.Inject
 
 class AnimeRepository @Inject constructor(
@@ -89,5 +92,20 @@ class AnimeRepository @Inject constructor(
         return characterDetail
     }
 
+    suspend fun getCharacterPicturesById(characterId: Int): List<CharacterPictures> {
+        val responseDto = ApiService.getCharacterPictures(characterId)
+
+        Log.d("CharPicture", "Personaje bruto desde la API: ${responseDto.data}")
+
+        val characterPicturesDto = responseDto.data
+
+        val characterPictures = characterPicturesDto.toCharacterPictures()
+
+        if (characterPictures.isEmpty()) {
+            throw Exception("API did not return characters pictures for Id $characterId")
+        }
+
+        return characterPictures
+    }
 
 }

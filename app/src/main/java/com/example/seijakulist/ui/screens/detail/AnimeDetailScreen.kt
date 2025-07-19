@@ -1,6 +1,7 @@
 package com.example.seijakulist.ui.screens.detail
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -493,17 +494,13 @@ fun AnimeDetailScreen(
                                                     .size(120.dp)
                                                     .clip(RoundedCornerShape(8.dp))
                                                     .clickable() {
-                                                        // ✨ AÑADE ESTOS LOGS AQUÍ ✨
-                                                        val characterIdToNavigate = character?.idCharacter // Usa '?' por seguridad si 'character' puede ser nulo
-                                                        Log.d("CharacterClick", "ID del personaje clickeado: $characterIdToNavigate")
-                                                        Log.d("CharacterClick", "Ruta de navegación: ${AppDestinations.CHARACTER_DETAIL_ROUTE}/$characterIdToNavigate")
+                                                        val characterIdToNavigate = character.idCharacter
 
                                                         if (characterIdToNavigate != null && characterIdToNavigate != 0) { // Asume que 0 no es un ID válido
                                                             navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/$characterIdToNavigate")
                                                         } else {
                                                             Log.e("CharacterClick", "ID del personaje es nulo o inválido, no se puede navegar.")
-                                                            // Opcional: mostrar un Toast al usuario
-                                                            // Toast.makeText(LocalContext.current, "No se pudo cargar la información del personaje.", Toast.LENGTH_SHORT).show()
+                                                            //Toast.makeText(LocalContext.current, "No se pudo cargar la información del personaje.", Toast.LENGTH_SHORT).show()
                                                         }
                                                     }
                                             )
