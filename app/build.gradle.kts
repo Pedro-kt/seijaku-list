@@ -99,4 +99,8 @@ dependencies {
 
     //kotlin serialization
     implementation(libs.kotlin.serialization)
+
+    implementation(platform(libs.androidx.compose.bom))
+
+    implementation("androidx.compose.foundation:foundation")
 }

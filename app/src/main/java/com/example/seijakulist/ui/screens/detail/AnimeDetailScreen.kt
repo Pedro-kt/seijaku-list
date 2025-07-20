@@ -42,16 +42,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
+import com.example.seijakulist.R
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.ui.navigation.AppDestinations
 
@@ -73,6 +77,13 @@ fun AnimeDetailScreen(
     val animeCharactersDetail by animeCharacterDetailViewModel.characters.collectAsState()
     val characterIsLoading by animeCharacterDetailViewModel.isLoading.collectAsState()
     val characterErrorMessage by animeCharacterDetailViewModel.errorMessage.collectAsState()
+
+    val RobotoRegular = FontFamily(
+        Font(R.font.roboto_regular)
+    )
+    val RobotoBold = FontFamily(
+        Font(R.font.roboto_bold, FontWeight.Bold)
+    )
 
     LaunchedEffect(key1 = animeId) {
         if (animeId != null) {
@@ -191,14 +202,15 @@ fun AnimeDetailScreen(
                                     "${animeDetail?.title}",
                                     modifier = Modifier.padding(
                                         start = 16.dp,
-                                        top = 100.dp,
+                                        top = 114.dp,
                                         end = 16.dp,
                                         bottom = 16.dp
                                     ),
                                     fontSize = 30.sp,
                                     fontWeight = FontWeight.Bold,
                                     lineHeight = 35.sp,
-                                    color = Color.White
+                                    color = Color.White,
+                                    fontFamily = RobotoBold
                                 )
                             }
                         }
@@ -212,11 +224,11 @@ fun AnimeDetailScreen(
                             .background(color = Color(0xFF11212D))
                     ) {
                         Text(
-                            "Sinopsis",
+                            "Synopsis",
                             modifier = Modifier.padding(16.dp).fillMaxWidth(),
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.White,
+                            fontFamily = RobotoBold
                         )
                     }
                 }
@@ -233,7 +245,8 @@ fun AnimeDetailScreen(
                         Text(
                             "${animeDetail?.synopsis}",
                             color = Color.White,
-                            textAlign = TextAlign.Justify
+                            textAlign = TextAlign.Justify,
+                            fontFamily = RobotoRegular
                         )
                     }
                 }
@@ -247,8 +260,8 @@ fun AnimeDetailScreen(
                             "Informacion",
                             modifier = Modifier.padding(16.dp).fillMaxWidth(),
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.White,
+                            fontFamily = RobotoBold
                         )
                     }
                 }
@@ -435,10 +448,11 @@ fun AnimeDetailScreen(
                             animeDetail?.studios?.forEach { studios ->
                                 studios?.nameStudio?.let {
                                     Text(
+                                        maxLines = 1,
                                         text = it,
                                         color = Color.White,
                                         modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.End
+                                        textAlign = TextAlign.End,
                                     )
                                 }
                             }
@@ -460,20 +474,19 @@ fun AnimeDetailScreen(
                             "Personajes: ${animeCharactersDetail.size}",
                             modifier = Modifier.padding(16.dp).fillMaxWidth(),
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.White,
+                            fontFamily = RobotoBold
                         )
                     }
                 }
 
                 item {
-                    // Aquí va la LazyRow con los personajes
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp)
                     ) {
                         items(animeCharactersDetail) { character ->
-                            character?.let {
+                            character?.let { it ->
                                 val imageUrl = it.imageCharacter?.jpg?.imageUrl ?: ""
 
                                 Column(
@@ -496,11 +509,10 @@ fun AnimeDetailScreen(
                                                     .clickable() {
                                                         val characterIdToNavigate = character.idCharacter
 
-                                                        if (characterIdToNavigate != null && characterIdToNavigate != 0) { // Asume que 0 no es un ID válido
+                                                        if (characterIdToNavigate != null && characterIdToNavigate != 0) { 
                                                             navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/$characterIdToNavigate")
                                                         } else {
                                                             Log.e("CharacterClick", "ID del personaje es nulo o inválido, no se puede navegar.")
-                                                            //Toast.makeText(LocalContext.current, "No se pudo cargar la información del personaje.", Toast.LENGTH_SHORT).show()
                                                         }
                                                     }
                                             )
