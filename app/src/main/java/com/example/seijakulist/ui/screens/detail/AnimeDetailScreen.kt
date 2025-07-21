@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -30,6 +31,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -121,427 +123,448 @@ fun AnimeDetailScreen(
         }
 
         else -> {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-                    .background(color = Color(0xFF06141B))
-            ) {
-                item {
+            Scaffold(
+                topBar = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(color = Color(0xFF121212))
+                    ) {
+                        Text(
+                            text = "Detalle",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontFamily = RobotoBold,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
 
-                    CenterAlignedTopAppBar(
-                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            containerColor = Color(
-                                0xFF11212D
+                        IconButton(
+                            onClick = { navController.popBackStack() },
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver atras",
+                                tint = Color.White
                             )
-                        ),
-                        title = {
-                            Text(
-                                text = "Detalle",
-                                color = Color.White
+                        }
+                    }
+                },
+                containerColor = Color(0xFF050505)
+            ) { innerPadding ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .background(color = Color(0xFF06141B))
+                ) {
+
+
+                    item {
+                        Box {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(animeDetail?.imageUrl)
+                                    .size(Size.ORIGINAL)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Imagen de ${animeDetail?.title}",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
                             )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Volver atrás",
-                                    tint = Color.White
-                                )
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .background(Color.Black.copy(alpha = 0.7f))
+                            )
+
+                            Box {
+                                Row(
+                                    modifier = Modifier.padding(
+                                        start = 16.dp,
+                                        top = 200.dp,
+                                        end = 16.dp,
+                                        bottom = 16.dp
+                                    )
+                                ) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(animeDetail?.imageUrl)
+                                            .size(Size.ORIGINAL)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Imagen de ${animeDetail?.title}",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .width(150.dp)
+                                            .height(223.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                    )
+                                    Text(
+                                        "${animeDetail?.title}",
+                                        modifier = Modifier.padding(
+                                            start = 16.dp,
+                                            top = 114.dp, // Este padding TOP dentro de la imagen es alto.
+                                            // Puede que quieras revisarlo para que no empuje el título tan abajo.
+                                            end = 16.dp,
+                                            bottom = 16.dp
+                                        ),
+                                        fontSize = 30.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        lineHeight = 35.sp,
+                                        color = Color.White,
+                                        fontFamily = RobotoBold
+                                    )
+                                }
                             }
                         }
-                    )
+                    }
 
-
-                }
-
-                item {
-
-                    Box {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(animeDetail?.imageUrl)
-                                .size(Size.ORIGINAL)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "Imagen de ${animeDetail?.title}",
-                            contentScale = ContentScale.Crop,
+                    item {
+                        Column(
                             modifier = Modifier
+                                .height(60.dp)
                                 .fillMaxWidth()
-                                .height(300.dp)
-                        )
+                                .background(color = Color(0xFF11212D))
+                        ) {
+                            Text(
+                                "Synopsis",
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                fontSize = 20.sp,
+                                color = Color.White,
+                                fontFamily = RobotoBold
+                            )
+                        }
+                    }
 
-                        Box(
+                    item {
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp)
-                                .background(Color.Black.copy(alpha = 0.7f))
-                        )
-
-                        Box {
-                            Row(
-                                modifier = Modifier.padding(
+                                .padding(
                                     start = 16.dp,
-                                    top = 200.dp,
+                                    top = 16.dp,
                                     end = 16.dp,
                                     bottom = 16.dp
                                 )
-                            ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(animeDetail?.imageUrl)
-                                        .size(Size.ORIGINAL)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = "Imagen de ${animeDetail?.title}",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .width(150.dp)
-                                        .height(223.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                )
-                                Text(
-                                    "${animeDetail?.title}",
-                                    modifier = Modifier.padding(
-                                        start = 16.dp,
-                                        top = 114.dp,
-                                        end = 16.dp,
-                                        bottom = 16.dp
-                                    ),
-                                    fontSize = 30.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    lineHeight = 35.sp,
-                                    color = Color.White,
-                                    fontFamily = RobotoBold
-                                )
-                            }
-                        }
-                    }
-
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier.height(60.dp).fillMaxWidth()
-                            .background(color = Color(0xFF11212D))
-                    ) {
-                        Text(
-                            "Synopsis",
-                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                            fontSize = 20.sp,
-                            color = Color.White,
-                            fontFamily = RobotoBold
-                        )
-                    }
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier.padding(
-                            start = 16.dp,
-                            top = 16.dp,
-                            end = 16.dp,
-                            bottom = 16.dp
-                        ).fillMaxWidth()
-                    ) {
-                        Text(
-                            "${animeDetail?.synopsis}",
-                            color = Color.White,
-                            textAlign = TextAlign.Justify,
-                            fontFamily = RobotoRegular
-                        )
-                    }
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier.height(60.dp).fillMaxWidth()
-                            .background(color = Color(0xFF11212D))
-                    ) {
-                        Text(
-                            "Informacion",
-                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                            fontSize = 20.sp,
-                            color = Color.White,
-                            fontFamily = RobotoBold
-                        )
-                    }
-                }
-
-                item {
-
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
                                 .fillMaxWidth()
                         ) {
                             Text(
-                                "Genero:",
-                                textAlign = TextAlign.Start,
+                                "${animeDetail?.synopsis}",
+                                color = Color.White,
+                                textAlign = TextAlign.Justify,
+                                fontFamily = RobotoRegular
+                            )
+                        }
+                    }
+
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .height(60.dp)
+                                .fillMaxWidth()
+                                .background(color = Color(0xFF11212D))
+                        ) {
+                            Text(
+                                "Informacion",
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                fontSize = 20.sp,
+                                color = Color.White,
+                                fontFamily = RobotoBold
+                            )
+                        }
+                    }
+
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Genero:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                                ) {
+                                    animeDetail?.genres?.forEach { genre ->
+                                        genre?.name?.let {
+                                            Text(
+                                                text = it,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = Color.White,
+                                                modifier = Modifier
+                                                    .background(
+                                                        Color.DarkGray,
+                                                        RoundedCornerShape(8.dp)
+                                                    )
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                                textAlign = TextAlign.End
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
                                 color = Color.White
                             )
                             Row(
                                 modifier = Modifier
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                                    .fillMaxWidth()
                             ) {
-                                animeDetail?.genres?.forEach { genre ->
-                                    genre?.name?.let {
+                                Text(
+                                    "Tipo de anime:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "${animeDetail?.animeType}",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.End,
+                                    color = Color.White
+                                )
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
+                                color = Color.White
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Estado:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "${animeDetail?.status}",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.End,
+                                    color = Color.White
+                                )
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
+                                color = Color.White
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Puntuacion de la comunidad:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "${animeDetail?.score}",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.End,
+                                    color = Color.White
+                                )
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
+                                color = Color.White
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Episodios:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "${animeDetail?.episodes}",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.End,
+                                    color = Color.White
+                                )
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
+                                color = Color.White
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Duracion:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "${animeDetail?.duration}",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.End,
+                                    color = Color.White
+                                )
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
+                                color = Color.White
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Transmitido:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                Text(
+                                    "${animeDetail?.aired?.airedString}",
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.End,
+                                    color = Color.White
+                                )
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
+                                color = Color.White
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Estudio:",
+                                    textAlign = TextAlign.Start,
+                                    color = Color.White
+                                )
+                                animeDetail?.studios?.forEach { studios ->
+                                    studios?.nameStudio?.let {
                                         Text(
+                                            maxLines = 1,
                                             text = it,
-                                            style = MaterialTheme.typography.labelSmall,
                                             color = Color.White,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            textAlign = TextAlign.End,
+                                        )
+                                    }
+                                }
+                            }
+                            HorizontalDivider(
+                                Modifier.padding(vertical = 15.dp),
+                                DividerDefaults.Thickness,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .height(60.dp)
+                                .fillMaxWidth()
+                                .background(color = Color(0xFF11212D))
+                        ) {
+                            Text(
+                                "Personajes: ${animeCharactersDetail.size}",
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                fontSize = 20.sp,
+                                color = Color.White,
+                                fontFamily = RobotoBold
+                            )
+                        }
+                    }
+
+                    item {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp)
+                        ) {
+                            items(animeCharactersDetail) { character ->
+                                character?.let { it ->
+                                    val imageUrl = it.imageCharacter?.jpg?.imageUrl ?: ""
+
+                                    Column(
+                                        modifier = Modifier
+                                            .width(140.dp)
+                                            .padding(8.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(imageUrl)
+                                                .size(Size.ORIGINAL)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "Imagen de personaje",
+                                            contentScale = ContentScale.Crop,
                                             modifier = Modifier
-                                                .background(
-                                                    Color.DarkGray,
-                                                    RoundedCornerShape(8.dp)
-                                                )
-                                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                                            textAlign = TextAlign.End
+                                                .size(120.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable() {
+                                                    val characterIdToNavigate = character.idCharacter
+
+                                                    if (characterIdToNavigate != null && characterIdToNavigate != 0) {
+                                                        navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/$characterIdToNavigate")
+                                                    } else {
+                                                        Log.e("CharacterClick", "ID del personaje es nulo o inválido, no se puede navegar.")
+                                                    }
+                                                }
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = it.nameCharacter?.takeIf { it.isNotBlank() }
+                                                ?: "Nombre desconocido",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = it.role ?: "No especificado",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            color = Color.White
                                         )
                                     }
                                 }
                             }
                         }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Tipo de anime:",
-                                textAlign = TextAlign.Start,
-                                color = Color.White
-                            )
-                            Text(
-                                "${animeDetail?.animeType}",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                color = Color.White
-                            )
-                        }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Estado:",
-                                textAlign = TextAlign.Start,
-                                color = Color.White
-                            )
-                            Text(
-                                "${animeDetail?.status}",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                color = Color.White
-                            )
-                        }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Puntuacion de la comunidad:",
-                                textAlign = TextAlign.Start,
-                                color = Color.White
-                            )
-                            Text(
-                                "${animeDetail?.score}",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                color = Color.White
-                            )
-                        }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Episodios:",
-                                textAlign = TextAlign.Start,
-                                color = Color.White
-                            )
-                            Text(
-                                "${animeDetail?.episodes}",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                color = Color.White
-                            )
-                        }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Duracion:",
-                                textAlign = TextAlign.Start,
-                                color = Color.White
-                            )
-                            Text(
-                                "${animeDetail?.duration}",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                color = Color.White
-                            )
-                        }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Transmitido:",
-                                textAlign = TextAlign.Start,
-                                color = Color.White
-                            )
-                            Text(
-                                "${animeDetail?.aired?.airedString}",
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.End,
-                                color = Color.White
-                            )
-                        }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                "Estudio:",
-                                textAlign = TextAlign.Start,
-                                color = Color.White
-                            )
-                            animeDetail?.studios?.forEach { studios ->
-                                studios?.nameStudio?.let {
-                                    Text(
-                                        maxLines = 1,
-                                        text = it,
-                                        color = Color.White,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.End,
-                                    )
-                                }
-                            }
-                        }
-                        HorizontalDivider(
-                            Modifier.padding(vertical = 15.dp),
-                            DividerDefaults.Thickness,
-                            color = Color.White
-                        )
                     }
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier.height(60.dp).fillMaxWidth()
-                            .background(color = Color(0xFF11212D))
-                    ) {
-                        Text(
-                            "Personajes: ${animeCharactersDetail.size}",
-                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                            fontSize = 20.sp,
-                            color = Color.White,
-                            fontFamily = RobotoBold
-                        )
-                    }
-                }
-
-                item {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp)
-                    ) {
-                        items(animeCharactersDetail) { character ->
-                            character?.let { it ->
-                                val imageUrl = it.imageCharacter?.jpg?.imageUrl ?: ""
-
-                                Column(
-                                    modifier = Modifier
-                                        .width(140.dp)
-                                        .padding(8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                            AsyncImage(
-                                                model = ImageRequest.Builder(LocalContext.current)
-                                                    .data(imageUrl)
-                                                    .size(Size.ORIGINAL)
-                                                    .crossfade(true)
-                                                    .build(),
-                                                contentDescription = "Imagen de personaje",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .size(120.dp)
-                                                    .clip(RoundedCornerShape(8.dp))
-                                                    .clickable() {
-                                                        val characterIdToNavigate = character.idCharacter
-
-                                                        if (characterIdToNavigate != null && characterIdToNavigate != 0) { 
-                                                            navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/$characterIdToNavigate")
-                                                        } else {
-                                                            Log.e("CharacterClick", "ID del personaje es nulo o inválido, no se puede navegar.")
-                                                        }
-                                                    }
-                                            )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = it.nameCharacter?.takeIf { it.isNotBlank() }
-                                            ?: "Nombre desconocido",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        color = Color.White
-                                    )
-                                    Text(
-                                        text = it.role ?: "No especificado",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        }
-
-                    }
-
                 }
             }
         }

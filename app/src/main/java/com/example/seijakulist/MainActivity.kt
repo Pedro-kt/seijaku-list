@@ -1,7 +1,6 @@
 package com.example.seijakulist
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,7 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.screens.detail.AnimeDetailScreen
-import com.example.seijakulist.ui.screens.myAnimes.MyAnimesScreen
+import com.example.seijakulist.ui.screens.home.MyAnimesScreen
 import com.example.seijakulist.ui.screens.profile.ProfileScreen
 import com.example.seijakulist.ui.screens.search.SearchScreen
 import com.example.seijakulist.ui.theme.SeijakuListTheme

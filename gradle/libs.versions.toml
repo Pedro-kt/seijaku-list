@@ -19,6 +19,7 @@ hilt = "2.56.2"
 material3 = "1.3.2"
 navigationCompose = "2.8.2" #anadi esto para navegation, si no compila borrar o cambiar de version
 kotlinSerialization = "1.7.1" #anadi esto para navegation, si no compila borrar o cambiar de version
+materialIconsExtended = "1.6.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,6 +50,7 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" } #anadi esto para navegation, si no compila borrar o cambiar de version
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" } #anadi esto para navegation, si no compila borrar o cambiar de version
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
