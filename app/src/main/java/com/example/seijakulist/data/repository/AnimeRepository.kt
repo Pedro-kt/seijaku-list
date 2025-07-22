@@ -12,9 +12,11 @@ import com.example.seijakulist.data.remote.models.AnimeDetailDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.StudiosDto
+import com.example.seijakulist.data.remote.models.anime_season_now.AnimeDetailSeasonNowResponseDto
 import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.domain.models.AnimeDetail
+import com.example.seijakulist.domain.models.AnimeDetailSeasonNow
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.models.CharacterPictures
 import javax.inject.Inject
@@ -107,5 +109,12 @@ class AnimeRepository @Inject constructor(
 
         return characterPictures
     }
+
+    suspend fun searchAnimeSeasonNow(): AnimeDetailSeasonNowResponseDto {
+
+        return ApiService.getAnimeSeasonNow()
+
+    }
+
 
 }

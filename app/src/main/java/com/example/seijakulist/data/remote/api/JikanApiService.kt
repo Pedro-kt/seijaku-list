@@ -3,8 +3,10 @@ package com.example.seijakulist.data.remote.api
 import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
+import com.example.seijakulist.data.remote.models.anime_season_now.AnimeDetailSeasonNowResponseDto
 import com.example.seijakulist.data.remote.models.character_detail.CharacterResponseDto
 import com.example.seijakulist.data.remote.models.character_pictures.CharacterPicturesResponseDto
+import com.example.seijakulist.domain.models.AnimeDetailSeasonNow
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Path
@@ -40,4 +42,7 @@ interface JikanApiService {
     suspend fun getCharacterPictures(
         @Path("id") characterId: Int?
     ): CharacterPicturesResponseDto
+
+    @GET("seasons/now")
+    suspend fun getAnimeSeasonNow(): AnimeDetailSeasonNowResponseDto
 }

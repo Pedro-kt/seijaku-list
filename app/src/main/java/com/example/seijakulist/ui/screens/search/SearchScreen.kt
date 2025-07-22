@@ -70,18 +70,12 @@ fun SearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color(0xFF050505))
-            // ✨ Aplica statusBarsPadding() al contenedor más externo,
-            // que es el que se moverá para no quedar detrás de la barra de estado.
             .statusBarsPadding()
-            // ✨ El padding horizontal de 16.dp, lo movemos aquí para que afecte solo al contenido
-            // y no al espacio de la barra de estado que es añadido por statusBarsPadding()
-            .padding(horizontal = 16.dp) // Ahora, esto se aplica *después* de statusBarsPadding
+            .padding(horizontal = 16.dp)
     ) {
-        // La Row de tu barra de búsqueda
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-            // ✨ No es necesario padding(top) aquí, statusBarsPadding() ya lo maneja desde el Column
             ,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -123,12 +117,10 @@ fun SearchScreen(
 
             Box(
                 modifier = Modifier
-                    // ✨ ELIMINA ESTE PADDING TOP para alinear con el TextField
-                    // .padding(top = 7.dp)
                     .size(36.dp)
                     .clip(CircleShape)
                     .clickable {  },
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
@@ -155,9 +147,6 @@ fun SearchScreen(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                // ✨ contentPadding en LazyGrid si no quieres que el padding de la columna afecte a los ítems.
-                // Si quieres que el padding horizontal de 16.dp afecte a todo el grid,
-                // ya está manejado por la Column superior.
                 contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp)
             ) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
@@ -165,7 +154,8 @@ fun SearchScreen(
                         text = "Resultados para: $searchQuery",
                         // ✨ El padding horizontal ya viene de la Column superior, así que podrías ajustarlo
                         modifier = Modifier.padding(top = 10.dp, bottom = 10.dp), // end = 16.dp ya no es necesario
-                        color = Color.White
+                        color = Color.White,
+                        fontFamily = RobotoRegular
                     )
                 }
                 items(animeList, key = { it.malId }) { anime ->
