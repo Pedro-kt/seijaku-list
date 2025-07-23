@@ -130,7 +130,7 @@ fun AnimeDetailScreen(
                             .fillMaxWidth()
                             .statusBarsPadding()
                             .height(48.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(24.dp))
                             .background(color = Color(0xFF121212))
                     ) {
                         Text(

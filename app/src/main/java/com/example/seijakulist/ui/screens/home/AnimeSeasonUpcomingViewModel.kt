@@ -3,9 +3,7 @@ package com.example.seijakulist.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.Anime
-import com.example.seijakulist.domain.models.AnimeDetailSeasonNow
-import com.example.seijakulist.domain.usecase.GetAnimeDetailSeasonNowUseCase
-import com.example.seijakulist.domain.usecase.GetAnimeSearchUseCase
+import com.example.seijakulist.domain.usecase.GetAnimeSeasonUpcomingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,9 +12,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AnimeSeasonNowViewModel @Inject constructor(
+class AnimeSeasonUpcomingViewModel @Inject constructor(
 
-    private val getAnimeDetailSeasonNowUseCase: GetAnimeDetailSeasonNowUseCase
+    private val getAnimeSeasonUpcomingUseCase: GetAnimeSeasonUpcomingUseCase
 
 ) : ViewModel() {
 
@@ -37,11 +35,11 @@ class AnimeSeasonNowViewModel @Inject constructor(
         // Esto evita múltiples llamadas si el ViewModel sobrevive a la recomposición
         // o si es la primera vez que se crea.
         if (!isDataLoaded) {
-            AnimesSeasonNow()
+            AnimesSeasonUpcoming()
         }
     }
 
-    fun AnimesSeasonNow() {
+    fun AnimesSeasonUpcoming() {
 
         viewModelScope.launch {
 
@@ -50,7 +48,7 @@ class AnimeSeasonNowViewModel @Inject constructor(
 
             try {
 
-                val results = getAnimeDetailSeasonNowUseCase()
+                val results = getAnimeSeasonUpcomingUseCase()
                 _animeList.value = results
                 isDataLoaded = true
 
@@ -66,4 +64,5 @@ class AnimeSeasonNowViewModel @Inject constructor(
             }
         }
     }
+
 }

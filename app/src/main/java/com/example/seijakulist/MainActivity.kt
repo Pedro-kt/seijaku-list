@@ -15,7 +15,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.screens.detail.AnimeDetailScreen
-import com.example.seijakulist.ui.screens.home.MyAnimesScreen
 import com.example.seijakulist.ui.screens.profile.ProfileScreen
 import com.example.seijakulist.ui.screens.search.SearchScreen
 import com.example.seijakulist.ui.theme.SeijakuListTheme
@@ -24,6 +23,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.seijakulist.ui.screens.characters.CharacterDetailScreen
+import com.example.seijakulist.ui.screens.home.HomeScreen
+import com.example.seijakulist.ui.screens.my_animes.MyAnimesScreen
+import com.example.seijakulist.ui.screens.my_mangas.MyMangasScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -49,10 +51,10 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.MY_ANIMES_ROUTE,
+        startDestination = AppDestinations.HOME,
     ) {
-        composable(AppDestinations.MY_ANIMES_ROUTE) {
-            MyAnimesScreen(navController)
+        composable(AppDestinations.HOME) {
+            HomeScreen(navController)
         }
         composable(AppDestinations.SEARCH_ANIME_ROUTE) {
             SearchScreen(navController = navController)
@@ -94,6 +96,12 @@ fun AppNavigation() {
                 Text("Error: personaje no encontrado")
             }
 
+        }
+        composable(AppDestinations.MY_MANGAS_ROUTE) {
+            MyMangasScreen(navController)
+        }
+        composable(AppDestinations.MY_ANIMES_ROUTE) {
+            MyAnimesScreen(navController)
         }
     }
 }

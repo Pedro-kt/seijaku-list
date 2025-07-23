@@ -1,20 +1,17 @@
 package com.example.seijakulist.domain.usecase
 
-import com.example.seijakulist.data.remote.models.GenreDto
 import com.example.seijakulist.data.repository.AnimeRepository
 import com.example.seijakulist.domain.models.Anime
-import com.example.seijakulist.domain.models.AnimeDetailSeasonNow
 import javax.inject.Inject
 
+class GetAnimeSeasonUpcomingUseCase @Inject constructor(
 
-class GetAnimeDetailSeasonNowUseCase @Inject constructor(
-    
     private val animeRepository: AnimeRepository
-    
+
 ) {
     suspend operator fun invoke(): List<Anime> {
 
-        val animeResponse = animeRepository.searchAnimeSeasonNow()
+        val animeResponse = animeRepository.searchAnimeSeasonUpcoming()
 
         val animeDtoList = animeResponse.data ?: emptyList()
 
@@ -31,5 +28,4 @@ class GetAnimeDetailSeasonNowUseCase @Inject constructor(
 
         return animeDomainList
     }
-
 }

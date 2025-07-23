@@ -110,10 +110,18 @@ class AnimeRepository @Inject constructor(
         return characterPictures
     }
 
-    suspend fun searchAnimeSeasonNow(): AnimeDetailSeasonNowResponseDto {
+    suspend fun searchAnimeSeasonNow(): SearchAnimeResponse {
 
         return ApiService.getAnimeSeasonNow()
 
+    }
+
+    suspend fun searchTopAnimes(): SearchAnimeResponse {
+        return ApiService.getTopAnime()
+    }
+
+    suspend fun searchAnimeSeasonUpcoming(): SearchAnimeResponse {
+        return ApiService.getSeasonUpcoming()
     }
 
 

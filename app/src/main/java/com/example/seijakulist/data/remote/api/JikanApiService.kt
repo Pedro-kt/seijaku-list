@@ -44,5 +44,11 @@ interface JikanApiService {
     ): CharacterPicturesResponseDto
 
     @GET("seasons/now")
-    suspend fun getAnimeSeasonNow(): AnimeDetailSeasonNowResponseDto
+    suspend fun getAnimeSeasonNow(): SearchAnimeResponse
+
+    @GET("top/anime")
+    suspend fun getTopAnime(): SearchAnimeResponse
+
+    @GET("seasons/upcoming")
+    suspend fun getSeasonUpcoming(): SearchAnimeResponse
 }

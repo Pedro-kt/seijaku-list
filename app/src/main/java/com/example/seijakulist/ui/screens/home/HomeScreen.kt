@@ -3,6 +3,7 @@ package com.example.seijakulist.ui.screens.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -65,18 +67,24 @@ data class BottomNavItem(
 
 
 @Composable
-fun MyAnimesScreen(
+fun HomeScreen(
     navController: NavController,
-    viewModel: AnimeSeasonNowViewModel = hiltViewModel()
+    seasonNowViewModel: AnimeSeasonNowViewModel = hiltViewModel(),
+    topAnimesViewModel: TopAnimeViewModel = hiltViewModel(),
+    seasonUpcomingViewModel: AnimeSeasonUpcomingViewModel = hiltViewModel()
 ) {
 
-    LaunchedEffect(key1 = Unit) {
-        viewModel.AnimesSeasonNow()
-    }
+    val animeSeasonNow by seasonNowViewModel.animeList.collectAsState()
+    val animeSeasonNowIsLoading by seasonNowViewModel.isLoading.collectAsState()
+    val animeSeasonNowErrorMessage by seasonNowViewModel.errorMessage.collectAsState()
 
-    val animeSeasonNow by viewModel.animeList.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val topAnimes by topAnimesViewModel.animeList.collectAsState()
+    val topAnimeIsLoading by topAnimesViewModel.isLoading.collectAsState()
+    val topAnimeErrorMessage by topAnimesViewModel.errorMessage.collectAsState()
+
+    val animeSeasonUpcoming by seasonUpcomingViewModel.animeList.collectAsState()
+    val animeSeasonUpcomingIsLoading by seasonUpcomingViewModel.isLoading.collectAsState()
+    val animeSeasonUpcomingErrorMessage by seasonUpcomingViewModel.errorMessage.collectAsState()
 
 
 
@@ -88,8 +96,8 @@ fun MyAnimesScreen(
     )
 
     val navItems = listOf(
-        BottomNavItem(name = "Mis Animes", icon = Icons.Default.Tv, route = ""),
-        BottomNavItem(name = "Mis Mangas", icon = Icons.AutoMirrored.Outlined.MenuBook, route = ""),
+        BottomNavItem(name = "Mis Animes", icon = Icons.Default.Tv, route = AppDestinations.MY_ANIMES_ROUTE),
+        BottomNavItem(name = "Mis Mangas", icon = Icons.AutoMirrored.Outlined.MenuBook, route = AppDestinations.MY_MANGAS_ROUTE),
         BottomNavItem(name = "Buscar", icon = Icons.Default.Search, route = AppDestinations.SEARCH_ANIME_ROUTE),
         BottomNavItem(name = "Perfil", icon = Icons.Default.AccountCircle, route = AppDestinations.MY_PROFILE_ROUTE)
     )
@@ -170,25 +178,218 @@ fun MyAnimesScreen(
                 .padding(innerPadding)
         ) {
 
-            if (isLoading) {
+            if (animeSeasonNowIsLoading) {
                 Text(
                     text = "Cargando animes...",
                     color = Color.White,
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp),
                     fontFamily = RobotoRegular
                 )
-            } else if (errorMessage != null) {
+            } else if (animeSeasonNowErrorMessage != null) {
                 Text(
-                    text = errorMessage!!,
+                    text = animeSeasonNowErrorMessage!!,
                     color = Color.Red,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             } else if (animeSeasonNow.isNotEmpty()) {
 
                 LazyColumn() {
+
                     item {
                         Text(
-                            text = "Animes en transmicion:",
+                            text = "Animes",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                                .padding(16.dp),
+                            fontFamily = RobotoBold
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = "En emision",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                                .padding(start = 16.dp, bottom = 16.dp),
+                            fontFamily = RobotoBold
+                        )
+                    }
+
+                    item {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(animeSeasonNow) { anime ->
+                                Column(
+                                    modifier = Modifier
+                                        .width(130.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box() {
+
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(anime.image)
+                                                .size(Size.ORIGINAL)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "Imagen de portada",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .width(130.dp)
+                                                .height(190.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable {
+                                                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                                                }
+                                        )
+
+                                        Row(
+                                            modifier = Modifier
+                                                .padding(start = 5.dp, top = 5.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(color = Color.Black.copy(alpha = 0.6f))
+                                                .height(24.dp)
+                                                .wrapContentWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = "Puntuacion",
+                                                tint = Color.White,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .size(12.dp)
+                                            )
+                                            Text(
+                                                text = anime.score.toString(),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                textAlign = TextAlign.Start,
+                                                modifier = Modifier.wrapContentWidth().padding(end = 6.dp),
+                                                color = Color.White,
+                                                fontSize = 12.sp,
+                                                fontFamily = RobotoBold
+                                            )
+                                        }
+                                    }
+
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = anime.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        color = Color.White,
+                                        fontFamily = RobotoRegular
+                                    )
+
+
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        Text(
+                            text = "Top",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                                .padding(16.dp),
+                            fontFamily = RobotoBold
+                        )
+                    }
+                    item {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(topAnimes) { anime ->
+                                Column(
+                                    modifier = Modifier
+                                        .width(130.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+
+                                    Box() {
+
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(anime.image)
+                                                .size(Size.ORIGINAL)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "Imagen de portada",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .width(130.dp)
+                                                .height(190.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable {
+                                                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                                                }
+                                        )
+
+                                        Row(
+                                            modifier = Modifier
+                                                .padding(start = 5.dp, top = 5.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(color = Color.Black.copy(alpha = 0.6f))
+                                                .height(24.dp)
+                                                .wrapContentWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = "Puntuacion",
+                                                tint = Color.White,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .size(12.dp)
+
+                                            )
+                                            Text(
+                                                text = anime.score.toString(),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                textAlign = TextAlign.Start,
+                                                modifier = Modifier.wrapContentWidth().padding(end = 6.dp),
+                                                color = Color.White,
+                                                fontSize = 12.sp,
+                                                fontFamily = RobotoBold
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = anime.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        color = Color.White,
+                                        fontFamily = RobotoRegular
+                                    )
+
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        Text(
+                            text = "Proxima temporada",
                             color = Color.White,
                             fontSize = 16.sp,
                             textAlign = TextAlign.Center,
@@ -202,30 +403,65 @@ fun MyAnimesScreen(
                         LazyRow(
                             modifier = Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            items(animeSeasonNow) { anime ->
+                            items(animeSeasonUpcoming) { anime ->
                                 Column(
                                     modifier = Modifier
-                                        .width(140.dp),
+                                        .width(130.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(anime.images)
-                                            .size(Size.ORIGINAL)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = "Imagen de portada",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .width(135.dp)
-                                            .height(190.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .clickable() {
-                                                navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                                            }
-                                    )
+                                    Box() {
+
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(anime.image)
+                                                .size(Size.ORIGINAL)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = "Imagen de portada",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .width(130.dp)
+                                                .height(190.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable {
+                                                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                                                }
+                                        )
+
+                                        Row(
+                                            modifier = Modifier
+                                                .padding(start = 5.dp, top = 5.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(color = Color.Black.copy(alpha = 0.6f))
+                                                .height(24.dp)
+                                                .wrapContentWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = "Puntuacion",
+                                                tint = Color.White,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .size(12.dp)
+                                            )
+                                            Text(
+                                                text = anime.score.toString(),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                textAlign = TextAlign.Start,
+                                                modifier = Modifier.wrapContentWidth().padding(end = 6.dp),
+                                                color = Color.White,
+                                                fontSize = 12.sp,
+                                                fontFamily = RobotoBold
+                                            )
+                                        }
+                                    }
+
+
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = anime.title,
@@ -236,32 +472,38 @@ fun MyAnimesScreen(
                                         color = Color.White,
                                         fontFamily = RobotoRegular
                                     )
-                                    Row(modifier = Modifier.padding(start = 3.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Puntuacion",
-                                            tint = Color.White,
-                                            modifier = Modifier
-                                                .size(14.dp)
-                                                .align(alignment = Alignment.CenterVertically)
-                                        )
-                                        Text(
-                                            text = anime.score.toString(),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            textAlign = TextAlign.Start,
-                                            modifier = Modifier.fillMaxWidth(),
-                                            color = Color.White,
-                                            fontSize = 12.sp
-                                        )
-                                    }
+
 
                                 }
                             }
                         }
                     }
-                }
+                    item {
+                        Text(
+                            text = "Mangas",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                                .padding(16.dp),
+                            fontFamily = RobotoBold
+                        )
+                    }
+                    item {
+                        Text(
+                            text = "No tenemos mangas disponibles... en futuras versiones lo implementare :)",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                                .padding(16.dp),
+                            fontFamily = RobotoBold
+                        )
+                    }
 
+
+
+                }
             } else {
                 Text(
                     text = "No se encontraron animes.",
