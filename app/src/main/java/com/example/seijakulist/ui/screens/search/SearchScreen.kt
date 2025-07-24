@@ -131,7 +131,7 @@ fun SearchScreen(
             }
         }
 
-        Spacer(Modifier.height(10.dp)) // Espacio entre la barra de búsqueda y los resultados
+        Spacer(Modifier.height(10.dp))
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -152,10 +152,10 @@ fun SearchScreen(
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = "Resultados para: $searchQuery",
-                        // ✨ El padding horizontal ya viene de la Column superior, así que podrías ajustarlo
-                        modifier = Modifier.padding(top = 10.dp, bottom = 10.dp), // end = 16.dp ya no es necesario
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
                         color = Color.White,
-                        fontFamily = RobotoRegular
+                        fontFamily = RobotoBold,
                     )
                 }
                 items(animeList, key = { it.malId }) { anime ->

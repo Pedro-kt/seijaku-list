@@ -9,14 +9,22 @@ data class AnimeDetailResponseDto(
 data class AnimeDetailDto(
     @SerializedName("mal_id") val malId: Int,
     val title: String,
+    @SerializedName("title_english") val titleEnglish: String?,
+    @SerializedName("title_japanese") val titleJapanese: String?,
     val images: ImagesDto?,
-    val synopsis: String?,
+    @SerializedName("type") val typeAnime: String?,
+    val source: String?,
     val episodes: Int?,
-    val duration: String?,
-    val genres: List<GenreDto?>,
-    val score: Float?,
     val status: String?,
-    @SerializedName("type") val animeType: String?,
     val aired: AiredDto?,
-    @SerializedName("studios") val studios: List<StudiosDto?>
+    val duration: String?,
+    val rating: String?,
+    val score: Float?,
+    @SerializedName("score_by") val scoreBy: Int?,
+    val rank: Int?,
+    val synopsis: String?,
+    val season: String?,
+    val year: Int?,
+    val studios: List<StudiosDto?>,
+    val genres: List<GenreDto?>
 )

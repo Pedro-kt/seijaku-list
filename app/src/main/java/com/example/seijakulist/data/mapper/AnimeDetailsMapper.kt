@@ -7,17 +7,25 @@ fun AnimeDetailDto.toAnimeDetails(): AnimeDetail {
     return AnimeDetail(
         malId = malId,
         title = title,
-        imageUrl = this.images?.webp?.largeImageUrl
+        titleEnglish = titleEnglish ?: "No encontrado",
+        titleJapanese = titleJapanese ?: "No encontrado",
+        images = this.images?.webp?.largeImageUrl
             ?: images?.jpg?.largeImageUrl
             ?: "URL de imagen predeterminada",
-        synopsis = synopsis,
+        synopsis = synopsis ?: "Synopsis no encontrada",
         episodes = episodes ?: 0,
-        duration = duration,
+        duration = duration ?: "Duracion no obtenida",
         genres = genres,
-        score = score,
-        status = status,
-        animeType = animeType,
-        aired = aired,
-        studios = studios
+        score = score ?: 0.0f,
+        status = status ?: "No encontrado",
+        typeAnime = typeAnime ?: "No encontrado",
+        aired = aired?.airedString ?: "No encontrado",
+        source = source ?: "No encontrado",
+        studios = studios,
+        rating = rating ?: "No encontrado",
+        scoreBy = scoreBy ?: 0,
+        rank = rank ?: 0,
+        season = season ?: "No encontrado",
+        year = year ?: 0
     )
 }

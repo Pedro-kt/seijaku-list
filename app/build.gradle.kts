@@ -1,4 +1,3 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -70,7 +69,7 @@ dependencies {
 
     // Room
     implementation(libs.room.runtime)
-    ksp(libs.room.compiler) // KSP para el procesador de anotaciones
+    ksp(libs.room.ksp)
     implementation(libs.room.ktx)
 
     // Coil para imágenes

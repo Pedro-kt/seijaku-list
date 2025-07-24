@@ -24,7 +24,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.seijakulist.ui.screens.characters.CharacterDetailScreen
 import com.example.seijakulist.ui.screens.home.HomeScreen
-import com.example.seijakulist.ui.screens.my_animes.MyAnimesScreen
+import com.example.seijakulist.ui.screens.my_animes.MyAnimeListScreen
 import com.example.seijakulist.ui.screens.my_mangas.MyMangasScreen
 
 @AndroidEntryPoint
@@ -74,10 +74,6 @@ fun AppNavigation() {
             if (animeId != null) {
                 AnimeDetailScreen(navController, animeId = animeId)
             } else {
-                //manejo de errores para mas adelante
-
-                //Log.e("NavError", "Anime ID is was null when navigating to detail screen.")
-                //navController.popBackStack()
                 Text("Error: anime no encontrado")
             }
         }
@@ -101,7 +97,7 @@ fun AppNavigation() {
             MyMangasScreen(navController)
         }
         composable(AppDestinations.MY_ANIMES_ROUTE) {
-            MyAnimesScreen(navController)
+            MyAnimeListScreen(navController)
         }
     }
 }

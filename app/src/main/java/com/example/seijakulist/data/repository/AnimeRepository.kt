@@ -1,6 +1,10 @@
 package com.example.seijakulist.data.repository
 
 import android.util.Log
+import com.example.seijakulist.data.local.dao.AnimeDao
+import com.example.seijakulist.data.local.entities.AnimeEntity
+import com.example.seijakulist.data.mapper.local.toAnimeDomain
+import com.example.seijakulist.data.mapper.local.toAnimeEntity
 import com.example.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.example.seijakulist.data.mapper.toAnimeDetails
 import com.example.seijakulist.data.mapper.toCharacterDetail
@@ -19,11 +23,14 @@ import com.example.seijakulist.domain.models.AnimeDetail
 import com.example.seijakulist.domain.models.AnimeDetailSeasonNow
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.models.CharacterPictures
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AnimeRepository @Inject constructor(
 
-    private val ApiService: JikanApiService
+    private val ApiService: JikanApiService,
+    private val animeDao: AnimeDao
 
 ) {
 
@@ -122,6 +129,28 @@ class AnimeRepository @Inject constructor(
 
     suspend fun searchAnimeSeasonUpcoming(): SearchAnimeResponse {
         return ApiService.getSeasonUpcoming()
+    }
+
+    //DB LOCAL
+
+    suspend fun insertAnime(anime: AnimeEntity) {
+        animeDao.insertAnime(anime)
+    }
+
+    suspend fun insertAllAnimes(animes: List<AnimeEntity>) {
+        animeDao.insertAllAnimes(animes)
+    }
+
+    suspend fun deleteAnimeById(animeId: Int) {
+        animeDao.deleteAnimeById(animeId)
+    }
+
+    fun getAllAnimes(): Flow<List<AnimeEntity>> {
+        return animeDao.getAllAnimes()
+    }
+
+    fun isAnimeInList(animeId: Int): Flow<Boolean> {
+        return animeDao.isAnimeInList(animeId)
     }
 
 
