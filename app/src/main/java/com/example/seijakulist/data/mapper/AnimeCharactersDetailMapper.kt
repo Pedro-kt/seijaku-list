@@ -1,8 +1,6 @@
 package com.example.seijakulist.data.mapper
 
 import com.example.seijakulist.data.remote.models.AnimeCharactersDto
-import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
-import com.example.seijakulist.data.remote.models.StudiosDto
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 
 
@@ -14,7 +12,7 @@ fun List<AnimeCharactersDto?>.toAnimeCharactersDetail(): List<AnimeCharactersDet
                 idCharacter = dto.character?.idCharacter,
                 imageCharacter = dto.character?.imageCharacter,
                 nameCharacter = dto.character?.nameCharacter,
-                role = dto.role
+                role = dto.role ?: ""
             )
         } else {
             null

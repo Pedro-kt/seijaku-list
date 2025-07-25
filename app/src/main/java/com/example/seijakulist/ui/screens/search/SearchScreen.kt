@@ -1,10 +1,14 @@
 package com.example.seijakulist.ui.screens.search
 
+import android.app.appsearch.SearchResults
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.Button
@@ -12,6 +16,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -19,7 +24,17 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -29,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,9 +53,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,8 +66,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.components.ArrowBackTopAppBar
+import com.example.seijakulist.ui.components.FilterTopAppBar
+import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.S)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     viewModel: AnimeSearchViewModel = hiltViewModel(),
@@ -66,6 +91,11 @@ fun SearchScreen(
         Font(R.font.roboto_bold, FontWeight.Bold)
     )
 
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    val listFilterChip = listOf("Anime", "Manga", "Generos", "Personajes", "Staff", "Estudios")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,20 +104,20 @@ fun SearchScreen(
             .padding(horizontal = 16.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-            ,
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 10.dp),
+                    .weight(1f),
                 value = searchQuery,
                 onValueChange = { newText -> viewModel.onSearchQueryChanged(newText) },
-                label = { Text("Buscar anime...", color = Color.White) },
+                label = {
+                    Text("Buscar...", color = Color.White)
+                },
+                placeholder = { Text(text = "Ingrese término de búsqueda...", color = Color.White.copy(alpha = 0.5f), modifier = Modifier.padding(start = 4.dp)) },
                 singleLine = true,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(50.dp),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
@@ -95,38 +125,86 @@ fun SearchScreen(
                     unfocusedContainerColor = Color(0xFF050505),
                     focusedIndicatorColor = Color.White.copy(alpha = 0.5f),
                     unfocusedIndicatorColor = Color.White.copy(alpha = 0.3f),
-                    cursorColor = Color.White
+                    cursorColor = Color.White,
+                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
                 ),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Buscar",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
                 trailingIcon = {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .clickable { viewModel.searchAnimes() },
-                        contentAlignment = Alignment.Center
-                    ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else if (searchQuery.isNotBlank()) {
                         Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Icono de búsqueda",
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Eliminar texto de búsqueda",
                             tint = Color.White,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier
+                                .padding(end = 6.dp)
+                                .size(24.dp)
+                                .clickable {
+                                    viewModel.onSearchQueryChanged("")
+                                    focusManager.clearFocus()
+                                }
                         )
                     }
-                }
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        viewModel.searchAnimes()
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    }
+                ),
             )
+        }
 
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .clickable {  },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Filtros",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = "Icono de filtrar por",
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el icono y el texto
+            Text(
+                text = "Filtrar por:",
+                color = Color.White,
+                fontSize = 16.sp
+            )
+        }
+
+        LazyRow(
+        ) {
+            items(listFilterChip) { genre ->
+                FilterChip(
+                    selected = true,
+                    onClick = {
+                    },
+                    label = { Text(genre, color = Color.White) },
+                    modifier = Modifier.padding(end = 8.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = Color(0xFF050505),
+                        labelColor = Color.White,
+                        selectedContainerColor = Color(0xFF121212),
+                        selectedLabelColor = Color.White
+                    )
                 )
             }
         }
@@ -135,7 +213,7 @@ fun SearchScreen(
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color.White)
+                LoadingScreen()
             }
         } else if (errorMessage != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

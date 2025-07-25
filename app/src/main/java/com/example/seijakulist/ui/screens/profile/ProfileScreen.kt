@@ -3,6 +3,7 @@ package com.example.seijakulist.ui.screens.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +33,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -50,6 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.components.ArrowBackTopAppBar
+import com.example.seijakulist.ui.components.BottomNavItemScreen
+import com.example.seijakulist.ui.components.FilterTopAppBar
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.screens.home.BottomNavItem
 import java.nio.file.WatchEvent
@@ -79,39 +85,28 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .height(48.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(color = Color(0xFF121212))
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                ArrowBackTopAppBar(navController)
                 Text(
                     text = "Perfil",
                     color = Color.White,
                     fontSize = 18.sp,
-                    fontFamily = RobotoBold,
-                    modifier = Modifier.align(Alignment.Center)
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                    fontFamily = RobotoBold
                 )
-
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver atras",
-                        tint = Color.White
-                    )
-                }
                 IconButton(
                     onClick = {  },
                     modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
@@ -123,47 +118,7 @@ fun ProfileScreen(
         },
         containerColor = Color(0xFF050505),
         bottomBar = {
-            NavigationBar(
-                containerColor = Color(0xFF121212),
-
-                modifier = Modifier.navigationBarsPadding().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            ) {
-                navItems.forEach { item ->
-                    NavigationBarItem(
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            if (currentRoute != item.route) {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.name,
-                                tint = if (currentRoute == item.route) Color.White else Color.White.copy(alpha = 0.6f)
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = item.name,
-                                color = if (currentRoute == item.route) Color.White else Color.White.copy(alpha = 0.6f),
-                                fontFamily = RobotoRegular
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White,
-                            selectedTextColor = Color.White,
-                            unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                            unselectedTextColor = Color.White.copy(alpha = 0.6f),
-                            indicatorColor = Color(0xFF050505)
-                        )
-                    )
-                }
-            }
+            BottomNavItemScreen(navController)
         }
     ) { innerPadding ->
         LazyColumn(
@@ -172,7 +127,9 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .background(color = Color(0xFF050505))
         ) {
+            item {
 
+            }
         }
     }
 }

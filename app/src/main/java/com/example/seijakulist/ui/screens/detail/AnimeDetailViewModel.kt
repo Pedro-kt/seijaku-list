@@ -68,4 +68,18 @@ class AnimeDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun deleteAnimeToList(animeId: Int) {
+
+        viewModelScope.launch {
+            try {
+
+                repository.deleteAnimeById(animeId)
+
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al eliminar el anime: ${e.message}")
+            }
+        }
+
+    }
 }

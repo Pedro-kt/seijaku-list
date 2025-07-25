@@ -31,24 +31,37 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
@@ -56,7 +69,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -77,6 +93,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -86,8 +104,11 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
+import com.example.seijakulist.ui.components.BottomNavItemScreen
+import com.example.seijakulist.ui.components.TitleScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.screens.home.BottomNavItem
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,15 +146,9 @@ fun AnimeDetailScreen(
         label = "button_scale_animation"
     )
 
-    val navItems = listOf(
-        BottomNavItem(name = "Mis Animes", icon = Icons.Default.Tv, route = AppDestinations.MY_ANIMES_ROUTE),
-        BottomNavItem(name = "Mis Mangas", icon = Icons.AutoMirrored.Outlined.MenuBook, route = AppDestinations.MY_MANGAS_ROUTE),
-        BottomNavItem(name = "Home", icon = Icons.Default.Home, route = AppDestinations.HOME),
-        BottomNavItem(name = "Buscar", icon = Icons.Default.Search, route = AppDestinations.SEARCH_ANIME_ROUTE),
-        BottomNavItem(name = "Perfil", icon = Icons.Default.AccountCircle, route = AppDestinations.MY_PROFILE_ROUTE)
-    )
-
-    val currentRoute = navController.currentBackStackEntry?.destination?.route
+    //snakbar de notificacion
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(key1 = animeId) {
         if (animeId != null) {
@@ -142,15 +157,18 @@ fun AnimeDetailScreen(
         }
     }
 
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+
     when {
         isLoading -> {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF050505)),
+                    .background(Color(0xFF050505))
+                    .fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color.White)
+                LinearProgressIndicator(color = Color.White, trackColor = Color.DarkGray)
             }
         }
 
@@ -201,6 +219,18 @@ fun AnimeDetailScreen(
                                 tint = Color.White
                             )
                         }
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Compartir",
+                                tint = Color.White
+                            )
+                        }
                     }
                 },
                 containerColor = Color(0xFF050505),
@@ -217,6 +247,9 @@ fun AnimeDetailScreen(
                         interactionSource = interactionSource,
                         onClick = {
                             animeDetailViewModel.addAnimeToList()
+                            scope.launch {
+                                snackbarHostState.showSnackbar(message = "Anime agregado a tu lista", actionLabel = "Deshacer", duration = SnackbarDuration.Long)
+                            }
                         },
                         containerColor = Color.White,
                         contentColor = contentColorFor(backgroundColor = Color.White)
@@ -228,48 +261,25 @@ fun AnimeDetailScreen(
                         )
                     }
                 },
-
                 bottomBar = {
                     NavigationBar(
                         containerColor = Color(0xFF121212),
 
                         modifier = Modifier.navigationBarsPadding().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     ) {
-                        navItems.forEach { item ->
-                            NavigationBarItem(
-                                selected = currentRoute == item.route,
-                                onClick = {
-                                    if (currentRoute != item.route) {
-                                        navController.navigate(item.route) {
-                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = item.icon,
-                                        contentDescription = item.name,
-                                        tint = if (currentRoute == item.route) Color.White else Color.White.copy(alpha = 0.6f)
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = item.name,
-                                        color = if (currentRoute == item.route) Color.White else Color.White.copy(alpha = 0.6f),
-                                        fontFamily = RobotoRegular
-                                    )
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = Color.White,
-                                    selectedTextColor = Color.White,
-                                    unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                                    unselectedTextColor = Color.White.copy(alpha = 0.6f),
-                                    indicatorColor = Color(0xFF050505)
-                                )
-                            )
-                        }
+                        BottomNavItemScreen(navController)
+                    }
+                },
+                snackbarHost = {
+                    SnackbarHost(hostState = snackbarHostState) { data ->
+                        Snackbar(
+                            snackbarData = data,
+                            containerColor = Color.White,
+                            contentColor = Color.Black,
+                            actionContentColor = Color.Black,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
                 }
             ) { innerPadding ->
@@ -289,14 +299,13 @@ fun AnimeDetailScreen(
                                     .size(Size.ORIGINAL)
                                     .crossfade(true)
                                     .build(),
-                                contentDescription = "Imagen de portada",
+                                contentDescription = "Imagen de fondo",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .blur(radius = 10.dp)
+                                    .blur(radius = 20.dp)
                                     .scale(1.1f),
                                 contentScale = ContentScale.Crop,
                             )
-
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -335,10 +344,9 @@ fun AnimeDetailScreen(
                                     modifier = Modifier
                                         .padding(
                                             start = 16.dp,
-                                            top = 32.dp
                                         )
-                                        .fillMaxWidth(),
-                                    verticalAlignment = Alignment.Top
+                                        .fillMaxSize(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     AsyncImage(
                                         model = ImageRequest.Builder(LocalContext.current)
@@ -349,24 +357,66 @@ fun AnimeDetailScreen(
                                         contentDescription = "Imagen de portada",
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
-                                            .width(150.dp)
-                                            .height(220.dp)
+                                            .width(160.dp)
+                                            .height(230.dp)
                                             .clip(RoundedCornerShape(8.dp))
+                                            .clickable(
+                                                onClick = {
+                                                    selectedImageUrl = animeDetail?.images
+                                                    showDialog = true
+                                                },
+                                            ),
                                     )
 
                                     Spacer(modifier = Modifier.width(16.dp))
 
                                     Column(
-                                        modifier = Modifier.weight(1f).padding(end = 16.dp)
+                                        modifier = Modifier.weight(1f).padding(end = 16.dp, top = 16.dp)
                                     ) {
                                         Text(
                                             text = animeDetail?.title ?: "",
                                             color = Color.White,
-                                            fontSize = 24.sp,
+                                            fontSize = 20.sp,
                                             fontFamily = RobotoBold,
-                                            maxLines = 2,
+                                            maxLines = 3,
                                             overflow = TextOverflow.Ellipsis
                                         )
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = "Icono de estrellas",
+                                                tint = Color.White
+                                            )
+                                            Text(
+                                                text = animeDetail?.score.toString(),
+                                                color = Color.White,
+                                                fontSize = 16.sp,
+                                            )
+                                        }
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                                            Icon(
+                                                imageVector = Icons.Default.Tv,
+                                                contentDescription = "Icono de estrellas",
+                                                tint = Color.White
+                                            )
+                                            Text(
+                                                text = animeDetail?.typeAnime ?: "",
+                                                color = Color.White,
+                                                fontSize = 16.sp,
+                                            )
+                                        }
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                                            Icon(
+                                                imageVector = Icons.Default.Alarm,
+                                                contentDescription = "Icono de estrellas",
+                                                tint = Color.White
+                                            )
+                                            Text(
+                                                text = animeDetail?.status ?: "",
+                                                color = Color.White,
+                                                fontSize = 16.sp,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -375,7 +425,46 @@ fun AnimeDetailScreen(
 
                     }
 
-                    /*
+                    item {
+                        LazyRow(contentPadding = PaddingValues(horizontal = 16.dp)) {
+                            item {
+                                animeDetail?.genres?.forEach { genre ->
+                                    ElevatedFilterChip(
+                                        selected = false,
+                                        onClick = { /*TODO*/ },
+                                        label = { Text(genre?.name ?: "No encontrado", color = Color.White) },
+                                        modifier = Modifier.padding(end = 8.dp),
+                                        colors = FilterChipDefaults.elevatedFilterChipColors(
+                                            containerColor = Color(0xFF121212),
+                                            labelColor = Color.White,
+                                            selectedContainerColor = Color(0xFF121212),
+                                            selectedLabelColor = Color.White
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        TitleScreen("Descripcion")
+                    }
+
+                    item {
+                        Text(
+                            text = animeDetail?.synopsis ?: "Synopsis no encontrada",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontFamily = RobotoBold,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+                        )
+                    }
+
+                    item {
+                        TitleScreen("Personajes")
+                    }
+
                     item {
                         LazyRow(
                             modifier = Modifier.fillMaxWidth(),
@@ -384,6 +473,12 @@ fun AnimeDetailScreen(
                             items(animeCharactersDetail) { character ->
                                 character?.let { it ->
                                     val imageUrl = it.imageCharacter?.jpg?.imageUrl ?: ""
+
+                                    if (it.role == "Main") {
+                                        it.role = "Principal"
+                                    } else if (it.role == "Supporting") {
+                                        it.role = "Secundario"
+                                    }
 
                                     Column(
                                         modifier = Modifier
@@ -400,7 +495,8 @@ fun AnimeDetailScreen(
                                             contentDescription = "Imagen de personaje",
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
-                                                .size(120.dp)
+                                                .width(140.dp)
+                                                .height(200.dp)
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .clickable() {
                                                     navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.idCharacter}")
@@ -418,7 +514,7 @@ fun AnimeDetailScreen(
                                             color = Color.White
                                         )
                                         Text(
-                                            text = it.role ?: "No especificado",
+                                            text = it.role,
                                             style = MaterialTheme.typography.bodySmall,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
@@ -431,8 +527,66 @@ fun AnimeDetailScreen(
                             }
                         }
                     }
-
-                     */
+                    item {
+                        Button(
+                            onClick = {
+                                animeDetailViewModel.deleteAnimeToList(animeId!!)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message = "Anime eliminado de tu lista", actionLabel = "Deshacer", duration = SnackbarDuration.Long)
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                        ) {
+                            Text(
+                                text = "Eliminar anime",
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+                if (showDialog) {
+                    Dialog(
+                        onDismissRequest = {
+                            showDialog = false
+                        },
+                        properties = DialogProperties(usePlatformDefaultWidth = false)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    showDialog = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(selectedImageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Imagen de personaje ampliada",
+                                modifier = Modifier
+                                    .fillMaxWidth(0.9f)
+                                    .clickable(enabled = false) {  }
+                                    .clip(RoundedCornerShape(16.dp)),
+                            )
+                            IconButton(
+                                onClick = { showDialog = false },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cerrar",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

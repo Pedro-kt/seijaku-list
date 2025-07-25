@@ -22,14 +22,22 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ConnectedTv
 import androidx.compose.material.icons.filled.Hail
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.NavigationBar
@@ -58,6 +66,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.components.BottomNavItemScreen
+import com.example.seijakulist.ui.components.LoadingScreen
+import com.example.seijakulist.ui.components.SubTitleIcon
+import com.example.seijakulist.ui.components.TitleScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
 
 
@@ -131,47 +143,7 @@ fun HomeScreen(
             }
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = Color(0xFF121212),
-
-                modifier = Modifier.navigationBarsPadding().clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            ) {
-                navItems.forEach { item ->
-                    NavigationBarItem(
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            if (currentRoute != item.route) {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.name,
-                                tint = if (currentRoute == item.route) Color.White else Color.White.copy(alpha = 0.6f)
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = item.name,
-                                color = if (currentRoute == item.route) Color.White else Color.White.copy(alpha = 0.6f),
-                                fontFamily = RobotoRegular
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White,
-                            selectedTextColor = Color.White,
-                            unselectedIconColor = Color.White.copy(alpha = 0.6f),
-                            unselectedTextColor = Color.White.copy(alpha = 0.6f),
-                            indicatorColor = Color(0xFF050505)
-                        )
-                    )
-                }
-            }
+            BottomNavItemScreen(navController)
         }
     ) { innerPadding ->
         Column(
@@ -182,12 +154,7 @@ fun HomeScreen(
         ) {
 
             if (animeSeasonNowIsLoading) {
-                Text(
-                    text = "Cargando animes...",
-                    color = Color.White,
-                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp),
-                    fontFamily = RobotoRegular
-                )
+                LoadingScreen()
             } else if (animeSeasonNowErrorMessage != null) {
                 Text(
                     text = animeSeasonNowErrorMessage!!,
@@ -199,27 +166,11 @@ fun HomeScreen(
                 LazyColumn() {
 
                     item {
-                        Text(
-                            text = "Animes",
-                            color = Color.White,
-                            fontSize = 28.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
-                                .padding(16.dp),
-                            fontFamily = RobotoBold
-                        )
+                        TitleScreen("Animes")
                     }
 
                     item {
-                        Text(
-                            text = "En emision",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
-                                .padding(start = 16.dp, bottom = 16.dp),
-                            fontFamily = RobotoBold
-                        )
+                        SubTitleIcon("En emision", Icons.Default.ConnectedTv)
                     }
 
                     item {
@@ -302,15 +253,7 @@ fun HomeScreen(
                         }
                     }
                     item {
-                        Text(
-                            text = "Top",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
-                                .padding(16.dp),
-                            fontFamily = RobotoBold
-                        )
+                        SubTitleIcon("Top scores", Icons.AutoMirrored.Filled.ShowChart)
                     }
                     item {
                         LazyRow(
@@ -391,15 +334,7 @@ fun HomeScreen(
                         }
                     }
                     item {
-                        Text(
-                            text = "Proxima temporada",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
-                                .padding(16.dp),
-                            fontFamily = RobotoBold
-                        )
+                        SubTitleIcon("Proxima temporada", Icons.Default.AccessTime)
                     }
 
                     item {
@@ -463,8 +398,6 @@ fun HomeScreen(
                                             )
                                         }
                                     }
-
-
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = anime.title,
@@ -475,22 +408,12 @@ fun HomeScreen(
                                         color = Color.White,
                                         fontFamily = RobotoRegular
                                     )
-
-
                                 }
                             }
                         }
                     }
                     item {
-                        Text(
-                            text = "Mangas",
-                            color = Color.White,
-                            fontSize = 28.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1f)
-                                .padding(16.dp),
-                            fontFamily = RobotoBold
-                        )
+                        TitleScreen("Mangas")
                     }
                     item {
                         Text(
