@@ -1,6 +1,7 @@
 package com.example.seijakulist.ui.screens.detail
 
 import android.util.Log
+import androidx.compose.runtime.MutableFloatState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.data.local.entities.AnimeEntity
@@ -59,7 +60,7 @@ class AnimeDetailViewModel @Inject constructor(
                     malId = current.malId,
                     title = current.title,
                     imageUrl = current.images,
-                    score = current.score ?: 0f
+                    score = current.score,
                 )
                 repository.insertAnime(entity)
                 _isAdded.value = true
