@@ -49,7 +49,8 @@ class TopAnimeViewModel @Inject constructor(
             try {
 
                 val results = getTopAnimeUseCase()
-                _animeList.value = results
+                val filtered = results.distinctBy { it.malId }
+                _animeList.value = filtered
                 isDataLoaded = true
 
             } catch (e: Exception) {

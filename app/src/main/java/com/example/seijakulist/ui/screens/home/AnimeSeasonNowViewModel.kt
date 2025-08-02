@@ -51,7 +51,8 @@ class AnimeSeasonNowViewModel @Inject constructor(
             try {
 
                 val results = getAnimeDetailSeasonNowUseCase()
-                _animeList.value = results
+                val filtered = results.distinctBy { it.malId }
+                _animeList.value = filtered
                 isDataLoaded = true
 
             } catch (e: Exception) {

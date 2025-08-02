@@ -82,7 +82,6 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
                             }
                     )
-
                     Row(
                         modifier = Modifier
                             .padding(start = 5.dp, top = 5.dp)

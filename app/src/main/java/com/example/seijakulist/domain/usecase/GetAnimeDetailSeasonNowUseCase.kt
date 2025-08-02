@@ -21,7 +21,7 @@ class GetAnimeDetailSeasonNowUseCase @Inject constructor(
         val animeDomainList: List<Anime> = animeDtoList.map { dto ->
             Anime(
                 malId = dto!!.malId,
-                title = dto.title,
+                title = dto.title ?: "Título predeterminado",
                 image = dto.images?.webp?.largeImageUrl
                     ?: dto.images?.jpg?.largeImageUrl
                     ?: "URL de imagen predeterminada",

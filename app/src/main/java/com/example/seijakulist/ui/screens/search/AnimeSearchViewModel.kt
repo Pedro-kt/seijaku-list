@@ -46,7 +46,8 @@ class AnimeSearchViewModel @Inject constructor(
             try {
 
                 val results = getAnimeSearchUseCase(query = _searchQuery.value, page = 1)
-                _animeList.value = results
+                val filtered = results.distinctBy { it.malId }
+                _animeList.value = filtered
 
             } catch (e: Exception) {
 

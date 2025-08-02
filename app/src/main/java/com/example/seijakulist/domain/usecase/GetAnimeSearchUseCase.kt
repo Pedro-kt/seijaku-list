@@ -19,9 +19,11 @@ class GetAnimeSearchUseCase @Inject constructor(
         val animeDomainList: List<Anime> = animeDtoList.map { animeDto ->
             Anime(
                 malId = animeDto!!.malId,
-                title = animeDto.title,
+                title = animeDto.title ?: "Título predeterminado",
                 image = animeDto.images?.webp?.largeImageUrl
                     ?: animeDto.images?.jpg?.largeImageUrl
+                    ?: animeDto.images?.webp?.imageUrl
+                    ?: animeDto.images?.jpg?.imageUrl
                     ?: "URL de imagen predeterminada",
                 score = animeDto.score ?: 0.0f
             )

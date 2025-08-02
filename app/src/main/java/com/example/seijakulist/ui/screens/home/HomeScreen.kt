@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MultilineChart
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.AccessTime
@@ -175,7 +176,7 @@ fun HomeScreen(
                         CardAnimesHome(animeSeasonNow, navController)
                     }
                     item {
-                        SubTitleIcon("Top scores", Icons.AutoMirrored.Filled.ShowChart)
+                        SubTitleIcon("Top scores", Icons.Default.StarRate)
                     }
                     item {
                         CardAnimesHome(topAnimes, navController)
