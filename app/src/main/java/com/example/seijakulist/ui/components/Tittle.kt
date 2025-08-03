@@ -18,13 +18,13 @@ fun TitleScreen(title: String) {
     val RobotoBold = FontFamily(
         Font(R.font.roboto_bold)
     )
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 28.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(16.dp),
-            fontFamily = RobotoBold
-        )
+    Text(
+        text = title,
+        color = Color.White,
+        fontSize = 24.sp,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .padding(16.dp),
+        fontFamily = RobotoBold
+    )
 }

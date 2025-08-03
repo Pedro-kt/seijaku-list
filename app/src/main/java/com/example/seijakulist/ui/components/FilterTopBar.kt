@@ -4,13 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -33,7 +36,7 @@ fun FilterTopAppBar() {
             modifier = Modifier.size(48.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.MoreVert,
+                imageVector = Icons.AutoMirrored.Filled.List,
                 contentDescription = "Filtros",
                 tint = Color.White
             )
@@ -44,23 +47,26 @@ fun FilterTopAppBar() {
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = 0.dp, y = 16.dp),
             modifier = Modifier
-                .background(Color.Black.copy(alpha = 0.6f))
+                .background(Color.Black)
         ) {
             DropdownMenuItem(
                 text = { Text("Buscar titulo") },
                 onClick = { /* Handle edit */ },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
             )
+            HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(
                 text = { Text("Filtrar por") },
                 onClick = { /* Handle settings */ },
                 leadingIcon = { Icon(Icons.Default.FilterList, contentDescription = "Filtrar por") },
             )
+            HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(
                 text = { Text("Cambiar vista") },
                 onClick = { /* Handle send feedback */ },
                 leadingIcon = { Icon(Icons.Default.ViewModule, contentDescription = "Cambiar vista") },
             )
+            HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(
                 text = { Text("Ordenar por titulo") },
                 onClick = { /* Handle send feedback */ },

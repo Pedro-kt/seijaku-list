@@ -2,6 +2,7 @@ package com.example.seijakulist.ui.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,7 +19,7 @@ fun ArrowBackTopAppBar(navController: NavController) {
         modifier = Modifier.size(48.dp)
     ) {
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "Volver atras",
             tint = Color.White
         )

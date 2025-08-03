@@ -27,11 +27,15 @@ import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ArrowCircleUp
 import androidx.compose.material.icons.filled.ConnectedTv
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Hail
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.LiveTv
+import androidx.compose.material.icons.filled.OnlinePrediction
+import androidx.compose.material.icons.filled.Score
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.Star
@@ -170,13 +174,13 @@ fun HomeScreen(
                         TitleScreen("Animes")
                     }
                     item {
-                        SubTitleIcon("En emision", Icons.Default.ConnectedTv)
+                        SubTitleIcon("En emision", Icons.Default.OnlinePrediction)
                     }
                     item {
                         CardAnimesHome(animeSeasonNow, navController)
                     }
                     item {
-                        SubTitleIcon("Top scores", Icons.Default.StarRate)
+                        SubTitleIcon("Top scores", Icons.Default.EmojiEvents)
                     }
                     item {
                         CardAnimesHome(topAnimes, navController)

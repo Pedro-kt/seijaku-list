@@ -1,5 +1,6 @@
 package com.example.seijakulist.ui.screens.my_animes
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.data.local.entities.AnimeEntity
@@ -23,5 +24,19 @@ class MyAnimeListViewModel @Inject constructor(
                 SharingStarted.WhileSubscribed(5000),
                 emptyList()
             )
+
+    fun deleteAnimeToList(animeId: Int) {
+
+        viewModelScope.launch {
+            try {
+
+                animeRepository.deleteAnimeById(animeId)
+
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al eliminar el anime: ${e.message}")
+            }
+        }
+
+    }
 }
 

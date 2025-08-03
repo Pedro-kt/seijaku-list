@@ -76,7 +76,7 @@ fun BottomNavItemScreen(navController: NavController) {
                     selectedTextColor = Color.White,
                     unselectedIconColor = Color.White.copy(alpha = 0.6f),
                     unselectedTextColor = Color.White.copy(alpha = 0.6f),
-                    indicatorColor = Color(0xFF080808)
+                    indicatorColor = Color.Black
                 )
             )
         }
