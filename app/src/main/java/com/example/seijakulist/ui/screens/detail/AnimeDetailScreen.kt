@@ -1,6 +1,7 @@
 package com.example.seijakulist.ui.screens.detail
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,24 +27,39 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.AvTimer
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Filter9Plus
+import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.LocationCity
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
@@ -76,17 +92,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -102,6 +122,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
 import com.example.seijakulist.ui.components.BottomNavItemScreen
+import com.example.seijakulist.ui.components.DescriptionAnime
 import com.example.seijakulist.ui.components.SliderSelectScore
 import com.example.seijakulist.ui.components.TitleScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
@@ -427,10 +448,9 @@ fun AnimeDetailScreen(
                     }
 
                     item {
-                        // TAB BAR
                         TabRow(
                             selectedTabIndex = selectedTabIndex.value,
-                            containerColor = Color(0xFF050505),
+                            containerColor = Color.Transparent,
                             contentColor = Color.White,
                             modifier = Modifier
                                 .padding(top = 16.dp, start = 16.dp, end = 16.dp)
@@ -438,7 +458,7 @@ fun AnimeDetailScreen(
                                 .border(
                                     width = 1.dp,
                                     shape = RoundedCornerShape(24.dp),
-                                    color = Color.White
+                                    color = Color.White.copy(alpha = 0.7f)
                                 )
                         ) {
                             tabIcons.forEachIndexed { index, icon ->
@@ -462,408 +482,315 @@ fun AnimeDetailScreen(
                     if (selectedTabIndex.value == 0) {
 
                         item {
-                            TitleScreen("Generos")
+                            Card(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ),
+                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
+                            ) {
+
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                    TitleScreen("Generos:")
+
+                                    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                        items(animeDetail?.genres.orEmpty()) { genre ->
+                                            ElevatedFilterChip(
+                                                selected = false,
+                                                onClick = { /*TODO*/ },
+                                                label = {
+                                                    Text(genre?.name ?: "No encontrado", color = Color.White)
+                                                },
+                                                modifier = Modifier.padding(end = 8.dp),
+                                                colors = FilterChipDefaults.elevatedFilterChipColors(
+                                                    containerColor = Color.Transparent,
+                                                    labelColor = Color.White,
+                                                    selectedContainerColor = Color(0xFF121212),
+                                                    selectedLabelColor = Color.White
+                                                ),
+                                                border = FilterChipDefaults.filterChipBorder(
+                                                    borderColor = Color.White,
+                                                    borderWidth = 1.dp,
+                                                    enabled = true,
+                                                    selected = false
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+
+                            }
                         }
 
                         item {
-                            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp)) {
-                                items(animeDetail?.genres.orEmpty()) { genre ->
-                                    ElevatedFilterChip(
-                                        selected = false,
-                                        onClick = { /*TODO*/ },
-                                        label = {
-                                            Text(genre?.name ?: "No encontrado", color = Color.White)
-                                        },
-                                        modifier = Modifier.padding(end = 8.dp),
-                                        colors = FilterChipDefaults.elevatedFilterChipColors(
-                                            containerColor = Color.Transparent,
-                                            labelColor = Color.White,
-                                            selectedContainerColor = Color(0xFF121212),
-                                            selectedLabelColor = Color.White
-                                        ),
-                                        border = FilterChipDefaults.filterChipBorder(
-                                            borderColor = Color.White,
-                                            borderWidth = 1.dp,
-                                            enabled = true,
-                                            selected = false
-                                        )
+                            Card(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .fillMaxWidth(),
+                                colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color(0xff050505),
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ),
+                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f)),
+                            ) {
+                                TitleScreen("Synopsis")
+
+                                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                                    Text(
+                                        text = animeDetail?.synopsis ?: "Sinopsis no encontrada",
+                                        color = Color.Gray,
+                                        fontSize = 14.sp,
+                                        fontFamily = RobotoRegular,
+                                        textAlign = TextAlign.Justify,
+                                        maxLines = if (expanded) Int.MAX_VALUE else 10,
+                                    )
+                                    Text(
+                                        text = if (expanded) "ver menos" else "ver más",
+                                        modifier = Modifier
+                                            .padding(top = 16.dp, bottom = 16.dp)
+                                            .clickable { expanded = !expanded},
+                                        color = Color.White.copy(alpha = 0.5f)
                                     )
                                 }
                             }
                         }
 
                         item {
-                            TitleScreen("Descripción")
-                        }
-
-                        item {
-                            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                Text(
-                                    text = animeDetail?.synopsis ?: "Sinopsis no encontrada",
-                                    color = Color.White,
-                                    fontSize = 14.sp,
-                                    fontFamily = RobotoRegular,
-                                    textAlign = TextAlign.Justify,
-                                    maxLines = if (expanded) Int.MAX_VALUE else 10,
-                                )
-                                Text(
-                                    text = if (expanded) "ver menos" else "ver más",
-                                    modifier = Modifier
-                                        .padding(top = 16.dp, bottom = 16.dp)
-                                        .clickable { expanded = !expanded},
-                                    color = Color.White.copy(alpha = 0.5f)
-                                )
-                            }
-                        }
-
-                        item {
-                            TitleScreen("Otros titulos")
-                        }
-
-                        item {
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                            Card(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ),
+                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
                             ) {
-                                Icon(
-                                    Icons.Default.Circle,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(8.dp)
-                                )
-                                Text(
-                                    text = "Titulo en Ingles:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = animeDetail?.titleEnglish ?: "",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
+                                TitleScreen("Otros titulos")
 
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Circle,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(8.dp)
                                     )
-                            }
-
-                        }
-
-                        item {
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Circle,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(8.dp)
-                                )
-                                Text(
-                                    text = "Titulo en Japones:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = animeDetail?.titleJapanese ?: "",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-
-                        }
-
-                        item {
-                            TitleScreen("Studio")
-                        }
-
-                        item {
-                            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp)) {
-                                items(animeDetail?.studios.orEmpty()) { studio ->
-                                    ElevatedFilterChip(
-                                        selected = false,
-                                        onClick = { /*TODO*/ },
-                                        label = {
-                                            Text(studio?.nameStudio ?: "No encontrado", color = Color.White)
-                                        },
-                                        modifier = Modifier.padding(end = 8.dp),
-                                        colors = FilterChipDefaults.elevatedFilterChipColors(
-                                            containerColor = Color.Transparent,
-                                            labelColor = Color.White,
-                                            selectedContainerColor = Color(0xFF121212),
-                                            selectedLabelColor = Color.White
-                                        ),
-                                        border = FilterChipDefaults.filterChipBorder(
-                                            borderColor = Color.White,
-                                            borderWidth = 1.dp,
-                                            enabled = true,
-                                            selected = false
+                                    Text(
+                                        text = "Titulo en Ingles:",
+                                        color = Color.White,
+                                        fontSize = 16.sp,
+                                        fontFamily = RobotoBold,
+                                    )
+                                    Text(
+                                        text = animeDetail?.titleEnglish ?: "",
+                                        color = Color.Gray,
+                                        fontSize = 16.sp,
+                                        fontFamily = RobotoRegular
                                         )
+                                }
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Circle,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(8.dp)
+                                    )
+                                    Text(
+                                        text = "Titulo en Japones:",
+                                        color = Color.White,
+                                        fontSize = 16.sp,
+                                        fontFamily = RobotoBold
+                                    )
+                                    Text(
+                                        text = animeDetail?.titleJapanese ?: "",
+                                        color = Color.Gray,
+                                        fontSize = 16.sp,
+                                        fontFamily = RobotoRegular,
                                     )
                                 }
                             }
                         }
 
                         item {
-                            TitleScreen("Informacion")
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            Card(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .fillMaxWidth(),
+                                colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ),
+                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
                             ) {
-                                Text(
-                                    text = "Puntuacion de la comunidad:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.score}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                    TitleScreen("Studio:")
+
+                                    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                        items(animeDetail?.studios.orEmpty()) { studio ->
+                                            ElevatedFilterChip(
+                                                selected = false,
+                                                onClick = { /*TODO*/ },
+                                                label = {
+                                                    Text(studio?.nameStudio ?: "No encontrado", color = Color.White)
+                                                },
+                                                modifier = Modifier.padding(end = 8.dp),
+                                                colors = FilterChipDefaults.elevatedFilterChipColors(
+                                                    containerColor = Color.Transparent,
+                                                    labelColor = Color.White,
+                                                    selectedContainerColor = Color(0xFF121212),
+                                                    selectedLabelColor = Color.White
+                                                ),
+                                                border = FilterChipDefaults.filterChipBorder(
+                                                    borderColor = Color(0xFFFF00FF),
+                                                    borderWidth = 1.dp,
+                                                    enabled = true,
+                                                    selected = false
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+
                             }
                         }
 
                         item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            Card(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ),
+                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
                             ) {
-                                Text(
-                                    text = "Puntuado por:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
+
+                                TitleScreen("Informacion")
+
+                                DescriptionAnime(
+                                    Icons.Default.Star,
+                                    "Puntuacion de la comunidad:",
+                                    "${animeDetail?.score}"
                                 )
-                                Text(
-                                    text = if (animeDetail?.scoreBy == 0) {
+
+                                DescriptionAnime(
+                                    Icons.Default.People,
+                                    "Puntuado por:",
+                                    if (animeDetail?.scoreBy == 0) {
                                         "No encontrado :("
                                     } else {
                                         "${animeDetail?.scoreBy} Personas"
                                     },
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.Tv,
+                                    "Tipo de anime:",
+                                    "${animeDetail?.typeAnime}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.FormatListNumbered,
+                                    "Episodios:",
+                                    "${animeDetail?.episodes}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.Timer,
+                                    "Duracion:",
+                                    "${animeDetail?.duration}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.WbSunny,
+                                    "Temporada:",
+                                    "${animeDetail?.season}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.AvTimer,
+                                    "Año de lanzamiento:",
+                                    "${animeDetail?.year}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.LiveTv,
+                                    "Estado:",
+                                    "${animeDetail?.status}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.CalendarMonth,
+                                    "Transmitido:",
+                                    "${animeDetail?.aired}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.BarChart,
+                                    "Posicion global:",
+                                    "${animeDetail?.rank}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.Default.Filter9Plus,
+                                    "Rating:",
+                                    "${animeDetail?.rating}"
+                                )
+
+                                DescriptionAnime(
+                                    Icons.AutoMirrored.Filled.LibraryBooks,
+                                    "Proveniente de:",
+                                    "${animeDetail?.source}"
                                 )
                             }
                         }
 
                         item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            Card(
+                                modifier = Modifier
+                                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                                    .fillMaxWidth(),
+                                colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ),
+                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
                             ) {
-                                Text(
-                                    text = "Tipo de anime:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.typeAnime}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
+                                TitleScreen("Musica")
 
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Episodios:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
+                                DescriptionAnime(
+                                    Icons.Default.MusicNote,
+                                    "Opening:",
+                                    "Proximamente"
                                 )
-                                Text(
-                                    text = "${animeDetail?.episodes}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
 
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Duracion:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.duration}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Temporada:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.season}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Año de lanzamiento:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.year}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Estado:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.status}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Transmitido:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.aired}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Posicion:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.rank}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Rating:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.rating}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
-                                )
-                            }
-                        }
-
-                        item {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Proveniente de:",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoBold
-                                )
-                                Text(
-                                    text = "${animeDetail?.source}",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    fontFamily = RobotoRegular,
+                                DescriptionAnime(
+                                    Icons.Default.MusicOff,
+                                    "Ending:",
+                                    "Proximamente"
                                 )
                             }
                         }
