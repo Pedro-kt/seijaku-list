@@ -1,3 +1,9 @@
 package com.example.seijakulist.domain.models
 
-data class AnimeEntity()
+data class AnimeEntityDomain(
+    val malId: Int,
+    val title: String,
+    val image: String,
+    val userScore: Float,
+    val userStatus: String
+)

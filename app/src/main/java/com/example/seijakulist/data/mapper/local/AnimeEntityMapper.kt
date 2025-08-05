@@ -2,20 +2,23 @@ package com.example.seijakulist.data.mapper.local
 
 import com.example.seijakulist.data.local.entities.AnimeEntity
 import com.example.seijakulist.domain.models.Anime
+import com.example.seijakulist.domain.models.AnimeEntityDomain
 
-fun Anime.toAnimeEntity(): AnimeEntity {
+fun AnimeEntityDomain.toAnimeEntity(): AnimeEntity {
     return AnimeEntity(
         malId = malId,
         title = title,
         imageUrl = image,
-        score = score,
+        userScore = userScore,
+        statusUser = userStatus
     )
 }
-fun AnimeEntity.toAnimeDomain(): Anime {
-    return Anime(
+fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
+    return AnimeEntityDomain(
         malId = malId,
         title = title,
         image = imageUrl ?: "",
-        score = score,
+        userScore = userScore,
+        userStatus = statusUser
     )
 }

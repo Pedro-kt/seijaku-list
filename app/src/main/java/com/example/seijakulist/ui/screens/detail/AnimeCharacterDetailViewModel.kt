@@ -1,6 +1,7 @@
 package com.example.seijakulist.ui.screens.detail
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
@@ -16,6 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AnimeCharacterDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val getAnimeCharactersDetailUseCase: GetAnimeCharactersDetailUseCase
 ) : ViewModel() {
 
@@ -27,6 +29,16 @@ class AnimeCharacterDetailViewModel @Inject constructor(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
+
+    private val animeId: Int = savedStateHandle["animeId"] ?: 0
+    private var isDataLoaded = false
+
+    init {
+        if (!isDataLoaded && animeId != 0) {
+            loadAnimeCharacters(animeId)
+            isDataLoaded = true
+        }
+    }
 
     fun loadAnimeCharacters(animeId: Int) {
         viewModelScope.launch {

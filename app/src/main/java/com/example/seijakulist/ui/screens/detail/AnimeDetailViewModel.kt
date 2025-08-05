@@ -2,6 +2,7 @@ package com.example.seijakulist.ui.screens.detail
 
 import android.util.Log
 import androidx.compose.runtime.MutableFloatState
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.data.local.entities.AnimeEntity
@@ -18,6 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AnimeDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val getAnimeDetailUseCase: GetAnimeDetailUseCase,
     private val repository: AnimeRepository
 ) : ViewModel() {
@@ -33,6 +35,16 @@ class AnimeDetailViewModel @Inject constructor(
 
     private val _isAdded = MutableStateFlow(false)
     val isAdded: StateFlow<Boolean> = _isAdded.asStateFlow()
+
+    private var isDataLoaded = false
+    private val animeId: Int = savedStateHandle["animeId"] ?: 0
+
+    init {
+        if (!isDataLoaded) {
+            loadAnimeDetail(animeId)
+            isDataLoaded = true
+        }
+    }
 
     fun loadAnimeDetail(animeId: Int) {
         _errorMessage.value = null
@@ -51,7 +63,7 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun addAnimeToList() {
+    fun addAnimeToList(userScore: Float, userStatus: String) {
         val current = _animeDetail.value ?: return
 
         viewModelScope.launch {
@@ -60,7 +72,8 @@ class AnimeDetailViewModel @Inject constructor(
                     malId = current.malId,
                     title = current.title,
                     imageUrl = current.images,
-                    score = current.score,
+                    userScore = userScore,
+                    statusUser = userStatus
                 )
                 repository.insertAnime(entity)
                 _isAdded.value = true

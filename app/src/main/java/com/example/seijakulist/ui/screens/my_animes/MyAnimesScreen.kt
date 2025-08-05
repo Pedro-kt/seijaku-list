@@ -164,7 +164,17 @@ fun MyAnimeListScreen(
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Score: ${anime.score}",
+                                            text = if (anime.userScore != 0.0f) {
+                                                "Mi puntuacion: ${anime.userScore}"
+                                            } else {
+                                                "Sin puntuacion"
+                                            },
+                                            fontFamily = RobotoRegular,
+                                            color = Color.White
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Estado: ${anime.statusUser}",
                                             fontFamily = RobotoRegular,
                                             color = Color.White
                                         )

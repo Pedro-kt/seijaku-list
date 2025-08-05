@@ -62,11 +62,12 @@ fun DeleteMyAnime(
                                 actionLabel = "Deshacer",
                                 duration = SnackbarDuration.Long
                             )
-
+                            //volver a agregar el anime si se deshace
                             if (result == SnackbarResult.ActionPerformed) {
-                                // Podrías volver a agregar el anime si se deshace
+
                             }
                         }
+                        click = false
                     },
                     leadingIcon = { Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red.copy(alpha = 0.8f)) }
                 )
