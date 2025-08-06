@@ -14,4 +14,8 @@ object AppDestinations {
     const val MY_MANGAS_ROUTE = "my_mangas_route"
 
     const val MY_ANIMES_ROUTE = "my_animes_route"
+
+    const val WEB_VIEW = "webview_route"
+
+    const val WEB_VIEW_URL = "webview_url"
 }

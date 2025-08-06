@@ -1,5 +1,6 @@
 package com.example.seijakulist
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -22,6 +24,7 @@ import dagger.hilt.android.AndroidEntryPoint
 //navegacion entre pantalla searchScreen y detallesAnime (para pasar el parametro del id)
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.seijakulist.ui.components.WebViewScreen
 import com.example.seijakulist.ui.screens.characters.CharacterDetailScreen
 import com.example.seijakulist.ui.screens.home.HomeScreen
 import com.example.seijakulist.ui.screens.my_animes.MyAnimeListScreen
@@ -98,6 +101,15 @@ fun AppNavigation() {
         }
         composable(AppDestinations.MY_ANIMES_ROUTE) {
             MyAnimeListScreen(navController)
+        }
+        composable(
+            route = "${AppDestinations.WEB_VIEW}/{${AppDestinations.WEB_VIEW_URL}}",
+            arguments = listOf(navArgument(AppDestinations.WEB_VIEW_URL) {
+                type = NavType.StringType
+            })
+        ) { backStackEntry ->
+            val url = backStackEntry.arguments?.getString(AppDestinations.WEB_VIEW_URL) ?: ""
+            WebViewScreen(url = Uri.decode(url), navController) // IMPORTANTE: decodearla para mostrar
         }
     }
 }
