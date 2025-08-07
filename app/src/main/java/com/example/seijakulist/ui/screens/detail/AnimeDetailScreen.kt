@@ -1,10 +1,12 @@
 package com.example.seijakulist.ui.screens.detail
 
+import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,6 +28,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
@@ -39,8 +44,10 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Description
@@ -54,6 +61,8 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -68,8 +77,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -78,6 +89,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
@@ -86,6 +98,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -106,20 +120,25 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -127,6 +146,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
@@ -137,6 +157,8 @@ import com.example.seijakulist.ui.components.SliderSelectScore
 import com.example.seijakulist.ui.components.SubTitleIcon
 import com.example.seijakulist.ui.components.TitleScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
+import com.example.seijakulist.util.CleanName
+import com.example.seijakulist.util.YoutubeUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -172,8 +194,7 @@ fun AnimeDetailScreen(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.7f else 1f,
-        label = "button_scale_animation"
+        targetValue = if (isPressed) 0.7f else 1f, label = "button_scale_animation"
     )
 
     //snakbar de notificacion
@@ -212,6 +233,17 @@ fun AnimeDetailScreen(
     )
 
     val selectedTabIndex = remember { mutableStateOf(0) }
+
+    //webview
+    val context = LocalContext.current
+
+    var userOpinion by remember { mutableStateOf("") }
+    val focusManager: FocusManager = LocalFocusManager.current
+
+    var isSearching by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    var isSearchingStaff by remember { mutableStateOf(false) }
 
     when {
         isLoading -> {
@@ -285,9 +317,7 @@ fun AnimeDetailScreen(
                             )
                         }
                     }
-                },
-                containerColor = Color(0xFF050505),
-                snackbarHost = {
+                }, containerColor = Color(0xFF050505), snackbarHost = {
                     SnackbarHost(hostState = snackbarHostState) { data ->
                         Snackbar(
                             snackbarData = data,
@@ -304,17 +334,19 @@ fun AnimeDetailScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .background(color = Color(0xFF050505)).navigationBarsPadding()
+                        .background(color = Color(0xFF050505))
+                        .navigationBarsPadding()
                 ) {
                     item {
                         Box(
-                            modifier = Modifier.fillMaxWidth().height(350.dp).padding(top = 16.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(350.dp)
+                                .padding(top = 16.dp)
                         ) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data(animeDetail?.images)
-                                    .size(Size.ORIGINAL)
-                                    .crossfade(true)
+                                    .data(animeDetail?.images).size(Size.ORIGINAL).crossfade(true)
                                     .build(),
                                 contentDescription = "Imagen de fondo",
                                 modifier = Modifier
@@ -329,8 +361,7 @@ fun AnimeDetailScreen(
                                     .background(
                                         brush = Brush.verticalGradient(
                                             colors = listOf(
-                                                Color(0xFF050505),
-                                                Color.Transparent
+                                                Color(0xFF050505), Color.Transparent
                                             ),
                                             startY = 0f,
                                             endY = 400f,
@@ -343,17 +374,13 @@ fun AnimeDetailScreen(
                                     .background(
                                         brush = Brush.verticalGradient(
                                             colors = listOf(
-                                                Color.Transparent,
-                                                Color(0xFF050505)
-                                            ),
-                                            startY = 400f,
-                                            endY = Float.POSITIVE_INFINITY
+                                                Color.Transparent, Color(0xFF050505)
+                                            ), startY = 400f, endY = Float.POSITIVE_INFINITY
                                         )
                                     )
                             )
                             Box(
-                                modifier = Modifier
-                                    .fillMaxSize(),
+                                modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.TopStart
                             ) {
                                 Row(
@@ -366,15 +393,13 @@ fun AnimeDetailScreen(
                                 ) {
                                     AsyncImage(
                                         model = ImageRequest.Builder(LocalContext.current)
-                                            .data(animeDetail?.images)
-                                            .size(Size.ORIGINAL)
-                                            .crossfade(true)
-                                            .build(),
+                                            .data(animeDetail?.images).size(Size.ORIGINAL)
+                                            .crossfade(true).build(),
                                         contentDescription = "Imagen de portada",
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .width(160.dp)
-                                            .height(230.dp)
+                                            .height(240.dp)
                                             .clip(RoundedCornerShape(8.dp))
                                             .clickable(
                                                 onClick = {
@@ -387,7 +412,9 @@ fun AnimeDetailScreen(
                                     Spacer(modifier = Modifier.width(16.dp))
 
                                     Column(
-                                        modifier = Modifier.weight(1f).padding(end = 16.dp, top = 16.dp)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(end = 16.dp, top = 16.dp)
                                     ) {
                                         Text(
                                             text = animeDetail?.title ?: "",
@@ -397,7 +424,10 @@ fun AnimeDetailScreen(
                                             maxLines = 3,
                                             overflow = TextOverflow.Ellipsis
                                         )
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        ) {
                                             Icon(
                                                 imageVector = Icons.Default.Star,
                                                 contentDescription = "Icono de estrellas",
@@ -409,7 +439,10 @@ fun AnimeDetailScreen(
                                                 fontSize = 16.sp,
                                             )
                                         }
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        ) {
                                             Icon(
                                                 imageVector = Icons.Default.Tv,
                                                 contentDescription = "Icono de estrellas",
@@ -421,7 +454,10 @@ fun AnimeDetailScreen(
                                                 fontSize = 16.sp,
                                             )
                                         }
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        ) {
                                             Icon(
                                                 imageVector = Icons.Default.Alarm,
                                                 contentDescription = "Icono de estrellas",
@@ -473,6 +509,7 @@ fun AnimeDetailScreen(
                             }
                         }
                     }
+
                     if (selectedTabIndex.value == 0) {
 
                         item {
@@ -486,19 +523,31 @@ fun AnimeDetailScreen(
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
                                 ),
-                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
+                                border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )
                             ) {
 
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
                                     TitleScreen("Generos:")
 
-                                    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    LazyRow(
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
                                         items(animeDetail?.genres.orEmpty()) { genre ->
                                             ElevatedFilterChip(
                                                 selected = false,
                                                 onClick = { /*TODO*/ },
                                                 label = {
-                                                    Text(genre?.name ?: "No encontrado", color = Color.White)
+                                                    Text(
+                                                        genre?.name ?: "No encontrado",
+                                                        color = Color.White
+                                                    )
                                                 },
                                                 modifier = Modifier.padding(end = 8.dp),
                                                 colors = FilterChipDefaults.elevatedFilterChipColors(
@@ -532,7 +581,9 @@ fun AnimeDetailScreen(
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
                                 ),
-                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f)),
+                                border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                ),
                             ) {
                                 TitleScreen("Synopsis")
 
@@ -549,7 +600,7 @@ fun AnimeDetailScreen(
                                         text = if (expanded) "ver menos" else "ver más",
                                         modifier = Modifier
                                             .padding(top = 16.dp, bottom = 16.dp)
-                                            .clickable { expanded = !expanded},
+                                            .clickable { expanded = !expanded },
                                         color = Color.White.copy(alpha = 0.5f)
                                     )
                                 }
@@ -567,7 +618,9 @@ fun AnimeDetailScreen(
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
                                 ),
-                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
+                                border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )
                             ) {
                                 TitleScreen("Otros titulos")
 
@@ -648,18 +701,30 @@ fun AnimeDetailScreen(
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
                                 ),
-                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
+                                border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
                                     TitleScreen("Studio:")
 
-                                    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    LazyRow(
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
                                         items(animeDetail?.studios.orEmpty()) { studio ->
                                             ElevatedFilterChip(
                                                 selected = false,
                                                 onClick = { /*TODO*/ },
                                                 label = {
-                                                    Text(studio?.nameStudio ?: "No encontrado", color = Color.White)
+                                                    Text(
+                                                        studio?.nameStudio ?: "No encontrado",
+                                                        color = Color.White
+                                                    )
                                                 },
                                                 modifier = Modifier.padding(end = 8.dp),
                                                 colors = FilterChipDefaults.elevatedFilterChipColors(
@@ -693,7 +758,9 @@ fun AnimeDetailScreen(
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
                                 ),
-                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
+                                border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )
                             ) {
 
                                 TitleScreen("Informacion")
@@ -708,16 +775,14 @@ fun AnimeDetailScreen(
                                     Icons.Default.People,
                                     "Puntuado por:",
                                     if (animeDetail?.scoreBy == 0) {
-                                        "No encontrado :("
+                                        "No encontrado"
                                     } else {
                                         "${animeDetail?.scoreBy} Personas"
                                     },
                                 )
 
                                 DescriptionAnime(
-                                    Icons.Default.Tv,
-                                    "Tipo de anime:",
-                                    "${animeDetail?.typeAnime}"
+                                    Icons.Default.Tv, "Tipo de anime:", "${animeDetail?.typeAnime}"
                                 )
 
                                 DescriptionAnime(
@@ -727,15 +792,11 @@ fun AnimeDetailScreen(
                                 )
 
                                 DescriptionAnime(
-                                    Icons.Default.Timer,
-                                    "Duracion:",
-                                    "${animeDetail?.duration}"
+                                    Icons.Default.Timer, "Duracion:", "${animeDetail?.duration}"
                                 )
 
                                 DescriptionAnime(
-                                    Icons.Default.WbSunny,
-                                    "Temporada:",
-                                    "${animeDetail?.season}"
+                                    Icons.Default.WbSunny, "Temporada:", "${animeDetail?.season}"
                                 )
 
                                 DescriptionAnime(
@@ -745,9 +806,7 @@ fun AnimeDetailScreen(
                                 )
 
                                 DescriptionAnime(
-                                    Icons.Default.LiveTv,
-                                    "Estado:",
-                                    "${animeDetail?.status}"
+                                    Icons.Default.LiveTv, "Estado:", "${animeDetail?.status}"
                                 )
 
                                 DescriptionAnime(
@@ -763,9 +822,7 @@ fun AnimeDetailScreen(
                                 )
 
                                 DescriptionAnime(
-                                    Icons.Default.Filter9Plus,
-                                    "Rating:",
-                                    "${animeDetail?.rating}"
+                                    Icons.Default.Filter9Plus, "Rating:", "${animeDetail?.rating}"
                                 )
 
                                 DescriptionAnime(
@@ -779,15 +836,17 @@ fun AnimeDetailScreen(
                         item {
                             Card(
                                 modifier = Modifier
-                                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                                    .fillMaxWidth(),
-                                colors = CardColors(
+                                    .padding(
+                                        start = 16.dp, end = 16.dp, bottom = 16.dp
+                                    )
+                                    .fillMaxWidth(), colors = CardColors(
                                     contentColor = Color.White,
                                     containerColor = Color.Transparent,
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
-                                ),
-                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
+                                ), border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )
                             ) {
                                 TitleScreen("Musica")
 
@@ -823,13 +882,23 @@ fun AnimeDetailScreen(
                                             )
                                         } else {
                                             animeThemes.openings.forEach { opening ->
+                                                val stringClean = CleanName(opening)
+                                                val searchUrl =
+                                                    YoutubeUtils.buildSearchUrl(stringClean)
                                                 Text(
                                                     text = opening,
-                                                    color = Color.Gray,
+                                                    color = Color(0xFF00BCD4),
                                                     fontSize = 16.sp,
                                                     fontFamily = RobotoRegular,
                                                     textAlign = TextAlign.Start,
-                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 6.dp)
+                                                        .clickable() {
+                                                            val encodedUrl = Uri.encode(searchUrl)
+                                                            navController.navigate("${AppDestinations.WEB_VIEW}/$encodedUrl")
+                                                        },
+                                                    textDecoration = TextDecoration.Underline
                                                 )
                                             }
                                         }
@@ -868,20 +937,28 @@ fun AnimeDetailScreen(
                                             )
                                         } else {
                                             animeThemes.endings.forEach { ending ->
+                                                val stringClean = CleanName(ending)
+                                                val searchUrl =
+                                                    YoutubeUtils.buildSearchUrl(stringClean)
                                                 Text(
                                                     text = ending,
-                                                    color = Color.Gray,
+                                                    color = Color(0xFF00BCD4),
                                                     fontSize = 16.sp,
                                                     fontFamily = RobotoRegular,
                                                     textAlign = TextAlign.Start,
-                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 6.dp)
+                                                        .clickable() {
+                                                            val encodedUrl = Uri.encode(searchUrl)
+                                                            navController.navigate("${AppDestinations.WEB_VIEW}/$encodedUrl")
+                                                        },
+                                                    textDecoration = TextDecoration.Underline
                                                 )
                                             }
                                         }
                                     }
                                 }
-
-
                             }
                         }
                     }
@@ -890,51 +967,175 @@ fun AnimeDetailScreen(
 
                         item {
 
-                            TitleScreen("Personajes")
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TitleScreen("Personajes")
 
-                            when {
-                                characterIsLoading -> {
-                                    Box(
-                                        modifier = Modifier
-                                            .background(Color(0xFF050505))
-                                            .height(250.dp)
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        LinearProgressIndicator(color = Color.White, trackColor = Color.DarkGray)
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Buscar personaje",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .padding(end = 32.dp)
+                                        .size(24.dp)
+                                        .clickable {
+                                            isSearching = true
+                                        })
+                            }
+                        }
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .fillMaxWidth()
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(onTap = {
+                                            focusManager.clearFocus()
+                                        })
                                     }
-                                }
+                                    .imePadding(), colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ), border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )) {
 
-                                characterErrorMessage != null -> {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color(0xFF050505)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = errorMessage ?: "Error desconocido",
-                                            color = Color.Red,
-                                            fontSize = 16.sp,
-                                            textAlign = TextAlign.Center
-                                        )
+                                when {
+                                    characterIsLoading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(Color(0xFF050505))
+                                                .height(250.dp)
+                                                .fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            LinearProgressIndicator(
+                                                color = Color.White, trackColor = Color.DarkGray
+                                            )
+                                        }
                                     }
-                                }
 
-                                else -> {
+                                    characterErrorMessage != null -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(Color(0xFF050505)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = errorMessage ?: "Error desconocido",
+                                                color = Color.Red,
+                                                fontSize = 16.sp,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
+
+                                    else -> {
+
+                                        if (isSearching) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .padding(
+                                                        start = 16.dp, end = 16.dp, top = 16.dp
+                                                    )
+                                                    .fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                OutlinedTextField(
+                                                    modifier = Modifier.weight(1f),
+                                                    value = searchQuery,
+                                                    onValueChange = { searchQuery = it },
+                                                    label = {
+                                                        Text(
+                                                            "Buscar personaje...",
+                                                            color = Color.White
+                                                        )
+                                                    },
+                                                    trailingIcon = {
+                                                        IconButton(onClick = {
+                                                            isSearching = false
+                                                            searchQuery = ""
+                                                        }) {
+                                                            Icon(
+                                                                Icons.Default.Close,
+                                                                contentDescription = "Cerrar búsqueda"
+                                                            )
+                                                        }
+                                                    },
+                                                    placeholder = {
+                                                        Text(
+                                                            text = "Ingrese término de búsqueda...",
+                                                            color = Color.White.copy(alpha = 0.5f),
+                                                            modifier = Modifier.padding(start = 4.dp)
+                                                        )
+                                                    },
+                                                    singleLine = true,
+                                                    shape = RoundedCornerShape(50.dp),
+                                                    colors = TextFieldDefaults.colors(
+                                                        focusedTextColor = Color.White,
+                                                        unfocusedTextColor = Color.White,
+                                                        focusedContainerColor = Color(0xFF050505),
+                                                        unfocusedContainerColor = Color(
+                                                            0xFF050505
+                                                        ),
+                                                        focusedIndicatorColor = Color.White.copy(
+                                                            alpha = 0.5f
+                                                        ),
+                                                        unfocusedIndicatorColor = Color.White.copy(
+                                                            alpha = 0.3f
+                                                        ),
+                                                        cursorColor = Color.White,
+                                                        focusedLabelColor = Color.White.copy(
+                                                            alpha = 0.7f
+                                                        ),
+                                                        unfocusedLabelColor = Color.White.copy(
+                                                            alpha = 0.5f
+                                                        )
+                                                    ),
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Search,
+                                                            contentDescription = "Buscar",
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(24.dp)
+                                                        )
+                                                    },
+                                                )
+                                            }
+                                        }
 
                                         LazyRow(
                                             modifier = Modifier.fillMaxWidth(),
-                                            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 16.dp)
+                                            contentPadding = PaddingValues(
+                                                horizontal = 8.dp, vertical = 16.dp
+                                            )
                                         ) {
-                                            items(animeCharactersDetail) { character ->
-                                                character?.let { it ->
-                                                    val imageUrl = it.imageCharacter?.jpg?.imageUrl ?: ""
+                                            // Filtramos la lista de personajes basada en el texto de búsqueda
+                                            val filteredCharacters = if (searchQuery.isBlank()) {
+                                                animeCharactersDetail
+                                            } else {
+                                                animeCharactersDetail.filter { character ->
+                                                    character?.nameCharacter?.contains(
+                                                        searchQuery, ignoreCase = true
+                                                    ) == true
+                                                }
+                                            }
 
-                                                    if (it.role == "Main") {
-                                                        it.role = "Principal"
-                                                    } else if (it.role == "Supporting") {
-                                                        it.role = "Secundario"
+                                            items(filteredCharacters) { character ->
+                                                character?.let { characterItem ->
+                                                    val imageUrl =
+                                                        characterItem.imageCharacter?.jpg?.imageUrl.orEmpty()
+                                                    val translatedRole = when (characterItem.role) {
+                                                        "Main" -> "Principal"
+                                                        "Supporting" -> "Secundario"
+                                                        else -> characterItem.role
                                                     }
 
                                                     Column(
@@ -944,50 +1145,147 @@ fun AnimeDetailScreen(
                                                         horizontalAlignment = Alignment.CenterHorizontally
                                                     ) {
                                                         AsyncImage(
-                                                            model = ImageRequest.Builder(LocalContext.current)
-                                                                .data(imageUrl)
-                                                                .size(Size.ORIGINAL)
-                                                                .crossfade(true)
-                                                                .build(),
+                                                            model = ImageRequest.Builder(
+                                                                LocalContext.current
+                                                            ).data(imageUrl).size(Size.ORIGINAL)
+                                                                .crossfade(true).build(),
                                                             contentDescription = "Imagen de personaje",
                                                             contentScale = ContentScale.Crop,
                                                             modifier = Modifier
                                                                 .width(140.dp)
                                                                 .height(200.dp)
                                                                 .clip(RoundedCornerShape(8.dp))
-                                                                .clickable() {
-                                                                    navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.idCharacter}")
-                                                                }
-                                                        )
+                                                                .clickable {
+                                                                    navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${characterItem.idCharacter}")
+                                                                })
                                                         Spacer(modifier = Modifier.height(8.dp))
-                                                        Text(
-                                                            text = it.nameCharacter?.takeIf { it.isNotBlank() }
-                                                                ?: "Nombre desconocido",
+                                                        Text(text = characterItem.nameCharacter?.takeIf { it.isNotBlank() }
+                                                            ?: "Nombre desconocido",
                                                             style = MaterialTheme.typography.titleMedium,
                                                             maxLines = 1,
                                                             overflow = TextOverflow.Ellipsis,
                                                             textAlign = TextAlign.Center,
                                                             modifier = Modifier.fillMaxWidth(),
-                                                            color = Color.White
-                                                        )
-                                                        Text(
-                                                            text = it.role,
+                                                            color = Color.White)
+                                                        Text(text = translatedRole.takeIf { it.isNotBlank() }
+                                                            ?: "Rol desconocido",
                                                             style = MaterialTheme.typography.bodySmall,
                                                             maxLines = 1,
                                                             overflow = TextOverflow.Ellipsis,
                                                             textAlign = TextAlign.Center,
                                                             modifier = Modifier.fillMaxWidth(),
-                                                            color = Color.White
-                                                        )
+                                                            color = Color.White)
                                                     }
                                                 }
                                             }
                                         }
+                                    }
                                 }
                             }
-                            TitleScreen("Staff")
                         }
 
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TitleScreen("Staff")
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Buscar Staff",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .padding(end = 32.dp)
+                                        .size(24.dp)
+                                        .clickable {
+                                            isSearchingStaff = true
+                                        })
+                            }
+
+                            Card(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .fillMaxWidth()
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(onTap = {
+                                            focusManager.clearFocus()
+                                        })
+                                    }
+                                    .imePadding(), colors = CardColors(
+                                    contentColor = Color.White,
+                                    containerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Red,
+                                    disabledContentColor = Color.Cyan,
+                                ), border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )) {
+                                if (isSearchingStaff) {
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(
+                                                start = 16.dp, end = 16.dp, top = 16.dp
+                                            )
+                                            .fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        OutlinedTextField(
+                                            modifier = Modifier.weight(1f),
+                                            value = searchQuery,
+                                            onValueChange = { searchQuery = it },
+                                            label = {
+                                                Text("Buscar staff...", color = Color.White)
+                                            },
+                                            trailingIcon = {
+                                                IconButton(onClick = {
+                                                    isSearchingStaff = false
+                                                    searchQuery = ""
+                                                }) {
+                                                    Icon(
+                                                        Icons.Default.Close,
+                                                        contentDescription = "Cerrar búsqueda"
+                                                    )
+                                                }
+                                            },
+                                            placeholder = {
+                                                Text(
+                                                    text = "Ingrese término de búsqueda...",
+                                                    color = Color.White.copy(alpha = 0.5f),
+                                                    modifier = Modifier.padding(start = 4.dp)
+                                                )
+                                            },
+                                            singleLine = true,
+                                            shape = RoundedCornerShape(50.dp),
+                                            colors = TextFieldDefaults.colors(
+                                                focusedTextColor = Color.White,
+                                                unfocusedTextColor = Color.White,
+                                                focusedContainerColor = Color(0xFF050505),
+                                                unfocusedContainerColor = Color(0xFF050505),
+                                                focusedIndicatorColor = Color.White.copy(
+                                                    alpha = 0.5f
+                                                ),
+                                                unfocusedIndicatorColor = Color.White.copy(
+                                                    alpha = 0.3f
+                                                ),
+                                                cursorColor = Color.White,
+                                                focusedLabelColor = Color.White.copy(alpha = 0.7f),
+                                                unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
+                                            ),
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = Icons.Default.Search,
+                                                    contentDescription = "Buscar",
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                     if (selectedTabIndex.value == 2) {
 
@@ -1004,14 +1302,19 @@ fun AnimeDetailScreen(
                             Card(
                                 modifier = Modifier
                                     .padding(16.dp)
-                                    .fillMaxWidth(),
-                                colors = CardColors(
+                                    .fillMaxWidth()
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(onTap = {
+                                            focusManager.clearFocus()
+                                        })
+                                    }, colors = CardColors(
                                     contentColor = Color.White,
                                     containerColor = Color.Transparent,
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
-                                ),
-                                border = BorderStroke(width = 1.dp, color = Color.White.copy(alpha = 0.7f))
+                                ), border = BorderStroke(
+                                    width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                                )
                             ) {
                                 Column() {
                                     Text(
@@ -1030,8 +1333,7 @@ fun AnimeDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .padding(horizontal = 10.dp)
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
+                                            .fillMaxWidth(), contentAlignment = Alignment.Center
                                     ) {
                                         LazyRow(
                                             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -1042,11 +1344,13 @@ fun AnimeDetailScreen(
 
                                                 val isSelected = selectedStatus == status
 
-                                                val chipColor = statusColors[status] ?: Color.LightGray
+                                                val chipColor =
+                                                    statusColors[status] ?: Color.LightGray
 
-                                                ElevatedFilterChip(
+                                                FilterChip(
                                                     onClick = {
-                                                        selectedStatus = if (isSelected) null else status
+                                                        selectedStatus =
+                                                            if (isSelected) null else status
 
                                                         if (status == "Planeado") {
                                                             userRating = 0.0f
@@ -1078,8 +1382,7 @@ fun AnimeDetailScreen(
                                                                 tint = Color.Black
                                                             )
                                                         }
-                                                    }
-                                                )
+                                                    })
                                             }
                                         }
                                     }
@@ -1096,7 +1399,7 @@ fun AnimeDetailScreen(
                                             Text(
                                                 text = "%.1f".format(userRating),
                                                 color = Color.White,
-                                                fontSize = 20.sp,
+                                                fontSize = 14.sp,
                                                 modifier = Modifier.padding(end = 8.dp)
                                             )
 
@@ -1130,25 +1433,65 @@ fun AnimeDetailScreen(
                                             }
                                         }
                                     } else {
-                                        Text("No puedes puntuar el anime si el estado es 'Planeado'", color = Color.White, modifier = Modifier.padding(start = 16.dp, end = 16.dp).fillMaxWidth(), textAlign = TextAlign.Center)
+                                        Text(
+                                            "No puedes puntuar el anime si el estado es 'Planeado'",
+                                            color = Color.White,
+                                            modifier = Modifier
+                                                .padding(
+                                                    start = 16.dp, end = 16.dp
+                                                )
+                                                .fillMaxWidth(),
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
 
-                                    SubTitleIcon("Fecha que empezaste a mirar", Icons.Default.CalendarMonth)
-                                    Text("En desarrollo", color = Color.White, modifier = Modifier.padding(16.dp))
-                                    SubTitleIcon("Fecha que terminaste de mirar", Icons.Default.CalendarToday)
-                                    Text("En desarrollo", color = Color.White,  modifier = Modifier.padding(16.dp))
+                                    SubTitleIcon("Tu opinión:", Icons.Default.ChatBubble)
 
-                                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center) {
+                                    OutlinedTextField(
+                                        value = userOpinion,
+                                        onValueChange = { userOpinion = it },
+                                        label = { Text("Escribe tu reseña aquí...") },
+                                        placeholder = { Text("Ej: 'Una gran historia con personajes inolvidables.'") },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp)
+                                            .height(200.dp)
+                                    )
+
+                                    SubTitleIcon(
+                                        "Fecha que empezaste a mirar",
+                                        Icons.Default.CalendarMonth
+                                    )
+                                    Text(
+                                        "En desarrollo",
+                                        color = Color.White,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                    SubTitleIcon(
+                                        "Fecha que terminaste de mirar",
+                                        Icons.Default.CalendarToday
+                                    )
+                                    Text(
+                                        "En desarrollo",
+                                        color = Color.White,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
                                         Button(
                                             onClick = {
                                                 if (isFormValid) {
-                                                    val scoreToPass = if (selectedStatus == "Planeado") {
-                                                        // Si el estado es "Planeado", la puntuación es 0.0f
-                                                        0.0f
-                                                    } else {
-                                                        // Para cualquier otro estado, el valor actual de userRating
-                                                        userRating
-                                                    }
+                                                    val scoreToPass =
+                                                        if (selectedStatus == "Planeado") {
+                                                            0.0f
+                                                        } else {
+                                                            userRating
+                                                        }
 
                                                     animeDetailViewModel.addAnimeToList(
                                                         userScore = scoreToPass,
@@ -1172,7 +1515,9 @@ fun AnimeDetailScreen(
                                                 }
                                             },
                                             enabled = isFormValid,
-                                            modifier = Modifier.padding(16.dp).fillMaxWidth()
+                                            modifier = Modifier
+                                                .padding(16.dp)
+                                                .fillMaxWidth()
                                         ) {
                                             Text(text = "Guardar")
                                         }
@@ -1180,33 +1525,28 @@ fun AnimeDetailScreen(
                                 }
                             }
                         }
-
                     }
                 }
                 if (showDialog) {
                     Dialog(
                         onDismissRequest = {
                             showDialog = false
-                        },
-                        properties = DialogProperties(usePlatformDefaultWidth = false)
+                        }, properties = DialogProperties(usePlatformDefaultWidth = false)
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable {
                                     showDialog = false
-                                },
-                            contentAlignment = Alignment.Center
+                                }, contentAlignment = Alignment.Center
                         ) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data(selectedImageUrl)
-                                    .crossfade(true)
-                                    .build(),
+                                    .data(selectedImageUrl).crossfade(true).build(),
                                 contentDescription = "Imagen de personaje ampliada",
                                 modifier = Modifier
                                     .fillMaxWidth(0.9f)
-                                    .clickable(enabled = false) {  }
+                                    .clickable(enabled = false) { }
                                     .clip(RoundedCornerShape(16.dp)),
                             )
                             IconButton(

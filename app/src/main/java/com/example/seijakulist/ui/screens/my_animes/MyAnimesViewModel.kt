@@ -38,5 +38,45 @@ class MyAnimeListViewModel @Inject constructor(
         }
 
     }
+
+    val savedAnimeStatusComplete: StateFlow<List<AnimeEntity>> =
+        animeRepository.getAnimesStatusComplete()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
+    val savedAnimeStatusWatching: StateFlow<List<AnimeEntity>> =
+        animeRepository.getAnimesStatusWatching()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
+    val savedAnimeStatusPending: StateFlow<List<AnimeEntity>> =
+        animeRepository.getAnimesStatusPending()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
+    val savedAnimeStatusAbandoned: StateFlow<List<AnimeEntity>> =
+        animeRepository.getAnimesStatusAbandoned()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
+    val savedAnimeStatusPlanned: StateFlow<List<AnimeEntity>> =
+        animeRepository.getAnimesStatusPlanned()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
 }
 

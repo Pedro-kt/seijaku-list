@@ -2,6 +2,7 @@ package com.example.seijakulist.data.remote.api
 
 import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
+import com.example.seijakulist.data.remote.models.AnimeRandomResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.anime_season_now.AnimeDetailSeasonNowResponseDto
 import com.example.seijakulist.data.remote.models.anime_themes.AnimeThemesDto
@@ -58,4 +59,7 @@ interface JikanApiService {
     suspend fun getAnimeThemes(
         @Path("id") malId: Int
     ): AnimeThemesDto
+
+    @GET("random/anime")
+    suspend fun getAnimeRandom(@Query("sfw") sfw: Boolean = true): AnimeRandomResponseDto
 }

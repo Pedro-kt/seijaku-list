@@ -14,6 +14,7 @@ import com.example.seijakulist.data.remote.models.AnimeCharactersDto
 import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
 import com.example.seijakulist.data.remote.models.AnimeDetailDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
+import com.example.seijakulist.data.remote.models.AnimeRandomResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.StudiosDto
 import com.example.seijakulist.data.remote.models.anime_season_now.AnimeDetailSeasonNowResponseDto
@@ -133,6 +134,10 @@ class AnimeRepository @Inject constructor(
         return ApiService.getSeasonUpcoming()
     }
 
+    suspend fun searchAnimeRandom(): AnimeRandomResponseDto {
+        return ApiService.getAnimeRandom()
+    }
+
     suspend fun getAnimeThemesById(animeId: Int): AnimeThemes {
 
         val dto = ApiService.getAnimeThemes(animeId)
@@ -165,5 +170,23 @@ class AnimeRepository @Inject constructor(
         return animeDao.isAnimeInList(animeId)
     }
 
+    fun getAnimesStatusComplete(): Flow<List<AnimeEntity>> {
+        return animeDao.getCompletedAnime()
+    }
 
+    fun getAnimesStatusWatching(): Flow<List<AnimeEntity>> {
+        return animeDao.getWatchingAnime()
+    }
+
+    fun getAnimesStatusPending(): Flow<List<AnimeEntity>> {
+        return animeDao.getPendingAnime()
+    }
+
+    fun getAnimesStatusAbandoned(): Flow<List<AnimeEntity>> {
+        return animeDao.getAbandonedAnime()
+    }
+
+    fun getAnimesStatusPlanned(): Flow<List<AnimeEntity>> {
+        return animeDao.getPlannedAnime()
+    }
 }

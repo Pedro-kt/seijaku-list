@@ -56,7 +56,7 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(animeList) { anime ->
             Column(
@@ -75,8 +75,8 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                         contentDescription = "Imagen de portada",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .width(130.dp)
-                            .height(190.dp)
+                            .width(140.dp)
+                            .height(200.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .clickable {
                                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")

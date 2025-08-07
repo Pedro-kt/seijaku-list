@@ -56,12 +56,6 @@ fun FilterTopAppBar() {
             )
             HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(
-                text = { Text("Filtrar por") },
-                onClick = { /* Handle settings */ },
-                leadingIcon = { Icon(Icons.Default.FilterList, contentDescription = "Filtrar por") },
-            )
-            HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
-            DropdownMenuItem(
                 text = { Text("Cambiar vista") },
                 onClick = { /* Handle send feedback */ },
                 leadingIcon = { Icon(Icons.Default.ViewModule, contentDescription = "Cambiar vista") },

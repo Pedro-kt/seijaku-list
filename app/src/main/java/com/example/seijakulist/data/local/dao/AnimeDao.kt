@@ -21,4 +21,19 @@ interface AnimeDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM animes WHERE malId = :animeId LIMIT 1)")
     fun isAnimeInList(animeId: Int): Flow<Boolean>
+
+    @Query("SELECT * FROM animes WHERE statusUser = 'Viendo'")
+    fun getWatchingAnime(): Flow<List<AnimeEntity>>
+
+    @Query("SELECT * FROM animes WHERE statusUser = 'Completado'")
+    fun getCompletedAnime(): Flow<List<AnimeEntity>>
+
+    @Query("SELECT * FROM animes WHERE statusUser = 'Pendiente'")
+    fun getPendingAnime(): Flow<List<AnimeEntity>>
+
+    @Query("SELECT * FROM animes WHERE statusUser = 'Abandonado'")
+    fun getAbandonedAnime(): Flow<List<AnimeEntity>>
+
+    @Query("SELECT * FROM animes WHERE statusUser = 'Planeado'")
+    fun getPlannedAnime(): Flow<List<AnimeEntity>>
 }
