@@ -5,5 +5,6 @@ data class AnimeEntityDomain(
     val title: String,
     val image: String,
     val userScore: Float,
-    val userStatus: String
+    val userStatus: String,
+    val userOpiniun: String
 )

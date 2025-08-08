@@ -1496,6 +1496,7 @@ fun AnimeDetailScreen(
                                                     animeDetailViewModel.addAnimeToList(
                                                         userScore = scoreToPass,
                                                         userStatus = selectedStatus!!,
+                                                        userOpinion = userOpinion
                                                     )
                                                     scope.launch {
                                                         snackbarHostState.showSnackbar(

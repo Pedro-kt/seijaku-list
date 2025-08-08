@@ -8,6 +8,7 @@ data class AnimeEntity(
     @PrimaryKey val malId: Int,
     val title: String,
     val imageUrl: String?,
-    val userScore: Float, // campo nuevo (cambiado de nombre)
-    val statusUser: String // campo nuevo
+    val userScore: Float, // campo nuevo (cambiado de nombre) v2
+    val statusUser: String, // campo nuevo v2
+    val userOpiniun: String // campo nuevo v3
 )

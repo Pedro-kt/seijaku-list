@@ -10,7 +10,8 @@ fun AnimeEntityDomain.toAnimeEntity(): AnimeEntity {
         title = title,
         imageUrl = image,
         userScore = userScore,
-        statusUser = userStatus
+        statusUser = userStatus,
+        userOpiniun = userOpiniun
     )
 }
 fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
@@ -19,6 +20,7 @@ fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
         title = title,
         image = imageUrl ?: "",
         userScore = userScore,
-        userStatus = statusUser
+        userStatus = statusUser,
+        userOpiniun = userOpiniun
     )
 }

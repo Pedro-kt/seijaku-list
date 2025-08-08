@@ -57,7 +57,7 @@ class AnimeSeasonNowViewModel @Inject constructor(
 
             } catch (e: Exception) {
 
-                _errorMessage.value = "Error al buscar animes: ${e.localizedMessage ?: "Error desconocido"}"
+                _errorMessage.value = "Ups! Algo salio mal, verifique su conexion a internet"
                 _animeList.value = emptyList()
 
             } finally {

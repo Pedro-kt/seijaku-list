@@ -63,7 +63,7 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun addAnimeToList(userScore: Float, userStatus: String) {
+    fun addAnimeToList(userScore: Float, userStatus: String, userOpinion: String) {
         val current = _animeDetail.value ?: return
 
         viewModelScope.launch {
@@ -73,7 +73,8 @@ class AnimeDetailViewModel @Inject constructor(
                     title = current.title,
                     imageUrl = current.images,
                     userScore = userScore,
-                    statusUser = userStatus
+                    statusUser = userStatus,
+                    userOpiniun = userOpinion
                 )
                 repository.insertAnime(entity)
                 _isAdded.value = true

@@ -268,6 +268,12 @@ fun MyAnimeListScreen(
                                             fontFamily = RobotoRegular,
                                             color = Color.White
                                         )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Opinion: ${anime.userOpiniun}",
+                                            fontFamily = RobotoRegular,
+                                            color = Color.White
+                                        )
                                     }
                                 }
 
