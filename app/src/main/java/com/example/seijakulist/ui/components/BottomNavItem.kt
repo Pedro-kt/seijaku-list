@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.seijakulist.R
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.screens.home.BottomNavItem
@@ -82,8 +83,13 @@ fun BottomNavItemScreen(navController: NavController) {
                     selected = isSelected,
                     onClick = {
                         if (currentRoute != item.route) {
+                            //Limpiar el historial antes de navegar
+                            navController.popBackStack(
+                                route = AppDestinations.HOME,
+                                inclusive = false
+                            )
+                            // Navegar al destino deseado
                             navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }
