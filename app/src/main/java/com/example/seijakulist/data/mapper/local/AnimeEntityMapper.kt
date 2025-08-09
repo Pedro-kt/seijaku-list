@@ -14,6 +14,7 @@ fun AnimeEntityDomain.toAnimeEntity(): AnimeEntity {
         userOpiniun = userOpiniun
     )
 }
+
 fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
     return AnimeEntityDomain(
         malId = malId,

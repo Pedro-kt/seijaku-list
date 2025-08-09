@@ -28,6 +28,7 @@ import androidx.navigation.navArgument
 import com.example.seijakulist.ui.components.WebViewScreen
 import com.example.seijakulist.ui.screens.characters.CharacterDetailScreen
 import com.example.seijakulist.ui.screens.home.HomeScreen
+import com.example.seijakulist.ui.screens.local_anime_detail.AnimeDetailScreenLocal
 import com.example.seijakulist.ui.screens.my_animes.MyAnimeListScreen
 import com.example.seijakulist.ui.screens.my_mangas.MyMangasScreen
 
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = Color.Transparent
-                    ) {
+                ) {
                     AppNavigation()
                 }
             }
@@ -72,7 +73,7 @@ fun AppNavigation() {
             }
             ),
             route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}"
-            ) { backStackEntry ->
+        ) { backStackEntry ->
             val animeId = backStackEntry.arguments?.getInt(AppDestinations.ANIME_ID_KEY)
 
             if (animeId != null) {
@@ -87,10 +88,10 @@ fun AppNavigation() {
             }
             ),
             route = "${AppDestinations.CHARACTER_DETAIL_ROUTE}/{${AppDestinations.CHARACTER_ID_KEY}}"
-            ) { backStackEntry ->
+        ) { backStackEntry ->
             val characterId = backStackEntry.arguments?.getInt(AppDestinations.CHARACTER_ID_KEY)
 
-            if (characterId !=null) {
+            if (characterId != null) {
                 CharacterDetailScreen(navController, characterId = characterId)
             } else {
                 Text("Error: personaje no encontrado")
@@ -110,7 +111,26 @@ fun AppNavigation() {
             })
         ) { backStackEntry ->
             val url = backStackEntry.arguments?.getString(AppDestinations.WEB_VIEW_URL) ?: ""
-            WebViewScreen(url = Uri.decode(url), navController) // IMPORTANTE: decodearla para mostrar
+            WebViewScreen(
+                url = Uri.decode(url),
+                navController
+            )
+        }
+        composable(
+            arguments = listOf(
+                navArgument("animeId") {
+                    type = NavType.IntType
+                }
+            ),
+            route = "${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}",
+        ) { backStackEntry ->
+            val animeId = backStackEntry.arguments?.getInt(AppDestinations.ANIME_ID_KEY)
+
+            if (animeId != null) {
+                AnimeDetailScreenLocal(navController, animeId = animeId)
+            } else {
+                Text("Error: anime no encontrado")
+            }
         }
     }
 }

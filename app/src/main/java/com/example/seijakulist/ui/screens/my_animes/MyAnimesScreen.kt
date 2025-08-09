@@ -223,7 +223,7 @@ fun MyAnimeListScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
                                 .clickable {
-                                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                                    navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
                                 },
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF121212))
                         ) {

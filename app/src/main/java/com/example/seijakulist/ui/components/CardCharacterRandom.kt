@@ -42,16 +42,20 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
 import com.example.seijakulist.domain.models.Anime
+import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.ui.navigation.AppDestinations
 
 @Composable
-fun AnimeRandomCard(
-    anime: Anime,
+fun CharacterRandomCard(
+    character: CharacterDetail,
     navController: NavController,
     onRefresh: () -> Unit
 ) {
     val RobotoBold = FontFamily(
         Font(R.font.roboto_bold)
+    )
+    val RobotoRegular = FontFamily(
+        Font(R.font.roboto_regular)
     )
 
     val gradientColorsTopBar = listOf(
@@ -82,7 +86,7 @@ fun AnimeRandomCard(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(anime.image)
+                        .data(character.images)
                         .size(Size.ORIGINAL)
                         .crossfade(true)
                         .build(),
@@ -93,7 +97,7 @@ fun AnimeRandomCard(
                         .height(200.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
-                            navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                            navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
                         }
                         .border(width = 1.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
                 )
@@ -101,7 +105,7 @@ fun AnimeRandomCard(
                     modifier = Modifier.fillMaxHeight(),
                     verticalArrangement = Arrangement.Top
                 ) {
-                    SubTitleWithoutIcon(anime.title)
+                    SubTitleWithoutIcon(character.nameCharacter)
 
                     Row(
                         modifier = Modifier
@@ -112,24 +116,29 @@ fun AnimeRandomCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Puntuacion",
-                            tint = Color.Yellow,
+                        Text(
+                            text = "Kanji:",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start,
                             modifier = Modifier
-                                .size(24.dp)
+                                .wrapContentWidth()
+                                .padding(end = 8.dp),
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontFamily = RobotoBold
                         )
                         Text(
-                            text = anime.score.toString(),
+                            text = character.nameKanjiCharacter,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .padding(end = 16.dp),
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontFamily = RobotoBold
+                            color = Color.Gray,
+                            fontSize = 12.sp,
+                            fontFamily = RobotoRegular
                         )
                     }
                 }

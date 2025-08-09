@@ -3,7 +3,6 @@ package com.example.seijakulist.data.repository
 import android.util.Log
 import com.example.seijakulist.data.local.dao.AnimeDao
 import com.example.seijakulist.data.local.entities.AnimeEntity
-import com.example.seijakulist.data.mapper.local.toAnimeEntity
 import com.example.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.example.seijakulist.data.mapper.toAnimeDetails
 
@@ -19,6 +18,7 @@ import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.StudiosDto
 import com.example.seijakulist.data.remote.models.anime_season_now.AnimeDetailSeasonNowResponseDto
 import com.example.seijakulist.data.remote.models.anime_themes.AnimeThemesDto
+import com.example.seijakulist.data.remote.models.character_detail.CharacterResponseDto
 import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.domain.models.AnimeDetail
@@ -148,6 +148,24 @@ class AnimeRepository @Inject constructor(
         )
     }
 
+    suspend fun getCharacterRandom(): CharacterDetail {
+        val responseDto = ApiService.getCharacterRandom()
+
+        Log.d("CHAR", "Personaje bruto desde la API: ${responseDto.data}")
+
+        val characterFullDetailDto = responseDto.data
+
+        if (characterFullDetailDto == null) {
+            throw Exception("API did not return detail character data")
+        }
+
+        val characterDetail = characterFullDetailDto.toCharacterDetail()
+
+        Log.d("CHAR", "Personaje mapeado: $characterDetail")
+
+        return characterDetail
+    }
+
     //DB LOCAL
 
     suspend fun insertAnime(anime: AnimeEntity) {
@@ -188,5 +206,9 @@ class AnimeRepository @Inject constructor(
 
     fun getAnimesStatusPlanned(): Flow<List<AnimeEntity>> {
         return animeDao.getPlannedAnime()
+    }
+
+    fun getAnimeById(animeId: Int): Flow<AnimeEntity> {
+        return animeDao.getAnimeById(animeId)
     }
 }

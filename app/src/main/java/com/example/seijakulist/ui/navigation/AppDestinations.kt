@@ -18,4 +18,6 @@ object AppDestinations {
     const val WEB_VIEW = "webview_route"
 
     const val WEB_VIEW_URL = "webview_url"
+
+    const val ANIME_DETAIL_LOCAL_ROUTE = "anime_detail_local_route"
 }

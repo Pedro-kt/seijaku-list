@@ -62,4 +62,7 @@ interface JikanApiService {
 
     @GET("random/anime")
     suspend fun getAnimeRandom(@Query("sfw") sfw: Boolean = true): AnimeRandomResponseDto
+
+    @GET("random/characters")
+    suspend fun getCharacterRandom(): CharacterResponseDto
 }

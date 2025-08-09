@@ -3,7 +3,7 @@ package com.example.seijakulist.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.Anime
-import com.example.seijakulist.domain.usecase.GetAnimeDetailSeasonNowUseCase
+import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.usecase.GetAnimeRandomUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ class AnimeRandomViewModel @Inject constructor(
     fun loadRandomAnime() {
         viewModelScope.launch {
             // Actualiza el estado para indicar que la carga ha iniciado
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, isDataLoaded = false) }
 
             try {
                 // Llama al use case
@@ -40,8 +40,9 @@ class AnimeRandomViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         anime = result,
+                        isDataLoaded = true,
                         isLoading = false,
-                        isDataLoaded = true
+                        errorMessage = null
                     )
                 }
 
@@ -49,8 +50,7 @@ class AnimeRandomViewModel @Inject constructor(
                 // Actualiza el estado en caso de error
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
-                        errorMessage = "Error al buscar animes: ${e.localizedMessage ?: "Error desconocido"}"
+                        errorMessage = "Error al buscar animes: ${e.localizedMessage ?: "Error desconocido"}",
                     )
                 }
             }
@@ -60,8 +60,8 @@ class AnimeRandomViewModel @Inject constructor(
 
 // Data class para representar el estado de la UI
 data class AnimeRandomUiState(
-    val anime: Anime? = null, // El anime es nulo hasta que se cargue
+    val anime: Anime? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val isDataLoaded: Boolean = false
+    val isDataLoaded: Boolean = false,
 )

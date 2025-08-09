@@ -113,6 +113,7 @@ import com.example.seijakulist.ui.components.AnimeRandomCard
 import com.example.seijakulist.ui.components.BottomNavItemScreen
 import com.example.seijakulist.ui.components.CardAnimesHome
 import com.example.seijakulist.ui.components.CompleteAnimeCard
+import com.example.seijakulist.ui.components.CompleteCharacterCard
 import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.components.NoInternetScreen
 import com.example.seijakulist.ui.components.SubTitleIcon
@@ -134,7 +135,8 @@ fun HomeScreen(
     seasonNowViewModel: AnimeSeasonNowViewModel = hiltViewModel(),
     topAnimesViewModel: TopAnimeViewModel = hiltViewModel(),
     seasonUpcomingViewModel: AnimeSeasonUpcomingViewModel = hiltViewModel(),
-    viewModel: AnimeRandomViewModel = hiltViewModel()
+    viewModel: AnimeRandomViewModel = hiltViewModel(),
+    characterRandomViewModel: CharacterRandomViewModel = hiltViewModel()
 ) {
 
     val animeSeasonNow by seasonNowViewModel.animeList.collectAsState()
@@ -148,6 +150,8 @@ fun HomeScreen(
     val animeSeasonUpcoming by seasonUpcomingViewModel.animeList.collectAsState()
     val animeSeasonUpcomingIsLoading by seasonUpcomingViewModel.isLoading.collectAsState()
     val animeSeasonUpcomingErrorMessage by seasonUpcomingViewModel.errorMessage.collectAsState()
+
+    val characterRandom by characterRandomViewModel.uiCharacterState.collectAsState()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -219,6 +223,13 @@ fun HomeScreen(
                         item {
                             CardAnimesHome(topAnimes, navController)
                         }
+                        item {
+                            SubTitleWithoutIcon("Personaje random")
+                        }
+                        item {
+                            CompleteCharacterCard(characterRandom, navController, characterRandomViewModel)
+                        }
+
                         item {
                             SubTitleWithoutIcon("Proxima temporada")
                         }

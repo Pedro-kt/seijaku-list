@@ -190,13 +190,6 @@ fun AnimeDetailScreen(
         Font(R.font.roboto_bold, FontWeight.Bold)
     )
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.7f else 1f, label = "button_scale_animation"
-    )
-
     //snakbar de notificacion
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -317,7 +310,8 @@ fun AnimeDetailScreen(
                             )
                         }
                     }
-                }, containerColor = Color(0xFF050505), snackbarHost = {
+                },
+                containerColor = Color(0xFF050505), snackbarHost = {
                     SnackbarHost(hostState = snackbarHostState) { data ->
                         Snackbar(
                             snackbarData = data,
@@ -335,7 +329,6 @@ fun AnimeDetailScreen(
                         .fillMaxSize()
                         .padding(innerPadding)
                         .background(color = Color(0xFF050505))
-                        .navigationBarsPadding()
                 ) {
                     item {
                         Box(
