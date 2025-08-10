@@ -1018,12 +1018,13 @@ fun AnimeDetailScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
+                                                .height(250.dp)
                                                 .background(Color(0xFF050505)),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
-                                                text = errorMessage ?: "Error desconocido",
-                                                color = Color.Red,
+                                                text = characterErrorMessage!!,
+                                                color = Color.White,
                                                 fontSize = 16.sp,
                                                 textAlign = TextAlign.Center
                                             )
@@ -1511,7 +1512,11 @@ fun AnimeDetailScreen(
                                             enabled = isFormValid,
                                             modifier = Modifier
                                                 .padding(16.dp)
-                                                .fillMaxWidth()
+                                                .fillMaxWidth(),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color(0xFF673AB7),
+                                                contentColor = Color.White
+                                            )
                                         ) {
                                             Text(text = "Guardar")
                                         }

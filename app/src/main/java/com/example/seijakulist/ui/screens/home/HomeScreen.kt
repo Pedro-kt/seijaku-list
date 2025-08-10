@@ -123,11 +123,6 @@ import com.example.seijakulist.ui.components.TopHomeScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
 import kotlinx.coroutines.delay
 
-data class BottomNavItem(
-    val name: String,
-    val icon: ImageVector,
-    val route: String
-)
 
 @Composable
 fun HomeScreen(

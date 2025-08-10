@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,12 +21,18 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -87,6 +94,8 @@ fun MyAnimeListScreen(
     val statusAnime = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
     var selectedFilter by remember { mutableStateOf<String?>(null) }
 
+    var colapsedFilter by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = Color(0xFF050505),
         topBar = {
@@ -135,73 +144,99 @@ fun MyAnimeListScreen(
                 .padding(innerPadding),
         ) {
             if (savedAnimes.isEmpty()) {
-                Text(
-                    text = "No tienes animes agregados a tu lista",
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 16.dp),
-                    fontFamily = RobotoRegular,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Parece que no hay animes aquí todavía. ¿Por qué no añades tu primer anime?",
+                        fontFamily = RobotoRegular,
+                        textAlign = TextAlign.Center,
+                        fontSize = 16.sp,
+                        color = Color.White.copy(alpha = 0.6f)
+                    )
+                    Button(
+                        onClick = {
+                            navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE)
+                        },
+                        modifier = Modifier.padding(top = 16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF673AB7),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(text = "Buscar anime!")
+                    }
+                }
             } else {
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp,vertical = 8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = "Icono de filtrar por",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Filtrar por:",
                         color = Color.White,
                         fontSize = 16.sp
                     )
+                    Icon(
+                        imageVector = if (colapsedFilter) {
+                            Icons.Default.ArrowDropDown
+                        } else {
+                            Icons.AutoMirrored.Filled.ArrowRight
+                        },
+                        contentDescription = "Icono de filtrar por",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                            .clickable {
+                                colapsedFilter = !colapsedFilter
+                            }
+                    )
                 }
 
-                LazyRow(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    items(statusAnime) { filter ->
-                        val isSelected = selectedFilter == filter
+                if (colapsedFilter) {
+                    LazyRow(
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        items(statusAnime) { filter ->
+                            val isSelected = selectedFilter == filter
 
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                selectedFilter = if (isSelected) null else filter
-                            },
-                            label = {
-                                Text(filter)
-                            },
-                            modifier = Modifier.padding(end = 8.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color(0xFF050505),
-                                labelColor = Color.White,
-                                selectedContainerColor = Color(0xFF121212),
-                                selectedLabelColor = Color.White
-                            ),
-                            border = BorderStroke(
-                                width = 1.dp,
-                                color = if (isSelected) Color.Green else Color.White
-                            ),
-                            trailingIcon = {
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Seleccionado",
-                                        tint = Color.Green
-                                    )
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    selectedFilter = if (isSelected) null else filter
+                                },
+                                label = {
+                                    Text(filter)
+                                },
+                                modifier = Modifier.padding(end = 8.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Color(0xFF050505),
+                                    labelColor = Color.White,
+                                    selectedContainerColor = Color(0xFF121212),
+                                    selectedLabelColor = Color.White
+                                ),
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = if (isSelected) Color.Green else Color.White
+                                ),
+                                trailingIcon = {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "Seleccionado",
+                                            tint = Color.Green
+                                        )
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
+                HorizontalDivider()
 
                 val displayedAnimes by remember(selectedFilter) {
                     derivedStateOf {

@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -101,21 +102,16 @@ fun MyMangasScreen(
                 .fillMaxSize()
                 .background(color = Color(0xFF050505))
                 .padding(innerPadding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No tenemos mangas disponibles en este momento... pero en versiones futuras lo implementare! :)",
-                    textAlign = TextAlign.Center,
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    fontSize = 16.sp,
-                    fontFamily = RobotoBold,
-                )
-            }
+            Text(
+                text = "En este momento no hay mangas disponibles, pero pronto lo estará!",
+                fontFamily = RobotoRegular,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp,
+                color = Color.White.copy(alpha = 0.6f)
+            )
         }
     }
 }

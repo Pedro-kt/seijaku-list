@@ -33,7 +33,10 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
@@ -105,6 +108,8 @@ fun SearchScreen(
     val listFilterChip = listOf("Anime", "Manga", "Generos", "Personajes", "Staff", "Estudios")
 
     var selectedFilter by remember { mutableStateOf<String?>(null) }
+
+    var colapsedFilter by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -186,6 +191,7 @@ fun SearchScreen(
                             viewModel.searchAnimes()
                             focusManager.clearFocus()
                             keyboardController?.hide()
+                            colapsedFilter = false
                         }
                     ),
                 )
@@ -195,57 +201,66 @@ fun SearchScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp,vertical = 8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = "Icono de filtrar por",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el icono y el texto
                 Text(
                     text = "Filtrar por:",
                     color = Color.White,
                     fontSize = 16.sp
                 )
+                Icon(
+                    imageVector = if (colapsedFilter) {
+                        Icons.Default.ArrowDropDown
+                    } else {
+                        Icons.AutoMirrored.Filled.ArrowRight
+                    },
+                    contentDescription = "Icono de filtrar por",
+                    tint = Color.White,
+                    modifier = Modifier.size(30.dp)
+                        .clickable {
+                            colapsedFilter = !colapsedFilter
+                        }
+                )
             }
 
-            LazyRow(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                items(listFilterChip) { filter ->
-                    val isSelected = selectedFilter == filter
+            if (colapsedFilter) {
+                LazyRow(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    items(listFilterChip) { filter ->
+                        val isSelected = selectedFilter == filter
 
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            selectedFilter = if (isSelected) null else filter
-                        },
-                        label = {
-                            Text(filter)
-                        },
-                        modifier = Modifier.padding(end = 8.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Color(0xFF050505),
-                            labelColor = Color.White,
-                            selectedContainerColor = Color(0xFF121212),
-                            selectedLabelColor = Color.White
-                        ),
-                        border = BorderStroke(
-                            width = 1.dp,
-                            color = if (isSelected) Color.Green else Color.White
-                        ),
-                        trailingIcon = {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Seleccionado",
-                                    tint = Color.Green
-                                )
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                selectedFilter = if (isSelected) null else filter
+                            },
+                            label = {
+                                Text(filter)
+                            },
+                            modifier = Modifier.padding(end = 8.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color(0xFF050505),
+                                labelColor = Color.White,
+                                selectedContainerColor = Color(0xFF121212),
+                                selectedLabelColor = Color.White
+                            ),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = if (isSelected) Color.Green else Color.White
+                            ),
+                            trailingIcon = {
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Seleccionado",
+                                        tint = Color.Green
+                                    )
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
+            HorizontalDivider()
 
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

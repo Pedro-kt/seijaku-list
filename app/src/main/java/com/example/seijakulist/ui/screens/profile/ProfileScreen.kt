@@ -55,10 +55,6 @@ import androidx.navigation.NavController
 import com.example.seijakulist.R
 import com.example.seijakulist.ui.components.ArrowBackTopAppBar
 import com.example.seijakulist.ui.components.BottomNavItemScreen
-import com.example.seijakulist.ui.components.FilterTopAppBar
-import com.example.seijakulist.ui.navigation.AppDestinations
-import com.example.seijakulist.ui.screens.home.BottomNavItem
-import java.nio.file.WatchEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,14 +67,6 @@ fun ProfileScreen(
     )
     val RobotoBold = FontFamily(
         Font(R.font.roboto_bold, FontWeight.Bold)
-    )
-
-    val navItems = listOf(
-        BottomNavItem(name = "Mis Animes", icon = Icons.Default.Tv, route = AppDestinations.MY_ANIMES_ROUTE),
-        BottomNavItem(name = "Mis Mangas", icon = Icons.AutoMirrored.Outlined.MenuBook, route = AppDestinations.MY_MANGAS_ROUTE),
-        BottomNavItem(name = "Home", icon = Icons.Default.Home, route = AppDestinations.HOME),
-        BottomNavItem(name = "Buscar", icon = Icons.Default.Search, route = AppDestinations.SEARCH_ANIME_ROUTE),
-        BottomNavItem(name = "Perfil", icon = Icons.Default.AccountCircle, route = AppDestinations.MY_PROFILE_ROUTE)
     )
 
     val currentRoute = navController.currentBackStackEntry?.destination?.route
