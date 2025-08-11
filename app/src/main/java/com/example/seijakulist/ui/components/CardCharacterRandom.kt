@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -23,6 +25,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +57,9 @@ fun CharacterRandomCard(
     navController: NavController,
     onRefresh: () -> Unit
 ) {
+
+    var isLiked by remember { mutableStateOf(false) }
+
     val RobotoBold = FontFamily(
         Font(R.font.roboto_bold)
     )
@@ -59,9 +68,9 @@ fun CharacterRandomCard(
     )
 
     val gradientColorsTopBar = listOf(
-        Color(0xFF181818),
-        Color(0xFF202020),
-        Color(0xFF181818),
+        Color(0xFF160078),
+        Color(0xff7226ff),
+        Color(0xFF160078),
     )
 
     Card(
@@ -154,6 +163,18 @@ fun CharacterRandomCard(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = "Refrescar",
                     tint = Color.White,
+                )
+            }
+            IconButton(
+                onClick = { isLiked = !isLiked },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = "Añadir a favoritos",
+                    tint = if (isLiked) Color.Red else Color.White
                 )
             }
         }

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tv
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -103,7 +104,7 @@ fun BottomNavItemScreen(navController: NavController) {
         HorizontalDivider()
 
         NavigationBar(
-            containerColor = Color.Black,
+            containerColor = Color(0xFF121211),
             modifier = Modifier
                 .fillMaxWidth()
         ) {
@@ -139,7 +140,7 @@ fun BottomNavItemScreen(navController: NavController) {
                         selectedTextColor = Color.White,
                         unselectedIconColor = Color.White.copy(alpha = 0.6f),
                         unselectedTextColor = Color.White.copy(alpha = 0.6f),
-                        indicatorColor = Color(0xFF673AB7)
+                        indicatorColor = Color(0xff7226ff),
                     )
                 )
             }

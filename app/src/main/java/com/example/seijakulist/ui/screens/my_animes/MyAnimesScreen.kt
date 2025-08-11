@@ -19,12 +19,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -34,11 +37,13 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -96,29 +101,43 @@ fun MyAnimeListScreen(
 
     var colapsedFilter by remember { mutableStateOf(false) }
 
+    val statusColors = mapOf(
+        "Viendo" to Color(0xFF66BB6A),
+        "Completado" to Color(0xFF42A5F5),
+        "Pendiente" to Color(0xFFFFCA28),
+        "Abandonado" to Color(0xFFEF5350),
+        "Planeado" to Color(0xFF78909C)
+    )
+
     Scaffold(
-        containerColor = Color(0xFF050505),
+        containerColor = Color(0xff121211),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(color = Color(0xFF121212))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ArrowBackTopAppBar(navController)
-                Text(
-                    text = "Mis animes",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f),
-                    fontFamily = RobotoBold
-                )
-                FilterTopAppBar()
+            Column(modifier = Modifier.background(color = Color(0xFF121211))) {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .background(color = Color(0xFF121211))
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ArrowBackTopAppBar(navController)
+                    Text(
+                        text = "Mis animes",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 24.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .weight(1f),
+                        fontFamily = RobotoBold
+                    )
+                    FilterTopAppBar()
+                }
+                if (savedAnimes.isEmpty()) {
+                    HorizontalDivider()
+                }
             }
         },
         bottomBar = {
@@ -140,7 +159,7 @@ fun MyAnimeListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = Color(0xFF050505))
+                .background(color = Color(0xFF121211))
                 .padding(innerPadding),
         ) {
             if (savedAnimes.isEmpty()) {
@@ -164,7 +183,7 @@ fun MyAnimeListScreen(
                         },
                         modifier = Modifier.padding(top = 16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF673AB7),
+                            containerColor = Color(0xff7226ff),
                             contentColor = Color.White
                         )
                     ) {
@@ -175,7 +194,7 @@ fun MyAnimeListScreen(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp,vertical = 8.dp)
+                    modifier = Modifier.fillMaxWidth().background(Color.Black).padding(horizontal = 16.dp,vertical = 8.dp)
                 ) {
                     Text(
                         text = "Filtrar por:",
@@ -199,7 +218,7 @@ fun MyAnimeListScreen(
 
                 if (colapsedFilter) {
                     LazyRow(
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.background(Color.Black).padding(horizontal = 8.dp)
                     ) {
                         items(statusAnime) { filter ->
                             val isSelected = selectedFilter == filter
@@ -214,7 +233,7 @@ fun MyAnimeListScreen(
                                 },
                                 modifier = Modifier.padding(end = 8.dp),
                                 colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = Color(0xFF050505),
+                                    containerColor = Color(0xFF121212),
                                     labelColor = Color.White,
                                     selectedContainerColor = Color(0xFF121212),
                                     selectedLabelColor = Color.White
@@ -251,7 +270,7 @@ fun MyAnimeListScreen(
                     }
                 }
 
-                LazyColumn(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)) {
+                LazyColumn(modifier = Modifier.background(Color.Black).padding(start = 16.dp, end = 16.dp)) {
                     items(displayedAnimes) { anime ->
                         Card(
                             modifier = Modifier
@@ -288,24 +307,31 @@ fun MyAnimeListScreen(
                                             modifier = Modifier.padding(end = 16.dp)
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = if (anime.userScore != 0.0f) {
-                                                "Mi puntuacion: ${anime.userScore}"
-                                            } else {
-                                                "Sin puntuacion"
-                                            },
-                                            fontFamily = RobotoRegular,
-                                            color = Color.White
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+                                        ) {
+                                            StarWithScore(anime.userScore)
+                                            VerticalDivider(
+                                                modifier = Modifier
+                                                    .height(20.dp)
+                                                    .width(1.dp),
+                                                color = Color.White
+                                            )
+                                            Text(
+                                                text = anime.statusUser,
+                                                fontFamily = RobotoRegular,
+                                                color = Color.White
+                                            )
+                                            Box(
+                                                modifier = Modifier.size(12.dp).clip(CircleShape).background(statusColors[anime.statusUser]!!)
+                                            )
+                                        }
                                         Spacer(modifier = Modifier.height(4.dp))
+
                                         Text(
-                                            text = "Estado: ${anime.statusUser}",
-                                            fontFamily = RobotoRegular,
-                                            color = Color.White
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = "Opinion: ${anime.userOpiniun}",
+                                            text = "Ep: 0/12",
                                             fontFamily = RobotoRegular,
                                             color = Color.White
                                         )
@@ -331,5 +357,28 @@ fun MyAnimeListScreen(
             }
 
         }
+    }
+}
+
+@Composable
+fun StarWithScore(score: Float){
+    val RobotoRegular = FontFamily(
+        Font(R.font.roboto_regular)
+    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            text = score.toString(),
+            fontFamily = RobotoRegular,
+            color = Color.White
+        )
+        Icon(
+            imageVector = Icons.Default.Star,
+            contentDescription = "Puntuacion",
+            tint = Color.Yellow,
+            modifier = Modifier.size(16.dp)
+        )
     }
 }

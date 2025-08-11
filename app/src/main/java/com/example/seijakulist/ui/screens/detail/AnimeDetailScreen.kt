@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -63,6 +64,7 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -84,6 +86,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -151,9 +154,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.components.ArrowBackTopAppBar
 import com.example.seijakulist.ui.components.BottomNavItemScreen
 import com.example.seijakulist.ui.components.DescriptionAnime
-import com.example.seijakulist.ui.components.SliderSelectScore
 import com.example.seijakulist.ui.components.SubTitleIcon
 import com.example.seijakulist.ui.components.TitleScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
@@ -225,7 +228,8 @@ fun AnimeDetailScreen(
         "Planeado" to Color(0xFF78909C)
     )
 
-    val selectedTabIndex = remember { mutableStateOf(0) }
+
+    var selectedTabIndex by remember { mutableStateOf(0) }
 
     //webview
     val context = LocalContext.current
@@ -269,46 +273,39 @@ fun AnimeDetailScreen(
         else -> {
             Scaffold(
                 topBar = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .statusBarsPadding()
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(color = Color(0xFF121212))
-                    ) {
-                        Text(
-                            text = "Detalle",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontFamily = RobotoBold,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                    Column(modifier = Modifier.background(Color.Black)) {
 
-                        IconButton(
-                            onClick = { navController.popBackStack() },
+                        Row(
                             modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(start = 8.dp)
+                                .fillMaxWidth()
+                                .statusBarsPadding()
+                                .background(color = Color.Transparent)
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver atras",
-                                tint = Color.White
+                            ArrowBackTopAppBar(navController)
+                            Text(
+                                text = "Detalle",
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontSize = 24.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .padding(bottom = 8.dp)
+                                    .weight(1f),
+                                fontFamily = RobotoBold
                             )
+                            IconButton(
+                                onClick = {  },
+                                modifier = Modifier
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Compartir",
+                                    tint = Color.White
+                                )
+                            }
                         }
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Compartir",
-                                tint = Color.White
-                            )
-                        }
+                        HorizontalDivider()
                     }
                 },
                 containerColor = Color(0xFF050505), snackbarHost = {
@@ -328,14 +325,13 @@ fun AnimeDetailScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .background(color = Color(0xFF050505))
+                        .background(color = Color.Black)
                 ) {
                     item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(350.dp)
-                                .padding(top = 16.dp)
                         ) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
@@ -354,21 +350,10 @@ fun AnimeDetailScreen(
                                     .background(
                                         brush = Brush.verticalGradient(
                                             colors = listOf(
-                                                Color(0xFF050505), Color.Transparent
-                                            ),
-                                            startY = 0f,
-                                            endY = 400f,
-                                        )
-                                    )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent, Color(0xFF050505)
-                                            ), startY = 400f, endY = Float.POSITIVE_INFINITY
+                                                Color(0xFF010101),
+                                                Color.Transparent,
+                                                Color(0xFF010101)
+                                            )
                                         )
                                     )
                             )
@@ -471,39 +456,52 @@ fun AnimeDetailScreen(
                     }
 
                     item {
-                        TabRow(
-                            selectedTabIndex = selectedTabIndex.value,
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White,
+                        Row(
                             modifier = Modifier
+                                .fillMaxWidth()
                                 .padding(top = 16.dp, start = 16.dp, end = 16.dp)
                                 .clip(RoundedCornerShape(24.dp))
                                 .border(
                                     width = 1.dp,
                                     shape = RoundedCornerShape(24.dp),
-                                    color = Color.White.copy(alpha = 0.7f)
-                                )
+                                    color = Color.White
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             tabIcons.forEachIndexed { index, icon ->
-                                Tab(
-                                    selected = selectedTabIndex.value == index,
-                                    onClick = { selectedTabIndex.value = index },
-                                    selectedContentColor = Color.White,
-                                    unselectedContentColor = Color.Gray
+                                val isSelected = selectedTabIndex == index
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .background(
+                                            color = if (isSelected) Color(0xFF9C64FF).copy(alpha = 0.4f) else Color.Transparent
+                                        )
+                                        .clickable { selectedTabIndex = index }
+                                        .padding(12.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = icon,
                                         contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = if (isSelected) Color.White else Color.Gray
+                                    )
+                                }
+
+                                if (index < tabIcons.size - 1) {
+                                    VerticalDivider(
                                         modifier = Modifier
-                                            .padding(12.dp)
-                                            .size(24.dp)
+                                            .height(48.dp)
+                                            .width(1.dp),
+                                        color = Color.White
                                     )
                                 }
                             }
                         }
                     }
 
-                    if (selectedTabIndex.value == 0) {
+                    if (selectedTabIndex == 0) {
 
                         item {
                             Card(
@@ -570,7 +568,7 @@ fun AnimeDetailScreen(
                                     .fillMaxWidth(),
                                 colors = CardColors(
                                     contentColor = Color.White,
-                                    containerColor = Color(0xff050505),
+                                    containerColor = Color.Transparent,
                                     disabledContainerColor = Color.Red,
                                     disabledContentColor = Color.Cyan,
                                 ),
@@ -956,7 +954,7 @@ fun AnimeDetailScreen(
                         }
                     }
 
-                    if (selectedTabIndex.value == 1) {
+                    if (selectedTabIndex == 1) {
 
                         item {
 
@@ -1003,7 +1001,7 @@ fun AnimeDetailScreen(
                                     characterIsLoading -> {
                                         Box(
                                             modifier = Modifier
-                                                .background(Color(0xFF050505))
+                                                .background(Color.Black)
                                                 .height(250.dp)
                                                 .fillMaxWidth(),
                                             contentAlignment = Alignment.Center
@@ -1019,7 +1017,7 @@ fun AnimeDetailScreen(
                                             modifier = Modifier
                                                 .fillMaxSize()
                                                 .height(250.dp)
-                                                .background(Color(0xFF050505)),
+                                                .background(Color.Black),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
@@ -1281,13 +1279,13 @@ fun AnimeDetailScreen(
                             }
                         }
                     }
-                    if (selectedTabIndex.value == 2) {
+                    if (selectedTabIndex == 2) {
 
                     }
-                    if (selectedTabIndex.value == 3) {
+                    if (selectedTabIndex == 3) {
 
                     }
-                    if (selectedTabIndex.value == 4) {
+                    if (selectedTabIndex == 4) {
                         item {
                             var selectedStatus by remember { mutableStateOf<String?>(null) }
                             var userRating by remember { mutableStateOf(0.0f) }
@@ -1445,7 +1443,7 @@ fun AnimeDetailScreen(
                                         value = userOpinion,
                                         onValueChange = { userOpinion = it },
                                         label = { Text("Escribe tu reseña aquí...") },
-                                        placeholder = { Text("Ej: 'Una gran historia con personajes inolvidables.'") },
+                                        placeholder = { Text("Ej: 'Una gran historia con personajes inolvidables' o tal vez, 'me encanta tomar el te despues de clases...'") },
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(horizontal = 16.dp)

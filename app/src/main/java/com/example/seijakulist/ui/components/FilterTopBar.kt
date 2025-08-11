@@ -47,23 +47,23 @@ fun FilterTopAppBar() {
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = 0.dp, y = 16.dp),
             modifier = Modifier
-                .background(Color.Black)
+                .background(Color.DarkGray)
         ) {
             DropdownMenuItem(
                 text = { Text("Buscar titulo") },
-                onClick = { /* Handle edit */ },
+                onClick = {  },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
             )
             HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(
                 text = { Text("Cambiar vista") },
-                onClick = { /* Handle send feedback */ },
+                onClick = { },
                 leadingIcon = { Icon(Icons.Default.ViewModule, contentDescription = "Cambiar vista") },
             )
             HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(
                 text = { Text("Ordenar por titulo") },
-                onClick = { /* Handle send feedback */ },
+                onClick = {  },
                 leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = "Ordenar por titulo") },
             )
         }

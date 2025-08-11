@@ -130,25 +130,30 @@ fun HomeScreen(
     seasonNowViewModel: AnimeSeasonNowViewModel = hiltViewModel(),
     topAnimesViewModel: TopAnimeViewModel = hiltViewModel(),
     seasonUpcomingViewModel: AnimeSeasonUpcomingViewModel = hiltViewModel(),
-    viewModel: AnimeRandomViewModel = hiltViewModel(),
+    animeRandomViewModel: AnimeRandomViewModel = hiltViewModel(),
     characterRandomViewModel: CharacterRandomViewModel = hiltViewModel()
 ) {
 
     val animeSeasonNow by seasonNowViewModel.animeList.collectAsState()
     val animeSeasonNowIsLoading by seasonNowViewModel.isLoading.collectAsState()
     val animeSeasonNowErrorMessage by seasonNowViewModel.errorMessage.collectAsState()
+    val animeSeasonNowError by seasonNowViewModel.isError.collectAsState()
 
     val topAnimes by topAnimesViewModel.animeList.collectAsState()
     val topAnimeIsLoading by topAnimesViewModel.isLoading.collectAsState()
     val topAnimeErrorMessage by topAnimesViewModel.errorMessage.collectAsState()
+    val topAnimeError by topAnimesViewModel.isError.collectAsState()
 
     val animeSeasonUpcoming by seasonUpcomingViewModel.animeList.collectAsState()
     val animeSeasonUpcomingIsLoading by seasonUpcomingViewModel.isLoading.collectAsState()
     val animeSeasonUpcomingErrorMessage by seasonUpcomingViewModel.errorMessage.collectAsState()
+    val animeSeasonUpcomingError by seasonUpcomingViewModel.isError.collectAsState()
 
     val characterRandom by characterRandomViewModel.uiCharacterState.collectAsState()
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val animeRandom by animeRandomViewModel.uiState.collectAsStateWithLifecycle()
+
+    val hasError = animeSeasonNowError || topAnimeError || animeSeasonUpcomingError
 
     val RobotoRegular = FontFamily(
         Font(R.font.roboto_regular)
@@ -172,9 +177,8 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.linearGradient(
-                    colors = gradientColorsTopBar,
-                )
+                //midnight
+                color = Color(0xFF121211)
             )
     ) {
         Scaffold(
@@ -193,67 +197,75 @@ fun HomeScreen(
                     .padding(innerPadding)
             ) {
 
-                if (animeSeasonNowIsLoading) {
-                    LoadingScreen()
-                } else if (animeSeasonNowErrorMessage != null) {
-                    NoInternetScreen(animeSeasonNowErrorMessage)
-                } else if (animeSeasonNow.isNotEmpty()) {
+                if (hasError) {
+                    NoInternetScreen(
+                        onRetryClick = {
+                            topAnimesViewModel.topAnime()
+                            seasonNowViewModel.AnimesSeasonNow()
+                            seasonUpcomingViewModel.AnimesSeasonUpcoming()
+                            animeRandomViewModel.loadRandomAnime()
+                            characterRandomViewModel.loadCharacterRandom()
+                        }
+                    )
+                } else {
+                    if (animeSeasonUpcomingIsLoading) {
+                        LoadingScreen()
+                    } else if (animeSeasonNow.isNotEmpty()) {
 
-                    LazyColumn() {
-                        item {
-                            SubTitleWithoutIcon("En emision")
-                        }
-                        item {
-                            CardAnimesHome(animeSeasonNow, navController)
-                        }
-                        item {
-                            SubTitleWithoutIcon("Random")
-                        }
-                        item {
-                            CompleteAnimeCard(uiState, navController, viewModel)
-                        }
-                        item {
-                            SubTitleWithoutIcon("Top scores")
-                        }
-                        item {
-                            CardAnimesHome(topAnimes, navController)
-                        }
-                        item {
-                            SubTitleWithoutIcon("Personaje random")
-                        }
-                        item {
-                            CompleteCharacterCard(characterRandom, navController, characterRandomViewModel)
-                        }
+                        LazyColumn() {
+                            item {
+                                SubTitleWithoutIcon("En emision")
+                            }
+                            item {
+                                CardAnimesHome(animeSeasonNow, navController)
+                            }
+                            item {
+                                SubTitleWithoutIcon("Anime random")
+                            }
+                            item {
+                                CompleteAnimeCard(animeRandom, navController, animeRandomViewModel)
+                            }
+                            item {
+                                SubTitleWithoutIcon("Top scores")
+                            }
+                            item {
+                                CardAnimesHome(topAnimes, navController)
+                            }
+                            item {
+                                SubTitleWithoutIcon("Personaje random")
+                            }
+                            item {
+                                CompleteCharacterCard(
+                                    characterRandom,
+                                    navController,
+                                    characterRandomViewModel
+                                )
+                            }
 
-                        item {
-                            SubTitleWithoutIcon("Proxima temporada")
-                        }
-                        item {
-                            CardAnimesHome(animeSeasonUpcoming, navController)
-                        }
-                        item {
-                            TitleScreen("Explora Mangas!")
-                        }
-                        item {
-                            Text(
-                                text = "Proximamente",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                fontFamily = RobotoBold
-                            )
+                            item {
+                                SubTitleWithoutIcon("Proxima temporada")
+                            }
+                            item {
+                                CardAnimesHome(animeSeasonUpcoming, navController)
+                            }
+                            item {
+                                TitleScreen("Explora Mangas!")
+                            }
+                            item {
+                                Text(
+                                    text = "Proximamente",
+                                    color = Color.White,
+                                    fontSize = 16.sp,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    fontFamily = RobotoBold
+                                )
+                            }
                         }
                     }
-                } else {
-                    Text(
-                        text = "No se encontraron animes.",
-                        color = Color.Gray,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
                 }
             }
         }

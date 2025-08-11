@@ -1,6 +1,10 @@
 package com.example.seijakulist.ui.screens.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,6 +32,7 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -45,6 +51,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +63,8 @@ import androidx.navigation.NavController
 import com.example.seijakulist.R
 import com.example.seijakulist.ui.components.ArrowBackTopAppBar
 import com.example.seijakulist.ui.components.BottomNavItemScreen
+import com.example.seijakulist.ui.components.TitleScreen
+import com.example.seijakulist.ui.navigation.AppDestinations
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,38 +83,42 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(color = Color(0xFF121212))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ArrowBackTopAppBar(navController)
-                Text(
-                    text = "Perfil",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f),
-                    fontFamily = RobotoBold
-                )
-                IconButton(
-                    onClick = {  },
+            Column(modifier = Modifier.background(Color(0xff121211))) {
+
+                Row(
                     modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .background(color = Color.Transparent)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Configuracion",
-                        tint = Color.White
+                    ArrowBackTopAppBar(navController)
+                    Text(
+                        text = "Perfil",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 24.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .weight(1f),
+                        fontFamily = RobotoBold
                     )
+                    IconButton(
+                        onClick = {  },
+                        modifier = Modifier
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Configuracion",
+                            tint = Color.White
+                        )
+                    }
                 }
+                HorizontalDivider()
             }
         },
-        containerColor = Color(0xFF050505),
+        containerColor = Color(0xFF121211),
         bottomBar = {
             BottomNavItemScreen(navController)
         }
@@ -113,10 +127,18 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(color = Color(0xFF050505))
+                .background(color = Color(0xff121211)),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-
+                Text(
+                    text = "Por el momento no hay nada que mostrar aqui",
+                    fontFamily = RobotoRegular,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.6f)
+                )
             }
         }
     }

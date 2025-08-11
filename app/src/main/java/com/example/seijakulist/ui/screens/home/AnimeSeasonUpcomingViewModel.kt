@@ -6,8 +6,11 @@ import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.usecase.GetAnimeSeasonUpcomingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,11 +32,13 @@ class AnimeSeasonUpcomingViewModel @Inject constructor(
 
     private var isDataLoaded = false
 
-    // ✨ Inicializa la carga cuando el ViewModel se crea por primera vez
+    val isError: StateFlow<Boolean> = _errorMessage.map { it != null }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false
+    )
+
     init {
-        // Solo carga los animes si no se han cargado antes
-        // Esto evita múltiples llamadas si el ViewModel sobrevive a la recomposición
-        // o si es la primera vez que se crea.
         if (!isDataLoaded) {
             AnimesSeasonUpcoming()
         }

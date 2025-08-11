@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -69,28 +70,37 @@ fun MyMangasScreen(
     )
 
     Scaffold(
-        containerColor = Color(0xFF050505),
+        containerColor = Color(0xFF121211),
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(color = Color(0xFF121212))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ArrowBackTopAppBar(navController)
-                Text(
-                    text = "Mis mangas",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f),
-                    fontFamily = RobotoBold
-                )
-                FilterTopAppBar()
+            Column(modifier = Modifier.background(color = Color(0xFF121211))) {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .background(color = Color.Transparent)
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ArrowBackTopAppBar(navController)
+                    Text(
+                        text = "Mis mangas",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 24.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(bottom = 8.dp)
+                            .weight(1f),
+                        fontFamily = RobotoBold
+                    )
+                    FilterTopAppBar()
+                }
+                HorizontalDivider()
+                /*
+                if (savedMangas.isEmpty()) {
+                    HorizontalDivider()
+                }
+                 */
             }
         },
         bottomBar = {
@@ -100,7 +110,6 @@ fun MyMangasScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = Color(0xFF050505))
                 .padding(innerPadding),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
