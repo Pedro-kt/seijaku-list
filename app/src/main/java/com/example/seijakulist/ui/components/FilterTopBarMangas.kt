@@ -23,10 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import com.example.seijakulist.data.local.entities.AnimeEntity
 
 @Composable
-fun FilterTopAppBar(onSearchClick: () -> Unit, savedAnimes: List<AnimeEntity>) {
+fun FilterTopAppBarMangas(onSearchClick: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box() {
         IconButton(
@@ -56,7 +55,6 @@ fun FilterTopAppBar(onSearchClick: () -> Unit, savedAnimes: List<AnimeEntity>) {
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                enabled = savedAnimes.isNotEmpty()
             )
             HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(

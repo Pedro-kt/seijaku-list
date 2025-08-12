@@ -21,6 +21,7 @@ navigationCompose = "2.8.2" #anadi esto para navegation, si no compila borrar o 
 kotlinSerialization = "1.7.1" #anadi esto para navegation, si no compila borrar o cambiar de version
 materialIconsExtended = "1.6.8"
 uiUtil = "1.8.3"
+animation = "1.8.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" } #anadi esto para navegation, si no compila borrar o cambiar de version
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "uiUtil" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

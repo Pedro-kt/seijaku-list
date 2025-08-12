@@ -70,6 +70,7 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.androidx.ui.util)
+    implementation(libs.androidx.animation)
     ksp(libs.room.ksp)
     implementation(libs.room.ktx)
 

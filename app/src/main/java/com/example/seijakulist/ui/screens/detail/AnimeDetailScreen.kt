@@ -1109,19 +1109,18 @@ fun AnimeDetailScreen(
                                                 horizontal = 8.dp, vertical = 16.dp
                                             )
                                         ) {
-                                            // Filtramos la lista de personajes basada en el texto de búsqueda
                                             val filteredCharacters = if (searchQuery.isBlank()) {
                                                 animeCharactersDetail
                                             } else {
                                                 animeCharactersDetail.filter { character ->
-                                                    character?.nameCharacter?.contains(
+                                                    character.nameCharacter?.contains(
                                                         searchQuery, ignoreCase = true
                                                     ) == true
                                                 }
                                             }
 
                                             items(filteredCharacters) { character ->
-                                                character?.let { characterItem ->
+                                                character.let { characterItem ->
                                                     val imageUrl =
                                                         characterItem.imageCharacter?.jpg?.imageUrl.orEmpty()
                                                     val translatedRole = when (characterItem.role) {
