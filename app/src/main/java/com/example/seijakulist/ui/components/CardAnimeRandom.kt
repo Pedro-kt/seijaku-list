@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
@@ -63,11 +65,9 @@ fun AnimeRandomCard(
     val RobotoBold = FontFamily(
         Font(R.font.roboto_bold)
     )
-
-    /*
-    Color(0xFFed3847),
-        Color(0xFFE84553),
-     */
+    val RobotoRegular = FontFamily(
+        Font(R.font.roboto_regular)
+    )
 
     val gradientColorsTopBar = listOf(
         Color(0xFF160078),
@@ -78,19 +78,23 @@ fun AnimeRandomCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(230.dp)
+            .height(210.dp)
+            .clip(RoundedCornerShape(16.dp))
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(colors = gradientColorsTopBar),
+                    color = Color(0xFF202020)
                 )
+                .clip(RoundedCornerShape(16.dp))
+                .clickable {
+                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                }
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
                 AsyncImage(
@@ -103,19 +107,27 @@ fun AnimeRandomCard(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .width(140.dp)
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                        }
-                        .border(width = 1.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
+                        .height(210.dp)
+                        .clip(RoundedCornerShape(16.dp))
+
                 )
                 Column(
                     modifier = Modifier.fillMaxHeight(),
                     verticalArrangement = Arrangement.Top
                 ) {
-                    SubTitleWithoutIcon(anime.title)
-
+                    Text(
+                        text = anime.title,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 16.dp, end = 40.dp)
+                            .fillMaxWidth(),
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontFamily = RobotoBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier
                             .padding(start = 16.dp)
@@ -141,15 +153,21 @@ fun AnimeRandomCard(
                                 .wrapContentWidth(),
                             color = Color.White,
                             fontSize = 18.sp,
-                            fontFamily = RobotoBold
+                            fontFamily = RobotoRegular
                         )
                         VerticalDivider(
                             color = Color.White,
                             thickness = 1.dp,
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
+                        Icon(
+                            imageVector = Icons.Default.Alarm,
+                            contentDescription = "Icono de estrellas",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
                         Text(
-                            text = "Texto",
+                            text = "Finish airing",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
@@ -158,45 +176,40 @@ fun AnimeRandomCard(
                                 .padding(),
                             color = Color.White,
                             fontSize = 18.sp,
-                            fontFamily = RobotoBold
+                            fontFamily = RobotoRegular
                         )
                     }
-                    Text(
-                        text = "Texto 1",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .padding(start = 16.dp),
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontFamily = RobotoBold
-                    )
-                    Text(
-                        text = "Texto 2",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .padding(start = 16.dp),
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontFamily = RobotoBold
-                    )
-                    Text(
-                        text = "Texto 3",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .padding(start = 16.dp),
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontFamily = RobotoBold
-                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row() {
+                        Text(
+                            text = "Genero 1",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .padding(start = 16.dp)
+                                .clip(shape = RoundedCornerShape(8.dp))
+                                .background(color = Color.DarkGray),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontFamily = RobotoRegular
+                        )
+                        Text(
+                            text = "Genero 2",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .padding(start = 16.dp)
+                                .clip(shape = RoundedCornerShape(8.dp))
+                                .background(color = Color.DarkGray),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontFamily = RobotoRegular
+                        )
+                    }
                 }
             }
 

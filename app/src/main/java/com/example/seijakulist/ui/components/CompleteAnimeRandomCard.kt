@@ -38,7 +38,7 @@ fun CompleteAnimeCard(uiState: AnimeRandomUiState, navController: NavController,
         modifier = Modifier
             .padding(horizontal = 10.dp)
             .fillMaxSize()
-            .height(230.dp)
+            .height(210.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(brush = Brush.linearGradient(colors = gradientColorsTopBar)),
         contentAlignment = Alignment.Center

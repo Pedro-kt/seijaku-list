@@ -40,7 +40,7 @@ fun CompleteCharacterCard(uiState: CharacterRandomUiState, navController: NavCon
         modifier = Modifier
             .padding(horizontal = 10.dp)
             .fillMaxSize()
-            .height(230.dp)
+            .height(210.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(
                 brush = Brush.linearGradient(colors = gradientColorsTopBar)

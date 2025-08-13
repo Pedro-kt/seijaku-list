@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -76,21 +77,23 @@ fun CharacterRandomCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(230.dp)
+            .height(210.dp)
+            .clip(RoundedCornerShape(16.dp))
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(
-                        colors = gradientColorsTopBar
-                    )
+                    color = Color(0xFF202020)
                 )
+                .clip(RoundedCornerShape(16.dp))
+                .clickable {
+                    navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
+                }
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
                 AsyncImage(
@@ -103,19 +106,26 @@ fun CharacterRandomCard(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .width(140.dp)
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
-                        }
-                        .border(width = 1.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
+                        .height(210.dp)
+                        .clip(RoundedCornerShape(16.dp))
                 )
                 Column(
                     modifier = Modifier.fillMaxHeight(),
                     verticalArrangement = Arrangement.Top
                 ) {
-                    SubTitleWithoutIcon(character.nameCharacter)
-
+                    Text(
+                        text = character.nameCharacter,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 16.dp, end = 40.dp)
+                            .fillMaxWidth(),
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontFamily = RobotoBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier
                             .padding(start = 16.dp)
@@ -135,7 +145,7 @@ fun CharacterRandomCard(
                                 .padding(end = 8.dp),
                             color = Color.White,
                             fontSize = 16.sp,
-                            fontFamily = RobotoBold
+                            fontFamily = RobotoRegular
                         )
                         Text(
                             text = character.nameKanjiCharacter,

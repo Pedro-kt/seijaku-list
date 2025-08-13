@@ -80,6 +80,7 @@ import com.example.seijakulist.ui.components.ArrowBackTopAppBar
 import com.example.seijakulist.ui.components.BottomNavItemScreen
 import com.example.seijakulist.ui.components.DeleteMyAnime
 import com.example.seijakulist.ui.components.FilterTopAppBar
+import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
 
 @Composable
@@ -113,6 +114,7 @@ fun MyAnimeListScreen(
     var searchQuery by remember { mutableStateOf("") }
     var collapsedSearch by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    var isSortedAscending by remember { mutableStateOf(false) }
 
     val statusColors = mapOf(
         "Viendo" to Color(0xFF66BB6A),
@@ -214,6 +216,9 @@ fun MyAnimeListScreen(
                                 onSearchClick = {
                                     collapsedSearch = !collapsedSearch
                                 },
+                                onSortClick = {
+                                    isSortedAscending = !isSortedAscending
+                                },
                                 savedAnimes = savedAnimes
                             )
                         }
@@ -238,7 +243,7 @@ fun MyAnimeListScreen(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.padding(16.dp)
                 )
-        }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -276,34 +281,37 @@ fun MyAnimeListScreen(
                     }
                 }
             } else {
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().background(Color(0xFF121211)).padding(horizontal = 16.dp,vertical = 8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF121211))
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
                         text = "Filtrar por:",
                         color = Color.White,
                         fontSize = 16.sp
                     )
-                    Icon(
-                        imageVector = if (collapsedFilter) {
-                            Icons.Default.ArrowDropDown
-                        } else {
-                            Icons.AutoMirrored.Filled.ArrowRight
-                        },
-                        contentDescription = "Icono de filtrar por",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                            .clickable {
-                                collapsedFilter = !collapsedFilter
-                            }
-                    )
+                    IconButton(onClick = { collapsedFilter = !collapsedFilter }) {
+                        Icon(
+                            imageVector = if (collapsedFilter) {
+                                Icons.Default.ArrowDropDown
+                            } else {
+                                Icons.AutoMirrored.Filled.ArrowRight
+                            },
+                            contentDescription = "Icono de filtrar por",
+                            tint = Color.White,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
                 }
 
                 if (collapsedFilter) {
                     LazyRow(
-                        modifier = Modifier.background(Color(0xFF121211)).padding(horizontal = 8.dp)
+                        modifier = Modifier
+                            .background(Color(0xFF121211))
+                            .padding(horizontal = 8.dp)
                     ) {
                         items(statusAnime) { filter ->
                             val isSelected = selectedFilter == filter
@@ -342,9 +350,9 @@ fun MyAnimeListScreen(
                 }
                 HorizontalDivider()
 
-                val displayedAnimes by remember(selectedFilter, searchQuery) {
-                    derivedStateOf {
 
+                val displayedAnimes by remember(selectedFilter, searchQuery, isSortedAscending) {
+                    derivedStateOf {
                         val filteredByStatus = when (selectedFilter) {
                             "Viendo" -> savedAnimeStatusWatching
                             "Completado" -> savedAnimeStatusComplete
@@ -354,17 +362,26 @@ fun MyAnimeListScreen(
                             else -> savedAnimes
                         }
 
-                        if (searchQuery.isBlank()) {
+                        val filteredBySearch = if (searchQuery.isBlank()) {
                             filteredByStatus
                         } else {
                             filteredByStatus.filter { anime ->
                                 anime.title.contains(searchQuery, ignoreCase = true)
                             }
                         }
+                        if (isSortedAscending) {
+                            filteredBySearch.sortedBy { it.title }
+                        } else {
+                            filteredBySearch.sortedByDescending { it.title }
+                        }
                     }
                 }
 
-                LazyColumn(modifier = Modifier.background(Color(0xFF121211)).padding(start = 16.dp, end = 16.dp)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .background(Color(0xFF121211))
+                        .padding(start = 16.dp, end = 16.dp)
+                ) {
                     items(displayedAnimes) { anime ->
                         Card(
                             modifier = Modifier
@@ -377,13 +394,17 @@ fun MyAnimeListScreen(
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Box(modifier = Modifier.fillMaxWidth()) {
-                                Row(modifier = Modifier
-                                    .fillMaxWidth()
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                 ) {
                                     Image(
                                         painter = rememberAsyncImagePainter(anime.imageUrl),
                                         contentDescription = anime.title,
-                                        modifier = Modifier.height(145.dp).width(100.dp).clip(RoundedCornerShape(16.dp)),
+                                        modifier = Modifier
+                                            .height(145.dp)
+                                            .width(100.dp)
+                                            .clip(RoundedCornerShape(16.dp)),
                                         contentScale = ContentScale.Crop
                                     )
 
@@ -394,7 +415,7 @@ fun MyAnimeListScreen(
                                     ) {
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Text(
-                                            text =  anime.title,
+                                            text = anime.title,
                                             fontFamily = RobotoBold,
                                             color = Color.White,
                                             maxLines = 2,
@@ -420,7 +441,10 @@ fun MyAnimeListScreen(
                                                 color = Color.White
                                             )
                                             Box(
-                                                modifier = Modifier.size(12.dp).clip(CircleShape).background(statusColors[anime.statusUser]!!)
+                                                modifier = Modifier
+                                                    .size(12.dp)
+                                                    .clip(CircleShape)
+                                                    .background(statusColors[anime.statusUser]!!)
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
@@ -456,7 +480,7 @@ fun MyAnimeListScreen(
 }
 
 @Composable
-fun StarWithScore(score: Float){
+fun StarWithScore(score: Float) {
     val RobotoRegular = FontFamily(
         Font(R.font.roboto_regular)
     )

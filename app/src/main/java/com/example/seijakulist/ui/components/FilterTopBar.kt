@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.example.seijakulist.data.local.entities.AnimeEntity
 
 @Composable
-fun FilterTopAppBar(onSearchClick: () -> Unit, savedAnimes: List<AnimeEntity>) {
+fun FilterTopAppBar(onSearchClick: () -> Unit, onSortClick: () -> Unit ,savedAnimes: List<AnimeEntity>) {
     var expanded by remember { mutableStateOf(false) }
     Box() {
         IconButton(
@@ -66,8 +66,11 @@ fun FilterTopAppBar(onSearchClick: () -> Unit, savedAnimes: List<AnimeEntity>) {
             )
             HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
             DropdownMenuItem(
-                text = { Text("Ordenar por titulo") },
-                onClick = {  },
+                text = { Text("Ordenar por A-Z / Z-A") },
+                onClick = {
+                    onSortClick()
+                    expanded = true
+                },
                 leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = "Ordenar por titulo") },
             )
         }
