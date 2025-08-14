@@ -66,7 +66,7 @@ fun MyMangasScreen(
                             .weight(1f),
                         fontFamily = RobotoBold
                     )
-                    FilterTopAppBarMangas(onSearchClick = {})
+                    FilterTopAppBarMangas {}
                 }
                 HorizontalDivider()
                 /*

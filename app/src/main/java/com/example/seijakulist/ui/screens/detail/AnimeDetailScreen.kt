@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Filter9Plus
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.LibraryBooks
@@ -215,7 +216,7 @@ fun AnimeDetailScreen(
         Icons.Default.People,
         Icons.AutoMirrored.Filled.List,
         Icons.Default.Business,
-        Icons.Default.AddCircleOutline
+        Icons.Default.FavoriteBorder
     )
 
     val statusAnime = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")

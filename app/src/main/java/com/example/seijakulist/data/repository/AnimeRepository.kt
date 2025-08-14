@@ -9,25 +9,16 @@ import com.example.seijakulist.data.mapper.toAnimeDetails
 import com.example.seijakulist.data.mapper.toCharacterDetail
 import com.example.seijakulist.data.mapper.toCharacterPictures
 import com.example.seijakulist.data.remote.api.JikanApiService
-import com.example.seijakulist.data.remote.models.AnimeCharactersDto
-import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
 import com.example.seijakulist.data.remote.models.AnimeDetailDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
-import com.example.seijakulist.data.remote.models.AnimeRandomResponseDto
+import com.example.seijakulist.data.remote.models.anime_random.AnimeCardResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
-import com.example.seijakulist.data.remote.models.StudiosDto
-import com.example.seijakulist.data.remote.models.anime_season_now.AnimeDetailSeasonNowResponseDto
-import com.example.seijakulist.data.remote.models.anime_themes.AnimeThemesDto
-import com.example.seijakulist.data.remote.models.character_detail.CharacterResponseDto
-import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.domain.models.AnimeDetail
-import com.example.seijakulist.domain.models.AnimeDetailSeasonNow
 import com.example.seijakulist.domain.models.AnimeThemes
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.models.CharacterPictures
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class AnimeRepository @Inject constructor(
@@ -48,10 +39,8 @@ class AnimeRepository @Inject constructor(
             val responseDto: AnimeDetailResponseDto = ApiService.getAnimeDetails(animeId)
             Log.d("AnimeRepo", "Respuesta DTO de la API (con envoltorio): $responseDto")
 
-            // Accede al objeto "data" antes de mapear
             val animeDetailDto: AnimeDetailDto? = responseDto.data
 
-            // Verifica si el DTO real del anime es nulo
             if (animeDetailDto == null) {
                 throw Exception("API did not return anime data for ID $animeId")
             }
@@ -134,7 +123,7 @@ class AnimeRepository @Inject constructor(
         return ApiService.getSeasonUpcoming()
     }
 
-    suspend fun searchAnimeRandom(): AnimeRandomResponseDto {
+    suspend fun searchAnimeRandom(): AnimeCardResponseDto {
         return ApiService.getAnimeRandom()
     }
 

@@ -3,6 +3,7 @@ package com.example.seijakulist.ui.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.Anime
+import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.domain.usecase.GetAnimeSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +22,8 @@ class AnimeSearchViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
-    val animeList: StateFlow<List<Anime>> = _animeList.asStateFlow()
+    private val _animeList = MutableStateFlow<List<AnimeCard>>(emptyList())
+    val animeList: StateFlow<List<AnimeCard>> = _animeList.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

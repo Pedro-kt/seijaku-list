@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
@@ -23,6 +24,8 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -51,11 +54,12 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
 import com.example.seijakulist.domain.models.Anime
+import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.ui.navigation.AppDestinations
 
 @Composable
 fun AnimeRandomCard(
-    anime: Anime,
+    anime: AnimeCard,
     navController: NavController,
     onRefresh: () -> Unit
 ) {
@@ -99,7 +103,7 @@ fun AnimeRandomCard(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(anime.image)
+                        .data(anime.images)
                         .size(Size.ORIGINAL)
                         .crossfade(true)
                         .build(),
@@ -127,7 +131,7 @@ fun AnimeRandomCard(
                         fontSize = 18.sp,
                         fontFamily = RobotoBold
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier
                             .padding(start = 16.dp)
@@ -140,7 +144,7 @@ fun AnimeRandomCard(
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Puntuacion",
-                            tint = Color.Yellow,
+                            tint = Color(0xFFFDC700),
                             modifier = Modifier
                                 .size(16.dp)
                         )
@@ -151,15 +155,11 @@ fun AnimeRandomCard(
                             textAlign = TextAlign.Start,
                             modifier = Modifier
                                 .wrapContentWidth(),
-                            color = Color.White,
-                            fontSize = 18.sp,
+                            color = Color(0xFFFDC700),
+                            fontSize = 16.sp,
                             fontFamily = RobotoRegular
                         )
-                        VerticalDivider(
-                            color = Color.White,
-                            thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        )
+                        Text("•")
                         Icon(
                             imageVector = Icons.Default.Alarm,
                             contentDescription = "Icono de estrellas",
@@ -167,7 +167,7 @@ fun AnimeRandomCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "Finish airing",
+                            text = anime.status,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
@@ -175,39 +175,40 @@ fun AnimeRandomCard(
                                 .wrapContentWidth()
                                 .padding(),
                             color = Color.White,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontFamily = RobotoRegular
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row() {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    LazyRow(modifier = Modifier.padding(start = 16.dp)) {
+                        item {
+                            anime.genres.forEach { genreDto ->
+                                ElevatedFilterChip(
+                                    selected = false,
+                                    onClick = { },
+                                    label = {
+                                        genreDto?.name?.let { Text(it, fontSize = 12.sp) }
+                                    },
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = Color(0xFF404040),
+                                        labelColor = Color.White.copy(alpha = 0.9f),
+                                        selectedContainerColor = Color(0xff404040),
+                                        selectedLabelColor = Color.White
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(modifier = Modifier.padding(start = 16.dp)) {
                         Text(
-                            text = "Genero 1",
+                            text = "Año ${anime.year} • Episodios ${anime.episodes}",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .wrapContentWidth()
-                                .padding(start = 16.dp)
-                                .clip(shape = RoundedCornerShape(8.dp))
-                                .background(color = Color.DarkGray),
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontFamily = RobotoRegular
-                        )
-                        Text(
-                            text = "Genero 2",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .wrapContentWidth()
-                                .padding(start = 16.dp)
-                                .clip(shape = RoundedCornerShape(8.dp))
-                                .background(color = Color.DarkGray),
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontFamily = RobotoRegular
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontSize = 12.sp,
+                            fontFamily = RobotoRegular,
                         )
                     }
                 }

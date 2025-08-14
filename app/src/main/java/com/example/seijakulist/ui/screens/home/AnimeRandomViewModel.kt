@@ -3,6 +3,7 @@ package com.example.seijakulist.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.Anime
+import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.usecase.GetAnimeRandomUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,25 +19,21 @@ class AnimeRandomViewModel @Inject constructor(
     private val getAnimeRandomUseCase: GetAnimeRandomUseCase
 ) : ViewModel() {
 
-    // 1. Usa una data class para representar el estado de la UI
     private val _uiState = MutableStateFlow(AnimeRandomUiState())
     val uiState: StateFlow<AnimeRandomUiState> = _uiState.asStateFlow()
 
-    // 2. Llama a la función de carga en el bloque init
     init {
         loadRandomAnime()
     }
 
     fun loadRandomAnime() {
         viewModelScope.launch {
-            // Actualiza el estado para indicar que la carga ha iniciado
             _uiState.update { it.copy(isLoading = true, errorMessage = null, isDataLoaded = false) }
 
             try {
-                // Llama al use case
+
                 val result = getAnimeRandomUseCase()
 
-                // Actualiza el estado con el anime cargado
                 _uiState.update {
                     it.copy(
                         anime = result,
@@ -47,7 +44,7 @@ class AnimeRandomViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                // Actualiza el estado en caso de error
+
                 _uiState.update {
                     it.copy(
                         errorMessage = "Error al buscar animes: ${e.localizedMessage ?: "Error desconocido"}",
@@ -58,9 +55,8 @@ class AnimeRandomViewModel @Inject constructor(
     }
 }
 
-// Data class para representar el estado de la UI
 data class AnimeRandomUiState(
-    val anime: Anime? = null,
+    val anime: AnimeCard? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isDataLoaded: Boolean = false,
