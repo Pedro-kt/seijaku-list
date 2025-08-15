@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.data.local.entities.AnimeEntity
+import com.example.seijakulist.data.repository.AnimeLocalRepository
 import com.example.seijakulist.data.repository.AnimeRepository
 import com.example.seijakulist.domain.models.AnimeDetail
 import com.example.seijakulist.domain.usecase.GetAnimeDetailUseCase
@@ -21,7 +22,7 @@ import javax.inject.Inject
 class AnimeDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getAnimeDetailUseCase: GetAnimeDetailUseCase,
-    private val repository: AnimeRepository
+    private val animeLocalRepository: AnimeLocalRepository
 ) : ViewModel() {
 
     private val _animeDetail: MutableStateFlow<AnimeDetail?> = MutableStateFlow(null)
@@ -76,25 +77,11 @@ class AnimeDetailViewModel @Inject constructor(
                     statusUser = userStatus,
                     userOpiniun = userOpinion
                 )
-                repository.insertAnime(entity)
+                animeLocalRepository.insertAnime(entity)
                 _isAdded.value = true
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al guardar anime: ${e.message}")
             }
         }
-    }
-
-    fun deleteAnimeToList(animeId: Int) {
-
-        viewModelScope.launch {
-            try {
-
-                repository.deleteAnimeById(animeId)
-
-            } catch (e: Exception) {
-                Log.e("AnimeDetailVM", "Error al eliminar el anime: ${e.message}")
-            }
-        }
-
     }
 }

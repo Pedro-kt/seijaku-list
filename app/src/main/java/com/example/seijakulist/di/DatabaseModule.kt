@@ -25,7 +25,8 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_database"
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .fallbackToDestructiveMigration(true)
+            //.addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 

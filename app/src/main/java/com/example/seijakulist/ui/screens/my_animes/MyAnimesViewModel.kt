@@ -4,23 +4,22 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.data.local.entities.AnimeEntity
+import com.example.seijakulist.data.repository.AnimeLocalRepository
 import com.example.seijakulist.data.repository.AnimeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MyAnimeListViewModel @Inject constructor(
-    private val animeRepository: AnimeRepository
+    private val animeLocalRepository: AnimeLocalRepository
 ) : ViewModel() {
 
     val savedAnimes: StateFlow<List<AnimeEntity>> =
-        animeRepository.getAllAnimes()
+        animeLocalRepository.getAllAnimes()
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5000),
@@ -32,7 +31,7 @@ class MyAnimeListViewModel @Inject constructor(
         viewModelScope.launch {
             try {
 
-                animeRepository.deleteAnimeById(animeId)
+                animeLocalRepository.deleteAnimeById(animeId)
 
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al eliminar el anime: ${e.message}")
@@ -42,7 +41,7 @@ class MyAnimeListViewModel @Inject constructor(
     }
 
     val savedAnimeStatusComplete: StateFlow<List<AnimeEntity>> =
-        animeRepository.getAnimesStatusComplete()
+        animeLocalRepository.getAnimesStatusComplete()
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5000),
@@ -50,7 +49,7 @@ class MyAnimeListViewModel @Inject constructor(
             )
 
     val savedAnimeStatusWatching: StateFlow<List<AnimeEntity>> =
-        animeRepository.getAnimesStatusWatching()
+        animeLocalRepository.getAnimesStatusWatching()
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5000),
@@ -58,7 +57,7 @@ class MyAnimeListViewModel @Inject constructor(
             )
 
     val savedAnimeStatusPending: StateFlow<List<AnimeEntity>> =
-        animeRepository.getAnimesStatusPending()
+        animeLocalRepository.getAnimesStatusPending()
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5000),
@@ -66,7 +65,7 @@ class MyAnimeListViewModel @Inject constructor(
             )
 
     val savedAnimeStatusAbandoned: StateFlow<List<AnimeEntity>> =
-        animeRepository.getAnimesStatusAbandoned()
+        animeLocalRepository.getAnimesStatusAbandoned()
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5000),
@@ -74,7 +73,7 @@ class MyAnimeListViewModel @Inject constructor(
             )
 
     val savedAnimeStatusPlanned: StateFlow<List<AnimeEntity>> =
-        animeRepository.getAnimesStatusPlanned()
+        animeLocalRepository.getAnimesStatusPlanned()
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5000),

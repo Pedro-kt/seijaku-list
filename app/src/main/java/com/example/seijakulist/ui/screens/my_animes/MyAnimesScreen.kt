@@ -444,7 +444,7 @@ fun MyAnimeListScreen(
                                                 modifier = Modifier
                                                     .size(12.dp)
                                                     .clip(CircleShape)
-                                                    .background(statusColors[anime.statusUser]!!)
+                                                    .background(statusColors[anime.statusUser] ?: Color.Gray)
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
