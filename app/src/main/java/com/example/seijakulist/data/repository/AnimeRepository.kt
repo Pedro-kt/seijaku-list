@@ -24,7 +24,6 @@ import javax.inject.Inject
 class AnimeRepository @Inject constructor(
 
     private val ApiService: JikanApiService,
-    private val animeDao: AnimeDao
 
 ) {
 
@@ -153,51 +152,5 @@ class AnimeRepository @Inject constructor(
         Log.d("CHAR", "Personaje mapeado: $characterDetail")
 
         return characterDetail
-    }
-
-    //DB LOCAL
-
-    suspend fun insertAnime(anime: AnimeEntity) {
-        animeDao.insertAnime(anime)
-    }
-
-    suspend fun insertAllAnimes(animes: List<AnimeEntity>) {
-        animeDao.insertAllAnimes(animes)
-    }
-
-    suspend fun deleteAnimeById(animeId: Int) {
-        animeDao.deleteAnimeById(animeId)
-    }
-
-    fun getAllAnimes(): Flow<List<AnimeEntity>> {
-        return animeDao.getAllAnimes()
-    }
-
-    fun isAnimeInList(animeId: Int): Flow<Boolean> {
-        return animeDao.isAnimeInList(animeId)
-    }
-
-    fun getAnimesStatusComplete(): Flow<List<AnimeEntity>> {
-        return animeDao.getCompletedAnime()
-    }
-
-    fun getAnimesStatusWatching(): Flow<List<AnimeEntity>> {
-        return animeDao.getWatchingAnime()
-    }
-
-    fun getAnimesStatusPending(): Flow<List<AnimeEntity>> {
-        return animeDao.getPendingAnime()
-    }
-
-    fun getAnimesStatusAbandoned(): Flow<List<AnimeEntity>> {
-        return animeDao.getAbandonedAnime()
-    }
-
-    fun getAnimesStatusPlanned(): Flow<List<AnimeEntity>> {
-        return animeDao.getPlannedAnime()
-    }
-
-    fun getAnimeById(animeId: Int): Flow<AnimeEntity> {
-        return animeDao.getAnimeById(animeId)
     }
 }

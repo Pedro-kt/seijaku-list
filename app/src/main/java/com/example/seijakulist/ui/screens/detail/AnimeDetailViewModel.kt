@@ -75,7 +75,9 @@ class AnimeDetailViewModel @Inject constructor(
                     imageUrl = current.images,
                     userScore = userScore,
                     statusUser = userStatus,
-                    userOpiniun = userOpinion
+                    userOpiniun = userOpinion,
+                    totalEpisodes = current.episodes,
+                    episodesWatched = if (userStatus == "Completado") current.episodes else 0,
                 )
                 animeLocalRepository.insertAnime(entity)
                 _isAdded.value = true

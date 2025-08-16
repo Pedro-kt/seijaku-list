@@ -10,5 +10,7 @@ data class AnimeEntity(
     val imageUrl: String?,
     val userScore: Float, // campo nuevo (cambiado de nombre) v2
     val statusUser: String, // campo nuevo v2
-    val userOpiniun: String // campo nuevo v3
+    val userOpiniun: String, // campo nuevo v3
+    val totalEpisodes: Int, // campo nuevo v5
+    val episodesWatched: Int, // campo nuevo v5
 )

@@ -11,7 +11,9 @@ fun AnimeEntityDomain.toAnimeEntity(): AnimeEntity {
         imageUrl = image,
         userScore = userScore,
         statusUser = userStatus,
-        userOpiniun = userOpiniun
+        userOpiniun = userOpiniun,
+        totalEpisodes = totalEpisodes,
+        episodesWatched = episodesWatched
     )
 }
 
@@ -22,6 +24,8 @@ fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
         image = imageUrl ?: "",
         userScore = userScore,
         userStatus = statusUser,
-        userOpiniun = userOpiniun
+        userOpiniun = userOpiniun,
+        totalEpisodes = totalEpisodes,
+        episodesWatched = episodesWatched
     )
 }

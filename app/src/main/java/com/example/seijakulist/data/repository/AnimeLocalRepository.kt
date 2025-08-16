@@ -2,6 +2,8 @@ package com.example.seijakulist.data.repository
 
 import com.example.seijakulist.data.local.dao.AnimeDao
 import com.example.seijakulist.data.local.entities.AnimeEntity
+import com.example.seijakulist.data.mapper.local.toAnimeEntityDomain
+import com.example.seijakulist.domain.models.AnimeEntityDomain
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -51,8 +53,20 @@ class AnimeLocalRepository @Inject constructor(
         return animeDao.getPlannedAnime()
     }
 
-    fun getAnimeById(animeId: Int): Flow<AnimeEntity> {
-        return animeDao.getAnimeById(animeId)
+    suspend fun getAnimeById(animeId: Int): AnimeEntityDomain {
+
+        val animeEntity = animeDao.getAnimeById(animeId)
+
+        val anime = animeEntity.toAnimeEntityDomain()
+
+        return anime
     }
 
+    suspend fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int) {
+        animeDao.updateEpisodesWatched(animeId, newEpisodesWatched)
+    }
+
+    suspend fun updateAnimeStatus(animeId: Int, newStatus: String) {
+        animeDao.updateAnimeStatus(animeId, newStatus)
+    }
 }

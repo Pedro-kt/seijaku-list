@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -72,9 +73,13 @@ import com.example.seijakulist.R
 import com.example.seijakulist.ui.components.TitleScreen
 
 @Composable
-fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel: LocalAnimeDetailViewModel = hiltViewModel()) {
+fun AnimeDetailScreenLocal(
+    navController: NavController,
+    viewModel: LocalAnimeDetailViewModel = hiltViewModel(),
+    animeId: Int
+) {
 
-    val anime by viewModel.anime.collectAsStateWithLifecycle()
+    val anime by viewModel.anime.collectAsState()
 
     val RobotoRegular = FontFamily(
         Font(R.font.roboto_regular)
@@ -87,80 +92,80 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
     val snackbarHostState = remember { SnackbarHostState() }
 
 
-    when (val currentAnime = anime) {
-        null -> {
-            // Se muestra mientras se carga o si no se encuentra
+    Scaffold(
+        topBar = {
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(color = Color(0xFF121212))
             ) {
-                Text(text = "Cargando...")
+                Text(
+                    text = "Detalle",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontFamily = RobotoBold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver atras",
+                        tint = Color.White
+                    )
+                }
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Compartir",
+                        tint = Color.White
+                    )
+                }
+            }
+        }, containerColor = Color(0xFF050505), snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = Color.White,
+                    contentColor = Color.Black,
+                    actionContentColor = Color.Black,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
-        else -> {
-            Scaffold(
-                topBar = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .statusBarsPadding()
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(color = Color(0xFF121212))
-                    ) {
-                        Text(
-                            text = "Detalle",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontFamily = RobotoBold,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-
-                        IconButton(
-                            onClick = { navController.popBackStack() },
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(start = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver atras",
-                                tint = Color.White
-                            )
-                        }
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Compartir",
-                                tint = Color.White
-                            )
-                        }
-                    }
-                }, containerColor = Color(0xFF050505), snackbarHost = {
-                    SnackbarHost(hostState = snackbarHostState) { data ->
-                        Snackbar(
-                            snackbarData = data,
-                            containerColor = Color.White,
-                            contentColor = Color.Black,
-                            actionContentColor = Color.Black,
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
+    ) { innerPadding ->
+        when (val currentAnime = anime) {
+            null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
                 }
-            ) { innerPadding ->
+            }
+
+            else -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
                         .background(color = Color(0xFF050505))
                 ) {
-                    item{
+                    item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -169,7 +174,8 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
                         ) {
                             Image(
                                 painter = rememberAsyncImagePainter(
-                                    ImageRequest.Builder(LocalContext.current).data(data = anime?.imageUrl)
+                                    ImageRequest.Builder(LocalContext.current)
+                                        .data(data = currentAnime.image)
                                         .apply(block = fun ImageRequest.Builder.() {
                                             size(Size.ORIGINAL)
                                         }).build()
@@ -218,8 +224,8 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Image(
-                                        painter = rememberAsyncImagePainter(anime?.imageUrl),
-                                        contentDescription = anime?.title,
+                                        painter = rememberAsyncImagePainter(currentAnime.image),
+                                        contentDescription = currentAnime.title,
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .width(160.dp)
@@ -234,7 +240,7 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
                                             .padding(end = 16.dp, top = 16.dp)
                                     ) {
                                         Text(
-                                            text = anime?.title!!,
+                                            text = currentAnime.title,
                                             color = Color.White,
                                             fontSize = 20.sp,
                                             fontFamily = RobotoBold,
@@ -251,7 +257,7 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
                                                 tint = Color.White
                                             )
                                             Text(
-                                                text = anime?.userScore.toString(),
+                                                text = currentAnime.userScore.toString(),
                                                 color = Color.White,
                                                 fontSize = 16.sp,
                                             )
@@ -266,7 +272,7 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
                                                 tint = Color.White
                                             )
                                             Text(
-                                                text = anime?.statusUser!!,
+                                                text = currentAnime.userStatus,
                                                 color = Color.White,
                                                 fontSize = 16.sp,
                                             )
@@ -295,7 +301,7 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
 
                             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                                 Text(
-                                    text = anime?.userOpiniun!!,
+                                    text = currentAnime.userOpiniun,
                                     color = Color.Gray,
                                     fontSize = 14.sp,
                                     fontFamily = RobotoRegular,
@@ -308,8 +314,6 @@ fun AnimeDetailScreenLocal(navController: NavController, animeId: Int, viewModel
             }
         }
     }
-
-
 }
 
 

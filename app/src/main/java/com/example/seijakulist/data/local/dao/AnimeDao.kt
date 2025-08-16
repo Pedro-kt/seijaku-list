@@ -11,7 +11,7 @@ interface AnimeDao {
     suspend fun insertAnime(anime: AnimeEntity)
 
     @Query("SELECT * FROM animes WHERE malId = :animeId")
-    fun getAnimeById(animeId: Int): Flow<AnimeEntity>
+    suspend fun getAnimeById(animeId: Int): AnimeEntity
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllAnimes(animes: List<AnimeEntity>)
@@ -39,4 +39,10 @@ interface AnimeDao {
 
     @Query("SELECT * FROM animes WHERE statusUser = 'Planeado'")
     fun getPlannedAnime(): Flow<List<AnimeEntity>>
+
+    @Query("UPDATE animes SET episodesWatched = :newEpisodesWatched WHERE malId = :animeId")
+    suspend fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int)
+
+    @Query("UPDATE animes SET statusUser = :newStatus WHERE malId = :animeId")
+    suspend fun updateAnimeStatus(animeId: Int, newStatus: String)
 }

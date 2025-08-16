@@ -7,6 +7,8 @@ import com.example.seijakulist.data.local.entities.AnimeEntity
 import com.example.seijakulist.data.repository.AnimeLocalRepository
 import com.example.seijakulist.data.repository.AnimeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -25,6 +27,26 @@ class MyAnimeListViewModel @Inject constructor(
                 SharingStarted.WhileSubscribed(5000),
                 emptyList()
             )
+
+    fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            animeLocalRepository.updateEpisodesWatched(animeId, newEpisodesWatched)
+
+            val updatedAnime = animeLocalRepository.getAnimeById(animeId)
+
+            if (updatedAnime != null) {
+                if (updatedAnime.episodesWatched == updatedAnime.totalEpisodes) {
+                    updateAnimeStatus(animeId, "Completado")
+                }
+            }
+        }
+    }
+
+    fun updateAnimeStatus(animeId: Int, newStatus: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            animeLocalRepository.updateAnimeStatus(animeId, newStatus)
+        }
+    }
 
     fun deleteAnimeToList(animeId: Int) {
 

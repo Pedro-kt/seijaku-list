@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,10 +27,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowRight
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -39,12 +42,16 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -80,8 +87,8 @@ import com.example.seijakulist.ui.components.ArrowBackTopAppBar
 import com.example.seijakulist.ui.components.BottomNavItemScreen
 import com.example.seijakulist.ui.components.DeleteMyAnime
 import com.example.seijakulist.ui.components.FilterTopAppBar
-import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
+import kotlinx.coroutines.launch
 
 @Composable
 fun MyAnimeListScreen(
@@ -129,6 +136,9 @@ fun MyAnimeListScreen(
             focusRequester.requestFocus()
         }
     }
+
+    var showDialog by remember { mutableStateOf(false) }
+    var animeIdToDelete by remember { mutableStateOf(0) }
 
     Scaffold(
         modifier = Modifier.pointerInput(Unit) {
@@ -397,6 +407,7 @@ fun MyAnimeListScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .height(145.dp)
                                 ) {
                                     Image(
                                         painter = rememberAsyncImagePainter(anime.imageUrl),
@@ -411,18 +422,20 @@ fun MyAnimeListScreen(
                                     Spacer(modifier = Modifier.width(16.dp))
 
                                     Column(
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier
+                                            .fillMaxHeight()
                                     ) {
-                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Spacer(modifier = Modifier.height(8.dp))
                                         Text(
                                             text = anime.title,
                                             fontFamily = RobotoBold,
                                             color = Color.White,
                                             maxLines = 2,
                                             overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.padding(end = 40.dp)
+                                            modifier = Modifier
+                                                .padding(end = 40.dp)
                                         )
-                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Spacer(modifier = Modifier.height(8.dp))
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -444,30 +457,113 @@ fun MyAnimeListScreen(
                                                 modifier = Modifier
                                                     .size(12.dp)
                                                     .clip(CircleShape)
-                                                    .background(statusColors[anime.statusUser] ?: Color.Gray)
+                                                    .background(
+                                                        statusColors[anime.statusUser] ?: Color.Gray
+                                                    )
                                             )
                                         }
-                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text =  "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
+                                                fontFamily = RobotoRegular,
+                                                color = Color.White
+                                            )
+                                            IconButton(
+                                                onClick = {
+                                                    val newEpisodesWatched =
+                                                        anime.episodesWatched + 1
+                                                    viewModel.updateEpisodesWatched(
+                                                        anime.malId,
+                                                        newEpisodesWatched
+                                                    )
+                                                },
+                                                enabled = anime.episodesWatched < anime.totalEpisodes
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.AddCircleOutline,
+                                                    contentDescription = "Cerrar",
+                                                    tint = Color.White
+                                                )
+                                            }
+                                        }
 
-                                        Text(
-                                            text = "Ep: 0/12",
-                                            fontFamily = RobotoRegular,
-                                            color = Color.White
+                                        LinearProgressIndicator(
+                                            progress = {
+                                                if (anime.totalEpisodes > 0) {
+                                                    anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()
+                                                } else 0f
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(4.dp)
+                                                .clip(
+                                                    RoundedCornerShape(
+                                                        bottomStart = 16.dp,
+                                                        bottomEnd = 16.dp
+                                                    )
+                                                ),
+                                            color = Color(0xFFC8E6C9),
+                                            trackColor = Color(0xFF353535),
+                                            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                                         )
                                     }
                                 }
-
-                                Spacer(modifier = Modifier.width(16.dp))
 
                                 DeleteMyAnime(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .padding(16.dp),
-                                    viewModel,
-                                    anime.malId,
-                                    snackbarHostState = snackbarHostState,
-                                    scope = scope
+                                    onDeleteConfirmed = {
+                                        showDialog = true
+                                        animeIdToDelete = anime.malId
+                                    }
                                 )
+
+                                if (showDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = {
+                                            showDialog = false
+                                        },
+                                        title = {
+                                            Text(text = "Confirmar eliminación")
+                                        },
+                                        text = {
+                                            Text(text = "¿Estás seguro de que quieres eliminar este anime de tu lista?")
+                                        },
+                                        confirmButton = {
+                                            TextButton(
+                                                onClick = {
+                                                    showDialog = false
+
+                                                    viewModel.deleteAnimeToList(animeIdToDelete)
+                                                    scope.launch {
+                                                        val result = snackbarHostState.showSnackbar(
+                                                            message = "Anime eliminado de tu lista",
+                                                            actionLabel = "Deshacer",
+                                                            duration = SnackbarDuration.Long
+                                                        )
+                                                    }
+                                                }
+                                            ) {
+                                                Text("Eliminar", color = Color.Red)
+                                            }
+                                        },
+                                        dismissButton = {
+                                            TextButton(
+                                                onClick = {
+                                                    showDialog = false
+                                                }
+                                            ) {
+                                                Text("Cancelar")
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
 
