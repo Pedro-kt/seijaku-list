@@ -13,4 +13,5 @@ data class AnimeEntity(
     val userOpiniun: String, // campo nuevo v3
     val totalEpisodes: Int, // campo nuevo v5
     val episodesWatched: Int, // campo nuevo v5
+    val rewatchCount: Int, // campo nuevo v6
 )

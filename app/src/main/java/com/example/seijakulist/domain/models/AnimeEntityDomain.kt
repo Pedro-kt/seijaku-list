@@ -8,5 +8,6 @@ data class AnimeEntityDomain(
     val userStatus: String,
     val userOpiniun: String,
     val totalEpisodes: Int,
-    val episodesWatched: Int
+    val episodesWatched: Int,
+    val rewatchCount: Int
 )

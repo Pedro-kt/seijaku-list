@@ -19,10 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -83,11 +83,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.components.AnimeStatusChip
 import com.example.seijakulist.ui.components.ArrowBackTopAppBar
 import com.example.seijakulist.ui.components.BottomNavItemScreen
 import com.example.seijakulist.ui.components.DeleteMyAnime
 import com.example.seijakulist.ui.components.FilterTopAppBar
 import com.example.seijakulist.ui.navigation.AppDestinations
+import com.example.seijakulist.util.UserAction
 import kotlinx.coroutines.launch
 
 @Composable
@@ -136,7 +138,7 @@ fun MyAnimeListScreen(
             focusRequester.requestFocus()
         }
     }
-
+    var showDialogStatus by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var animeIdToDelete by remember { mutableStateOf(0) }
 
@@ -407,14 +409,14 @@ fun MyAnimeListScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(145.dp)
+                                        .height(160.dp)
                                 ) {
                                     Image(
                                         painter = rememberAsyncImagePainter(anime.imageUrl),
                                         contentDescription = anime.title,
                                         modifier = Modifier
-                                            .height(145.dp)
-                                            .width(100.dp)
+                                            .height(160.dp)
+                                            .width(110.dp)
                                             .clip(RoundedCornerShape(16.dp)),
                                         contentScale = ContentScale.Crop
                                     )
@@ -435,31 +437,40 @@ fun MyAnimeListScreen(
                                             modifier = Modifier
                                                 .padding(end = 40.dp)
                                         )
-                                        Spacer(modifier = Modifier.height(8.dp))
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
 
                                         ) {
-                                            StarWithScore(anime.userScore)
-                                            VerticalDivider(
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = "Puntuacion",
+                                                tint = Color(0xFFFDC700),
                                                 modifier = Modifier
-                                                    .height(20.dp)
-                                                    .width(1.dp),
-                                                color = Color.White
+                                                    .size(16.dp)
                                             )
                                             Text(
-                                                text = anime.statusUser,
-                                                fontFamily = RobotoRegular,
-                                                color = Color.White
-                                            )
-                                            Box(
+                                                text = anime.userScore.toString(),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                textAlign = TextAlign.Start,
                                                 modifier = Modifier
-                                                    .size(12.dp)
-                                                    .clip(CircleShape)
-                                                    .background(
-                                                        statusColors[anime.statusUser] ?: Color.Gray
-                                                    )
+                                                    .wrapContentWidth(),
+                                                color = Color(0xFFFDC700),
+                                                fontSize = 16.sp,
+                                                fontFamily = RobotoRegular
+                                            )
+                                            Text(text = "•", color = Color.White)
+                                            AnimeStatusChip(
+                                                status = anime.statusUser,
+                                                statusColor = statusColors[anime.statusUser]
+                                                    ?: Color.Gray,
+                                                onStatusSelected = { action ->
+                                                    viewModel.handleUserAction(anime.malId, action)
+                                                },
+                                                episodesWatched = anime.episodesWatched,
+                                                totalEpisodes = anime.totalEpisodes,
+                                                animeTitle = anime.title
                                             )
                                         }
                                         Spacer(modifier = Modifier.weight(1f))
@@ -469,7 +480,7 @@ fun MyAnimeListScreen(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(
-                                                text =  "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
+                                                text = "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
                                                 fontFamily = RobotoRegular,
                                                 color = Color.White
                                             )
@@ -482,11 +493,11 @@ fun MyAnimeListScreen(
                                                         newEpisodesWatched
                                                     )
                                                 },
-                                                enabled = anime.episodesWatched < anime.totalEpisodes
+                                                enabled = anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.AddCircleOutline,
-                                                    contentDescription = "Cerrar",
+                                                    contentDescription = "Agregar episodio",
                                                     tint = Color.White
                                                 )
                                             }
@@ -572,28 +583,5 @@ fun MyAnimeListScreen(
             }
 
         }
-    }
-}
-
-@Composable
-fun StarWithScore(score: Float) {
-    val RobotoRegular = FontFamily(
-        Font(R.font.roboto_regular)
-    )
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Text(
-            text = score.toString(),
-            fontFamily = RobotoRegular,
-            color = Color.White
-        )
-        Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = "Puntuacion",
-            tint = Color.Yellow,
-            modifier = Modifier.size(16.dp)
-        )
     }
 }

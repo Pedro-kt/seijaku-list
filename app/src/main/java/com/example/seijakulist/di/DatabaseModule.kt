@@ -7,6 +7,7 @@ import com.example.seijakulist.data.local.dao.AnimeDao
 import com.example.seijakulist.data.local.migration.MIGRATION_1_2
 import com.example.seijakulist.data.local.migration.MIGRATION_2_3
 import com.example.seijakulist.data.local.migration.MIGRATION_4_5
+import com.example.seijakulist.data.local.migration.MIGRATION_5_6
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +27,7 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_database"
         )
-            .addMigrations(MIGRATION_4_5)
+            .addMigrations(MIGRATION_5_6)
             .fallbackToDestructiveMigration(true)
             .build()
     }
@@ -36,4 +37,3 @@ object DatabaseModule {
         return db.animeDao()
     }
 }
-

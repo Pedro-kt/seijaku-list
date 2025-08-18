@@ -40,9 +40,6 @@ interface AnimeDao {
     @Query("SELECT * FROM animes WHERE statusUser = 'Planeado'")
     fun getPlannedAnime(): Flow<List<AnimeEntity>>
 
-    @Query("UPDATE animes SET episodesWatched = :newEpisodesWatched WHERE malId = :animeId")
-    suspend fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int)
-
-    @Query("UPDATE animes SET statusUser = :newStatus WHERE malId = :animeId")
-    suspend fun updateAnimeStatus(animeId: Int, newStatus: String)
+    @Update
+    suspend fun updateAnime(anime: AnimeEntity)
 }

@@ -13,7 +13,7 @@ fun AnimeDetailDto.toAnimeDetails(): AnimeDetail {
             ?: images?.jpg?.largeImageUrl
             ?: "URL de imagen predeterminada",
         synopsis = synopsis ?: "Synopsis no encontrada",
-        episodes = episodes ?: 0,
+        episodes = episodes ?: 1,
         duration = duration ?: "Duracion no obtenida",
         genres = genres,
         score = score ?: 0.0f,

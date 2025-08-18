@@ -4,11 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.data.local.entities.AnimeEntity
+import com.example.seijakulist.data.mapper.local.toAnimeEntity
 import com.example.seijakulist.data.repository.AnimeLocalRepository
-import com.example.seijakulist.data.repository.AnimeRepository
+import com.example.seijakulist.util.UserAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -20,6 +20,71 @@ class MyAnimeListViewModel @Inject constructor(
     private val animeLocalRepository: AnimeLocalRepository
 ) : ViewModel() {
 
+    fun handleUserAction(animeId: Int, action: UserAction) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentAnime = animeLocalRepository.getAnimeById(animeId)
+
+            val updatedAnime = when (action) {
+
+                is UserAction.UpdateProgress -> {
+                    val willBeCompleted = action.newProgress >= currentAnime.totalEpisodes
+                    val newRewatchCount = if (willBeCompleted && currentAnime.userStatus != "Completado") {
+                        if (currentAnime.rewatchCount == 0) 1 else currentAnime.rewatchCount + 1
+                    } else {
+                        currentAnime.rewatchCount
+                    }
+
+                    currentAnime.copy(
+                        episodesWatched = action.newProgress,
+                        userStatus = if (willBeCompleted) "Completado" else currentAnime.userStatus,
+                        rewatchCount = newRewatchCount
+                    )
+                }
+
+                is UserAction.MarkAsCompleted -> {
+                    currentAnime.copy(
+                        userStatus = "Completado",
+                        episodesWatched = currentAnime.totalEpisodes,
+                        rewatchCount = currentAnime.rewatchCount + 1
+                    )
+                }
+
+                is UserAction.MarkAsPlanned -> {
+                    currentAnime.copy(
+                        userStatus = "Planeado",
+                        episodesWatched = 0
+                    )
+                }
+
+                is UserAction.MarkAsWatching -> {
+                    currentAnime.copy(
+                        userStatus = "Viendo",
+                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched
+                    )
+                }
+
+                is UserAction.MarkAsDropped -> {
+                    currentAnime.copy(
+                        userStatus = "Abandonado",
+                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched
+                    )
+                }
+
+                is UserAction.MarkAsPending -> {
+                    currentAnime.copy(
+                        userStatus = "Pendiente",
+                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched
+                    )
+                }
+
+                is UserAction.None -> currentAnime
+            }
+
+            animeLocalRepository.updateAnime(updatedAnime.toAnimeEntity())
+        }
+    }
+
+
     val savedAnimes: StateFlow<List<AnimeEntity>> =
         animeLocalRepository.getAllAnimes()
             .stateIn(
@@ -28,23 +93,34 @@ class MyAnimeListViewModel @Inject constructor(
                 emptyList()
             )
 
+
     fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            animeLocalRepository.updateEpisodesWatched(animeId, newEpisodesWatched)
+            val currentAnime = animeLocalRepository.getAnimeById(animeId)
 
-            val updatedAnime = animeLocalRepository.getAnimeById(animeId)
-
-            if (updatedAnime != null) {
-                if (updatedAnime.episodesWatched == updatedAnime.totalEpisodes) {
-                    updateAnimeStatus(animeId, "Completado")
-                }
+            // Verifica si el anime se completará con la nueva cantidad de episodios vistos
+            val newStatus = if (newEpisodesWatched == currentAnime.totalEpisodes) {
+                "Completado"
+            } else {
+                currentAnime.userStatus
             }
-        }
-    }
 
-    fun updateAnimeStatus(animeId: Int, newStatus: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            animeLocalRepository.updateAnimeStatus(animeId, newStatus)
+            // Incrementa rewatchCount solo si el anime se completa y no estaba completado antes
+            val newRewatchCount = if (newStatus == "Completado" && currentAnime.userStatus != "Completado") {
+                currentAnime.rewatchCount + 1
+            } else {
+                currentAnime.rewatchCount
+            }
+
+            val updatedAnime = currentAnime.copy(
+                episodesWatched = newEpisodesWatched,
+                userStatus = newStatus,
+                rewatchCount = newRewatchCount
+            )
+
+            val anime = updatedAnime.toAnimeEntity()
+
+            animeLocalRepository.updateAnime(anime)
         }
     }
 
@@ -101,5 +177,6 @@ class MyAnimeListViewModel @Inject constructor(
                 SharingStarted.WhileSubscribed(5000),
                 emptyList()
             )
+
 }
 

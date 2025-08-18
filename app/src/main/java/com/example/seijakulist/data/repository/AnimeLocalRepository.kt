@@ -62,11 +62,7 @@ class AnimeLocalRepository @Inject constructor(
         return anime
     }
 
-    suspend fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int) {
-        animeDao.updateEpisodesWatched(animeId, newEpisodesWatched)
-    }
-
-    suspend fun updateAnimeStatus(animeId: Int, newStatus: String) {
-        animeDao.updateAnimeStatus(animeId, newStatus)
+    suspend fun updateAnime(anime: AnimeEntity) {
+        animeDao.updateAnime(anime)
     }
 }

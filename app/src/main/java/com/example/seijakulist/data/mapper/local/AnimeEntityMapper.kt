@@ -13,7 +13,8 @@ fun AnimeEntityDomain.toAnimeEntity(): AnimeEntity {
         statusUser = userStatus,
         userOpiniun = userOpiniun,
         totalEpisodes = totalEpisodes,
-        episodesWatched = episodesWatched
+        episodesWatched = episodesWatched,
+        rewatchCount = rewatchCount
     )
 }
 
@@ -26,6 +27,7 @@ fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
         userStatus = statusUser,
         userOpiniun = userOpiniun,
         totalEpisodes = totalEpisodes,
-        episodesWatched = episodesWatched
+        episodesWatched = episodesWatched,
+        rewatchCount = rewatchCount
     )
 }
