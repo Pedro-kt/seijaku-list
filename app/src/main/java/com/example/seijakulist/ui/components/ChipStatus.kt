@@ -104,7 +104,7 @@ fun AnimeStatusChip(
                                 } else onStatusSelected(action)
                             }
                             "Completado" -> {
-                                if (episodesWatched > 0 && episodesWatched < totalEpisodes || episodesWatched == totalEpisodes) {
+                                if (episodesWatched >= 0 && episodesWatched < totalEpisodes || episodesWatched == totalEpisodes) {
                                     pendingAction = action
                                     showConfirmCompleteDialog = true
                                 } else {

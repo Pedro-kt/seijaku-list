@@ -173,98 +173,77 @@ fun HomeScreen(
         Color.Black,
     )
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                //midnight
-                color = Color(0xFF121211)
-            )
     ) {
-        Scaffold(
-            modifier = Modifier.systemBarsPadding(),
-            containerColor = Color.Transparent,
-            topBar = {
-                TopHomeScreen(navController)
-            },
-            bottomBar = {
-                BottomNavItemScreen(navController)
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
 
-                if (hasError) {
-                    NoInternetScreen(
-                        onRetryClick = {
-                            topAnimesViewModel.topAnime()
-                            seasonNowViewModel.AnimesSeasonNow()
-                            seasonUpcomingViewModel.AnimesSeasonUpcoming()
-                            animeRandomViewModel.loadRandomAnime()
-                            characterRandomViewModel.loadCharacterRandom()
-                        }
-                    )
-                } else {
-                    if (animeSeasonUpcomingIsLoading) {
-                        LoadingScreen()
-                    } else if (animeSeasonNow.isNotEmpty()) {
+        if (hasError) {
+            NoInternetScreen(
+                onRetryClick = {
+                    topAnimesViewModel.topAnime()
+                    seasonNowViewModel.AnimesSeasonNow()
+                    seasonUpcomingViewModel.AnimesSeasonUpcoming()
+                    animeRandomViewModel.loadRandomAnime()
+                    characterRandomViewModel.loadCharacterRandom()
+                }
+            )
+        } else {
+            if (animeSeasonUpcomingIsLoading) {
+                LoadingScreen()
+            } else if (animeSeasonNow.isNotEmpty()) {
 
-                        LazyColumn() {
-                            item {
-                                SubTitleWithoutIcon("En emision")
-                            }
-                            item {
-                                CardAnimesHome(animeSeasonNow, navController)
-                            }
-                            item {
-                                SubTitleWithoutIcon("Anime random")
-                            }
-                            item {
-                                CompleteAnimeCard(animeRandom, navController, animeRandomViewModel)
-                            }
-                            item {
-                                SubTitleWithoutIcon("Top scores")
-                            }
-                            item {
-                                CardAnimesHome(topAnimes, navController)
-                            }
-                            item {
-                                SubTitleWithoutIcon("Personaje random")
-                            }
-                            item {
-                                CompleteCharacterCard(
-                                    characterRandom,
-                                    navController,
-                                    characterRandomViewModel
-                                )
-                            }
+                LazyColumn() {
+                    item {
+                        SubTitleWithoutIcon("En emision")
+                    }
+                    item {
+                        CardAnimesHome(animeSeasonNow, navController)
+                    }
+                    item {
+                        SubTitleWithoutIcon("Anime random")
+                    }
+                    item {
+                        CompleteAnimeCard(animeRandom, navController, animeRandomViewModel)
+                    }
+                    item {
+                        SubTitleWithoutIcon("Top scores")
+                    }
+                    item {
+                        CardAnimesHome(topAnimes, navController)
+                    }
+                    item {
+                        SubTitleWithoutIcon("Personaje random")
+                    }
+                    item {
+                        CompleteCharacterCard(
+                            characterRandom,
+                            navController,
+                            characterRandomViewModel
+                        )
+                    }
 
-                            item {
-                                SubTitleWithoutIcon("Proxima temporada")
-                            }
-                            item {
-                                CardAnimesHome(animeSeasonUpcoming, navController)
-                            }
-                            item {
-                                TitleScreen("Explora Mangas!")
-                            }
-                            item {
-                                Text(
-                                    text = "Proximamente",
-                                    color = Color.White,
-                                    fontSize = 16.sp,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    fontFamily = RobotoBold
-                                )
-                            }
-                        }
+                    item {
+                        SubTitleWithoutIcon("Proxima temporada")
+                    }
+                    item {
+                        CardAnimesHome(animeSeasonUpcoming, navController)
+                    }
+                    item {
+                        TitleScreen("Explora Mangas!")
+                    }
+                    item {
+                        Text(
+                            text = "Proximamente",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            fontFamily = RobotoBold
+                        )
                     }
                 }
             }

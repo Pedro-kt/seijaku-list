@@ -42,58 +42,18 @@ fun MyMangasScreen(
         Font(R.font.roboto_bold, FontWeight.Bold)
     )
 
-    Scaffold(
-        containerColor = Color(0xFF121211),
-        topBar = {
-            Column(modifier = Modifier.background(color = Color(0xFF121211))) {
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .background(color = Color.Transparent)
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ArrowBackTopAppBar(navController)
-                    Text(
-                        text = "Mis mangas",
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 24.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(bottom = 8.dp)
-                            .weight(1f),
-                        fontFamily = RobotoBold
-                    )
-                    FilterTopAppBarMangas {}
-                }
-                HorizontalDivider()
-                /*
-                if (savedMangas.isEmpty()) {
-                    HorizontalDivider()
-                }
-                 */
-            }
-        },
-        bottomBar = {
-            BottomNavItemScreen(navController)
-        },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "En este momento no hay mangas disponibles, pero pronto lo estará!",
-                fontFamily = RobotoRegular,
-                textAlign = TextAlign.Center,
-                fontSize = 16.sp,
-                color = Color.White.copy(alpha = 0.6f)
-            )
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "En este momento no hay mangas disponibles, pero pronto lo estará!",
+            fontFamily = RobotoRegular,
+            textAlign = TextAlign.Center,
+            fontSize = 16.sp,
+            color = Color.White.copy(alpha = 0.6f)
+        )
     }
 }

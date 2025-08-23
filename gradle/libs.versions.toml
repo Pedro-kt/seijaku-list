@@ -22,6 +22,7 @@ kotlinSerialization = "1.7.1" #anadi esto para navegation, si no compila borrar 
 materialIconsExtended = "1.6.8"
 uiUtil = "1.8.3"
 animation = "1.8.3"
+animationVersion = "1.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -56,6 +57,7 @@ kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-j
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "uiUtil" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
+animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

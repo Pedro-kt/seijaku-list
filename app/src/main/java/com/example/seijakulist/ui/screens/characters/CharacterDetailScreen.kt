@@ -76,27 +76,18 @@ fun CharacterDetailScreen(
         characterPictureViewModel.loadCharacterPictures(characterId)
     }
 
-    // ✨ PASO CLAVE: Consolida los estados de carga
     val overallIsLoading = characterIsLoading || characterPicturesIsLoading
-
-    // ✨ PASO CLAVE: Consolida los mensajes de error
-    // Usamos 'remember' para que esta lógica no se ejecute en cada recomposición si no cambia nada
     val overallErrorMessage = remember(characterErrorMessage, characterPicturesErrorMessage) {
         when {
-            // Si ambos ViewModels tienen un error, puedes unirlos o priorizar
             characterErrorMessage != null && characterPicturesErrorMessage != null ->
                 "Error en detalle: ${characterErrorMessage}\nError en imágenes: ${characterPicturesErrorMessage}"
-            // Si solo el ViewModel de detalle tiene un error
             characterErrorMessage != null -> characterErrorMessage
-            // Si solo el ViewModel de imágenes tiene un error
             characterPicturesErrorMessage != null -> characterPicturesErrorMessage
-            // Ningún ViewModel tiene un error
             else -> null
         }
     }
 
-    // Aquí comienza tu lógica condicional para mostrar la carga, error o contenido
-    if (overallIsLoading) { // ✨ Usamos el estado de carga consolidado
+    if (overallIsLoading) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -107,7 +98,7 @@ fun CharacterDetailScreen(
                 color = Color.White
             )
         }
-    } else if (overallErrorMessage != null) { // ✨ Usamos el estado de error consolidado
+    } else if (overallErrorMessage != null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -115,41 +106,14 @@ fun CharacterDetailScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = overallErrorMessage, // Muestra el mensaje de error consolidado
+                text = overallErrorMessage,
                 color = Color.Red,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
             )
         }
     } else {
-        // ✨ Si no hay carga ni error, muestra el contenido principal de la pantalla
-        // Aquí va todo tu 'Column' con el 'CenterAlignedTopAppBar', 'LazyColumn', etc.
-        // Todo lo que ya tienes después del 'else if (characterErrorMessage != null)'
         Column(modifier = Modifier.fillMaxSize().background(color = Color(0xFF06141B))) {
-            // ... (Tu CenterAlignedTopAppBar) ...
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(
-                        0xFF11212D
-                    )
-                ),
-                title = {
-                    Text(
-                        text = "Personaje",
-                        color = Color.White
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver atrás",
-                            tint = Color.White
-                        )
-                    }
-                }
-            )
-            // ... (Tu LazyColumn y todo su contenido, incluyendo el LazyRow y el Dialog) ...
             LazyColumn() {
                 item() {
                     Text(

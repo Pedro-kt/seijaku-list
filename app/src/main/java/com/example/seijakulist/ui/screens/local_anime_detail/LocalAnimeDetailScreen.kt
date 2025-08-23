@@ -92,222 +92,164 @@ fun AnimeDetailScreenLocal(
     val snackbarHostState = remember { SnackbarHostState() }
 
 
-    Scaffold(
-        topBar = {
+    when (val currentAnime = anime) {
+        null -> {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(color = Color(0xFF121212))
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Detalle",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontFamily = RobotoBold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver atras",
-                        tint = Color.White
-                    )
-                }
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Compartir",
-                        tint = Color.White
-                    )
-                }
-            }
-        }, containerColor = Color(0xFF050505), snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = Color.White,
-                    contentColor = Color.Black,
-                    actionContentColor = Color.Black,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.padding(16.dp)
-                )
+                CircularProgressIndicator(color = Color.White)
             }
         }
-    ) { innerPadding ->
-        when (val currentAnime = anime) {
-            null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color.White)
-                }
-            }
 
-            else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .background(color = Color(0xFF050505))
-                ) {
-                    item {
+        else -> {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color(0xFF050505))
+            ) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(350.dp)
+                            .padding(top = 16.dp)
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(LocalContext.current)
+                                    .data(data = currentAnime.image)
+                                    .apply(block = fun ImageRequest.Builder.() {
+                                        size(Size.ORIGINAL)
+                                    }).build()
+                            ),
+                            contentDescription = "Imagen de fondo",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .blur(radius = 20.dp)
+                                .scale(1.1f),
+                            contentScale = ContentScale.Crop,
+                        )
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(350.dp)
-                                .padding(top = 16.dp)
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0xFF050505), Color.Transparent
+                                        ),
+                                        startY = 0f,
+                                        endY = 400f,
+                                    )
+                                )
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent, Color(0xFF050505)
+                                        ), startY = 400f, endY = Float.POSITIVE_INFINITY
+                                    )
+                                )
+                        )
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.TopStart
                         ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(
-                                    ImageRequest.Builder(LocalContext.current)
-                                        .data(data = currentAnime.image)
-                                        .apply(block = fun ImageRequest.Builder.() {
-                                            size(Size.ORIGINAL)
-                                        }).build()
-                                ),
-                                contentDescription = "Imagen de fondo",
+                            Row(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .blur(radius = 20.dp)
-                                    .scale(1.1f),
-                                contentScale = ContentScale.Crop,
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color(0xFF050505), Color.Transparent
-                                            ),
-                                            startY = 0f,
-                                            endY = 400f,
-                                        )
+                                    .padding(
+                                        start = 16.dp,
                                     )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent, Color(0xFF050505)
-                                            ), startY = 400f, endY = Float.POSITIVE_INFINITY
-                                        )
-                                    )
-                            )
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.TopStart
+                                    .fillMaxSize(),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
+                                Image(
+                                    painter = rememberAsyncImagePainter(currentAnime.image),
+                                    contentDescription = currentAnime.title,
+                                    contentScale = ContentScale.Crop,
                                     modifier = Modifier
-                                        .padding(
-                                            start = 16.dp,
-                                        )
-                                        .fillMaxSize(),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .width(160.dp)
+                                        .height(240.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                    //dialogo
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(end = 16.dp, top = 16.dp)
                                 ) {
-                                    Image(
-                                        painter = rememberAsyncImagePainter(currentAnime.image),
-                                        contentDescription = currentAnime.title,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .width(160.dp)
-                                            .height(240.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                        //dialogo
+                                    Text(
+                                        text = currentAnime.title,
+                                        color = Color.White,
+                                        fontSize = 20.sp,
+                                        fontFamily = RobotoBold,
+                                        maxLines = 3,
+                                        overflow = TextOverflow.Ellipsis
                                     )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Column(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(end = 16.dp, top = 16.dp)
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.padding(top = 8.dp)
                                     ) {
-                                        Text(
-                                            text = currentAnime.title,
-                                            color = Color.White,
-                                            fontSize = 20.sp,
-                                            fontFamily = RobotoBold,
-                                            maxLines = 3,
-                                            overflow = TextOverflow.Ellipsis
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = "Icono de estrellas",
+                                            tint = Color.White
                                         )
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier.padding(top = 8.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Star,
-                                                contentDescription = "Icono de estrellas",
-                                                tint = Color.White
-                                            )
-                                            Text(
-                                                text = currentAnime.userScore.toString(),
-                                                color = Color.White,
-                                                fontSize = 16.sp,
-                                            )
-                                        }
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier.padding(top = 8.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.CheckCircleOutline,
-                                                contentDescription = "Icono de estrellas",
-                                                tint = Color.White
-                                            )
-                                            Text(
-                                                text = currentAnime.userStatus,
-                                                color = Color.White,
-                                                fontSize = 16.sp,
-                                            )
-                                        }
+                                        Text(
+                                            text = currentAnime.userScore.toString(),
+                                            color = Color.White,
+                                            fontSize = 16.sp,
+                                        )
+                                    }
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.padding(top = 8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircleOutline,
+                                            contentDescription = "Icono de estrellas",
+                                            tint = Color.White
+                                        )
+                                        Text(
+                                            text = currentAnime.userStatus,
+                                            color = Color.White,
+                                            fontSize = 16.sp,
+                                        )
                                     }
                                 }
                             }
                         }
                     }
-                    item {
-                        Card(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(),
-                            colors = CardColors(
-                                contentColor = Color.White,
-                                containerColor = Color(0xff050505),
-                                disabledContainerColor = Color.Red,
-                                disabledContentColor = Color.Cyan,
-                            ),
-                            border = BorderStroke(
-                                width = 1.dp, color = Color.White.copy(alpha = 0.7f)
-                            ),
-                        ) {
-                            TitleScreen("Opinion personal")
+                }
+                item {
+                    Card(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        colors = CardColors(
+                            contentColor = Color.White,
+                            containerColor = Color(0xff050505),
+                            disabledContainerColor = Color.Red,
+                            disabledContentColor = Color.Cyan,
+                        ),
+                        border = BorderStroke(
+                            width = 1.dp, color = Color.White.copy(alpha = 0.7f)
+                        ),
+                    ) {
+                        TitleScreen("Opinion personal")
 
-                            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                Text(
-                                    text = currentAnime.userOpiniun,
-                                    color = Color.Gray,
-                                    fontSize = 14.sp,
-                                    fontFamily = RobotoRegular,
-                                    textAlign = TextAlign.Justify,
-                                )
-                            }
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Text(
+                                text = currentAnime.userOpiniun,
+                                color = Color.Gray,
+                                fontSize = 14.sp,
+                                fontFamily = RobotoRegular,
+                                textAlign = TextAlign.Justify,
+                            )
                         }
                     }
                 }

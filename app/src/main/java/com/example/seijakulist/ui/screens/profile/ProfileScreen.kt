@@ -81,65 +81,22 @@ fun ProfileScreen(
 
     val currentRoute = navController.currentBackStackEntry?.destination?.route
 
-    Scaffold(
-        topBar = {
-            Column(modifier = Modifier.background(Color(0xff121211))) {
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .background(color = Color.Transparent)
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ArrowBackTopAppBar(navController)
-                    Text(
-                        text = "Perfil",
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 24.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(bottom = 8.dp)
-                            .weight(1f),
-                        fontFamily = RobotoBold
-                    )
-                    IconButton(
-                        onClick = {  },
-                        modifier = Modifier
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Configuracion",
-                            tint = Color.White
-                        )
-                    }
-                }
-                HorizontalDivider()
-            }
-        },
-        containerColor = Color(0xFF121211),
-        bottomBar = {
-            BottomNavItemScreen(navController)
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(color = Color(0xff121211)),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
-                Text(
-                    text = "Por el momento no hay nada que mostrar aqui",
-                    fontFamily = RobotoRegular,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-            }
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color(0xff121211)),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        item {
+            Text(
+                text = "Por el momento no hay nada que mostrar aqui",
+                fontFamily = RobotoRegular,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp,
+                color = Color.White.copy(alpha = 0.6f)
+            )
         }
     }
 }
+

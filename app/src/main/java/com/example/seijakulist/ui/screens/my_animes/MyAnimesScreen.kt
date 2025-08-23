@@ -142,446 +142,328 @@ fun MyAnimeListScreen(
     var showDialog by remember { mutableStateOf(false) }
     var animeIdToDelete by remember { mutableStateOf(0) }
 
-    Scaffold(
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                focusManager.clearFocus()
-            })
-        },
-        containerColor = Color(0xff121211),
-        topBar = {
-            AnimatedContent(
-                targetState = collapsedSearch,
-                label = "search bar animation",
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color(0xFF121211))
+    ) {
+        if (savedAnimes.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Parece que no hay animes aquí todavía. ¿Por qué no añades tu primer anime?",
+                    fontFamily = RobotoRegular,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.6f)
+                )
+                Button(
+                    onClick = {
+                        navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE)
+                    },
+                    modifier = Modifier.padding(top = 16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xff7226ff),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(text = "Buscar anime!")
+                }
+            }
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = Color(0xFF121211))
-                    .statusBarsPadding()
-            ) { isSearchExpanded ->
-                if (isSearchExpanded) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
+                    .background(Color(0xFF121211))
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Filtrar por:",
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+                IconButton(onClick = { collapsedFilter = !collapsedFilter }) {
+                    Icon(
+                        imageVector = if (collapsedFilter) {
+                            Icons.Default.ArrowDropDown
+                        } else {
+                            Icons.AutoMirrored.Filled.ArrowRight
+                        },
+                        contentDescription = "Icono de filtrar por",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            }
+
+            if (collapsedFilter) {
+                LazyRow(
+                    modifier = Modifier
+                        .background(Color(0xFF121211))
+                        .padding(horizontal = 8.dp)
+                ) {
+                    items(statusAnime) { filter ->
+                        val isSelected = selectedFilter == filter
+
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                selectedFilter = if (isSelected) null else filter
+                            },
+                            label = {
+                                Text(filter)
+                            },
+                            modifier = Modifier.padding(end = 8.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color(0xFF050505),
+                                labelColor = Color.White,
+                                selectedContainerColor = Color(0xff7226ff),
+                                selectedLabelColor = Color.White
+                            ),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = Color.White
+                            ),
+                            trailingIcon = {
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Seleccionado",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+            HorizontalDivider()
+
+
+            val displayedAnimes by remember(selectedFilter, searchQuery, isSortedAscending) {
+                derivedStateOf {
+                    val filteredByStatus = when (selectedFilter) {
+                        "Viendo" -> savedAnimeStatusWatching
+                        "Completado" -> savedAnimeStatusComplete
+                        "Pendiente" -> savedAnimeStatusPending
+                        "Abandonado" -> savedAnimeStatusAbandoned
+                        "Planeado" -> savedAnimeStatusPlanned
+                        else -> savedAnimes
+                    }
+
+                    val filteredBySearch = if (searchQuery.isBlank()) {
+                        filteredByStatus
+                    } else {
+                        filteredByStatus.filter { anime ->
+                            anime.title.contains(searchQuery, ignoreCase = true)
+                        }
+                    }
+                    if (isSortedAscending) {
+                        filteredBySearch.sortedBy { it.title }
+                    } else {
+                        filteredBySearch.sortedByDescending { it.title }
+                    }
+                }
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .background(Color(0xFF121211))
+                    .padding(start = 16.dp, end = 16.dp)
+            ) {
+                items(displayedAnimes) { anime ->
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        placeholder = { Text("Buscar...") },
-                        singleLine = true,
-                        shape = RoundedCornerShape(50.dp),
-                        leadingIcon = {
-                            IconButton(onClick = {
-                                collapsedSearch = false
-                                searchQuery = ""
-                            }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Cerrar búsqueda"
-                                )
-                            }
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotBlank()) {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Limpiar"
-                                    )
-                                }
-                            }
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.White.copy(alpha = 0.5f),
-                            unfocusedIndicatorColor = Color.White.copy(alpha = 0.3f),
-                            cursorColor = Color.White,
-                            focusedLabelColor = Color.White.copy(alpha = 0.7f),
-                            unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
-                        ),
-                    )
-                } else {
-                    Column(modifier = Modifier.background(color = Color(0xFF121211))) {
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .statusBarsPadding()
-                                .background(color = Color(0xFF121211))
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            ArrowBackTopAppBar(navController)
-                            Text(
-                                text = "Mis animes",
-                                color = Color.White.copy(alpha = 0.9f),
-                                fontSize = 24.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .padding(bottom = 8.dp)
-                                    .weight(1f),
-                                fontFamily = RobotoBold
-                            )
-                            FilterTopAppBar(
-                                onSearchClick = {
-                                    collapsedSearch = !collapsedSearch
-                                },
-                                onSortClick = {
-                                    isSortedAscending = !isSortedAscending
-                                },
-                                savedAnimes = savedAnimes
-                            )
-                        }
-                        if (savedAnimes.isEmpty()) {
-                            HorizontalDivider()
-                        }
-                    }
-                }
-            }
-
-        },
-        bottomBar = {
-            BottomNavItemScreen(navController)
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = Color.White,
-                    contentColor = Color.Black,
-                    actionContentColor = Color.Black,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = Color(0xFF121211))
-                .padding(innerPadding),
-        ) {
-            if (savedAnimes.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Parece que no hay animes aquí todavía. ¿Por qué no añades tu primer anime?",
-                        fontFamily = RobotoRegular,
-                        textAlign = TextAlign.Center,
-                        fontSize = 16.sp,
-                        color = Color.White.copy(alpha = 0.6f)
-                    )
-                    Button(
-                        onClick = {
-                            navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE)
-                        },
-                        modifier = Modifier.padding(top = 16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xff7226ff),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(text = "Buscar anime!")
-                    }
-                }
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF121211))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = "Filtrar por:",
-                        color = Color.White,
-                        fontSize = 16.sp
-                    )
-                    IconButton(onClick = { collapsedFilter = !collapsedFilter }) {
-                        Icon(
-                            imageVector = if (collapsedFilter) {
-                                Icons.Default.ArrowDropDown
-                            } else {
-                                Icons.AutoMirrored.Filled.ArrowRight
+                            .padding(vertical = 8.dp)
+                            .clickable {
+                                navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
                             },
-                            contentDescription = "Icono de filtrar por",
-                            tint = Color.White,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                }
-
-                if (collapsedFilter) {
-                    LazyRow(
-                        modifier = Modifier
-                            .background(Color(0xFF121211))
-                            .padding(horizontal = 8.dp)
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        items(statusAnime) { filter ->
-                            val isSelected = selectedFilter == filter
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(160.dp)
+                            ) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(anime.imageUrl),
+                                    contentDescription = anime.title,
+                                    modifier = Modifier
+                                        .height(160.dp)
+                                        .width(110.dp)
+                                        .clip(RoundedCornerShape(16.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
 
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = {
-                                    selectedFilter = if (isSelected) null else filter
-                                },
-                                label = {
-                                    Text(filter)
-                                },
-                                modifier = Modifier.padding(end = 8.dp),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = Color(0xFF050505),
-                                    labelColor = Color.White,
-                                    selectedContainerColor = Color(0xff7226ff),
-                                    selectedLabelColor = Color.White
-                                ),
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = Color.White
-                                ),
-                                trailingIcon = {
-                                    if (isSelected) {
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                ) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = anime.title,
+                                        fontFamily = RobotoBold,
+                                        color = Color.White,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier
+                                            .padding(end = 40.dp)
+                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+                                    ) {
                                         Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = "Seleccionado",
-                                            tint = Color.White
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = "Puntuacion",
+                                            tint = Color(0xFFFDC700),
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                        )
+                                        Text(
+                                            text = anime.userScore.toString(),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Start,
+                                            modifier = Modifier
+                                                .wrapContentWidth(),
+                                            color = Color(0xFFFDC700),
+                                            fontSize = 16.sp,
+                                            fontFamily = RobotoRegular
+                                        )
+                                        Text(text = "•", color = Color.White)
+                                        AnimeStatusChip(
+                                            status = anime.statusUser,
+                                            statusColor = statusColors[anime.statusUser]
+                                                ?: Color.Gray,
+                                            onStatusSelected = { action ->
+                                                viewModel.handleUserAction(anime.malId, action)
+                                            },
+                                            episodesWatched = anime.episodesWatched,
+                                            totalEpisodes = anime.totalEpisodes,
+                                            animeTitle = anime.title
                                         )
                                     }
-                                }
-                            )
-                        }
-                    }
-                }
-                HorizontalDivider()
-
-
-                val displayedAnimes by remember(selectedFilter, searchQuery, isSortedAscending) {
-                    derivedStateOf {
-                        val filteredByStatus = when (selectedFilter) {
-                            "Viendo" -> savedAnimeStatusWatching
-                            "Completado" -> savedAnimeStatusComplete
-                            "Pendiente" -> savedAnimeStatusPending
-                            "Abandonado" -> savedAnimeStatusAbandoned
-                            "Planeado" -> savedAnimeStatusPlanned
-                            else -> savedAnimes
-                        }
-
-                        val filteredBySearch = if (searchQuery.isBlank()) {
-                            filteredByStatus
-                        } else {
-                            filteredByStatus.filter { anime ->
-                                anime.title.contains(searchQuery, ignoreCase = true)
-                            }
-                        }
-                        if (isSortedAscending) {
-                            filteredBySearch.sortedBy { it.title }
-                        } else {
-                            filteredBySearch.sortedByDescending { it.title }
-                        }
-                    }
-                }
-
-                LazyColumn(
-                    modifier = Modifier
-                        .background(Color(0xFF121211))
-                        .padding(start = 16.dp, end = 16.dp)
-                ) {
-                    items(displayedAnimes) { anime ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .clickable {
-                                    navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
-                                },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Box(modifier = Modifier.fillMaxWidth()) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(160.dp)
-                                ) {
-                                    Image(
-                                        painter = rememberAsyncImagePainter(anime.imageUrl),
-                                        contentDescription = anime.title,
-                                        modifier = Modifier
-                                            .height(160.dp)
-                                            .width(110.dp)
-                                            .clip(RoundedCornerShape(16.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
-
-                                    Spacer(modifier = Modifier.width(16.dp))
-
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Spacer(modifier = Modifier.height(8.dp))
                                         Text(
-                                            text = anime.title,
-                                            fontFamily = RobotoBold,
-                                            color = Color.White,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier
-                                                .padding(end = 40.dp)
+                                            text = "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
+                                            fontFamily = RobotoRegular,
+                                            color = Color.White
                                         )
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-
+                                        IconButton(
+                                            onClick = {
+                                                val newEpisodesWatched =
+                                                    anime.episodesWatched + 1
+                                                viewModel.updateEpisodesWatched(
+                                                    anime.malId,
+                                                    newEpisodesWatched
+                                                )
+                                            },
+                                            enabled = anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Star,
-                                                contentDescription = "Puntuacion",
-                                                tint = Color(0xFFFDC700),
-                                                modifier = Modifier
-                                                    .size(16.dp)
-                                            )
-                                            Text(
-                                                text = anime.userScore.toString(),
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                textAlign = TextAlign.Start,
-                                                modifier = Modifier
-                                                    .wrapContentWidth(),
-                                                color = Color(0xFFFDC700),
-                                                fontSize = 16.sp,
-                                                fontFamily = RobotoRegular
-                                            )
-                                            Text(text = "•", color = Color.White)
-                                            AnimeStatusChip(
-                                                status = anime.statusUser,
-                                                statusColor = statusColors[anime.statusUser]
-                                                    ?: Color.Gray,
-                                                onStatusSelected = { action ->
-                                                    viewModel.handleUserAction(anime.malId, action)
-                                                },
-                                                episodesWatched = anime.episodesWatched,
-                                                totalEpisodes = anime.totalEpisodes,
-                                                animeTitle = anime.title
+                                                imageVector = Icons.Default.AddCircleOutline,
+                                                contentDescription = "Agregar episodio",
+                                                tint = Color.White
                                             )
                                         }
-                                        Spacer(modifier = Modifier.weight(1f))
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                text = "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
-                                                fontFamily = RobotoRegular,
-                                                color = Color.White
-                                            )
-                                            IconButton(
-                                                onClick = {
-                                                    val newEpisodesWatched =
-                                                        anime.episodesWatched + 1
-                                                    viewModel.updateEpisodesWatched(
-                                                        anime.malId,
-                                                        newEpisodesWatched
-                                                    )
-                                                },
-                                                enabled = anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.AddCircleOutline,
-                                                    contentDescription = "Agregar episodio",
-                                                    tint = Color.White
+                                    }
+
+                                    LinearProgressIndicator(
+                                        progress = {
+                                            if (anime.totalEpisodes > 0) {
+                                                anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()
+                                            } else 0f
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(4.dp)
+                                            .clip(
+                                                RoundedCornerShape(
+                                                    bottomStart = 16.dp,
+                                                    bottomEnd = 16.dp
                                                 )
-                                            }
-                                        }
-
-                                        LinearProgressIndicator(
-                                            progress = {
-                                                if (anime.totalEpisodes > 0) {
-                                                    anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()
-                                                } else 0f
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(4.dp)
-                                                .clip(
-                                                    RoundedCornerShape(
-                                                        bottomStart = 16.dp,
-                                                        bottomEnd = 16.dp
-                                                    )
-                                                ),
-                                            color = Color(0xFFC8E6C9),
-                                            trackColor = Color(0xFF353535),
-                                            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                                        )
-                                    }
-                                }
-
-                                DeleteMyAnime(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(16.dp),
-                                    onDeleteConfirmed = {
-                                        showDialog = true
-                                        animeIdToDelete = anime.malId
-                                    }
-                                )
-
-                                if (showDialog) {
-                                    AlertDialog(
-                                        onDismissRequest = {
-                                            showDialog = false
-                                        },
-                                        title = {
-                                            Text(text = "Confirmar eliminación")
-                                        },
-                                        text = {
-                                            Text(text = "¿Estás seguro de que quieres eliminar este anime de tu lista?")
-                                        },
-                                        confirmButton = {
-                                            TextButton(
-                                                onClick = {
-                                                    showDialog = false
-
-                                                    viewModel.deleteAnimeToList(animeIdToDelete)
-                                                    scope.launch {
-                                                        val result = snackbarHostState.showSnackbar(
-                                                            message = "Anime eliminado de tu lista",
-                                                            actionLabel = "Deshacer",
-                                                            duration = SnackbarDuration.Long
-                                                        )
-                                                    }
-                                                }
-                                            ) {
-                                                Text("Eliminar", color = Color.Red)
-                                            }
-                                        },
-                                        dismissButton = {
-                                            TextButton(
-                                                onClick = {
-                                                    showDialog = false
-                                                }
-                                            ) {
-                                                Text("Cancelar")
-                                            }
-                                        }
+                                            ),
+                                        color = Color(0xFFC8E6C9),
+                                        trackColor = Color(0xFF353535),
+                                        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                                     )
                                 }
                             }
-                        }
 
+                            DeleteMyAnime(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(16.dp),
+                                onDeleteConfirmed = {
+                                    showDialog = true
+                                    animeIdToDelete = anime.malId
+                                }
+                            )
+
+                            if (showDialog) {
+                                AlertDialog(
+                                    onDismissRequest = {
+                                        showDialog = false
+                                    },
+                                    title = {
+                                        Text(text = "Confirmar eliminación")
+                                    },
+                                    text = {
+                                        Text(text = "¿Estás seguro de que quieres eliminar este anime de tu lista?")
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            onClick = {
+                                                showDialog = false
+
+                                                viewModel.deleteAnimeToList(animeIdToDelete)
+                                                scope.launch {
+                                                    val result = snackbarHostState.showSnackbar(
+                                                        message = "Anime eliminado de tu lista",
+                                                        actionLabel = "Deshacer",
+                                                        duration = SnackbarDuration.Long
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            Text("Eliminar", color = Color.Red)
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(
+                                            onClick = {
+                                                showDialog = false
+                                            }
+                                        ) {
+                                            Text("Cancelar")
+                                        }
+                                    }
+                                )
+                            }
+                        }
                     }
+
                 }
             }
-
         }
+
     }
 }
