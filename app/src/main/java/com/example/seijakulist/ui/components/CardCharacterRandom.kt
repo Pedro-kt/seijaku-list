@@ -22,8 +22,11 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,27 +71,24 @@ fun CharacterRandomCard(
         Font(R.font.roboto_regular)
     )
 
-    val gradientColorsTopBar = listOf(
-        Color(0xFF160078),
-        Color(0xff7226ff),
-        Color(0xFF160078),
-    )
-
-    Card(
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(210.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 16.dp
+        )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = Color(0xFF202020)
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh
                 )
                 .clip(RoundedCornerShape(16.dp))
                 .clickable {
-                    navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
+                    //navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
                 }
         ) {
             Row(
@@ -121,7 +121,7 @@ fun CharacterRandomCard(
                         modifier = Modifier
                             .padding(start = 16.dp, top = 16.dp, end = 40.dp)
                             .fillMaxWidth(),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontFamily = RobotoBold
                     )
@@ -143,7 +143,7 @@ fun CharacterRandomCard(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .padding(end = 8.dp),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
                             fontFamily = RobotoRegular
                         )
@@ -155,7 +155,7 @@ fun CharacterRandomCard(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .padding(end = 16.dp),
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 12.sp,
                             fontFamily = RobotoRegular
                         )
@@ -172,7 +172,7 @@ fun CharacterRandomCard(
                 Icon(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = "Refrescar",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             IconButton(
@@ -184,7 +184,7 @@ fun CharacterRandomCard(
                 Icon(
                     imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = "Añadir a favoritos",
-                    tint = if (isLiked) Color.Red else Color.White
+                    tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

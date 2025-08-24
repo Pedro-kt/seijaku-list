@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
@@ -53,26 +54,20 @@ fun AnimeStatusChip(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .clickable { expanded = true }
-            .padding(horizontal = 8.dp)
     ) {
-        FilterChip(
+        ElevatedFilterChip(
             label = { Text(text = status) },
             selected = false,
             onClick = { expanded = true },
             colors = FilterChipDefaults.filterChipColors(
                 containerColor = statusColor,
                 labelColor = Color.White
+            ),
+            elevation = FilterChipDefaults.filterChipElevation(
+                elevation = 16.dp
             )
-        )
-
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .clip(CircleShape)
-                .background(statusColor)
         )
 
         DropdownMenu(

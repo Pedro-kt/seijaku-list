@@ -61,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -122,7 +123,6 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xff121211))
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
@@ -133,38 +133,39 @@ fun SearchScreen(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTextField(
                 modifier = Modifier
-                    .weight(1f),
+                    .weight(1f)
+                    .clip(RoundedCornerShape(50.dp)),
                 value = searchQuery,
                 onValueChange = { newText -> viewModel.onSearchQueryChanged(newText) },
                 placeholder = {
                     Text(
                         text = "Explorar...",
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier.padding(start = 4.dp)
                     )
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(50.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color(0xFF202020),
-                    unfocusedContainerColor = Color(0xFF202020),
-                    focusedIndicatorColor = Color.White.copy(alpha = 0.5f),
-                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.3f),
-                    cursorColor = Color.White,
-                    focusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.5f)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    focusedBorderColor = MaterialTheme.colorScheme.inversePrimary,
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.inversePrimary,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 ),
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Buscar",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp)
                     )
                 },
@@ -172,14 +173,14 @@ fun SearchScreen(
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.inversePrimary,
                             strokeWidth = 2.dp
                         )
                     } else if (searchQuery.isNotBlank()) {
                         Icon(
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Eliminar texto de búsqueda",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .padding(end = 6.dp)
                                 .size(24.dp)
@@ -199,67 +200,54 @@ fun SearchScreen(
                             viewModel.searchAnimes()
                             focusManager.clearFocus()
                             keyboardController?.hide()
-                            colapsedFilter = false
                         }
                     }
                 ),
             )
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp)
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
         ) {
-            Text(
-                text = "Filtrar por:",
-                color = Color.White.copy(alpha = 0.5f),
-                fontSize = 14.sp
-            )
-            IconButton(onClick = { colapsedFilter = !colapsedFilter }) {
-                Icon(
-                    imageVector = if (colapsedFilter) {
-                        Icons.Default.KeyboardArrowDown
-                    } else {
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight
+            items(listFilterChip) { filter ->
+                val isSelected = selectedFilter == filter
+
+                ElevatedFilterChip(
+                    selected = isSelected,
+                    onClick = {
+                        selectedFilter = if (isSelected) null else filter
                     },
-                    contentDescription = "Icono de filtrar por",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    label = {
+                        Text(
+                            text = filter,
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        }
+                    ),
+                    shape = RoundedCornerShape(50.dp),
+                    elevation = FilterChipDefaults.filterChipElevation(
+                        elevation = 16.dp
+                    )
                 )
             }
         }
 
-        if (colapsedFilter) {
-            LazyRow(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                items(listFilterChip) { filter ->
-                    val isSelected = selectedFilter == filter
-
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            selectedFilter = if (isSelected) null else filter
-                        },
-                        label = {
-                            Text(filter)
-                        },
-                        modifier = Modifier.padding(end = 8.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Color(0xFF202020),
-                            labelColor = Color.White,
-                            selectedContainerColor = Color(0xff7226ff),
-                            selectedLabelColor = Color.White
-                        ),
-                        border = BorderStroke(
-                            width = 1.dp,
-                            color = Color.White.copy(alpha = 0.5f)
-                        ),
-                        shape = RoundedCornerShape(50.dp)
-                    )
-                }
-            }
-        }
 
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -270,31 +258,22 @@ fun SearchScreen(
         } else if (animeList.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
                     .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = PaddingValues(top = 0.dp, bottom = 20.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
             ) {
-                item() {
-                    if (searchQuery.isNotBlank()) {
-                        Text(
-                            text = "Resultados de la búsqueda:",
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(),
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontFamily = RobotoRegular,
-                        )
-                    }
-                }
                 items(animeList, key = { it.malId }) { anime ->
-                    Card(
+                    ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") },
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFF202020)
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 16.dp
+                        )
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize()
@@ -303,103 +282,112 @@ fun SearchScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                AsyncImage(
-                                    model = anime.images,
-                                    contentDescription = "Imagen de portada de ${anime.title}",
-                                    modifier = Modifier
-                                        .height(170.dp)
-                                        .width(120.dp)
-                                        .clip(RoundedCornerShape(16.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(top = 8.dp, bottom = 8.dp, end = 8.dp)
-                                ) {
-                                    Text(
-                                        text = anime.title,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        color = Color.White.copy(alpha = 0.9f),
-                                        fontFamily = RobotoRegular,
-                                        fontSize = 18.sp
+                                Box() {
+                                    AsyncImage(
+                                        model = anime.images,
+                                        contentDescription = "Imagen de portada de ${anime.title}",
+                                        modifier = Modifier
+                                            .height(180.dp)
+                                            .width(125.dp)
+                                            .clip(RoundedCornerShape(16.dp)),
+                                        contentScale = ContentScale.Crop
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(topEnd = 16.dp))
+                                            .background(color = Color.Black.copy(alpha = 0.8f))
+                                            .height(24.dp)
+                                            .wrapContentWidth()
+                                            .align(Alignment.BottomStart),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Star,
-                                            contentDescription = "Puntuación",
-                                            tint = Color(0xFFFDC700),
-                                            modifier = Modifier.size(18.dp)
+                                            contentDescription = "Puntuacion",
+                                            tint = Color.White,
+                                            modifier = Modifier
+                                                .padding(start = 6.dp)
+                                                .size(12.dp)
                                         )
                                         Text(
-                                            text = anime.score.toString(),
+                                            text = String.format("%.1f", anime.score),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
-                                            color = Color(0xFFFDC700),
-                                            fontSize = 14.sp,
-                                            fontFamily = RobotoRegular
-                                        )
-                                        Text(
-                                            text = "•",
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Start,
+                                            modifier = Modifier.wrapContentWidth().padding(end = 6.dp),
                                             color = Color.White,
-                                            fontSize = 14.sp,
-                                            fontFamily = RobotoRegular
+                                            fontSize = 12.sp,
+                                            fontFamily = RobotoBold
                                         )
+                                    }
+                                }
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Text(
+                                        text = anime.title,
+                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontFamily = RobotoRegular,
+                                        fontSize = 18.sp
+                                    )
+                                    Row(
+                                        modifier = Modifier.padding(start = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
                                         Icon(
                                             imageVector = Icons.Default.AccessTime,
                                             contentDescription = "Puntuación",
-                                            tint = Color.White,
+                                            tint = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Text(
                                             text = anime.status,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             fontSize = 14.sp,
                                             fontFamily = RobotoRegular
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    LazyRow() {
-                                        item {
-                                            anime.genres.forEach { genre ->
-                                                ElevatedFilterChip(
-                                                    selected = false,
-                                                    onClick = { },
-                                                    label = {
-                                                        genre?.name?.let {
-                                                            Text(
-                                                                it,
-                                                                fontSize = 12.sp
-                                                            )
-                                                        }
-                                                    },
-                                                    modifier = Modifier.padding(end = 8.dp),
-                                                    colors = FilterChipDefaults.filterChipColors(
-                                                        containerColor = Color(0xFF404040),
-                                                        labelColor = Color.White.copy(alpha = 0.9f),
-                                                        selectedContainerColor = Color(0xff404040),
-                                                        selectedLabelColor = Color.White
-                                                    )
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                    ) {
+                                        items(anime.genres) { genre ->
+                                            ElevatedFilterChip(
+                                                selected = false,
+                                                onClick = { },
+                                                label = {
+                                                    genre?.name?.let {
+                                                        Text(
+                                                            it,
+                                                            fontSize = 12.sp,
+                                                        )
+                                                    }
+                                                },
+                                                colors = FilterChipDefaults.filterChipColors(
+                                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                    labelColor = MaterialTheme.colorScheme.onSurface,
+                                                ),
+                                                elevation = FilterChipDefaults.filterChipElevation(
+                                                    elevation = 16.dp
                                                 )
-                                            }
+                                            )
                                         }
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = "Año ${anime.year} • Episodios ${anime.episodes}",
+                                        modifier = Modifier.padding(start = 16.dp),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
-                                        color = Color.White.copy(alpha = 0.5f),
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontSize = 12.sp,
                                         fontFamily = RobotoRegular
                                     )
@@ -414,7 +402,7 @@ fun SearchScreen(
                                 Icon(
                                     imageVector = Icons.Default.FavoriteBorder,
                                     contentDescription = "Favorito",
-                                    tint = Color.White
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -425,7 +413,7 @@ fun SearchScreen(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "Ingresa un término de búsqueda para encontrar animes.",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 13.sp
                 )
             }

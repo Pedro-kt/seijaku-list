@@ -28,19 +28,13 @@ import com.example.seijakulist.ui.screens.home.AnimeRandomViewModel
 @Composable
 fun CompleteAnimeCard(uiState: AnimeRandomUiState, navController: NavController, viewModel: AnimeRandomViewModel) {
 
-    val gradientColorsTopBar = listOf(
-        Color(0xFF160078),
-        Color(0xff7226ff),
-        Color(0xFF160078),
-    )
-
     Box(
         modifier = Modifier
             .padding(horizontal = 10.dp)
             .fillMaxSize()
             .height(210.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(brush = Brush.linearGradient(colors = gradientColorsTopBar)),
+            .background(color = MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center
     ) {
 
@@ -56,7 +50,7 @@ fun CompleteAnimeCard(uiState: AnimeRandomUiState, navController: NavController,
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refrescar",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

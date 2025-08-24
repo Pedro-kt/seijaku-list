@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,10 +25,13 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -73,23 +77,20 @@ fun AnimeRandomCard(
         Font(R.font.roboto_regular)
     )
 
-    val gradientColorsTopBar = listOf(
-        Color(0xFF160078),
-        Color(0xff7226ff),
-        Color(0xFF160078),
-    )
-
-    Card(
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(210.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 16.dp
+        )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = Color(0xFF202020)
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh
                 )
                 .clip(RoundedCornerShape(16.dp))
                 .clickable {
@@ -127,7 +128,7 @@ fun AnimeRandomCard(
                         modifier = Modifier
                             .padding(start = 16.dp, top = 16.dp, end = 40.dp)
                             .fillMaxWidth(),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontFamily = RobotoBold
                     )
@@ -149,7 +150,7 @@ fun AnimeRandomCard(
                                 .size(16.dp)
                         )
                         Text(
-                            text = anime.score.toString(),
+                            text = String.format("%.1f", anime.score),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
@@ -163,7 +164,7 @@ fun AnimeRandomCard(
                         Icon(
                             imageVector = Icons.Default.Alarm,
                             contentDescription = "Icono de estrellas",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
@@ -174,27 +175,31 @@ fun AnimeRandomCard(
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .padding(),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
                             fontFamily = RobotoRegular
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    LazyRow(modifier = Modifier.padding(start = 16.dp)) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        ) {
                         item {
                             anime.genres.forEach { genreDto ->
                                 ElevatedFilterChip(
                                     selected = false,
                                     onClick = { },
                                     label = {
-                                        genreDto?.name?.let { Text(it, fontSize = 12.sp) }
+                                        genreDto?.name?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface) }
                                     },
                                     modifier = Modifier.padding(end = 8.dp),
                                     colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = Color(0xFF404040),
-                                        labelColor = Color.White.copy(alpha = 0.9f),
-                                        selectedContainerColor = Color(0xff404040),
-                                        selectedLabelColor = Color.White
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        labelColor = MaterialTheme.colorScheme.onSurface,
+                                    ),
+                                    elevation = FilterChipDefaults.filterChipElevation(
+                                        elevation = 16.dp
                                     )
                                 )
                             }
@@ -206,7 +211,7 @@ fun AnimeRandomCard(
                             text = "Año ${anime.year} • Episodios ${anime.episodes}",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            color = Color.White.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 12.sp,
                             fontFamily = RobotoRegular,
                         )
@@ -223,7 +228,7 @@ fun AnimeRandomCard(
                 Icon(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = "Refrescar",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             IconButton(
@@ -235,7 +240,7 @@ fun AnimeRandomCard(
                 Icon(
                     imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = "Añadir a favoritos",
-                    tint = if (isLiked) Color.Red else Color.White
+                    tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

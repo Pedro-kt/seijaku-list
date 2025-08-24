@@ -162,17 +162,6 @@ fun HomeScreen(
         Font(R.font.roboto_bold, FontWeight.Bold)
     )
 
-    val currentRoute = navController.currentBackStackEntry?.destination?.route
-
-    val gradientColorsTopBar = listOf(
-        Color(0xFF020202),
-        Color(0xFF100F0F),
-        Color(0xFF151414),
-        Color(0xFF090909),
-        Color.Black,
-        Color.Black,
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -235,7 +224,7 @@ fun HomeScreen(
                     item {
                         Text(
                             text = "Proximamente",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 16.sp,
                             textAlign = TextAlign.Center,
                             modifier = Modifier

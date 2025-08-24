@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun DeleteMyAnime(
@@ -31,7 +32,7 @@ fun DeleteMyAnime(
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Botón de opciones",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 

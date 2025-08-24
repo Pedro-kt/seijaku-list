@@ -35,6 +35,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -83,8 +84,7 @@ fun ProfileScreen(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color(0xff121211)),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -94,7 +94,7 @@ fun ProfileScreen(
                 fontFamily = RobotoRegular,
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp,
-                color = Color.White.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

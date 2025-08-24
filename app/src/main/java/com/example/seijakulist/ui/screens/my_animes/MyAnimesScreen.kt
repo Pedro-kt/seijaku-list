@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,12 +38,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedAssistChip
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
@@ -145,7 +151,6 @@ fun MyAnimeListScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFF121211))
     ) {
         if (savedAnimes.isEmpty()) {
             Column(
@@ -160,90 +165,65 @@ fun MyAnimeListScreen(
                     fontFamily = RobotoRegular,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Button(
+                ElevatedButton(
                     onClick = {
                         navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE)
                     },
                     modifier = Modifier.padding(top = 16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xff7226ff),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 16.dp
                     )
                 ) {
-                    Text(text = "Buscar anime!")
+                    Text(text = "Buscar anime!", color = Color.White)
                 }
             }
         } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF121211))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 8.dp)
             ) {
-                Text(
-                    text = "Filtrar por:",
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
-                IconButton(onClick = { collapsedFilter = !collapsedFilter }) {
-                    Icon(
-                        imageVector = if (collapsedFilter) {
-                            Icons.Default.ArrowDropDown
-                        } else {
-                            Icons.AutoMirrored.Filled.ArrowRight
+                items(statusAnime) { filter ->
+                    val isSelected = selectedFilter == filter
+
+                    ElevatedFilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            selectedFilter = if (isSelected) null else filter
                         },
-                        contentDescription = "Icono de filtrar por",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        label = {
+                            Text(
+                                text = filter,
+                                color = if (isSelected) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                        },
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHigh
+                            }
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        ),
+                        elevation = FilterChipDefaults.filterChipElevation(
+                            elevation = 16.dp
+                        )
                     )
                 }
             }
-
-            if (collapsedFilter) {
-                LazyRow(
-                    modifier = Modifier
-                        .background(Color(0xFF121211))
-                        .padding(horizontal = 8.dp)
-                ) {
-                    items(statusAnime) { filter ->
-                        val isSelected = selectedFilter == filter
-
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                selectedFilter = if (isSelected) null else filter
-                            },
-                            label = {
-                                Text(filter)
-                            },
-                            modifier = Modifier.padding(end = 8.dp),
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color(0xFF050505),
-                                labelColor = Color.White,
-                                selectedContainerColor = Color(0xff7226ff),
-                                selectedLabelColor = Color.White
-                            ),
-                            border = BorderStroke(
-                                width = 1.dp,
-                                color = Color.White
-                            ),
-                            trailingIcon = {
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Seleccionado",
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-            HorizontalDivider()
 
 
             val displayedAnimes by remember(selectedFilter, searchQuery, isSortedAscending) {
@@ -273,20 +253,24 @@ fun MyAnimeListScreen(
             }
 
             LazyColumn(
-                modifier = Modifier
-                    .background(Color(0xFF121211))
-                    .padding(start = 16.dp, end = 16.dp)
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp)
             ) {
                 items(displayedAnimes) { anime ->
-                    Card(
+                    ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
                             .clickable {
                                 navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
                             },
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF202020)),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 16.dp
+                        )
                     ) {
                         Box(modifier = Modifier.fillMaxWidth()) {
                             Row(
@@ -294,69 +278,77 @@ fun MyAnimeListScreen(
                                     .fillMaxWidth()
                                     .height(160.dp)
                             ) {
-                                Image(
-                                    painter = rememberAsyncImagePainter(anime.imageUrl),
-                                    contentDescription = anime.title,
-                                    modifier = Modifier
-                                        .height(160.dp)
-                                        .width(110.dp)
-                                        .clip(RoundedCornerShape(16.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
+                                Box() {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(anime.imageUrl),
+                                        contentDescription = anime.title,
+                                        modifier = Modifier
+                                            .height(160.dp)
+                                            .width(110.dp)
+                                            .clip(RoundedCornerShape(16.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(topEnd = 16.dp))
+                                            .background(color = Color.Black.copy(alpha = 0.8f))
+                                            .height(24.dp)
+                                            .wrapContentWidth()
+                                            .align(Alignment.BottomStart),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = "Puntuacion",
+                                            tint = Color.White,
+                                            modifier = Modifier
+                                                .padding(start = 6.dp)
+                                                .size(12.dp)
+                                        )
+                                        Text(
+                                            text = String.format("%.1f", anime.userScore),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Start,
+                                            modifier = Modifier
+                                                .wrapContentWidth()
+                                                .padding(end = 6.dp),
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            fontFamily = RobotoBold
+                                        )
+                                    }
+                                }
 
                                 Spacer(modifier = Modifier.width(16.dp))
 
                                 Column(
                                     modifier = Modifier
-                                        .fillMaxHeight()
+                                        .fillMaxHeight(),
+                                    verticalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = anime.title,
                                         fontFamily = RobotoBold,
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier
                                             .padding(end = 40.dp)
                                     )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Puntuacion",
-                                            tint = Color(0xFFFDC700),
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                        )
-                                        Text(
-                                            text = anime.userScore.toString(),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            textAlign = TextAlign.Start,
-                                            modifier = Modifier
-                                                .wrapContentWidth(),
-                                            color = Color(0xFFFDC700),
-                                            fontSize = 16.sp,
-                                            fontFamily = RobotoRegular
-                                        )
-                                        Text(text = "•", color = Color.White)
-                                        AnimeStatusChip(
-                                            status = anime.statusUser,
-                                            statusColor = statusColors[anime.statusUser]
-                                                ?: Color.Gray,
-                                            onStatusSelected = { action ->
-                                                viewModel.handleUserAction(anime.malId, action)
-                                            },
-                                            episodesWatched = anime.episodesWatched,
-                                            totalEpisodes = anime.totalEpisodes,
-                                            animeTitle = anime.title
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.weight(1f))
+                                    AnimeStatusChip(
+                                        status = anime.statusUser,
+                                        statusColor = statusColors[anime.statusUser]
+                                            ?: Color.Gray,
+                                        onStatusSelected = { action ->
+                                            viewModel.handleUserAction(anime.malId, action)
+                                        },
+                                        episodesWatched = anime.episodesWatched,
+                                        totalEpisodes = anime.totalEpisodes,
+                                        animeTitle = anime.title
+                                    )
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -365,7 +357,7 @@ fun MyAnimeListScreen(
                                         Text(
                                             text = "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
                                             fontFamily = RobotoRegular,
-                                            color = Color.White
+                                            color = MaterialTheme.colorScheme.onSurface,
                                         )
                                         IconButton(
                                             onClick = {
@@ -381,11 +373,10 @@ fun MyAnimeListScreen(
                                             Icon(
                                                 imageVector = Icons.Default.AddCircleOutline,
                                                 contentDescription = "Agregar episodio",
-                                                tint = Color.White
+                                                tint = MaterialTheme.colorScheme.onSurface,
                                             )
                                         }
                                     }
-
                                     LinearProgressIndicator(
                                         progress = {
                                             if (anime.totalEpisodes > 0) {
@@ -401,8 +392,8 @@ fun MyAnimeListScreen(
                                                     bottomEnd = 16.dp
                                                 )
                                             ),
-                                        color = Color(0xFFC8E6C9),
-                                        trackColor = Color(0xFF353535),
+                                        color = MaterialTheme.colorScheme.inversePrimary,
+                                        trackColor = MaterialTheme.colorScheme.outline,
                                         strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                                     )
                                 }

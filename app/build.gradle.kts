@@ -42,8 +42,8 @@ android {
     buildFeatures {
         compose = true
     }
-    //composeOptions { // Este bloque es crucial y DEBE IR AQUÍ
-    //    kotlinCompilerExtensionVersion = "1.6.0" // Verifica la versión compatible con tu Compose BOM
+    //composeOptions {
+    //    kotlinCompilerExtensionVersion = "1.6.0"
     //}
     hilt {
         enableAggregatingTask = false
@@ -51,7 +51,7 @@ android {
 }
 
 dependencies {
-    // Tus dependencias originales
+    // dependencias originales
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    // AÑADIR ESTAS DEPENDENCIAS AQUÍ (si no las tenías ya en tu libs.versions.toml)
     // Retrofit y GSON
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
@@ -75,10 +74,10 @@ dependencies {
     ksp(libs.room.ksp)
     implementation(libs.room.ktx)
 
-    // Coil para imágenes
+    // Coil
     implementation(libs.coil.compose)
 
-    // Tus dependencias de testing
+    // dependencias de testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,6 +88,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+
     //ksp(libs.hilt.compiler)
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 

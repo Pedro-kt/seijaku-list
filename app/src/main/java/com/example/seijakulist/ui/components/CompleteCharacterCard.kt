@@ -30,12 +30,6 @@ import com.example.seijakulist.ui.screens.home.CharacterRandomViewModel
 @Composable
 fun CompleteCharacterCard(uiState: CharacterRandomUiState, navController: NavController, viewModel: CharacterRandomViewModel) {
 
-    val gradientColorsTopBar = listOf(
-        Color(0xFF160078),
-        Color(0xff7226ff),
-        Color(0xFF160078),
-    )
-
     Box(
         modifier = Modifier
             .padding(horizontal = 10.dp)
@@ -43,7 +37,7 @@ fun CompleteCharacterCard(uiState: CharacterRandomUiState, navController: NavCon
             .height(210.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(
-                brush = Brush.linearGradient(colors = gradientColorsTopBar)
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -60,7 +54,7 @@ fun CompleteCharacterCard(uiState: CharacterRandomUiState, navController: NavCon
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refrescar",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

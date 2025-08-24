@@ -98,7 +98,7 @@ fun AnimeDetailScreenLocal(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color.White)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.inversePrimary)
             }
         }
 
@@ -106,14 +106,12 @@ fun AnimeDetailScreenLocal(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = Color(0xFF050505))
             ) {
                 item {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(350.dp)
-                            .padding(top = 16.dp)
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(
@@ -136,21 +134,12 @@ fun AnimeDetailScreenLocal(
                                 .background(
                                     brush = Brush.verticalGradient(
                                         colors = listOf(
-                                            Color(0xFF050505), Color.Transparent
+                                            MaterialTheme.colorScheme.background,
+                                            Color.Transparent,
+                                            MaterialTheme.colorScheme.background
                                         ),
                                         startY = 0f,
-                                        endY = 400f,
-                                    )
-                                )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color.Transparent, Color(0xFF050505)
-                                        ), startY = 400f, endY = Float.POSITIVE_INFINITY
+                                        endY = Float.POSITIVE_INFINITY
                                     )
                                 )
                         )
@@ -174,7 +163,6 @@ fun AnimeDetailScreenLocal(
                                         .width(160.dp)
                                         .height(240.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                    //dialogo
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column(
@@ -184,7 +172,7 @@ fun AnimeDetailScreenLocal(
                                 ) {
                                     Text(
                                         text = currentAnime.title,
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontSize = 20.sp,
                                         fontFamily = RobotoBold,
                                         maxLines = 3,
@@ -197,11 +185,11 @@ fun AnimeDetailScreenLocal(
                                         Icon(
                                             imageVector = Icons.Default.Star,
                                             contentDescription = "Icono de estrellas",
-                                            tint = Color.White
+                                            tint = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = currentAnime.userScore.toString(),
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             fontSize = 16.sp,
                                         )
                                     }
@@ -212,11 +200,11 @@ fun AnimeDetailScreenLocal(
                                         Icon(
                                             imageVector = Icons.Default.CheckCircleOutline,
                                             contentDescription = "Icono de estrellas",
-                                            tint = Color.White
+                                            tint = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = currentAnime.userStatus,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             fontSize = 16.sp,
                                         )
                                     }
@@ -226,32 +214,18 @@ fun AnimeDetailScreenLocal(
                     }
                 }
                 item {
-                    Card(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxWidth(),
-                        colors = CardColors(
-                            contentColor = Color.White,
-                            containerColor = Color(0xff050505),
-                            disabledContainerColor = Color.Red,
-                            disabledContentColor = Color.Cyan,
-                        ),
-                        border = BorderStroke(
-                            width = 1.dp, color = Color.White.copy(alpha = 0.7f)
-                        ),
-                    ) {
                         TitleScreen("Opinion personal")
 
                         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                             Text(
                                 text = currentAnime.userOpiniun,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 14.sp,
                                 fontFamily = RobotoRegular,
                                 textAlign = TextAlign.Justify,
                             )
                         }
-                    }
+
                 }
             }
         }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -101,7 +102,7 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                                 .size(12.dp)
                         )
                         Text(
-                            text = anime.score.toString(),
+                            text = String.format("%.1f", anime.score),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
@@ -119,7 +120,7 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontFamily = RobotoRegular
                 )
             }

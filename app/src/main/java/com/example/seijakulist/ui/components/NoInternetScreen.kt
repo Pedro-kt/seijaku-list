@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +48,9 @@ fun NoInternetScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -60,15 +64,18 @@ fun NoInternetScreen(
             )
             Text(
                 text = "Ups! Al parecer a ocurrido un error, verifique su conexion a internet y vuelva a intentarlo",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
             )
-            Button(
+            ElevatedButton(
                 onClick = onRetryClick, // 🌟 Llama a la función que pasamos
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF673AB7),
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 16.dp
                 )
             ) {
                 Text(text = "Volver a intentar")
