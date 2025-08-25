@@ -53,12 +53,14 @@ fun TopHomeScreen(navController: NavController) {
                     .background(color = Color.White)
                     .border(width = 2.dp, color = Color(0xFF673AB7), shape = CircleShape)
             ) {
+                /*
                 Image(
                     painter = painterResource(id = R.drawable.icon_profile),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
+                */
             }
         }
         HorizontalDivider()
