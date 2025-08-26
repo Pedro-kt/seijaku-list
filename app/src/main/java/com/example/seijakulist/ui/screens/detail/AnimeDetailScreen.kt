@@ -104,6 +104,7 @@ import com.example.seijakulist.ui.components.DescriptionAnime
 import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.components.SubTitleIcon
 import com.example.seijakulist.ui.components.TitleScreen
+import com.example.seijakulist.ui.components.TitleWithPadding
 import com.example.seijakulist.ui.navigation.AppDestinations
 import kotlinx.coroutines.launch
 
@@ -400,7 +401,7 @@ fun AnimeDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            TitleScreen("Generos:")
+                            TitleWithPadding("Generos:")
 
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -433,7 +434,7 @@ fun AnimeDetailScreen(
                     }
 
                     item {
-                        TitleScreen("Synopsis")
+                        TitleWithPadding("Synopsis")
 
                         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                             Text(
@@ -457,7 +458,7 @@ fun AnimeDetailScreen(
 
                     item {
 
-                        TitleScreen("Otros titulos")
+                        TitleWithPadding("Otros titulos")
 
                         Row(
                             modifier = Modifier
@@ -532,7 +533,7 @@ fun AnimeDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            TitleScreen("Studio:")
+                            TitleWithPadding("Studio:")
 
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -565,7 +566,7 @@ fun AnimeDetailScreen(
 
                     item {
 
-                        TitleScreen("Informacion")
+                        TitleWithPadding("Informacion")
 
                         DescriptionAnime(
                             Icons.Default.Star,
@@ -636,7 +637,7 @@ fun AnimeDetailScreen(
                     }
 
                     item {
-                        TitleScreen("Musica")
+                        TitleWithPadding("Temas")
 
                         Row(
                             modifier = Modifier
@@ -801,7 +802,7 @@ fun AnimeDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                TitleScreen("Personajes")
+                                TitleWithPadding("Personajes")
 
                                 Spacer(modifier = Modifier.weight(1f))
 
@@ -896,8 +897,9 @@ fun AnimeDetailScreen(
                                                         .width(140.dp)
                                                         .height(200.dp)
                                                         .clip(RoundedCornerShape(8.dp))
+                                                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                                         .clickable {
-                                                            //navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${characterItem.idCharacter}")
+                                                            navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${characterItem.idCharacter}")
                                                         })
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 Text(text = characterItem.nameCharacter?.takeIf { it.isNotBlank() }
@@ -986,7 +988,7 @@ fun AnimeDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                TitleScreen("Staff")
+                                TitleWithPadding("Staff")
 
                                 Spacer(modifier = Modifier.weight(1f))
 

@@ -1,8 +1,6 @@
 package com.example.seijakulist.data.repository
 
 import android.util.Log
-import com.example.seijakulist.data.local.dao.AnimeDao
-import com.example.seijakulist.data.local.entities.AnimeEntity
 import com.example.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.example.seijakulist.data.mapper.toAnimeDetails
 
@@ -18,7 +16,6 @@ import com.example.seijakulist.domain.models.AnimeDetail
 import com.example.seijakulist.domain.models.AnimeThemes
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.models.CharacterPictures
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class AnimeRepository @Inject constructor(

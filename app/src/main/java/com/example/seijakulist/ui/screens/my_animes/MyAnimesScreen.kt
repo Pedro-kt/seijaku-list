@@ -1,5 +1,9 @@
 package com.example.seijakulist.ui.screens.my_animes
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,6 +53,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -96,7 +101,6 @@ fun MyAnimeListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val statusAnime = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
-    var selectedFilter by remember { mutableStateOf<String?>(null) }
 
     var collapsedFilter by remember { mutableStateOf(false) }
 
@@ -122,6 +126,7 @@ fun MyAnimeListScreen(
     var showDialogStatus by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var animeIdToDelete by remember { mutableStateOf(0) }
+    var selectedFilter by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -200,7 +205,6 @@ fun MyAnimeListScreen(
                 }
             }
 
-
             val displayedAnimes by remember(selectedFilter, searchQuery, isSortedAscending) {
                 derivedStateOf {
                     val filteredByStatus = when (selectedFilter) {
@@ -233,196 +237,209 @@ fun MyAnimeListScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp)
             ) {
                 items(displayedAnimes) { anime ->
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
-                            },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 16.dp
+                    var visible by rememberSaveable { mutableStateOf(false) }
+
+                    LaunchedEffect(Unit) {
+                        visible = true
+                    }
+
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(
+                            animationSpec = tween(500)
                         )
                     ) {
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(160.dp)
-                            ) {
-                                Box() {
-                                    Image(
-                                        painter = rememberAsyncImagePainter(anime.imageUrl),
-                                        contentDescription = anime.title,
-                                        modifier = Modifier
-                                            .height(160.dp)
-                                            .width(110.dp)
-                                            .clip(RoundedCornerShape(16.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    Row(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(topEnd = 16.dp))
-                                            .background(color = Color.Black.copy(alpha = 0.8f))
-                                            .height(24.dp)
-                                            .wrapContentWidth()
-                                            .align(Alignment.BottomStart),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Puntuacion",
-                                            tint = Color.White,
-                                            modifier = Modifier
-                                                .padding(start = 6.dp)
-                                                .size(12.dp)
-                                        )
-                                        Text(
-                                            text = String.format("%.1f", anime.userScore),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            textAlign = TextAlign.Start,
-                                            modifier = Modifier
-                                                .wrapContentWidth()
-                                                .padding(end = 6.dp),
-                                            color = Color.White,
-                                            fontSize = 12.sp,
-                                            fontFamily = RobotoBold
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.width(16.dp))
-
-                                Column(
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 16.dp
+                            )
+                        ) {
+                            Box(modifier = Modifier.fillMaxWidth()) {
+                                Row(
                                     modifier = Modifier
-                                        .fillMaxHeight(),
-                                    verticalArrangement = Arrangement.SpaceBetween
+                                        .fillMaxWidth()
+                                        .height(160.dp)
                                 ) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = anime.title,
-                                        fontFamily = RobotoBold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier
-                                            .padding(end = 40.dp)
-                                    )
-                                    AnimeStatusChip(
-                                        status = anime.statusUser,
-                                        statusColor = statusColors[anime.statusUser]
-                                            ?: Color.Gray,
-                                        onStatusSelected = { action ->
-                                            viewModel.handleUserAction(anime.malId, action)
-                                        },
-                                        episodesWatched = anime.episodesWatched,
-                                        totalEpisodes = anime.totalEpisodes,
-                                        animeTitle = anime.title
-                                    )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
-                                            fontFamily = RobotoRegular,
-                                            color = MaterialTheme.colorScheme.onSurface,
+                                    Box() {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(anime.imageUrl),
+                                            contentDescription = anime.title,
+                                            modifier = Modifier
+                                                .height(160.dp)
+                                                .width(110.dp)
+                                                .clip(RoundedCornerShape(16.dp)),
+                                            contentScale = ContentScale.Crop
                                         )
-                                        IconButton(
-                                            onClick = {
-                                                val newEpisodesWatched =
-                                                    anime.episodesWatched + 1
-                                                viewModel.updateEpisodesWatched(
-                                                    anime.malId,
-                                                    newEpisodesWatched
-                                                )
-                                            },
-                                            enabled = anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(topEnd = 16.dp))
+                                                .background(color = Color.Black.copy(alpha = 0.8f))
+                                                .height(24.dp)
+                                                .wrapContentWidth()
+                                                .align(Alignment.BottomStart),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.AddCircleOutline,
-                                                contentDescription = "Agregar episodio",
-                                                tint = MaterialTheme.colorScheme.onSurface,
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = "Puntuacion",
+                                                tint = Color.White,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .size(12.dp)
+                                            )
+                                            Text(
+                                                text = String.format("%.1f", anime.userScore),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                textAlign = TextAlign.Start,
+                                                modifier = Modifier
+                                                    .wrapContentWidth()
+                                                    .padding(end = 6.dp),
+                                                color = Color.White,
+                                                fontSize = 12.sp,
+                                                fontFamily = RobotoBold
                                             )
                                         }
                                     }
-                                    LinearProgressIndicator(
-                                        progress = {
-                                            if (anime.totalEpisodes > 0) {
-                                                anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()
-                                            } else 0f
-                                        },
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Column(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(4.dp)
-                                            .clip(
-                                                RoundedCornerShape(
-                                                    bottomStart = 16.dp,
-                                                    bottomEnd = 16.dp
-                                                )
-                                            ),
-                                        color = MaterialTheme.colorScheme.inversePrimary,
-                                        trackColor = MaterialTheme.colorScheme.outline,
-                                        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-                                    )
-                                }
-                            }
-
-                            DeleteMyAnime(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(16.dp),
-                                onDeleteConfirmed = {
-                                    showDialog = true
-                                    animeIdToDelete = anime.malId
-                                }
-                            )
-
-                            if (showDialog) {
-                                AlertDialog(
-                                    onDismissRequest = {
-                                        showDialog = false
-                                    },
-                                    title = {
-                                        Text(text = "Confirmar eliminación")
-                                    },
-                                    text = {
-                                        Text(text = "¿Estás seguro de que quieres eliminar este anime de tu lista?")
-                                    },
-                                    confirmButton = {
-                                        TextButton(
-                                            onClick = {
-                                                showDialog = false
-
-                                                viewModel.deleteAnimeToList(animeIdToDelete)
-                                                scope.launch {
-                                                    val result = snackbarHostState.showSnackbar(
-                                                        message = "Anime eliminado de tu lista",
-                                                        actionLabel = "Deshacer",
-                                                        duration = SnackbarDuration.Long
+                                            .fillMaxHeight(),
+                                        verticalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = anime.title,
+                                            fontFamily = RobotoBold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier
+                                                .padding(end = 40.dp)
+                                        )
+                                        AnimeStatusChip(
+                                            status = anime.statusUser,
+                                            statusColor = statusColors[anime.statusUser]
+                                                ?: Color.Gray,
+                                            onStatusSelected = { action ->
+                                                viewModel.handleUserAction(anime.malId, action)
+                                            },
+                                            episodesWatched = anime.episodesWatched,
+                                            totalEpisodes = anime.totalEpisodes,
+                                            animeTitle = anime.title
+                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Ep vistos: ${anime.episodesWatched}/${anime.totalEpisodes}",
+                                                fontFamily = RobotoRegular,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                            )
+                                            IconButton(
+                                                onClick = {
+                                                    val newEpisodesWatched =
+                                                        anime.episodesWatched + 1
+                                                    viewModel.updateEpisodesWatched(
+                                                        anime.malId,
+                                                        newEpisodesWatched
                                                     )
-                                                }
+                                                },
+                                                enabled = anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.AddCircleOutline,
+                                                    contentDescription = "Agregar episodio",
+                                                    tint = MaterialTheme.colorScheme.onSurface,
+                                                )
                                             }
-                                        ) {
-                                            Text("Eliminar", color = Color.Red)
                                         }
-                                    },
-                                    dismissButton = {
-                                        TextButton(
-                                            onClick = {
-                                                showDialog = false
-                                            }
-                                        ) {
-                                            Text("Cancelar")
-                                        }
+                                        LinearProgressIndicator(
+                                            progress = {
+                                                if (anime.totalEpisodes > 0) {
+                                                    anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()
+                                                } else 0f
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(4.dp)
+                                                .clip(
+                                                    RoundedCornerShape(
+                                                        bottomStart = 16.dp,
+                                                        bottomEnd = 16.dp
+                                                    )
+                                                ),
+                                            color = MaterialTheme.colorScheme.inversePrimary,
+                                            trackColor = MaterialTheme.colorScheme.outline,
+                                            strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                                        )
+                                    }
+                                }
+
+                                DeleteMyAnime(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(16.dp),
+                                    onDeleteConfirmed = {
+                                        showDialog = true
+                                        animeIdToDelete = anime.malId
                                     }
                                 )
+
+                                if (showDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = {
+                                            showDialog = false
+                                        },
+                                        title = {
+                                            Text(text = "Confirmar eliminación")
+                                        },
+                                        text = {
+                                            Text(text = "¿Estás seguro de que quieres eliminar este anime de tu lista?")
+                                        },
+                                        confirmButton = {
+                                            TextButton(
+                                                onClick = {
+                                                    showDialog = false
+
+                                                    viewModel.deleteAnimeToList(animeIdToDelete)
+                                                    scope.launch {
+                                                        val result = snackbarHostState.showSnackbar(
+                                                            message = "Anime eliminado de tu lista",
+                                                            actionLabel = "Deshacer",
+                                                            duration = SnackbarDuration.Long
+                                                        )
+                                                    }
+                                                }
+                                            ) {
+                                                Text("Eliminar", color = Color.Red)
+                                            }
+                                        },
+                                        dismissButton = {
+                                            TextButton(
+                                                onClick = {
+                                                    showDialog = false
+                                                }
+                                            ) {
+                                                Text("Cancelar")
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

@@ -71,6 +71,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
 import com.example.seijakulist.ui.components.TitleScreen
+import com.example.seijakulist.ui.components.TitleWithPadding
 
 @Composable
 fun AnimeDetailScreenLocal(
@@ -214,7 +215,7 @@ fun AnimeDetailScreenLocal(
                     }
                 }
                 item {
-                        TitleScreen("Opinion personal")
+                        TitleWithPadding("Reseña")
 
                         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                             Text(

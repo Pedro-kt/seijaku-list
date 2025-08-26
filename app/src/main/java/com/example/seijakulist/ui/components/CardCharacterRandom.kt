@@ -88,7 +88,7 @@ fun CharacterRandomCard(
                 )
                 .clip(RoundedCornerShape(16.dp))
                 .clickable {
-                    //navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
+                    navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
                 }
         ) {
             Row(

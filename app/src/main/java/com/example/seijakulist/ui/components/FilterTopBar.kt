@@ -13,6 +13,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,19 +27,22 @@ import androidx.compose.ui.unit.dp
 import com.example.seijakulist.data.local.entities.AnimeEntity
 
 @Composable
-fun FilterTopAppBar(onSearchClick: () -> Unit, onSortClick: () -> Unit ,savedAnimes: List<AnimeEntity>) {
+fun FilterTopAppBar(
+    //onSearchClick: () -> Unit,
+    //onSortClick: () -> Unit,
+    //savedAnimes: List<AnimeEntity>
+) {
     var expanded by remember { mutableStateOf(false) }
-    Box() {
+
+    Box {
         IconButton(
-            onClick = {
-                expanded = !expanded
-            },
+            onClick = { expanded = true },
             modifier = Modifier.size(48.dp)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.List,
                 contentDescription = "Filtros",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
@@ -46,30 +50,31 @@ fun FilterTopAppBar(onSearchClick: () -> Unit, onSortClick: () -> Unit ,savedAni
             expanded = expanded,
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = 0.dp, y = 16.dp),
-            modifier = Modifier
-                .background(Color.DarkGray)
+            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             DropdownMenuItem(
                 text = { Text("Buscar titulo") },
                 onClick = {
-                    onSearchClick()
+                    //onSearchClick()
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                enabled = savedAnimes.isNotEmpty()
             )
-            HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             DropdownMenuItem(
                 text = { Text("Cambiar vista") },
-                onClick = { },
+                onClick = {
+                    // Acción para cambiar vista
+                    expanded = false
+                },
                 leadingIcon = { Icon(Icons.Default.ViewModule, contentDescription = "Cambiar vista") },
             )
-            HorizontalDivider(modifier = Modifier,1.dp, color = Color.White.copy(alpha = 0.7f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             DropdownMenuItem(
                 text = { Text("Ordenar por A-Z / Z-A") },
                 onClick = {
-                    onSortClick()
-                    expanded = true
+                    //onSortClick()
+                    expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = "Ordenar por titulo") },
             )

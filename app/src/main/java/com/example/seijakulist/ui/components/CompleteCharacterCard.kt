@@ -32,7 +32,7 @@ fun CompleteCharacterCard(uiState: CharacterRandomUiState, navController: NavCon
 
     Box(
         modifier = Modifier
-            .padding(horizontal = 10.dp)
+            .padding(start = 10.dp, end = 10.dp, bottom = 16.dp)
             .fillMaxSize()
             .height(210.dp)
             .clip(RoundedCornerShape(16.dp))

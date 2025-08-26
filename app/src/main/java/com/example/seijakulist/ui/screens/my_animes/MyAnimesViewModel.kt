@@ -9,8 +9,11 @@ import com.example.seijakulist.data.repository.AnimeLocalRepository
 import com.example.seijakulist.util.UserAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,6 +22,14 @@ import javax.inject.Inject
 class MyAnimeListViewModel @Inject constructor(
     private val animeLocalRepository: AnimeLocalRepository
 ) : ViewModel() {
+
+    val savedAnimes: StateFlow<List<AnimeEntity>> =
+        animeLocalRepository.getAllAnimes()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
 
     fun handleUserAction(animeId: Int, action: UserAction) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -83,16 +94,6 @@ class MyAnimeListViewModel @Inject constructor(
             animeLocalRepository.updateAnime(updatedAnime.toAnimeEntity())
         }
     }
-
-
-    val savedAnimes: StateFlow<List<AnimeEntity>> =
-        animeLocalRepository.getAllAnimes()
-            .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
-                emptyList()
-            )
-
 
     fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int) {
         viewModelScope.launch(Dispatchers.IO) {

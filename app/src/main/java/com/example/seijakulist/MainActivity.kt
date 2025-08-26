@@ -3,7 +3,13 @@ package com.example.seijakulist
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.fadeOut
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,32 +67,68 @@ fun AppNavigation(navController: NavHostController) {
     ) {
         composable(
             route = AppDestinations.HOME,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
         ) {
             HomeScreen(navController)
         }
         composable(
-            route = AppDestinations.SEARCH_ANIME_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
+            route = AppDestinations.SEARCH_ANIME_ROUTE
         ) {
             SearchScreen(navController)
         }
         composable(
-            route = AppDestinations.MY_PROFILE_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
+            route = AppDestinations.MY_PROFILE_ROUTE
         ) {
             ProfileScreen(navController)
         }
         composable(
             route = AppDestinations.MY_ANIMES_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
         ) {
             MyAnimeListScreen(navController)
         }
         composable(
             route = AppDestinations.MY_MANGAS_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
         ) {
             MyMangasScreen(navController)
         }
         composable(
             arguments = listOf(navArgument("animeId") { type = NavType.IntType }),
             route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}",
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
         ) { backStackEntry ->
             val animeId = backStackEntry.arguments?.getInt(AppDestinations.ANIME_ID_KEY)
             if (animeId != null) {
@@ -98,6 +140,12 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             arguments = listOf(navArgument("characterId") { type = NavType.IntType }),
             route = "${AppDestinations.CHARACTER_DETAIL_ROUTE}/{${AppDestinations.CHARACTER_ID_KEY}}",
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
         ) { backStackEntry ->
             val characterId = backStackEntry.arguments?.getInt(AppDestinations.CHARACTER_ID_KEY)
             if (characterId != null) {

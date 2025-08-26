@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,11 +22,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -42,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -51,6 +57,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
+import com.example.seijakulist.ui.components.LoadingScreen
+import com.example.seijakulist.ui.components.TitleScreen
+import com.example.seijakulist.ui.theme.RobotoBold
+import com.example.seijakulist.ui.theme.RobotoRegular
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,6 +81,8 @@ fun CharacterDetailScreen(
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
+    var expanded by remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = characterId) {
         characterDetailViewModel.loadCharacterDetail(characterId)
         characterPictureViewModel.loadCharacterPictures(characterId)
@@ -81,6 +93,7 @@ fun CharacterDetailScreen(
         when {
             characterErrorMessage != null && characterPicturesErrorMessage != null ->
                 "Error en detalle: ${characterErrorMessage}\nError en imágenes: ${characterPicturesErrorMessage}"
+
             characterErrorMessage != null -> characterErrorMessage
             characterPicturesErrorMessage != null -> characterPicturesErrorMessage
             else -> null
@@ -90,19 +103,15 @@ fun CharacterDetailScreen(
     if (overallIsLoading) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF06141B)),
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                color = Color.White
-            )
+            LoadingScreen()
         }
     } else if (overallErrorMessage != null) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF06141B)),
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -113,37 +122,31 @@ fun CharacterDetailScreen(
             )
         }
     } else {
-        Column(modifier = Modifier.fillMaxSize().background(color = Color(0xFF06141B))) {
-            LazyColumn() {
-                item() {
-                    Text(
-                        text = "Detalle del personaje",
-                        modifier = Modifier.padding(16.dp),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 35.sp,
-                        color = Color.White
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 16.dp, horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 16.dp
                     )
-                }
-                item {
-                    Column(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .fillMaxWidth()
-                            .background(
-                                Color(
-                                    0xFF11212D
-                                )
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                ) {
+                    Row() {
                         AsyncImage(
                             alignment = Alignment.Center,
                             modifier = Modifier
-                                .padding(top = 16.dp, bottom = 16.dp)
-                                .width(190.dp)
-                                .height(295.dp)
-                                .clip(RoundedCornerShape(4.dp)),
+                                .width(160.dp)
+                                .height(240.dp)
+                                .clip(RoundedCornerShape(16.dp)),
                             contentScale = ContentScale.Crop,
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(characterDetail.images)
@@ -152,151 +155,161 @@ fun CharacterDetailScreen(
                                 .build(),
                             contentDescription = "Imagen de personaje",
                         )
-                    }
-                }
-
-                item {
-                    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
-                        Text(
-                            modifier = Modifier
-                                .padding(top = 20.dp, bottom = 20.dp)
-                                .fillMaxWidth(),
-                            text = characterDetail.nameCharacter,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = characterDetail.nameKanjiCharacter,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                                .fillMaxWidth(),
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier.height(60.dp).fillMaxWidth()
-                            .background(color = Color(0xFF11212D))
-                    ) {
-                        Text(
-                            "Descripcion: ",
-                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                item {
-                    Column(modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)) {
-                        Text(
-                            text = characterDetail.descriptionCharacter,
-                            modifier = Modifier.padding(bottom = 16.dp),
-                            fontSize = 15.sp,
-                            color = Color.White,
-                            textAlign = TextAlign.Justify
-                        )
-                    }
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier.height(60.dp).fillMaxWidth()
-                            .background(color = Color(0xFF11212D))
-                    ) {
-                        Text(
-                            "Imagenes de ${characterDetail.nameCharacter}: ",
-                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                item {
-                    Column {
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(top = 16.dp, bottom = 16.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(characterPictures) { characterPicture ->
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(characterPicture.characterPictures)
-                                        .size(Size.ORIGINAL)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = null,
+                        Column() {
+                            Text(
+                                modifier = Modifier
+                                    .padding(top = 20.dp, bottom = 20.dp)
+                                    .fillMaxWidth(),
+                                text = characterDetail.nameCharacter,
+                                fontSize = 28.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center,
+                                fontFamily = RobotoBold,
+                                lineHeight = 30.sp
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .padding(start = 16.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .height(32.dp)
+                                    .wrapContentWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Kanji:",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Start,
                                     modifier = Modifier
-                                        .width(190.dp)
-                                        .height(295.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .clickable(
-                                            onClick = {
-                                                selectedImageUrl = characterPicture.characterPictures
-                                                showDialog = true
-                                            },
-                                        ),
-                                    contentScale = ContentScale.Crop
+                                        .wrapContentWidth()
+                                        .padding(end = 8.dp),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 16.sp,
+                                    fontFamily = RobotoRegular
+                                )
+                                Text(
+                                    text = characterDetail.nameKanjiCharacter,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier
+                                        .wrapContentWidth()
+                                        .padding(end = 16.dp),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 12.sp,
+                                    fontFamily = RobotoRegular
                                 )
                             }
+
                         }
                     }
-                    if (showDialog) {
-                        Dialog(
-                            onDismissRequest = {
-                                showDialog = false
-                            },
-                            properties = DialogProperties(usePlatformDefaultWidth = false)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clickable {
-                                        showDialog = false
+                }
+            }
+
+            item {
+                TitleScreen("Descripcion")
+            }
+
+            item {
+                Column() {
+                    Text(
+                        text = characterDetail.descriptionCharacter,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        fontFamily = RobotoRegular,
+                        textAlign = TextAlign.Justify,
+                        maxLines = if (expanded) Int.MAX_VALUE else 15,
+                    )
+                    Text(
+                        text = if (expanded) "ver menos" else "ver más",
+                        modifier = Modifier
+                            .padding(top = 16.dp, bottom = 16.dp)
+                            .clickable { expanded = !expanded },
+                        color = MaterialTheme.colorScheme.inversePrimary,
+                    )
+                }
+            }
+
+            item {
+                TitleScreen("Imagenes")
+            }
+
+            item {
+
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(characterPictures) { characterPicture ->
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(characterPicture.characterPictures)
+                                .size(Size.ORIGINAL)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(190.dp)
+                                .height(295.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                .clickable(
+                                    onClick = {
+                                        selectedImageUrl = characterPicture.characterPictures
+                                        showDialog = true
                                     },
-                                contentAlignment = Alignment.Center
+                                ),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+
+                if (showDialog) {
+                    Dialog(
+                        onDismissRequest = {
+                            showDialog = false
+                        },
+                        properties = DialogProperties(usePlatformDefaultWidth = false)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable {
+                                    showDialog = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(selectedImageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Imagen de personaje ampliada",
+                                modifier = Modifier
+                                    .fillMaxWidth(0.9f)
+                                    .clickable(enabled = false) { }
+                                    .clip(RoundedCornerShape(16.dp)),
+                            )
+                            IconButton(
+                                onClick = { showDialog = false },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(16.dp)
                             ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(selectedImageUrl)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = "Imagen de personaje ampliada",
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.9f)
-                                        .clickable(enabled = false) {  }
-                                        .clip(RoundedCornerShape(16.dp)),
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cerrar",
+                                    tint = Color.White
                                 )
-                                IconButton(
-                                    onClick = { showDialog = false },
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(16.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Cerrar",
-                                        tint = Color.White
-                                    )
-                                }
                             }
                         }
                     }
                 }
             }
         }
+
     }
 }

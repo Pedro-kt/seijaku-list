@@ -13,19 +13,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.theme.RobotoBold
 
 @Composable
 fun TitleScreen(title: String) {
-    val RobotoBold = FontFamily(
-        Font(R.font.roboto_bold)
-    )
     Text(
         text = title,
         color = MaterialTheme.colorScheme.onSurface,
         fontSize = 24.sp,
         textAlign = TextAlign.Center,
-        modifier = Modifier
-            .padding(16.dp),
+        modifier = Modifier,
         fontFamily = RobotoBold
     )
 }

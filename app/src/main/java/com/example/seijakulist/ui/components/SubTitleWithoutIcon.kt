@@ -1,7 +1,9 @@
 package com.example.seijakulist.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,28 +20,34 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.theme.RobotoBold
+import com.example.seijakulist.ui.theme.RobotoRegular
 
 @Composable
 fun SubTitleWithoutIcon(subTitle: String) {
-    val RobotoBold = FontFamily(
-        Font(R.font.roboto_bold)
-    )
 
     Row(
         modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, top = 26.dp, bottom = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = subTitle,
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 20.sp,
             fontFamily = RobotoBold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Start
+            textAlign = TextAlign.Start,
+        )
+        Text(
+            text = "ver más",
+            modifier = Modifier
+                .clickable { },
+            color = MaterialTheme.colorScheme.inversePrimary,
+            fontSize = 16.sp,
+            fontFamily = RobotoRegular,
+            textAlign = TextAlign.End,
         )
     }
 }

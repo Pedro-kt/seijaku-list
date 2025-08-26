@@ -12,7 +12,7 @@ fun CharacterDetailDto.toCharacterDetail(): CharacterDetail {
             ?: images?.imageCharacterDetailWebp?.imageCharacterWebp
             ?: "Imagen predeterminada",
         nameCharacter = nameCharacter ?: "Nombre no encontrado",
-        nameKanjiCharacter = nameKanjiCharacter ?: "Kanji no encontrado",
-        descriptionCharacter = descriptionCharacter ?: "No hemos podido encontrar una descripcion para este personaje :("
+        nameKanjiCharacter = nameKanjiCharacter ?: "N/A",
+        descriptionCharacter = descriptionCharacter ?: "No se ha podido encontrar una descripcion para este personaje, lo sentimos"
     )
 }

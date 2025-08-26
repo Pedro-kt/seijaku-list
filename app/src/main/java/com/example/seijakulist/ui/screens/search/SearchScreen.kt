@@ -2,6 +2,12 @@ package com.example.seijakulist.ui.screens.search
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,10 +30,12 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -221,150 +229,172 @@ fun SearchScreen(
                 modifier = Modifier
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                contentPadding = PaddingValues(
+                    top = 8.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp
+                )
             ) {
                 items(animeList, key = { it.malId }) { anime ->
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 16.dp
+                    var visible by rememberSaveable { mutableStateOf(false) }
+
+                    LaunchedEffect(Unit) {
+                        visible = true
+                    }
+
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(
+                            animationSpec = tween(500)
                         )
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize()
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 16.dp
+                            )
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
+                            Box(
+                                modifier = Modifier.fillMaxSize()
                             ) {
-                                Box() {
-                                    AsyncImage(
-                                        model = anime.images,
-                                        contentDescription = "Imagen de portada de ${anime.title}",
-                                        modifier = Modifier
-                                            .height(180.dp)
-                                            .width(125.dp)
-                                            .clip(RoundedCornerShape(16.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    Row(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(topEnd = 16.dp))
-                                            .background(color = Color.Black.copy(alpha = 0.8f))
-                                            .height(24.dp)
-                                            .wrapContentWidth()
-                                            .align(Alignment.BottomStart),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = "Puntuacion",
-                                            tint = Color.White,
-                                            modifier = Modifier
-                                                .padding(start = 6.dp)
-                                                .size(12.dp)
-                                        )
-                                        Text(
-                                            text = String.format("%.1f", anime.score),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            textAlign = TextAlign.Start,
-                                            modifier = Modifier.wrapContentWidth().padding(end = 6.dp),
-                                            color = Color.White,
-                                            fontSize = 12.sp,
-                                            fontFamily = RobotoBold
-                                        )
-                                    }
-                                }
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = anime.title,
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontFamily = RobotoRegular,
-                                        fontSize = 18.sp
-                                    )
-                                    Row(
-                                        modifier = Modifier.padding(start = 16.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.AccessTime,
-                                            contentDescription = "Puntuación",
-                                            tint = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.size(18.dp)
+                                    Box() {
+                                        AsyncImage(
+                                            model = anime.images,
+                                            contentDescription = "Imagen de portada de ${anime.title}",
+                                            modifier = Modifier
+                                                .height(180.dp)
+                                                .width(125.dp)
+                                                .clip(RoundedCornerShape(16.dp)),
+                                            contentScale = ContentScale.Crop
                                         )
-                                        Text(
-                                            text = anime.status,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 14.sp,
-                                            fontFamily = RobotoRegular
-                                        )
-                                    }
-                                    LazyRow(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 16.dp),
-                                    ) {
-                                        items(anime.genres) { genre ->
-                                            ElevatedFilterChip(
-                                                selected = false,
-                                                onClick = { },
-                                                label = {
-                                                    genre?.name?.let {
-                                                        Text(
-                                                            it,
-                                                            fontSize = 12.sp,
-                                                        )
-                                                    }
-                                                },
-                                                colors = FilterChipDefaults.filterChipColors(
-                                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                                    labelColor = MaterialTheme.colorScheme.onSurface,
-                                                ),
-                                                elevation = FilterChipDefaults.filterChipElevation(
-                                                    elevation = 16.dp
-                                                )
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(topEnd = 16.dp))
+                                                .background(color = Color.Black.copy(alpha = 0.8f))
+                                                .height(24.dp)
+                                                .wrapContentWidth()
+                                                .align(Alignment.BottomStart),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = "Puntuacion",
+                                                tint = Color.White,
+                                                modifier = Modifier
+                                                    .padding(start = 6.dp)
+                                                    .size(12.dp)
+                                            )
+                                            Text(
+                                                text = String.format("%.1f", anime.score),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                textAlign = TextAlign.Start,
+                                                modifier = Modifier
+                                                    .wrapContentWidth()
+                                                    .padding(end = 10.dp),
+                                                color = Color.White,
+                                                fontSize = 12.sp,
+                                                fontFamily = RobotoBold
                                             )
                                         }
                                     }
-                                    Text(
-                                        text = "Año ${anime.year} • Episodios ${anime.episodes}",
-                                        modifier = Modifier.padding(start = 16.dp),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 12.sp,
-                                        fontFamily = RobotoRegular
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        Text(
+                                            text = anime.title,
+                                            modifier = Modifier.padding(horizontal = 16.dp),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontFamily = RobotoRegular,
+                                            fontSize = 18.sp
+                                        )
+                                        Row(
+                                            modifier = Modifier.padding(start = 16.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.AccessTime,
+                                                contentDescription = "Puntuación",
+                                                tint = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Text(
+                                                text = anime.status,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontSize = 14.sp,
+                                                fontFamily = RobotoRegular
+                                            )
+                                        }
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 16.dp),
+                                        ) {
+                                            items(anime.genres) { genre ->
+                                                ElevatedFilterChip(
+                                                    selected = false,
+                                                    onClick = { },
+                                                    label = {
+                                                        genre?.name?.let {
+                                                            Text(
+                                                                it,
+                                                                fontSize = 12.sp,
+                                                            )
+                                                        }
+                                                    },
+                                                    colors = FilterChipDefaults.filterChipColors(
+                                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                        labelColor = MaterialTheme.colorScheme.onSurface,
+                                                    ),
+                                                    elevation = FilterChipDefaults.filterChipElevation(
+                                                        elevation = 16.dp
+                                                    )
+                                                )
+                                            }
+                                        }
+                                        Text(
+                                            text = "Año ${anime.year} • Episodios ${anime.episodes}",
+                                            modifier = Modifier.padding(start = 16.dp),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 12.sp,
+                                            fontFamily = RobotoRegular
+                                        )
+                                    }
+                                }
+                                IconButton(
+                                    onClick = { },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.FavoriteBorder,
+                                        contentDescription = "Favorito",
+                                        tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
-                            }
-                            IconButton(
-                                onClick = { },
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.FavoriteBorder,
-                                    contentDescription = "Favorito",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
                             }
                         }
                     }
