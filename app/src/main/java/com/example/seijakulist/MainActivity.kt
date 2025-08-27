@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController) {
+fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDismissSearch: () -> Unit) {
 
     NavHost(
         navController = navController,
@@ -107,7 +107,7 @@ fun AppNavigation(navController: NavHostController) {
                 slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
             },
         ) {
-            MyAnimeListScreen(navController)
+            MyAnimeListScreen(navController = navController, isSearching = isSearching, onDismissSearch = onDismissSearch)
         }
         composable(
             route = AppDestinations.MY_MANGAS_ROUTE,

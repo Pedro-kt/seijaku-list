@@ -1,9 +1,14 @@
 package com.example.seijakulist.ui.screens.my_animes
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,6 +33,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -40,11 +46,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -81,7 +91,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun MyAnimeListScreen(
     navController: NavController,
-    viewModel: MyAnimeListViewModel = hiltViewModel()
+    viewModel: MyAnimeListViewModel = hiltViewModel(),
+    isSearching: Boolean,
+    onDismissSearch: () -> Unit
 ) {
     val savedAnimes by viewModel.savedAnimes.collectAsState()
     val savedAnimeStatusComplete by viewModel.savedAnimeStatusComplete.collectAsState()
@@ -164,6 +176,40 @@ fun MyAnimeListScreen(
             }
         } else {
 
+            AnimatedVisibility(
+                visible = isSearching,
+                enter = slideInVertically(animationSpec = tween(500)) + fadeIn(animationSpec = tween(500)),
+                exit = slideOutVertically(animationSpec = tween(500)) + fadeOut(animationSpec = tween(500))
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Buscar anime...") },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            onDismissSearch()
+                            searchQuery = ""
+                        }) {
+                            Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        focusedBorderColor = MaterialTheme.colorScheme.inversePrimary,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.inversePrimary,
+                        focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    ),
+                )
+            }
+
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 8.dp)
@@ -205,29 +251,13 @@ fun MyAnimeListScreen(
                 }
             }
 
-            val displayedAnimes by remember(selectedFilter, searchQuery, isSortedAscending) {
-                derivedStateOf {
-                    val filteredByStatus = when (selectedFilter) {
-                        "Viendo" -> savedAnimeStatusWatching
-                        "Completado" -> savedAnimeStatusComplete
-                        "Pendiente" -> savedAnimeStatusPending
-                        "Abandonado" -> savedAnimeStatusAbandoned
-                        "Planeado" -> savedAnimeStatusPlanned
-                        else -> savedAnimes
-                    }
-
-                    val filteredBySearch = if (searchQuery.isBlank()) {
-                        filteredByStatus
-                    } else {
-                        filteredByStatus.filter { anime ->
-                            anime.title.contains(searchQuery, ignoreCase = true)
-                        }
-                    }
-                    if (isSortedAscending) {
-                        filteredBySearch.sortedBy { it.title }
-                    } else {
-                        filteredBySearch.sortedByDescending { it.title }
-                    }
+            val displayedAnimes = remember(savedAnimes, searchQuery, selectedFilter) {
+                savedAnimes.filter { anime ->
+                    (searchQuery.isBlank() || anime.title.contains(
+                        searchQuery,
+                        ignoreCase = true
+                    )) &&
+                            (selectedFilter == null || anime.statusUser == selectedFilter)
                 }
             }
 

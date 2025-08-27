@@ -277,7 +277,8 @@ fun SearchScreen(
                                             modifier = Modifier
                                                 .height(180.dp)
                                                 .width(125.dp)
-                                                .clip(RoundedCornerShape(16.dp)),
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(color = MaterialTheme.colorScheme.surfaceContainerHighest),
                                             contentScale = ContentScale.Crop
                                         )
                                         Row(

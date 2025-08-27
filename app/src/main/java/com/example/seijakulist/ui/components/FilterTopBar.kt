@@ -28,9 +28,7 @@ import com.example.seijakulist.data.local.entities.AnimeEntity
 
 @Composable
 fun FilterTopAppBar(
-    //onSearchClick: () -> Unit,
-    //onSortClick: () -> Unit,
-    //savedAnimes: List<AnimeEntity>
+    onSearchClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -55,7 +53,7 @@ fun FilterTopAppBar(
             DropdownMenuItem(
                 text = { Text("Buscar titulo") },
                 onClick = {
-                    //onSearchClick()
+                    onSearchClick()
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
@@ -64,7 +62,6 @@ fun FilterTopAppBar(
             DropdownMenuItem(
                 text = { Text("Cambiar vista") },
                 onClick = {
-                    // Acción para cambiar vista
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.ViewModule, contentDescription = "Cambiar vista") },
@@ -73,7 +70,6 @@ fun FilterTopAppBar(
             DropdownMenuItem(
                 text = { Text("Ordenar por A-Z / Z-A") },
                 onClick = {
-                    //onSortClick()
                     expanded = false
                 },
                 leadingIcon = { Icon(Icons.Default.SortByAlpha, contentDescription = "Ordenar por titulo") },

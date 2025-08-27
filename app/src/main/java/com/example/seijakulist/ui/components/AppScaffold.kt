@@ -55,6 +55,7 @@ fun AppScaffold(
 ) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    var isSearching by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -78,7 +79,13 @@ fun AppScaffold(
                         ),
                         navigationIcon = {
                             ArrowBackTopAppBar(navController)
+                        },
+                        actions = {
+                            FilterTopAppBar(
+                                onSearchClick = { isSearching = true }
+                            )
                         }
+
                     )
                 }
 
@@ -140,7 +147,7 @@ fun AppScaffold(
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AppNavigation(navController)
+            AppNavigation(navController, isSearching = isSearching, onDismissSearch = { isSearching = false })
         }
     }
 }

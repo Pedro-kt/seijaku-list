@@ -114,6 +114,7 @@ fun AnimeRandomCard(
                         .width(140.dp)
                         .height(210.dp)
                         .clip(RoundedCornerShape(16.dp))
+                        .background(color = MaterialTheme.colorScheme.surfaceContainerHighest)
 
                 )
                 Column(
