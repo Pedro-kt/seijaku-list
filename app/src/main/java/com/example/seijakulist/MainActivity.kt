@@ -1,5 +1,6 @@
 package com.example.seijakulist
 
+import AuthScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,11 +15,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,6 +39,9 @@ import com.example.seijakulist.ui.screens.local_anime_detail.AnimeDetailScreenLo
 import com.example.seijakulist.ui.screens.my_animes.MyAnimeListScreen
 import com.example.seijakulist.ui.screens.my_mangas.MyMangasScreen
 import com.example.seijakulist.ui.components.AppScaffold
+import com.example.seijakulist.ui.screens.configuration.ConfigurationScreen
+import com.example.seijakulist.ui.screens.configuration.SettingsViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -43,15 +49,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            var isDarkTheme by remember { mutableStateOf(true) }
+            val settingsViewModel: SettingsViewModel = viewModel()
+            val isDarkTheme by settingsViewModel.isDarkThemeEnabled.collectAsState()
             SeijakuListTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    AppScaffold(
-                        isDarkTheme = isDarkTheme,
-                        onThemeToggle = { isDarkTheme = it }
-                    )
+                    AppScaffold()
                 }
             }
         }
@@ -61,10 +65,37 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDismissSearch: () -> Unit) {
 
+    val settingsViewModel: SettingsViewModel = viewModel()
+    val isDarkTheme by settingsViewModel.isDarkThemeEnabled.collectAsState()
+
+    val firebaseAuth = remember { FirebaseAuth.getInstance() }
+
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.HOME,
+        startDestination = if (firebaseAuth.currentUser != null) {
+            AppDestinations.HOME
+        } else {
+            AppDestinations.AUTH_ROUTE
+        },
     ) {
+        composable(
+            route = AppDestinations.AUTH_ROUTE,
+        ) {
+            AuthScreen(
+                onSignInSuccess = {
+                    navController.navigate(AppDestinations.HOME) {
+                        popUpTo(AppDestinations.AUTH_ROUTE) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+        composable(
+            route = AppDestinations.CONFIGURATION_ROUTE,
+        ) {
+            ConfigurationScreen(navController, isDarkTheme = isDarkTheme, onThemeToggle = {settingsViewModel.toggleTheme()})
+        }
         composable(
             route = AppDestinations.HOME,
             enterTransition = {

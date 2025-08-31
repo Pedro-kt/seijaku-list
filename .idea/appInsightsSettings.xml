@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.seijakulist" />
+                  <option name="mobileSdkAppId" value="1:804079258744:android:466bd431be3c55f5d4318d" />
+                  <option name="projectId" value="seijaku-list" />
+                  <option name="projectNumber" value="804079258744" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

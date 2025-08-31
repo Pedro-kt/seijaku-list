@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BuildCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,8 +51,6 @@ import com.example.seijakulist.util.navigation_tools.navItems
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScaffold(
-    isDarkTheme: Boolean,
-    onThemeToggle: (Boolean) -> Unit,
     viewModel: MyAnimeListViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
@@ -98,17 +98,15 @@ fun AppScaffold(
                             Text(text = "Mi perfil", color = MaterialTheme.colorScheme.onSurface)
                         },
                         actions = {
-                            val isDarkTheme = isDarkTheme
-                            Switch(
-                                checked = isDarkTheme,
-                                onCheckedChange = onThemeToggle,
-                                colors = SwitchDefaults.colors(
-                                    uncheckedTrackColor = MaterialTheme.colorScheme.onSurface,
-                                    uncheckedThumbColor = MaterialTheme.colorScheme.surface,
-                                    checkedTrackColor = MaterialTheme.colorScheme.onSurface,
-                                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            IconButton(onClick = {
+                                navController.navigate(AppDestinations.CONFIGURATION_ROUTE)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Configuración",
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
-                            )
+                            }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background

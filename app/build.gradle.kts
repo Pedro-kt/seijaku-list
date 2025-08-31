@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrainsKotlinSerialization)
-
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -112,4 +112,10 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
 
     implementation("com.airbnb.android:lottie-compose:6.4.0")
+
+    //Firebase Auth
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+
+    // Dependencia de Firebase Auth
+    implementation("com.google.firebase:firebase-auth-ktx")
 }
