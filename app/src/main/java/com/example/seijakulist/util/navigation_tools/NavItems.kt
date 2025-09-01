@@ -41,6 +41,6 @@ val navItems = listOf(
         name = "Perfil",
         selectedIcon = Icons.Filled.AccountCircle,
         unselectedIcon = Icons.Outlined.AccountCircle,
-        route = AppDestinations.MY_PROFILE_ROUTE
-    )
+        route = AppDestinations.PROFILE_VIEW_ROUTE
+    ),
 )

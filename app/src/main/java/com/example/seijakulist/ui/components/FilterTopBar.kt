@@ -40,7 +40,7 @@ fun FilterTopAppBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.List,
                 contentDescription = "Filtros",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 

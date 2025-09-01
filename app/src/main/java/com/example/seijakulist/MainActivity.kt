@@ -27,7 +27,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.screens.detail.AnimeDetailScreen
-import com.example.seijakulist.ui.screens.profile.ProfileScreen
 import com.example.seijakulist.ui.screens.search.SearchScreen
 import com.example.seijakulist.ui.theme.SeijakuListTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,6 +40,9 @@ import com.example.seijakulist.ui.screens.my_mangas.MyMangasScreen
 import com.example.seijakulist.ui.components.AppScaffold
 import com.example.seijakulist.ui.screens.configuration.ConfigurationScreen
 import com.example.seijakulist.ui.screens.configuration.SettingsViewModel
+import com.example.seijakulist.ui.screens.profile.ProfileLoaderScreen
+import com.example.seijakulist.ui.screens.profile.ProfileSetupView
+import com.example.seijakulist.ui.screens.profile.ProfileView
 import com.google.firebase.auth.FirebaseAuth
 
 @AndroidEntryPoint
@@ -79,11 +81,44 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
         },
     ) {
         composable(
+            AppDestinations.PROFILE_LOADER_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
+        ) {
+            ProfileLoaderScreen(navController = navController)
+        }
+        composable(
+            AppDestinations.PROFILE_SETUP_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
+        ) {
+            ProfileSetupView(navController = navController)
+        }
+        composable(
+            AppDestinations.PROFILE_VIEW_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
+        ) {
+            ProfileView(navController = navController)
+        }
+        composable(
             route = AppDestinations.AUTH_ROUTE,
         ) {
             AuthScreen(
                 onSignInSuccess = {
-                    navController.navigate(AppDestinations.HOME) {
+                    navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) {
                         popUpTo(AppDestinations.AUTH_ROUTE) {
                             inclusive = true
                         }
@@ -93,6 +128,12 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
         }
         composable(
             route = AppDestinations.CONFIGURATION_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
         ) {
             ConfigurationScreen(navController, isDarkTheme = isDarkTheme, onThemeToggle = {settingsViewModel.toggleTheme()})
         }
@@ -117,17 +158,6 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
             route = AppDestinations.SEARCH_ANIME_ROUTE
         ) {
             SearchScreen(navController)
-        }
-        composable(
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
-            route = AppDestinations.MY_PROFILE_ROUTE
-        ) {
-            ProfileScreen(navController)
         }
         composable(
             route = AppDestinations.MY_ANIMES_ROUTE,

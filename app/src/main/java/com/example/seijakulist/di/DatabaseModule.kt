@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import com.example.seijakulist.data.local.db.AnimeDatabase
 import com.example.seijakulist.data.local.dao.AnimeDao
+import com.example.seijakulist.data.local.dao.UserProfileDao
 import com.example.seijakulist.data.local.migration.MIGRATION_1_2
 import com.example.seijakulist.data.local.migration.MIGRATION_2_3
 import com.example.seijakulist.data.local.migration.MIGRATION_4_5
 import com.example.seijakulist.data.local.migration.MIGRATION_5_6
+import com.example.seijakulist.data.local.migration.MIGRATION_6_7
+import com.example.seijakulist.data.repository.UserProfileLocalRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,14 +29,17 @@ object DatabaseModule {
             appContext,
             AnimeDatabase::class.java,
             "anime_database"
-        )
-            .addMigrations(MIGRATION_5_6)
-            .fallbackToDestructiveMigration(true)
-            .build()
+        ).addMigrations(MIGRATION_6_7).build()
     }
 
     @Provides
     fun provideAnimeDao(db: AnimeDatabase): AnimeDao {
         return db.animeDao()
     }
+
+    @Provides
+    fun provideUserProfileDao(db: AnimeDatabase): UserProfileDao {
+        return db.userProfileDao()
+    }
+
 }

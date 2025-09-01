@@ -118,4 +118,10 @@ dependencies {
 
     // Dependencia de Firebase Auth
     implementation("com.google.firebase:firebase-auth-ktx")
+
+    // Firebase Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // Firebase Storage
+    implementation("com.google.firebase:firebase-storage-ktx")
 }

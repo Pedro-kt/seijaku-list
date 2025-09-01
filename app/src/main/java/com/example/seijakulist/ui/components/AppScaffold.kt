@@ -8,12 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.BuildCircle
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,16 +24,11 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -71,36 +61,23 @@ fun AppScaffold(
             when (currentRoute) {
                 AppDestinations.MY_ANIMES_ROUTE -> {
                     TopAppBar(
-                        title = {
-                            Text(text = "Mis animes", color = MaterialTheme.colorScheme.onSurface)
-                        },
+                        title = { Text(text = "Mis animes", color = MaterialTheme.colorScheme.onSurface) },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background
                         ),
-                        navigationIcon = {
-                            ArrowBackTopAppBar(navController)
-                        },
+                        navigationIcon = { ArrowBackTopAppBar(navController) },
                         actions = {
-                            FilterTopAppBar(
-                                onSearchClick = { isSearching = true }
-                            )
+                            FilterTopAppBar(onSearchClick = { isSearching = true })
                         }
-
                     )
                 }
-
-                AppDestinations.MY_PROFILE_ROUTE -> {
+                AppDestinations.PROFILE_LOADER_ROUTE,
+                AppDestinations.PROFILE_VIEW_ROUTE -> {
                     TopAppBar(
-                        navigationIcon = {
-                            ArrowBackTopAppBar(navController)
-                        },
-                        title = {
-                            Text(text = "Mi perfil", color = MaterialTheme.colorScheme.onSurface)
-                        },
+                        navigationIcon = { ArrowBackTopAppBar(navController) },
+                        title = { Text(text = "Mi perfil", color = MaterialTheme.colorScheme.onSurface) },
                         actions = {
-                            IconButton(onClick = {
-                                navController.navigate(AppDestinations.CONFIGURATION_ROUTE)
-                            }) {
+                            IconButton(onClick = { navController.navigate(AppDestinations.CONFIGURATION_ROUTE) }) {
                                 Icon(
                                     imageVector = Icons.Default.Settings,
                                     contentDescription = "Configuración",
@@ -113,28 +90,18 @@ fun AppScaffold(
                         )
                     )
                 }
-
                 AppDestinations.HOME -> {
                     TopAppBar(
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background
                         ),
-                        title = {
-                            Text(
-                                text = "SeijakuList"
-                            )
-                        }
+                        title = { Text(text = "SeijakuList") }
                     )
                 }
-
                 AppDestinations.MY_MANGAS_ROUTE -> {
                     TopAppBar(
-                        navigationIcon = {
-                            ArrowBackTopAppBar(navController)
-                        },
-                        title = {
-                            Text(text = "Mi mangas", color = MaterialTheme.colorScheme.onSurface)
-                        },
+                        navigationIcon = { ArrowBackTopAppBar(navController) },
+                        title = { Text(text = "Mi mangas", color = MaterialTheme.colorScheme.onSurface) },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background
                         )

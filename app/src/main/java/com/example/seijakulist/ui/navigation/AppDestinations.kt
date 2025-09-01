@@ -3,7 +3,6 @@ package com.example.seijakulist.ui.navigation
 object AppDestinations {
     const val HOME = "home"
     const val SEARCH_ANIME_ROUTE = "search_anime_route"
-    const val MY_PROFILE_ROUTE = "my_profile_route"
     const val ANIME_DETAIL_ROUTE = "anime_detail_route"
     const val ANIME_ID_KEY = "animeId"
 
@@ -24,5 +23,9 @@ object AppDestinations {
     const val AUTH_ROUTE = "auth_route"
 
     const val CONFIGURATION_ROUTE = "configuration_route"
+
+    const val PROFILE_LOADER_ROUTE = "profile_loader_route"
+    const val PROFILE_SETUP_ROUTE = "profile_setup_route"
+    const val PROFILE_VIEW_ROUTE = "profile_view_route"
 
 }
