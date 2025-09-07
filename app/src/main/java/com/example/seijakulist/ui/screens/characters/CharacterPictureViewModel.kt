@@ -1,5 +1,6 @@
 package com.example.seijakulist.ui.screens.characters
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.Anime
@@ -42,8 +43,8 @@ class CharacterPictureViewModel @Inject constructor(
                 _characterPictures.value = results
 
             } catch (e: Exception) {
-
-                _errorMessagePicture.value = "Error al buscar las fotos de los personaje: ${e.localizedMessage ?: "Error desconocido"}"
+                Log.e("CharDetailVM", "Error al cargar fotos del personaje ${e.localizedMessage ?: "Error desconocido"}")
+                _errorMessagePicture.value = "Lo sentimos, parece que algo salió mal al buscar informacion del personaje, posiblemente este personaje no contenga información por el momento"
                 _characterPictures.value = emptyList()
 
             } finally {

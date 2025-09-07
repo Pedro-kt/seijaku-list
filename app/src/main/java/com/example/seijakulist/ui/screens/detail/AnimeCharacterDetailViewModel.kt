@@ -46,7 +46,7 @@ class AnimeCharacterDetailViewModel @Inject constructor(
             try {
                 _characters.value = getAnimeCharactersDetailUseCase(animeId)
             } catch (e: Exception) {
-                _errorMessage.value = "Ups! No pudimos encontrar los personajes del anime"
+                _errorMessage.value = "Ups! Al parecer este anime no contiene personajes registrados"
             } finally {
                 _isLoading.value = false
             }

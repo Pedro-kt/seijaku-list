@@ -6,9 +6,9 @@ import androidx.compose.ui.graphics.Color
 
 
 // Colores del tema Oscuro
-val DarkPrimary = Color(0xFF4f6070)
-val DarkOnPrimary = Color(0xFFb7c9da)
-val DarkBackground = Color(0xFF212121)
+val DarkPrimary = Color(0xFF01579B)
+val DarkOnPrimary = Color(0xFFDEE4E8)
+val DarkBackground = Color(0xFF131314)
 
 val DarkSecondary = Color(0xFFc1c7cf)
 val DarkOnSecondary = Color(0xFF2b3137)
@@ -45,16 +45,16 @@ val DarkScrim = Color(0xFF000000)
 
 
 // Colores del tema Claro
-val LightPrimary = Color(0xFF30414f)
+val LightPrimary = Color(0xFF01579B)
 val LightOnPrimary = Color(0xFFffffff)
-val LightBackground = Color(0xFFffffff)
+val LightBackground = Color(0xFFF8F5F5)
 val LightSecondary = Color(0xFF595f66)
 val LightOnSecondary = Color(0xFFffffff)
 val LightTertiary = Color(0xFF493a4d)
 val LightOnTertiary = Color(0xFFffffff)
 val LightError = Color(0xFFba1b1b)
 val LightOnError = Color(0xFFffffff)
-val LightPrimaryContainer = Color(0xFF475867)
+val LightPrimaryContainer = Color(0xFFA3A3A3)
 val LightOnPrimaryContainer = Color(0xFFbccee0)
 val LightSecondaryContainer = Color(0xFFdde3eb)
 val LightOnSecondaryContainer = Color(0xFF5f656c)
@@ -69,7 +69,7 @@ val LightSurfaceContainerLowest = Color(0xFFffffff)
 val LightSurfaceContainerLow = Color(0xFFf5f3f4)
 val LightSurfaceContainer = Color(0xFFefedee)
 val LightSurfaceContainerHigh = Color(0xFFDADCDE)
-val LightSurfaceContainerHighest = Color(0xFFe9e8e9)
+val LightSurfaceContainerHighest = Color(0xFFCBC9CB)
 val LightOnSurface = Color(0xFF1b1c1d)
 val LightOnSurfaceVariant = Color(0xFF43474b)
 val LightOutline = Color(0xFF74777c)

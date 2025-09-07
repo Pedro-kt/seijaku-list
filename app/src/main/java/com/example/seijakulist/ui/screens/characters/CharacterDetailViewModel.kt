@@ -43,7 +43,8 @@ class CharacterDetailViewModel @Inject constructor(
 
             } catch (e: Exception) {
 
-                _errorMessage.value = "Error al buscar detalles del personaje: ${e.localizedMessage ?: "Error desconocido"}"
+                Log.e("CharDetailVM", "Error al cargar detalles del personaje ${e.localizedMessage ?: "Error desconocido"}")
+                _errorMessage.value = "Lo sentimos, parece que algo salió mal al buscar informacion del personaje, posiblemente no contenga información"
                 _characterDetail.value = CharacterDetail()
 
             } finally {

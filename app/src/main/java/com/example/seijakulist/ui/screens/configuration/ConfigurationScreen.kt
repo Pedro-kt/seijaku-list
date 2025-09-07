@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +16,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.NoAccounts
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -89,14 +92,13 @@ fun ConfigurationScreen(
                 fontSize = 16.sp,
                 fontFamily = com.example.seijakulist.ui.theme.RobotoRegular,
             )
-            Switch(
+            Checkbox(
                 checked = isDarkTheme,
                 onCheckedChange = { onThemeToggle() },
-                colors = SwitchDefaults.colors(
-                    uncheckedTrackColor = MaterialTheme.colorScheme.onSurface,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.surface,
-                    checkedTrackColor = MaterialTheme.colorScheme.onSurface,
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                colors = CheckboxDefaults.colors(
+                    checkmarkColor = MaterialTheme.colorScheme.onSurface,
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    uncheckedColor = MaterialTheme.colorScheme.onSurface,
                 ),
             )
         }
@@ -131,5 +133,16 @@ fun ConfigurationScreen(
                 )
             }
         }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = "Version 0.1.3-Alpha (Release) - Desarrollado por Bustamante Pedro",
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 12.sp,
+            fontFamily = com.example.seijakulist.ui.theme.RobotoRegular,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
     }
 }

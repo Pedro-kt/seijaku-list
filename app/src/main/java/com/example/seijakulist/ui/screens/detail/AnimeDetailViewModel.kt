@@ -56,7 +56,8 @@ class AnimeDetailViewModel @Inject constructor(
                 val detail = getAnimeDetailUseCase(animeId)
                 _animeDetail.value = detail
             } catch (e: Exception) {
-                _errorMessage.value = "Error al buscar detalles del anime: ${e.localizedMessage ?: "Error desconocido"}"
+                Log.e("AnimeDetailVM", "Error al cargar detalles del anime: ${e.localizedMessage ?: "Error desconocido"}")
+                _errorMessage.value = "Ups! Algo salió mal al cargar los detalles del anime, por favor inténtalo de nuevo, gracias por tu paciencia."
                 _animeDetail.value = null
             } finally {
                 _isLoading.value = false

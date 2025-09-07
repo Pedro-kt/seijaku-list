@@ -124,7 +124,7 @@ fun SearchScreen(
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    focusedBorderColor = MaterialTheme.colorScheme.inversePrimary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = Color.Transparent,
                     cursorColor = MaterialTheme.colorScheme.inversePrimary,
                     focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -142,7 +142,7 @@ fun SearchScreen(
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.inversePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp
                         )
                     } else if (searchQuery.isNotBlank()) {
@@ -198,21 +198,18 @@ fun SearchScreen(
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                     ),
                     border = BorderStroke(
                         width = 1.dp,
                         color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimary
+                            MaterialTheme.colorScheme.primary
                         } else {
-                            MaterialTheme.colorScheme.surfaceContainerHigh
+                            MaterialTheme.colorScheme.surfaceContainerHighest
                         }
                     ),
-                    shape = RoundedCornerShape(50.dp),
-                    elevation = FilterChipDefaults.filterChipElevation(
-                        elevation = 16.dp
-                    )
+                    shape = RoundedCornerShape(50.dp)
                 )
             }
         }
@@ -256,7 +253,7 @@ fun SearchScreen(
                                     navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
                                 },
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                             ),
                             shape = RoundedCornerShape(16.dp),
                             elevation = CardDefaults.cardElevation(
@@ -278,7 +275,7 @@ fun SearchScreen(
                                                 .height(180.dp)
                                                 .width(125.dp)
                                                 .clip(RoundedCornerShape(16.dp))
-                                                .background(color = MaterialTheme.colorScheme.surfaceContainerHighest),
+                                                .background(color = MaterialTheme.colorScheme.surfaceContainer),
                                             contentScale = ContentScale.Crop
                                         )
                                         Row(
@@ -364,7 +361,7 @@ fun SearchScreen(
                                                         }
                                                     },
                                                     colors = FilterChipDefaults.filterChipColors(
-                                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
                                                         labelColor = MaterialTheme.colorScheme.onSurface,
                                                     ),
                                                     elevation = FilterChipDefaults.filterChipElevation(

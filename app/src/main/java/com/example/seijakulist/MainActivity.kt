@@ -75,7 +75,7 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
     NavHost(
         navController = navController,
         startDestination = if (firebaseAuth.currentUser != null) {
-            AppDestinations.HOME
+            AppDestinations.SEARCH_ANIME_ROUTE
         } else {
             AppDestinations.AUTH_ROUTE
         },

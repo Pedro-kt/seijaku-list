@@ -102,11 +102,14 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.example.seijakulist.R
 import com.example.seijakulist.ui.components.DescriptionAnime
+import com.example.seijakulist.ui.components.HorizontalDividerComponent
 import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.components.SubTitleIcon
 import com.example.seijakulist.ui.components.TitleScreen
 import com.example.seijakulist.ui.components.TitleWithPadding
 import com.example.seijakulist.ui.navigation.AppDestinations
+import com.example.seijakulist.ui.theme.RobotoBold
+import com.example.seijakulist.ui.theme.RobotoRegular
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,13 +133,6 @@ fun AnimeDetailScreen(
     val animeThemes by animeThemesViewModel.themes.collectAsState()
 
     val isAdded by animeDetailViewModel.isAdded.collectAsState()
-
-    val RobotoRegular = FontFamily(
-        Font(R.font.roboto_regular)
-    )
-    val RobotoBold = FontFamily(
-        Font(R.font.roboto_bold, FontWeight.Bold)
-    )
 
     //snakbar de notificacion
     val scope = rememberCoroutineScope()
@@ -200,17 +196,45 @@ fun AnimeDetailScreen(
         }
 
         errorMessage != null -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = errorMessage ?: "Error desconocido",
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center
-                )
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Text(
+                        text = "Detalle del anime",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 18.sp,
+                        fontFamily = com.example.seijakulist.ui.theme.RobotoBold,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        fontFamily = RobotoBold
+                    )
+                }
             }
         }
 
@@ -233,7 +257,7 @@ fun AnimeDetailScreen(
                         )
                     }
                     Text(
-                        text = "Detalle del personaje",
+                        text = "Detalle del anime",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontFamily = com.example.seijakulist.ui.theme.RobotoBold,
@@ -394,7 +418,7 @@ fun AnimeDetailScreen(
                                     modifier = Modifier
                                         .weight(1f)
                                         .background(
-                                            color = if (isSelected) MaterialTheme.colorScheme.inversePrimary else Color.Transparent
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
                                         )
                                         .clickable { selectedTabIndex = index }
                                         .padding(12.dp),
@@ -421,7 +445,10 @@ fun AnimeDetailScreen(
                     }
 
                     if (selectedTabIndex == 0) {
-
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            HorizontalDividerComponent()
+                        }
                         item {
 
                             Row(
@@ -459,7 +486,9 @@ fun AnimeDetailScreen(
 
 
                         }
-
+                        item {
+                            HorizontalDividerComponent()
+                        }
                         item {
                             TitleWithPadding("Synopsis")
 
@@ -482,7 +511,9 @@ fun AnimeDetailScreen(
                             }
 
                         }
-
+                        item {
+                            HorizontalDividerComponent()
+                        }
                         item {
 
                             TitleWithPadding("Otros titulos")
@@ -554,7 +585,9 @@ fun AnimeDetailScreen(
                             }
 
                         }
-
+                        item {
+                            HorizontalDividerComponent()
+                        }
                         item {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -590,7 +623,9 @@ fun AnimeDetailScreen(
                             }
 
                         }
-
+                        item {
+                            HorizontalDividerComponent()
+                        }
                         item {
 
                             TitleWithPadding("Informacion")
@@ -662,7 +697,9 @@ fun AnimeDetailScreen(
                             )
 
                         }
-
+                        item {
+                            HorizontalDividerComponent()
+                        }
                         item {
                             TitleWithPadding("Temas")
 

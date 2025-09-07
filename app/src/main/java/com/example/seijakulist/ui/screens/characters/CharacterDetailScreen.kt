@@ -113,18 +113,47 @@ fun CharacterDetailScreen(
             LoadingScreen()
         }
     } else if (overallErrorMessage != null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = overallErrorMessage,
-                color = Color.Red,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center
-            )
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Text(
+                    text = "Detalle del personaje",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    fontFamily = RobotoBold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = overallErrorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    fontFamily = RobotoBold
+                )
+            }
         }
+
     } else {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(

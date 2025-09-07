@@ -13,6 +13,6 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun LoadingScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        LinearProgressIndicator(color = MaterialTheme.colorScheme.inversePrimary, trackColor = MaterialTheme.colorScheme.outline)
+        LinearProgressIndicator(color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.outline)
     }
 }

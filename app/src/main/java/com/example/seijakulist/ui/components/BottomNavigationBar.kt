@@ -16,6 +16,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.seijakulist.ui.theme.RobotoBold
+import com.example.seijakulist.ui.theme.RobotoRegular
 import com.example.seijakulist.util.navigation_tools.BottomNavItem
 import kotlin.collections.forEach
 
@@ -28,7 +29,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         NavigationBar(
             modifier = Modifier.fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = MaterialTheme.colorScheme.surface,
         ) {
             navItems.forEach { item ->
                 val isSelected = route?.startsWith(item.route) == true
@@ -52,7 +53,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                         )
                     },
                     label = {
-                        Text(text = item.name, fontFamily = RobotoBold)
+                        Text(text = item.name, fontFamily = RobotoRegular)
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.onPrimary,

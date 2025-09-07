@@ -37,7 +37,7 @@ class AnimeThemesViewModel @Inject constructor(
             try {
                 _themes.value = getAnimeThemesUseCase(animeId)
             } catch (e: Exception) {
-                _errorMessage.value = "Error al cargar openings"
+                _errorMessage.value = "Ups! Algo salió mal al cargar los opening / ending del anime."
             } finally {
                 _isLoading.value = false
             }

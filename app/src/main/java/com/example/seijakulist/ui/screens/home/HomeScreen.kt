@@ -103,8 +103,8 @@ fun HomeScreen(
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     indicator = { tabPositions ->
                         HorizontalDivider(modifier = Modifier.tabIndicatorOffset(tabPositions[listTab.indexOf(selectedTab.value)]),
-                            color = MaterialTheme.colorScheme.inversePrimary,
-                            thickness = 2.dp
+                            color = MaterialTheme.colorScheme.primary,
+                            thickness = 3.dp
                         )
                     }
                 ) {

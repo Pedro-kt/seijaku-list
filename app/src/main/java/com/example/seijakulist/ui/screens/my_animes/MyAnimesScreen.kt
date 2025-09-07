@@ -13,6 +13,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,7 +70,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.Font
@@ -143,6 +146,11 @@ fun MyAnimeListScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
     ) {
         if (savedAnimes.isEmpty()) {
             Column(
@@ -201,11 +209,11 @@ fun MyAnimeListScreen(
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        focusedBorderColor = MaterialTheme.colorScheme.inversePrimary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = Color.Transparent,
-                        cursorColor = MaterialTheme.colorScheme.inversePrimary,
-                        focusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     ),
                 )
             }
@@ -235,17 +243,14 @@ fun MyAnimeListScreen(
                         border = BorderStroke(
                             width = 1.dp,
                             color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimary
+                                MaterialTheme.colorScheme.primary
                             } else {
-                                MaterialTheme.colorScheme.surfaceContainerHigh
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             }
                         ),
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        ),
-                        elevation = FilterChipDefaults.filterChipElevation(
-                            elevation = 16.dp
                         )
                     )
                 }
