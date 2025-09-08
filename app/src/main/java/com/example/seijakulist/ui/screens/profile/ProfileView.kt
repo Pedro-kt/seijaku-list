@@ -41,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.seijakulist.ui.components.TitleScreen
+import com.example.seijakulist.ui.navigation.AppDestinations
 
 @Composable
 fun ProfileView(

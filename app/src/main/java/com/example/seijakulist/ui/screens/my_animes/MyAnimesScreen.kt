@@ -1,14 +1,20 @@
 package com.example.seijakulist.ui.screens.my_animes
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,12 +38,15 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlusOne
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
@@ -45,6 +55,7 @@ import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -147,9 +158,11 @@ fun MyAnimeListScreen(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
+                detectTapGestures(
+                    onTap = {
+                        focusManager.clearFocus()
+                    }
+                )
             }
     ) {
         if (savedAnimes.isEmpty()) {
@@ -184,38 +197,53 @@ fun MyAnimeListScreen(
             }
         } else {
 
-            AnimatedVisibility(
-                visible = isSearching,
-                enter = slideInVertically(animationSpec = tween(500)) + fadeIn(animationSpec = tween(500)),
-                exit = slideOutVertically(animationSpec = tween(500)) + fadeOut(animationSpec = tween(500))
-            ) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Buscar anime...") },
-                    trailingIcon = {
-                        IconButton(onClick = {
-                            onDismissSearch()
-                            searchQuery = ""
-                        }) {
-                            Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color.Transparent,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    ),
-                )
+            AnimatedContent(
+                targetState = isSearching,
+                transitionSpec = {
+                    // Anima la entrada y salida del contenido.
+                    (slideInVertically(animationSpec = tween(500)) + fadeIn())
+                        .togetherWith(slideOutVertically(animationSpec = tween(500)) + fadeOut())
+                        .using(
+                            // Anima el tamaño del contenedor principal para un efecto más suave.
+                            SizeTransform(clip = false)
+                        )
+                }
+            ) { targetIsSearching ->
+                if (targetIsSearching) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Buscar anime...") },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                onDismissSearch()
+                                searchQuery = ""
+                            }) {
+                                Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda")
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = Color.Transparent,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(
+                                alpha = 0.7f
+                            )
+                        ),
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(0.dp))
+                }
             }
 
             LazyRow(
@@ -245,11 +273,11 @@ fun MyAnimeListScreen(
                             color = if (isSelected) {
                                 MaterialTheme.colorScheme.primary
                             } else {
-                                MaterialTheme.colorScheme.surfaceContainerHighest
+                                MaterialTheme.colorScheme.surfaceContainerHigh
                             }
                         ),
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                         )
                     )
@@ -267,7 +295,8 @@ fun MyAnimeListScreen(
             }
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp)
             ) {
@@ -293,10 +322,7 @@ fun MyAnimeListScreen(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                             ),
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 16.dp
-                            )
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Box(modifier = Modifier.fillMaxWidth()) {
                                 Row(
@@ -385,7 +411,9 @@ fun MyAnimeListScreen(
                                                 fontFamily = RobotoRegular,
                                                 color = MaterialTheme.colorScheme.onSurface,
                                             )
-                                            IconButton(
+                                            Button(
+                                                modifier = Modifier
+                                                    .padding(end = 10.dp),
                                                 onClick = {
                                                     val newEpisodesWatched =
                                                         anime.episodesWatched + 1
@@ -396,11 +424,7 @@ fun MyAnimeListScreen(
                                                 },
                                                 enabled = anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes
                                             ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.AddCircleOutline,
-                                                    contentDescription = "Agregar episodio",
-                                                    tint = MaterialTheme.colorScheme.onSurface,
-                                                )
+                                                Text(text = "+1")
                                             }
                                         }
                                         LinearProgressIndicator(
@@ -444,7 +468,10 @@ fun MyAnimeListScreen(
                                             Text(text = "Confirmar eliminación")
                                         },
                                         text = {
-                                            Text(text = "¿Estás seguro de que quieres eliminar este anime de tu lista?")
+                                            Text(
+                                                text = "¿Estás seguro de que quieres eliminar este anime de tu lista? \n" +
+                                                        "Una vez eliminado tendras que volver a agregarlo de nuevo a tu lista"
+                                            )
                                         },
                                         confirmButton = {
                                             TextButton(
@@ -459,9 +486,13 @@ fun MyAnimeListScreen(
                                                             duration = SnackbarDuration.Long
                                                         )
                                                     }
-                                                }
+                                                },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = MaterialTheme.colorScheme.primary,
+                                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                                )
                                             ) {
-                                                Text("Eliminar", color = Color.Red)
+                                                Text("Eliminar")
                                             }
                                         },
                                         dismissButton = {

@@ -27,5 +27,7 @@ object AppDestinations {
     const val PROFILE_LOADER_ROUTE = "profile_loader_route"
     const val PROFILE_SETUP_ROUTE = "profile_setup_route"
     const val PROFILE_VIEW_ROUTE = "profile_view_route"
+    const val LOGIN_ROUTE = "login_route"
+    const val REGISTER_ROUTE = "register_route"
 
 }

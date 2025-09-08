@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,6 +39,8 @@ import com.example.seijakulist.ui.screens.local_anime_detail.AnimeDetailScreenLo
 import com.example.seijakulist.ui.screens.my_animes.MyAnimeListScreen
 import com.example.seijakulist.ui.screens.my_mangas.MyMangasScreen
 import com.example.seijakulist.ui.components.AppScaffold
+import com.example.seijakulist.ui.screens.auth_screen.LoginScreen
+import com.example.seijakulist.ui.screens.auth_screen.RegisterScreen
 import com.example.seijakulist.ui.screens.configuration.ConfigurationScreen
 import com.example.seijakulist.ui.screens.configuration.SettingsViewModel
 import com.example.seijakulist.ui.screens.profile.ProfileLoaderScreen
@@ -74,12 +77,48 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
 
     NavHost(
         navController = navController,
-        startDestination = if (firebaseAuth.currentUser != null) {
-            AppDestinations.SEARCH_ANIME_ROUTE
-        } else {
-            AppDestinations.AUTH_ROUTE
-        },
+        startDestination = AppDestinations.HOME
     ) {
+        composable(
+            route = AppDestinations.LOGIN_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
+        ) {
+            LoginScreen(
+                onSignInSuccess = {
+                    navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) {
+                        popUpTo(AppDestinations.LOGIN_ROUTE) {
+                            inclusive = true
+                        }
+                    }
+                },
+                navController = navController
+            )
+        }
+        composable(
+            route = AppDestinations.REGISTER_ROUTE,
+            enterTransition = {
+                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
+            },
+            exitTransition = {
+                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
+            },
+        ) {
+            RegisterScreen(
+                onSignInSuccess = {
+                    navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) {
+                        popUpTo(AppDestinations.REGISTER_ROUTE) {
+                            inclusive = true
+                        }
+                    }
+                },
+                navController = navController
+            )
+        }
         composable(
             AppDestinations.PROFILE_LOADER_ROUTE,
             enterTransition = {
@@ -123,7 +162,8 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
                             inclusive = true
                         }
                     }
-                }
+                },
+                navController = navController
             )
         }
         composable(
