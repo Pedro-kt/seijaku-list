@@ -105,10 +105,17 @@ fun LoginScreen(
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
+            Text(
+                text = "Iniciar sesión",
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 18.sp,
+                fontFamily = com.example.seijakulist.ui.theme.RobotoBold,
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
 
         Text(
-            text = "Seijaku List",
+            text = "SeijakuList",
             fontFamily = RobotoBold,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
@@ -119,7 +126,7 @@ fun LoginScreen(
             fontStyle = FontStyle.Italic
         )
         Text(
-            text = "Tu lista personal de animes y mangas",
+            text = "Bienvenido de nuevo!",
             fontFamily = RobotoRegular,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
@@ -128,15 +135,6 @@ fun LoginScreen(
             fontSize = 18.sp
         )
         Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = "Iniciar sesión",
-            fontFamily = RobotoBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            fontSize = 20.sp
-        )
         Text(
             text = "Por favor ingrese con su cuenta",
             fontFamily = RobotoRegular,
@@ -329,7 +327,7 @@ fun LoginScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "No tienes una cuenta?",
+                    text = "Eres nuevo?",
                     fontFamily = RobotoRegular,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -337,7 +335,7 @@ fun LoginScreen(
                     onClick = { navController.navigate(AppDestinations.REGISTER_ROUTE) }
                 ) {
                     Text(
-                        text = "Registrate",
+                        text = "Registrarse",
                         fontFamily = RobotoRegular,
                         color = MaterialTheme.colorScheme.primary,
                     )
