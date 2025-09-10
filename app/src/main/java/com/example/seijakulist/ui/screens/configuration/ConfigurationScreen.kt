@@ -135,7 +135,7 @@ fun ConfigurationScreen(
         }
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "Version 0.1.3-Alpha (Release) - Desarrollado por Bustamante Pedro",
+            text = "Version 0.1.4-Alpha (Release) - Desarrollado por Bustamante Pedro",
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 12.sp,
             fontFamily = com.example.seijakulist.ui.theme.RobotoRegular,

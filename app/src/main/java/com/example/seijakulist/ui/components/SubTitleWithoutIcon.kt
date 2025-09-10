@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,7 +29,7 @@ fun SubTitleWithoutIcon(subTitle: String) {
 
     Row(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 10.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -36,7 +37,7 @@ fun SubTitleWithoutIcon(subTitle: String) {
         Text(
             text = subTitle,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             fontFamily = RobotoBold,
             textAlign = TextAlign.Start,
         )

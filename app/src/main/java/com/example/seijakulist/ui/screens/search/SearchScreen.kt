@@ -363,9 +363,6 @@ fun SearchScreen(
                                                     colors = FilterChipDefaults.filterChipColors(
                                                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                                                         labelColor = MaterialTheme.colorScheme.onSurface,
-                                                    ),
-                                                    elevation = FilterChipDefaults.filterChipElevation(
-                                                        elevation = 16.dp
                                                     )
                                                 )
                                             }

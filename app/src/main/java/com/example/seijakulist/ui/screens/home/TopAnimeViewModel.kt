@@ -3,6 +3,7 @@ package com.example.seijakulist.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.Anime
+import com.example.seijakulist.domain.usecase.GetTopAnimeFilterUseCase
 import com.example.seijakulist.domain.usecase.GetTopAnimeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TopAnimeViewModel @Inject constructor(
 
-    private val getTopAnimeUseCase: GetTopAnimeUseCase
+    private val getTopAnimeUseCase: GetTopAnimeUseCase,
 
 ) : ViewModel() {
 

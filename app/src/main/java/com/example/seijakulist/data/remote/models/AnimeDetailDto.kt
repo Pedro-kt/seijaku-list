@@ -20,7 +20,7 @@ data class AnimeDetailDto(
     val duration: String?,
     val rating: String?,
     val score: Float?,
-    @SerializedName("score_by") val scoreBy: Int?,
+    @SerializedName("scored_by") val scoreBy: Int?,
     val rank: Int?,
     val synopsis: String?,
     val season: String?,

@@ -62,4 +62,16 @@ interface  JikanApiService {
 
     @GET("random/characters")
     suspend fun getCharacterRandom(): CharacterResponseDto
+
+    @GET("schedules")
+    suspend fun getAnimeSchedule(
+        @Query("filter") filter: String
+    ): SearchAnimeResponse
+
+    @GET("top/anime")
+    suspend fun getTopAnimeFilter(
+        @Query("type") filter: String
+    ): SearchAnimeResponse
+
+
 }

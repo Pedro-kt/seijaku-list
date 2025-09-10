@@ -123,6 +123,14 @@ class AnimeRepository @Inject constructor(
         return ApiService.getAnimeRandom()
     }
 
+    suspend fun searchAnimeSchedule(day: String): SearchAnimeResponse {
+        return ApiService.getAnimeSchedule(day)
+    }
+
+    suspend fun searchTopAnimeFilter(filter: String): SearchAnimeResponse {
+        return ApiService.getTopAnimeFilter(filter)
+    }
+
     suspend fun getAnimeThemesById(animeId: Int): AnimeThemes {
 
         val dto = ApiService.getAnimeThemes(animeId)

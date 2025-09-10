@@ -54,6 +54,8 @@ import com.example.seijakulist.R
 import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.ui.navigation.AppDestinations
+import com.example.seijakulist.ui.theme.RobotoBold
+import com.example.seijakulist.ui.theme.RobotoRegular
 
 @Composable
 fun CharacterRandomCard(
@@ -63,13 +65,6 @@ fun CharacterRandomCard(
 ) {
 
     var isLiked by remember { mutableStateOf(false) }
-
-    val RobotoBold = FontFamily(
-        Font(R.font.roboto_bold)
-    )
-    val RobotoRegular = FontFamily(
-        Font(R.font.roboto_regular)
-    )
 
     ElevatedCard(
         modifier = Modifier
@@ -84,7 +79,7 @@ fun CharacterRandomCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
                 .clip(RoundedCornerShape(16.dp))
                 .clickable {

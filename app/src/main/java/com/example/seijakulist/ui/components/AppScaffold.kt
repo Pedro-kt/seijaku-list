@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -117,7 +118,8 @@ fun AppScaffold(
                                 text = "SeijakuList",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.titleLarge,
-                                fontSize = 24.sp
+                                fontSize = 26.sp,
+                                fontStyle = FontStyle.Italic,
                             )
                         },
                         actions = {

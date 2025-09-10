@@ -60,6 +60,8 @@ import com.example.seijakulist.R
 import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.ui.navigation.AppDestinations
+import com.example.seijakulist.ui.theme.RobotoBold
+import com.example.seijakulist.ui.theme.RobotoRegular
 
 @Composable
 fun AnimeRandomCard(
@@ -69,13 +71,6 @@ fun AnimeRandomCard(
 ) {
 
     var isLiked by remember { mutableStateOf(false) }
-
-    val RobotoBold = FontFamily(
-        Font(R.font.roboto_bold)
-    )
-    val RobotoRegular = FontFamily(
-        Font(R.font.roboto_regular)
-    )
 
     ElevatedCard(
         modifier = Modifier
@@ -90,7 +85,7 @@ fun AnimeRandomCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
                 .clip(RoundedCornerShape(16.dp))
                 .clickable {
@@ -196,11 +191,8 @@ fun AnimeRandomCard(
                                     },
                                     modifier = Modifier.padding(end = 8.dp),
                                     colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
                                         labelColor = MaterialTheme.colorScheme.onSurface,
-                                    ),
-                                    elevation = FilterChipDefaults.filterChipElevation(
-                                        elevation = 16.dp
                                     )
                                 )
                             }
