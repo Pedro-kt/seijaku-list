@@ -13,4 +13,4 @@
 .externalNativeBuild
 .cxx
 local.properties
-/app/src/main/res/drawable/icon_profile.png
+/app/google-services.json
