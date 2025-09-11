@@ -131,6 +131,10 @@ class AnimeRepository @Inject constructor(
         return ApiService.getTopAnimeFilter(filter)
     }
 
+    suspend fun searchAnimeSeasonUpcomingFilter(filter: String): SearchAnimeResponse {
+        return ApiService.getSeasonUpcomingFilter(filter)
+    }
+
     suspend fun getAnimeThemesById(animeId: Int): AnimeThemes {
 
         val dto = ApiService.getAnimeThemes(animeId)

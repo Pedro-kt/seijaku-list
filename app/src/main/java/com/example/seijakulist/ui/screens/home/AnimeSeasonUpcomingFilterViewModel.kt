@@ -3,7 +3,7 @@ package com.example.seijakulist.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.Anime
-import com.example.seijakulist.domain.usecase.GetAnimeScheduleUseCase
+import com.example.seijakulist.domain.usecase.GetAnimeSeasonUpcomingFilterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,9 +15,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AnimeScheduleViewModel @Inject constructor(
-    private val getAnimeScheduleUseCase: GetAnimeScheduleUseCase
+class AnimeSeasonUpcomingFilterViewModel @Inject constructor(
+    private val getAnimeSeasonUpcomingFilterUseCase: GetAnimeSeasonUpcomingFilterUseCase
 ) : ViewModel() {
+
     private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
     val animeList: StateFlow<List<Anime>> = _animeList.asStateFlow()
 
@@ -32,8 +33,7 @@ class AnimeScheduleViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = false
     )
-
-    fun AnimeSchedule(day: String) {
+    fun AnimeSeasonUpcomingFilter(filter: String) {
 
         viewModelScope.launch {
 
@@ -42,9 +42,10 @@ class AnimeScheduleViewModel @Inject constructor(
 
             try {
 
-                val results = getAnimeScheduleUseCase.invoke(day)
+                val results = getAnimeSeasonUpcomingFilterUseCase.invoke(filter)
                 val filtered = results.distinctBy { it.malId }
                 _animeList.value = filtered
+                //isDataLoaded = true
 
             } catch (e: Exception) {
 
@@ -58,4 +59,5 @@ class AnimeScheduleViewModel @Inject constructor(
             }
         }
     }
+
 }

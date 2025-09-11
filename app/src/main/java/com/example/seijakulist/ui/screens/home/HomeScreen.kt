@@ -37,8 +37,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.seijakulist.ui.components.CardAnimesHome
+import com.example.seijakulist.ui.components.CardAnimesHomeLoading
 import com.example.seijakulist.ui.components.CompleteAnimeCard
 import com.example.seijakulist.ui.components.CompleteCharacterCard
+import com.example.seijakulist.ui.components.FilterAnimesHome
 import com.example.seijakulist.ui.components.HorizontalDividerComponent
 import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.components.NoInternetScreen
@@ -56,7 +58,8 @@ fun HomeScreen(
     animeRandomViewModel: AnimeRandomViewModel = hiltViewModel(),
     characterRandomViewModel: CharacterRandomViewModel = hiltViewModel(),
     animeScheduleViewModel: AnimeScheduleViewModel = hiltViewModel(),
-    animeFilterViewModel: TopAnimeFilterViewModel = hiltViewModel()
+    animeFilterViewModel: TopAnimeFilterViewModel = hiltViewModel(),
+    seasonUpcomingFilterViewModel: AnimeSeasonUpcomingFilterViewModel = hiltViewModel()
 ) {
 
     val animeSeasonNow by seasonNowViewModel.animeList.collectAsState()
@@ -84,6 +87,14 @@ fun HomeScreen(
     val animeScheduleError by animeScheduleViewModel.isError.collectAsState()
 
     val topAnimeFilter by animeFilterViewModel.animeList.collectAsState()
+    val topAnimeFilterIsLoading by animeFilterViewModel.isLoading.collectAsState()
+    val topAnimeFilterErrorMessage by animeFilterViewModel.errorMessage.collectAsState()
+    val topAnimeFilterError by animeFilterViewModel.isError.collectAsState()
+
+    val animeSeasonUpcomingFilter by seasonUpcomingFilterViewModel.animeList.collectAsState()
+    val animeSeasonUpcomingFilterIsLoading by seasonUpcomingFilterViewModel.isLoading.collectAsState()
+    val animeSeasonUpcomingFilterErrorMessage by seasonUpcomingFilterViewModel.errorMessage.collectAsState()
+    val animeSeasonUpcomingFilterError by seasonUpcomingFilterViewModel.isError.collectAsState()
 
     val hasError = animeSeasonNowError || topAnimeError || animeSeasonUpcomingError
 
@@ -93,13 +104,13 @@ fun HomeScreen(
     var visible by rememberSaveable { mutableStateOf(false) }
 
     val listDays = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-    var selectedDayFilter by remember { mutableStateOf<String?>(null) }
+    val listDaysFilter = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
     val listTypeAnime = listOf("tv", "movie", "ova", "special", "ona", "music", "cm", "pv", "tv_special")
-    var selectedTypeFilter by remember { mutableStateOf<String?>(null) }
+    val listTypeAnimeFilter = listOf("TV", "Película", "OVA", "Especial", "ONA", "Música", "CM", "PV", "TV Especial")
 
     val listTypeSeasonUpcoming = listOf("tv", "movie", "ova", "special", "ona", "music")
-    var selectedTypeSeasonUpcomingFilter by remember { mutableStateOf<String?>(null) }
+    val listTypeSeasonUpcomingFilter = listOf("TV", "Película", "OVA", "Especial", "ONA", "Música")
 
 
     Column(
@@ -158,50 +169,13 @@ fun HomeScreen(
                     "Anime" -> {
                         LazyColumn() {
                             item {
+                                Spacer(modifier = Modifier.padding(4.dp))
+                            }
+                            item {
                                 SubTitleWithoutIcon("En emision")
                             }
                             item {
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    contentPadding = PaddingValues(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        bottom = 16.dp
-                                    )
-                                ) {
-                                    items(listDays) { day ->
-                                        val isSelected = selectedDayFilter == day
-
-                                        ElevatedFilterChip(
-                                            selected = isSelected,
-                                            onClick = {
-                                                selectedDayFilter = if (isSelected) null else day
-                                            },
-                                            label = {
-                                                Text(
-                                                    text = day,
-                                                    color = if (isSelected) {
-                                                        MaterialTheme.colorScheme.onPrimary
-                                                    } else {
-                                                        MaterialTheme.colorScheme.onSurface
-                                                    }
-                                                )
-                                            },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                            ),
-                                            border = BorderStroke(
-                                                width = 1.dp,
-                                                color = if (isSelected) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                }
-                                            )
-                                        )
-                                    }
-                                }
+                                val selectedDayFilter = FilterAnimesHome(listDays, listDaysFilter)
 
                                 // 1. Move the API call logic here.
                                 LaunchedEffect(key1 = selectedDayFilter) {
@@ -212,12 +186,14 @@ fun HomeScreen(
 
                                 // 2. Display content based on the selected filter.
                                 selectedDayFilter?.let { day ->
-                                    if (animeSchedule.isNotEmpty()) {
+                                    if (animeScheduleIsLoading) {
+                                        CardAnimesHomeLoading()
+                                    } else if (animeSchedule.isNotEmpty()) {
                                         CardAnimesHome(animeSchedule, navController)
                                     } else {
                                         Text(
-                                            text = "No hay animes programados para $day.",
-                                            modifier = Modifier.padding(16.dp),
+                                            text = "No hay animes programados para este dia.",
+                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                                             textAlign = TextAlign.Center,
                                             fontFamily = RobotoRegular,
                                             fontSize = 16.sp,
@@ -233,47 +209,7 @@ fun HomeScreen(
                                 SubTitleWithoutIcon("Top scores")
                             }
                             item {
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    contentPadding = PaddingValues(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        bottom = 16.dp
-                                    )
-                                ) {
-                                    items(listTypeAnime) { typeAnime ->
-                                        val isTypeSelected = selectedTypeFilter == typeAnime
-
-                                        ElevatedFilterChip(
-                                            selected = isTypeSelected,
-                                            onClick = {
-                                                selectedTypeFilter = if (isTypeSelected) null else typeAnime
-                                            },
-                                            label = {
-                                                Text(
-                                                    text = typeAnime,
-                                                    color = if (isTypeSelected) {
-                                                        MaterialTheme.colorScheme.onPrimary
-                                                    } else {
-                                                        MaterialTheme.colorScheme.onSurface
-                                                    }
-                                                )
-                                            },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                            ),
-                                            border = BorderStroke(
-                                                width = 1.dp,
-                                                color = if (isTypeSelected) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                }
-                                            )
-                                        )
-                                    }
-                                }
+                                val selectedTypeFilter = FilterAnimesHome(listTypeAnime, listTypeAnimeFilter)
 
                                 LaunchedEffect(key1 = selectedTypeFilter) {
                                     selectedTypeFilter?.let { filter ->
@@ -282,12 +218,14 @@ fun HomeScreen(
                                 }
 
                                 selectedTypeFilter?.let { filter ->
-                                    if (topAnimeFilter.isNotEmpty()) {
+                                    if (topAnimeFilterIsLoading) {
+                                        CardAnimesHomeLoading()
+                                    } else if (topAnimeFilter.isNotEmpty()) {
                                         CardAnimesHome(topAnimeFilter, navController)
                                     } else {
                                         Text(
-                                            text = "No hay animes para $filter.",
-                                            modifier = Modifier.padding(16.dp),
+                                            text = "No se encontraron animes para el filtro seleccionado.",
+                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                                             textAlign = TextAlign.Center,
                                             fontFamily = RobotoRegular,
                                             fontSize = 16.sp,
@@ -303,48 +241,32 @@ fun HomeScreen(
                                 SubTitleWithoutIcon("Próxima temporada")
                             }
                             item {
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    contentPadding = PaddingValues(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        bottom = 16.dp
-                                    )
-                                ) {
-                                    items(listTypeSeasonUpcoming) { typeSeasonUpcoming ->
-                                        val isSelected = selectedTypeSeasonUpcomingFilter == typeSeasonUpcoming
+                                val selectedTypeSeasonUpcomingFilter = FilterAnimesHome(listTypeSeasonUpcoming, listTypeSeasonUpcomingFilter)
 
-                                        ElevatedFilterChip(
-                                            selected = isSelected,
-                                            onClick = {
-                                                selectedTypeSeasonUpcomingFilter = if (isSelected) null else typeSeasonUpcoming
-                                            },
-                                            label = {2
-                                                Text(
-                                                    text = typeSeasonUpcoming,
-                                                    color = if (isSelected) {
-                                                        MaterialTheme.colorScheme.onPrimary
-                                                    } else {
-                                                        MaterialTheme.colorScheme.onSurface
-                                                    }
-                                                )
-                                            },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                            ),
-                                            border = BorderStroke(
-                                                width = 1.dp,
-                                                color = if (isSelected) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                }
-                                            )
-                                        )
+                                LaunchedEffect(selectedTypeSeasonUpcomingFilter) {
+                                    selectedTypeSeasonUpcomingFilter?.let { filter ->
+                                        seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(filter)
                                     }
                                 }
-                                CardAnimesHome(animeSeasonUpcoming, navController)
+
+                                selectedTypeSeasonUpcomingFilter?.let { filter ->
+                                    if (animeSeasonUpcomingFilterIsLoading) {
+                                        CardAnimesHomeLoading()
+                                    } else if (animeSeasonUpcomingFilter.isNotEmpty()) {
+                                        CardAnimesHome(animeSeasonUpcomingFilter, navController)
+                                    } else {
+                                        Text(
+                                            text = "No se encontraron animes para el filtro seleccionado.",
+                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                            textAlign = TextAlign.Center,
+                                            fontFamily = RobotoRegular,
+                                            fontSize = 16.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                } ?: run {
+                                    CardAnimesHome(animeSeasonUpcoming, navController)
+                                }
                             }
                             item {
                                 SubTitleWithoutIcon("Anime aleatorio")

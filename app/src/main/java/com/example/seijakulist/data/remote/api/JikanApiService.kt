@@ -73,5 +73,8 @@ interface  JikanApiService {
         @Query("type") filter: String
     ): SearchAnimeResponse
 
-
+    @GET("seasons/upcoming")
+    suspend fun getSeasonUpcomingFilter(
+        @Query("filter") filter: String
+    ) : SearchAnimeResponse
 }
