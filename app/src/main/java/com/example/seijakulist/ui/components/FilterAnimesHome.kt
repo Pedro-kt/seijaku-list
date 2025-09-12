@@ -1,10 +1,14 @@
 package com.example.seijakulist.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -20,44 +25,36 @@ fun FilterAnimesHome(list: List<String>, listLabel: List<String>) : String? {
 
     var selectedFilter by remember { mutableStateOf<String?>(null) }
 
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            bottom = 16.dp
-        )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(list.size) { index ->
-            val filter = list[index]
-            val labelFilter = listLabel[index]
+        list.forEachIndexed { index, filter ->
             val isSelected = selectedFilter == filter
 
-            ElevatedFilterChip(
+            FilterChip(
                 selected = isSelected,
                 onClick = {
                     selectedFilter = if (isSelected) null else filter
                 },
                 label = {
-                    Text(
-                        text = labelFilter,
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
-                    )
+                    Text(listLabel[index])
                 },
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 border = BorderStroke(
-                    width = 1.dp,
+                    width = 0.dp,
                     color = if (isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
                         MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
                     }
                 )
             )

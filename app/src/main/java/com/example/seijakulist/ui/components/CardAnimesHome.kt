@@ -1,11 +1,5 @@
 package com.example.seijakulist.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,19 +22,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,7 +36,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
-import com.example.seijakulist.R
 import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.theme.RobotoBold
@@ -66,11 +51,12 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
     ) {
         items(animeList) { anime ->
             Column(
-                modifier = Modifier
-                    .width(130.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.width(130.dp),
             ) {
                 Box() {
+
+                    val fakeYear = (2015..2023).random()
+                    val fakeEpisodes = (12..24).random()
 
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
@@ -89,47 +75,47 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
                             }
                     )
-                    Row(
-                        modifier = Modifier
-                            .padding(start = 5.dp, top = 5.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(color = Color.Black.copy(alpha = 0.6f))
-                            .height(24.dp)
-                            .wrapContentWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Puntuacion",
-                            tint = Color.White,
+                    if (anime.score != null && anime.score > 0) {
+                        Row(
                             modifier = Modifier
-                                .padding(start = 6.dp)
-                                .size(12.dp)
-                        )
-                        Text(
-                            text = String.format("%.1f", anime.score),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .wrapContentWidth()
-                                .padding(end = 6.dp),
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontFamily = RobotoBold
-                        )
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(color = Color.Black.copy(alpha = 0.6f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = "Puntuación",
+                                tint = Color.Yellow,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = String.format("%.1f", anime.score),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontFamily = RobotoBold
+                            )
+                        }
                     }
+
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
                     text = anime.title,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontFamily = RobotoRegular
+                    fontFamily = RobotoRegular,
+                    fontSize = 14.sp,
                 )
             }
         }

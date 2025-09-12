@@ -3,6 +3,7 @@ package com.example.seijakulist.util.navigation_tools
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
@@ -22,7 +23,7 @@ val navItems = listOf(
     BottomNavItem(
         name = "Mis Mangas",
         selectedIcon = Icons.AutoMirrored.Filled.MenuBook,
-        unselectedIcon = Icons.AutoMirrored.Filled.MenuBook,
+        unselectedIcon = Icons.AutoMirrored.Outlined.MenuBook,
         route = AppDestinations.MY_MANGAS_ROUTE
     ),
     BottomNavItem(

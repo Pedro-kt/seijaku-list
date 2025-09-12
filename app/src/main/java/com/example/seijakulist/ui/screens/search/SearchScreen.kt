@@ -7,15 +7,14 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.material3.Text
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -24,18 +23,16 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,9 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -60,8 +54,9 @@ import com.example.seijakulist.R
 import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.components.NoInternetScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
+import com.example.seijakulist.ui.theme.RobotoBold
+import com.example.seijakulist.ui.theme.RobotoRegular
 
-@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
@@ -73,18 +68,9 @@ fun SearchScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    val RobotoRegular = FontFamily(
-        Font(R.font.roboto_regular)
-    )
-    val RobotoBold = FontFamily(
-        Font(R.font.roboto_bold, FontWeight.Bold)
-    )
-
-    val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
     val listFilterChip = listOf("Anime", "Manga", "Generos", "Personajes", "Staff", "Estudios")
-
     var selectedFilter by remember { mutableStateOf<String?>(null) }
 
     var colapsedFilter by remember { mutableStateOf(false) }
@@ -100,8 +86,9 @@ fun SearchScreen(
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
+                .padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTextField(
@@ -109,7 +96,7 @@ fun SearchScreen(
                     .weight(1f)
                     .clip(RoundedCornerShape(50.dp)),
                 value = searchQuery,
-                onValueChange = { newText -> viewModel.onSearchQueryChanged(newText) },
+                onValueChange = viewModel::onSearchQueryChanged,
                 placeholder = {
                     Text(
                         text = "Explorar...",
@@ -122,8 +109,8 @@ fun SearchScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = Color.Transparent,
                     cursorColor = MaterialTheme.colorScheme.inversePrimary,
@@ -168,7 +155,6 @@ fun SearchScreen(
                         if (searchQuery.isNotBlank()) {
                             viewModel.searchAnimes()
                             focusManager.clearFocus()
-                            keyboardController?.hide()
                         }
                     }
                 ),
@@ -198,15 +184,15 @@ fun SearchScreen(
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        selectedContainerColor = MaterialTheme.colorScheme.primary
                     ),
                     border = BorderStroke(
                         width = 1.dp,
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.primary
                         } else {
-                            MaterialTheme.colorScheme.surfaceContainerHighest
+                            Color.Transparent
                         }
                     ),
                     shape = RoundedCornerShape(50.dp)
@@ -234,31 +220,22 @@ fun SearchScreen(
                 )
             ) {
                 items(animeList, key = { it.malId }) { anime ->
-                    var visible by rememberSaveable { mutableStateOf(false) }
-
-                    LaunchedEffect(Unit) {
-                        visible = true
-                    }
-
                     AnimatedVisibility(
-                        visible = visible,
-                        enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(
-                            animationSpec = tween(500)
-                        )
+                        visible = true,
+                        enter = fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(500), initialOffsetX = { -it / 2 })
                     ) {
-                        ElevatedCard(
+
+
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
                                     navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
                                 },
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
                             ),
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 16.dp
-                            )
+                            shape = RoundedCornerShape(16.dp)
                         ) {
                             Box(
                                 modifier = Modifier.fillMaxSize()
@@ -267,34 +244,34 @@ fun SearchScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box() {
+                                    Box {
                                         AsyncImage(
                                             model = anime.images,
                                             contentDescription = "Imagen de portada de ${anime.title}",
                                             modifier = Modifier
                                                 .height(180.dp)
                                                 .width(125.dp)
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(color = MaterialTheme.colorScheme.surfaceContainer),
+                                                .clip(RoundedCornerShape(16.dp)),
                                             contentScale = ContentScale.Crop
                                         )
                                         Row(
                                             modifier = Modifier
-                                                .clip(RoundedCornerShape(topEnd = 16.dp))
-                                                .background(color = Color.Black.copy(alpha = 0.8f))
-                                                .height(24.dp)
-                                                .wrapContentWidth()
-                                                .align(Alignment.BottomStart),
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                .align(Alignment.BottomStart)
+                                                .padding(4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(
+                                                    MaterialTheme.colorScheme.scrim.copy(alpha = 0.8f)
+                                                )
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(2.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Star,
                                                 contentDescription = "Puntuacion",
                                                 tint = Color.White,
-                                                modifier = Modifier
-                                                    .padding(start = 6.dp)
-                                                    .size(12.dp)
+                                                modifier = Modifier.size(14.dp)
+
                                             )
                                             Text(
                                                 text = String.format("%.1f", anime.score),
@@ -302,8 +279,7 @@ fun SearchScreen(
                                                 overflow = TextOverflow.Ellipsis,
                                                 textAlign = TextAlign.Start,
                                                 modifier = Modifier
-                                                    .wrapContentWidth()
-                                                    .padding(end = 10.dp),
+                                                    .wrapContentWidth(align = Alignment.Start),
                                                 color = Color.White,
                                                 fontSize = 12.sp,
                                                 fontFamily = RobotoBold
@@ -312,81 +288,91 @@ fun SearchScreen(
                                     }
                                     Column(
                                         modifier = Modifier
-                                            .weight(1f),
-                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                            .weight(1f)
+                                            .padding(horizontal = 16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
                                         Text(
                                             text = anime.title,
-                                            modifier = Modifier.padding(horizontal = 16.dp),
-                                            maxLines = 1,
+                                            maxLines = 2,
                                             overflow = TextOverflow.Ellipsis,
                                             color = MaterialTheme.colorScheme.onSurface,
-                                            fontFamily = RobotoRegular,
-                                            fontSize = 18.sp
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold
+                                            )
                                         )
                                         Row(
-                                            modifier = Modifier.padding(start = 16.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.AccessTime,
-                                                contentDescription = "Puntuación",
-                                                tint = MaterialTheme.colorScheme.onSurface,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Text(
-                                                text = anime.status,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                fontSize = 14.sp,
-                                                fontFamily = RobotoRegular
-                                            )
-                                        }
-                                        LazyRow(
                                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            contentPadding = PaddingValues(horizontal = 16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            items(anime.genres) { genre ->
-                                                ElevatedFilterChip(
-                                                    selected = false,
-                                                    onClick = { },
-                                                    label = {
-                                                        genre?.name?.let {
-                                                            Text(
-                                                                it,
-                                                                fontSize = 12.sp,
-                                                            )
-                                                        }
-                                                    },
-                                                    colors = FilterChipDefaults.filterChipColors(
-                                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                        labelColor = MaterialTheme.colorScheme.onSurface,
+                                            val (statusColor, onStatusColor) = when (anime.status) {
+                                                "Currently Airing" -> Color(0xFF4CAF50).copy(alpha = 0.2f) to Color(0xFF4CAF50) // Verde
+                                                "Finished Airing" -> Color(0xFF2196F3).copy(alpha = 0.2f) to Color(0xFF2196F3) // Azul
+                                                "Not yet aired" -> Color(0xFFFF9800).copy(alpha = 0.2f) to Color(0xFFFF9800) // Naranja
+                                                else -> MaterialTheme.colorScheme.surfaceContainer to MaterialTheme.colorScheme.onSurfaceVariant
+                                            }
+
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = statusColor,
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.AccessTime,
+                                                        contentDescription = "Estado",
+                                                        tint = onStatusColor,
+                                                        modifier = Modifier.size(16.dp)
                                                     )
-                                                )
+                                                    Text(
+                                                        text = anime.status,
+                                                        style = MaterialTheme.typography.labelMedium,
+                                                        color = onStatusColor,
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        if (anime.genres.isNotEmpty()) {
+                                            LazyRow(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            ) {
+                                                items(anime.genres) { genre ->
+                                                    genre?.name?.let {
+                                                        SuggestionChip(
+                                                            onClick = { /* No action */ },
+                                                            label = {
+                                                                Text(
+                                                                    it,
+                                                                    style = MaterialTheme.typography.labelSmall
+                                                                )
+                                                            },
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                         Text(
-                                            text = "Año ${anime.year} • Episodios ${anime.episodes}",
-                                            modifier = Modifier.padding(start = 16.dp),
+                                            text = "Año ${anime.year ?: "N/A"} • ${anime.episodes ?: "N/A"} episodios",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 12.sp,
-                                            fontFamily = RobotoRegular
-                                        )
+                                            overflow = TextOverflow.Ellipsis
+                                            )
                                     }
                                 }
                                 IconButton(
                                     onClick = { },
                                     modifier = Modifier
                                         .align(Alignment.BottomEnd)
-                                        .padding(8.dp)
+                                        .padding(4.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.FavoriteBorder,
-                                        contentDescription = "Favorito",
+                                    Icon( // Cambiado para indicar "guardar" o "añadir a lista"
+                                        imageVector = Icons.Default.BookmarkBorder,
+                                        contentDescription = "Añadir a la lista",
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }

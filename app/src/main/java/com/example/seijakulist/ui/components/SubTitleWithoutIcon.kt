@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +30,7 @@ fun SubTitleWithoutIcon(subTitle: String) {
 
     Row(
         modifier = Modifier
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 10.dp)
+            .padding(start = 16.dp, end = 16.dp, )
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -41,14 +42,15 @@ fun SubTitleWithoutIcon(subTitle: String) {
             fontFamily = RobotoBold,
             textAlign = TextAlign.Start,
         )
-        Text(
-            text = "ver más",
-            modifier = Modifier
-                .clickable { },
-            color = MaterialTheme.colorScheme.inversePrimary,
-            fontSize = 16.sp,
-            fontFamily = RobotoRegular,
-            textAlign = TextAlign.End,
-        )
+        TextButton(
+            onClick = {}
+        ) {
+            Text(
+                text = "Ver más",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp,
+                fontFamily = RobotoRegular,
+            )
+        }
     }
 }

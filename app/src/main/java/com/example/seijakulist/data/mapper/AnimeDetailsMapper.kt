@@ -26,6 +26,6 @@ fun AnimeDetailDto.toAnimeDetails(): AnimeDetail {
         scoreBy = scoreBy ?: 0,
         rank = rank ?: 0,
         season = season ?: "No encontrado",
-        year = year ?: 0
+        year = year ?: "No encontrado"
     )
 }

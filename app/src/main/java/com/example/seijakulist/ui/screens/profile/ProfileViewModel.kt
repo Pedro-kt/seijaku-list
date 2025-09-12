@@ -40,6 +40,7 @@ data class ProfileUiState(
     val error: String? = null
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userProfileLocalRepository: UserProfileLocalRepository

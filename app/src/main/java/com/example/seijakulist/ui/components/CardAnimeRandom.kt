@@ -1,39 +1,28 @@
 package com.example.seijakulist.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,13 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,9 +40,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.size.Size
-import com.example.seijakulist.R
-import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.ui.navigation.AppDestinations
 import com.example.seijakulist.ui.theme.RobotoBold
@@ -70,172 +52,124 @@ fun AnimeRandomCard(
     onRefresh: () -> Unit
 ) {
 
-    var isLiked by remember { mutableStateOf(false) }
-
     ElevatedCard(
+        onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") },
         modifier = Modifier
             .fillMaxWidth()
-            .height(210.dp)
-            .clip(RoundedCornerShape(16.dp)),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 16.dp
-        )
+            .height(210.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
+        var isLiked by remember { mutableStateOf(false) }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
-                .clip(RoundedCornerShape(16.dp))
-                .clickable {
-                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                }
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(anime.images)
-                        .size(Size.ORIGINAL)
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Imagen de portada",
+                    contentDescription = anime.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .width(140.dp)
                         .height(210.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(color = MaterialTheme.colorScheme.surfaceContainerHighest)
-
                 )
                 Column(
-                    modifier = Modifier.fillMaxHeight(),
-                    verticalArrangement = Arrangement.Top
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(
+                            start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp
+                        ),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = anime.title,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .padding(start = 16.dp, top = 16.dp, end = 40.dp)
-                            .fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.sp,
-                        fontFamily = RobotoBold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier
-                            .padding(start = 16.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .height(32.dp)
-                            .wrapContentWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Puntuacion",
-                            tint = Color(0xFFFDC700),
-                            modifier = Modifier
-                                .size(16.dp)
-                        )
+                    Column {
                         Text(
-                            text = String.format("%.1f", anime.score),
-                            maxLines = 1,
+                            text = anime.title,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Start,
                             modifier = Modifier
-                                .wrapContentWidth(),
-                            color = Color(0xFFFDC700),
-                            fontSize = 16.sp,
-                            fontFamily = RobotoRegular
-                        )
-                        Text("•")
-                        Icon(
-                            imageVector = Icons.Default.Alarm,
-                            contentDescription = "Icono de estrellas",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(16.dp)
+                                .padding(end = 40.dp)
+                                .fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 18.sp,
+                            fontFamily = RobotoBold
                         )
                         Text(
-                            text = anime.status,
+                            text = "${anime.year ?: "N/A"} • ${anime.episodes ?: "?"} episodes",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .wrapContentWidth()
-                                .padding(),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 16.sp,
-                            fontFamily = RobotoRegular
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        ) {
-                        item {
-                            anime.genres.forEach { genreDto ->
-                                ElevatedFilterChip(
-                                    selected = false,
-                                    onClick = { },
-                                    label = {
-                                        genreDto?.name?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface) }
-                                    },
-                                    modifier = Modifier.padding(end = 8.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        labelColor = MaterialTheme.colorScheme.onSurface,
-                                    )
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(modifier = Modifier.padding(start = 16.dp)) {
-                        Text(
-                            text = "Año ${anime.year} • Episodios ${anime.episodes}",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp,
                             fontFamily = RobotoRegular,
                         )
+                    }
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        items(anime.genres.take(2)) { genre ->
+                            genre?.name?.let {
+                                GenreChip(text = it)
+                            }
+                        }
                     }
                 }
             }
 
-            IconButton(
-                onClick = onRefresh,
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(48.dp)
+                    .align(Alignment.CenterEnd)
+                    .background(
+                        brush = Brush.horizontalGradient(listOf(
+                            MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0f),
+                            MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f)
+                        ))
+                    )
+            )
+
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                    .padding(end = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Refrescar",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-            IconButton(
-                onClick = { isLiked = !isLiked },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = "Añadir a favoritos",
-                    tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.onSurface,
-                )
+                IconButton(
+                    onClick = onRefresh,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refrescar",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+fun GenreChip(text: String) {
+    Text(
+        text = text,
+        fontSize = 11.sp,
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    )
 }

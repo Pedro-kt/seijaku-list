@@ -201,7 +201,6 @@ fun HomeScreen(
                                         )
                                     }
                                 } ?: run {
-                                    // This part is for when no filter is selected.
                                     CardAnimesHome(animeSeasonNow, navController)
                                 }
                             }
@@ -209,7 +208,8 @@ fun HomeScreen(
                                 SubTitleWithoutIcon("Top scores")
                             }
                             item {
-                                val selectedTypeFilter = FilterAnimesHome(listTypeAnime, listTypeAnimeFilter)
+                                val selectedTypeFilter =
+                                    FilterAnimesHome(listTypeAnime, listTypeAnimeFilter)
 
                                 LaunchedEffect(key1 = selectedTypeFilter) {
                                     selectedTypeFilter?.let { filter ->
@@ -241,11 +241,16 @@ fun HomeScreen(
                                 SubTitleWithoutIcon("Próxima temporada")
                             }
                             item {
-                                val selectedTypeSeasonUpcomingFilter = FilterAnimesHome(listTypeSeasonUpcoming, listTypeSeasonUpcomingFilter)
+                                val selectedTypeSeasonUpcomingFilter = FilterAnimesHome(
+                                    listTypeSeasonUpcoming,
+                                    listTypeSeasonUpcomingFilter
+                                )
 
                                 LaunchedEffect(selectedTypeSeasonUpcomingFilter) {
                                     selectedTypeSeasonUpcomingFilter?.let { filter ->
-                                        seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(filter)
+                                        seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(
+                                            filter
+                                        )
                                     }
                                 }
 
@@ -268,6 +273,7 @@ fun HomeScreen(
                                     CardAnimesHome(animeSeasonUpcoming, navController)
                                 }
                             }
+                            /*
                             item {
                                 SubTitleWithoutIcon("Anime aleatorio")
                             }
@@ -287,6 +293,9 @@ fun HomeScreen(
                                     characterRandomViewModel
                                 )
                             }
+                        }
+
+                             */
                         }
                     }
 

@@ -1,6 +1,5 @@
 package com.example.seijakulist.domain.models
 
-import com.example.seijakulist.data.remote.models.AiredDto
 import com.example.seijakulist.data.remote.models.GenreDto
 import com.example.seijakulist.data.remote.models.StudiosDto
 
@@ -22,7 +21,7 @@ data class AnimeDetail(
     val rank: Int,
     val synopsis: String,
     val season: String,
-    val year: Int,
+    val year: Any,
     val studios: List<StudiosDto?>,
     val genres: List<GenreDto?>
 )

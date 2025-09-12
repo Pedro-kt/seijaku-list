@@ -379,17 +379,19 @@ fun MyAnimeListScreen(
                                         modifier = Modifier
                                             .fillMaxHeight(),
                                         verticalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = anime.title,
-                                            fontFamily = RobotoBold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier
-                                                .padding(end = 40.dp)
-                                        )
+                                    ) { // Column
+                                        Column (modifier = Modifier.padding(top = 12.dp)){
+                                            Text(
+                                                text = anime.title,
+                                                fontFamily = RobotoBold,
+                                                fontSize = 17.sp,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier
+                                                    .padding(end = 40.dp)
+                                            )
+                                        }
                                         AnimeStatusChip(
                                             status = anime.statusUser,
                                             statusColor = statusColors[anime.statusUser]
@@ -412,7 +414,8 @@ fun MyAnimeListScreen(
                                                 color = MaterialTheme.colorScheme.onSurface,
                                             )
                                             Button(
-                                                modifier = Modifier
+                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                                modifier = Modifier.height(32.dp)
                                                     .padding(end = 10.dp),
                                                 onClick = {
                                                     val newEpisodesWatched =
@@ -434,7 +437,7 @@ fun MyAnimeListScreen(
                                                 } else 0f
                                             },
                                             modifier = Modifier
-                                                .fillMaxWidth()
+                                                .fillMaxWidth(0.95f)
                                                 .height(4.dp)
                                                 .clip(
                                                     RoundedCornerShape(
@@ -509,10 +512,8 @@ fun MyAnimeListScreen(
                             }
                         }
                     }
-
                 }
             }
         }
-
     }
 }
