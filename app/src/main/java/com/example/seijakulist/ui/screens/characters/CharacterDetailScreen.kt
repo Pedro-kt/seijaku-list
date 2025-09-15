@@ -10,30 +10,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,14 +37,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -66,7 +58,6 @@ import com.example.seijakulist.ui.components.TitleScreen
 import com.example.seijakulist.ui.theme.RobotoBold
 import com.example.seijakulist.ui.theme.RobotoRegular
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CharacterDetailScreen(
     navController: NavController,
@@ -105,39 +96,17 @@ fun CharacterDetailScreen(
     }
 
     if (overallIsLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            LoadingScreen()
+        // Loading state with a top bar
+        Column(Modifier.fillMaxSize()) {
+            CharacterDetailTopBar(navController = navController, title = "Cargando...")
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         }
     } else if (overallErrorMessage != null) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Text(
-                    text = "Detalle del personaje",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 18.sp,
-                    fontFamily = RobotoBold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+        // Error state with a top bar
+        Column(Modifier.fillMaxSize()) {
+            CharacterDetailTopBar(navController = navController, title = "Error")
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -145,41 +114,19 @@ fun CharacterDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = overallErrorMessage,
+                    text = "Oops, algo salió mal:\n\n$overallErrorMessage",
                     color = MaterialTheme.colorScheme.error,
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     textAlign = TextAlign.Center,
-                    fontFamily = RobotoBold
+                    fontFamily = RobotoRegular,
+                    lineHeight = 24.sp
                 )
             }
         }
 
     } else {
         Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Text(
-                    text = "Detalle del personaje",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 18.sp,
-                    fontFamily = RobotoBold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+            CharacterDetailTopBar(navController, "Detalle del personaje")
 
             LazyColumn(
                 modifier = Modifier
@@ -193,113 +140,97 @@ fun CharacterDetailScreen(
                             .fillMaxWidth(),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ),
+                        ), // A softer container color
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(
-                            defaultElevation = 16.dp
+                            defaultElevation = 8.dp
                         )
                     ) {
-                        Row() {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                             AsyncImage(
-                                alignment = Alignment.Center,
                                 modifier = Modifier
-                                    .width(160.dp)
-                                    .height(240.dp)
-                                    .clip(RoundedCornerShape(16.dp)),
+                                    .size(150.dp)
+                                    .clip(RoundedCornerShape(50)), // Circular or rounded image
                                 contentScale = ContentScale.Crop,
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(characterDetail.images)
                                     .size(Size.ORIGINAL)
                                     .crossfade(true)
                                     .build(),
-                                contentDescription = "Imagen de personaje",
+                                contentDescription = "Imagen de ${characterDetail.nameCharacter}",
                             )
-                            Column() {
-                                Text(
-                                    modifier = Modifier
-                                        .padding(top = 20.dp, bottom = 20.dp)
-                                        .fillMaxWidth(),
-                                    text = characterDetail.nameCharacter,
-                                    fontSize = 28.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = RobotoBold,
-                                    lineHeight = 30.sp
-                                )
-                                Row(
-                                    modifier = Modifier
-                                        .padding(start = 16.dp)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .height(32.dp)
-                                        .wrapContentWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Kanji:",
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Start,
-                                        modifier = Modifier
-                                            .wrapContentWidth()
-                                            .padding(end = 8.dp),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 16.sp,
-                                        fontFamily = RobotoRegular
-                                    )
-                                    Text(
-                                        text = characterDetail.nameKanjiCharacter,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Start,
-                                        modifier = Modifier
-                                            .wrapContentWidth()
-                                            .padding(end = 16.dp),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 12.sp,
-                                        fontFamily = RobotoRegular
-                                    )
-                                }
-
-                            }
+                            Text(
+                                text = characterDetail.nameCharacter,
+                                fontSize = 28.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center,
+                                fontFamily = RobotoBold
+                            )
+                            Text(
+                                text = characterDetail.nameKanjiCharacter,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 18.sp,
+                                fontFamily = RobotoRegular
+                            )
                         }
                     }
                 }
 
                 item {
-                    TitleScreen("Descripcion")
+                    TitleScreen("Descripción")
                 }
 
                 item {
-                    Column() {
-                        Text(
-                            text = characterDetail.descriptionCharacter,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp,
-                            fontFamily = RobotoRegular,
-                            textAlign = TextAlign.Justify,
-                            maxLines = if (expanded) Int.MAX_VALUE else 15,
-                        )
-                        Text(
-                            text = if (expanded) "ver menos" else "ver más",
-                            modifier = Modifier
-                                .padding(top = 16.dp, bottom = 16.dp)
-                                .clickable { expanded = !expanded },
-                            color = MaterialTheme.colorScheme.inversePrimary,
-                        )
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(
+                                text = characterDetail.descriptionCharacter,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 15.sp,
+                                lineHeight = 22.sp,
+                                fontFamily = RobotoRegular,
+                                textAlign = TextAlign.Justify,
+                                maxLines = if (expanded) Int.MAX_VALUE else 10,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = if (expanded) "Ver menos" else "Ver más",
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .clickable { expanded = !expanded }
+                                    .align(Alignment.End),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
                 item {
-                    TitleScreen("Imagenes")
+                    TitleScreen("Imágenes")
                 }
 
                 item {
 
                     LazyRow(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(),
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(characterPictures) { characterPicture ->
@@ -311,9 +242,9 @@ fun CharacterDetailScreen(
                                     .build(),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .width(190.dp)
-                                    .height(295.dp)
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .height(250.dp) // Adjusted height
+                                    .fillParentMaxWidth(0.5f) // Take half of the parent width
+                                    .clip(RoundedCornerShape(16.dp))
                                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                     .clickable(
                                         onClick = {
@@ -321,7 +252,7 @@ fun CharacterDetailScreen(
                                             showDialog = true
                                         },
                                     ),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
                             )
                         }
                     }
@@ -346,7 +277,7 @@ fun CharacterDetailScreen(
                                         .data(selectedImageUrl)
                                         .crossfade(true)
                                         .build(),
-                                    contentDescription = "Imagen de personaje ampliada",
+                                    contentDescription = null,
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
                                         .clickable(enabled = false) { }
@@ -356,7 +287,6 @@ fun CharacterDetailScreen(
                                     onClick = { showDialog = false },
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
-                                        .padding(16.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
@@ -368,7 +298,37 @@ fun CharacterDetailScreen(
                         }
                     }
                 }
+
             }
         }
     }
 }
+
+@Composable
+fun CharacterDetailTopBar(navController: NavController, title: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Volver",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 18.sp,
+            fontFamily = RobotoBold,
+            modifier = Modifier.align(Alignment.Center)
+        )
+    }
+}
+

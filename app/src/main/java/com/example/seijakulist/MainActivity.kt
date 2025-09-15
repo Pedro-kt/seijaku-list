@@ -156,13 +156,6 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
             route = AppDestinations.AUTH_ROUTE,
         ) {
             AuthScreen(
-                onSignInSuccess = {
-                    navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) {
-                        popUpTo(AppDestinations.AUTH_ROUTE) {
-                            inclusive = true
-                        }
-                    }
-                },
                 navController = navController
             )
         }
