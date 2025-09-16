@@ -29,7 +29,7 @@ fun FilterAnimesHome(list: List<String>, listLabel: List<String>) : String? {
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         list.forEachIndexed { index, filter ->

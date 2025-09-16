@@ -24,12 +24,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,13 +87,40 @@ fun ProfileView(
 
     // 1. Muestra una carga si el perfil aún es nulo.
     if (uiState.userProfile == null) {
-        Box(
+        Column(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CircularProgressIndicator()
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Icono de perfil",
+                modifier = Modifier.size(100.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Tu perfil te espera",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Inicia sesión o regístrate para ver tu perfil, tus listas y logros.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(
+                onClick = { navController.navigate(AppDestinations.AUTH_ROUTE) },
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                Text("Iniciar sesión o Registrarse")
+            }
         }
-        return
+    } else if (uiState.isLoading) {
+        CircularProgressIndicator()
     }
 
     // 2. Accede a los datos del perfil directamente del uiState.
@@ -98,151 +129,153 @@ fun ProfileView(
     val profilePictureUrl = userProfile?.profilePictureUrl
     val userBio = "¡Hola! Estoy usando SeijakuList para seguir mis animes y mangas favoritos."
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
+    if (userProfile != null) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
+                        .wrapContentHeight()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(200.dp)
-                            .clip(shape = CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                            .fillMaxWidth()
+                            .height(200.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(model = profilePictureUrl),
-                            contentDescription = "Imagen de perfil",
-                            modifier = Modifier.fillMaxSize(),
-                            alignment = Alignment.Center,
-                            contentScale = ContentScale.Crop
+                        Box(
+                            modifier = Modifier
+                                .size(200.dp)
+                                .clip(shape = CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(model = profilePictureUrl),
+                                contentDescription = "Imagen de perfil",
+                                modifier = Modifier.fillMaxSize(),
+                                alignment = Alignment.Center,
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            username,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
                         )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = userBio,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .heightIn(min = 40.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextButton(
+                        onClick = { navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) },
+
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "Editar perfil",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SectionTitle("Top 5 Animes")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                ) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        items(favoriteAnimes.size) { index ->
+                            FavoriteCard(title = favoriteAnimes[index], position = index + 1)
+                        }
+                    }
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                SectionTitle("Top 5 Personajes")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                ) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    ) {
+                        items(favoriteCharacters.size) { index ->
+                            FavoriteCard(title = favoriteCharacters[index], position = index + 1)
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                var expanded by rememberSaveable { mutableStateOf(false) }
+                val achievementsToShow = if (expanded) achievements else achievements.take(5)
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    SectionTitle("Logros")
+                    Spacer(modifier = Modifier.height(4.dp))
+                    achievementsToShow.forEach { achievement ->
+                        AchievementCard(achievement = achievement)
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
+                    if (achievements.size > 10) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        TextButton(
+                            onClick = { expanded = !expanded },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = if (expanded) "Mostrar menos" else "Mostrar más")
+                            Icon(
+                                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = if (expanded) "Contraer logros" else "Expandir logros"
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(username, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = userBio,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .heightIn(min = 40.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TextButton(
-                    onClick = { navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) },
-
-                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
-                ) {
-                    Text(
-                        text = "Editar perfil",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-
             }
-        }
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SectionTitle("Top 5 Animes")
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-            ) {
-                LazyRow(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    items(favoriteAnimes.size) { index ->
-                        FavoriteCard(title = favoriteAnimes[index], position = index + 1)
-                    }
-                }
-            }
-        }
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            SectionTitle("Top 5 Personajes")
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-            ) {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                ) {
-                    items(favoriteCharacters.size) { index ->
-                        FavoriteCard(title = favoriteCharacters[index], position = index + 1)
-                    }
-                }
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-            var expanded by rememberSaveable { mutableStateOf(false) }
-            val achievementsToShow = if (expanded) achievements else achievements.take(5)
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-            ) {
-                SectionTitle("Logros")
-                Spacer(modifier = Modifier.height(4.dp))
-                achievementsToShow.forEach { achievement ->
-                    AchievementCard(achievement = achievement)
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                if (achievements.size > 10) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    TextButton(
-                        onClick = { expanded = !expanded },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = if (expanded) "Mostrar menos" else "Mostrar más")
-                        Icon(
-                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (expanded) "Contraer logros" else "Expandir logros"
-                        )
-                    }
-                }
-            }
-
-
-
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

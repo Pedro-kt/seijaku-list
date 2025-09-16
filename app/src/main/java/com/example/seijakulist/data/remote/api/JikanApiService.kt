@@ -2,6 +2,7 @@ package com.example.seijakulist.data.remote.api
 
 import com.example.seijakulist.data.remote.models.AnimeCharactersResponseDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
+import com.example.seijakulist.data.remote.models.ProducerResponseDto
 import com.example.seijakulist.data.remote.models.anime_random.AnimeCardResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.anime_themes.AnimeThemesDto
@@ -77,4 +78,9 @@ interface  JikanApiService {
     suspend fun getSeasonUpcomingFilter(
         @Query("filter") filter: String
     ) : SearchAnimeResponse
+
+    @GET("producers/{id}/full")
+    suspend fun getProducerDetail(
+        @Path("id") producerId: Int
+    ): ProducerResponseDto
 }

@@ -1,5 +1,9 @@
 package com.example.seijakulist.ui.screens.detail
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
@@ -30,6 +34,23 @@ class AnimeThemesViewModel @Inject constructor(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
+
+
+    fun openYoutubeSearch(context: Context, query: String) {
+        val intent = Intent(Intent.ACTION_SEARCH).apply {
+            setPackage("com.google.android.youtube")
+            putExtra("query", query)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/results?search_query=$query"))
+            context.startActivity(webIntent)
+        }
+    }
+
 
     fun animeThemes(animeId: Int) {
         viewModelScope.launch {

@@ -6,6 +6,7 @@ import com.example.seijakulist.data.mapper.toAnimeDetails
 
 import com.example.seijakulist.data.mapper.toCharacterDetail
 import com.example.seijakulist.data.mapper.toCharacterPictures
+import com.example.seijakulist.data.mapper.toProducerDetail
 import com.example.seijakulist.data.remote.api.JikanApiService
 import com.example.seijakulist.data.remote.models.AnimeDetailDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
@@ -16,6 +17,7 @@ import com.example.seijakulist.domain.models.AnimeDetail
 import com.example.seijakulist.domain.models.AnimeThemes
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.models.CharacterPictures
+import com.example.seijakulist.domain.models.ProducerDetail
 import javax.inject.Inject
 
 class AnimeRepository @Inject constructor(
@@ -161,5 +163,15 @@ class AnimeRepository @Inject constructor(
         Log.d("CHAR", "Personaje mapeado: $characterDetail")
 
         return characterDetail
+    }
+
+    suspend fun getProducerDetail(producerId: Int): ProducerDetail {
+        val responseDto = ApiService.getProducerDetail(producerId)
+
+        val producerDetailDto = responseDto.data
+
+        val producerDetail = producerDetailDto.toProducerDetail()
+
+        return producerDetail
     }
 }

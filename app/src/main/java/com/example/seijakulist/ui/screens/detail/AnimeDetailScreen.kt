@@ -1,5 +1,6 @@
 package com.example.seijakulist.ui.screens.detail
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.animation.core.animateFloatAsState
@@ -105,6 +107,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -112,6 +116,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -129,6 +134,7 @@ import com.example.seijakulist.ui.theme.RobotoRegular
 import java.text.SimpleDateFormat
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,7 +143,8 @@ fun AnimeDetailScreen(
     animeId: Int?,
     animeDetailViewModel: AnimeDetailViewModel = hiltViewModel(),
     animeCharacterDetailViewModel: AnimeCharacterDetailViewModel = hiltViewModel(),
-    animeThemesViewModel: AnimeThemesViewModel = hiltViewModel()
+    animeThemesViewModel: AnimeThemesViewModel = hiltViewModel(),
+    producerDetailViewModel: ProducerDetailViewModel = hiltViewModel()
 ) {
 
     val animeDetail by animeDetailViewModel.animeDetail.collectAsState()
@@ -148,6 +155,10 @@ fun AnimeDetailScreen(
     val characterIsLoading by animeCharacterDetailViewModel.isLoading.collectAsState()
     val characterErrorMessage by animeCharacterDetailViewModel.errorMessage.collectAsState()
 
+    val producerDetail by producerDetailViewModel.producer.collectAsState()
+    val producerIsLoading by producerDetailViewModel.isLoading.collectAsState()
+    val producerErrorMessage by producerDetailViewModel.errorMessage.collectAsState()
+
     val animeThemes by animeThemesViewModel.themes.collectAsState()
 
     val isAdded by animeDetailViewModel.isAdded.collectAsState()
@@ -156,9 +167,20 @@ fun AnimeDetailScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    var showProducerLoading by remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = animeId) {
         if (animeId != null) {
             animeThemesViewModel.animeThemes(animeId)
+        }
+    }
+
+    LaunchedEffect(key1 = animeId, key2 = animeDetail?.studios) {
+        if (animeId != null && animeDetail?.studios?.isNotEmpty() == true) {
+            showProducerLoading = true
+            delay(2000L) // delay to show loading, as requested
+            showProducerLoading = false
+            producerDetailViewModel.getProducerDetail(animeDetail?.studios[0]?.idStudio ?: 56)
         }
     }
 
@@ -197,6 +219,9 @@ fun AnimeDetailScreen(
     var searchQuery by rememberSaveable { mutableStateOf("") }
 
     var expandedStatus by remember { mutableStateOf(false) }
+
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
     when {
         isLoading -> {
@@ -695,7 +720,9 @@ fun AnimeDetailScreen(
                                     ) {
                                         items(animeDetail?.studios.orEmpty()) { studio ->
                                             Card(
-                                                onClick = { /* TODO: Navegar a una pantalla de búsqueda o del estudio */ },
+                                                onClick = {
+                                                    selectedTabIndex = 3
+                                                },
                                                 shape = RoundedCornerShape(8.dp),
                                                 colors = CardDefaults.cardColors(
                                                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -809,12 +836,14 @@ fun AnimeDetailScreen(
                                 ThemeItem(
                                     title = "Openings",
                                     icon = Icons.Default.MusicNote,
-                                    themes = animeThemes.openings
+                                    themes = animeThemes.openings,
+                                    context,
                                 )
                                 ThemeItem(
                                     title = "Endings",
                                     icon = Icons.Default.MusicOff,
-                                    themes = animeThemes.endings
+                                    themes = animeThemes.endings,
+                                    context
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
@@ -1077,6 +1106,154 @@ fun AnimeDetailScreen(
                         }
                         if (selectedTabIndex == 3) {
 
+                            item {
+                                TitleWithPadding("Estudio")
+                            }
+
+                            item {
+                                when {
+                                    producerIsLoading || showProducerLoading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(150.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            LoadingScreen()
+                                        }
+                                    }
+
+                                    producerErrorMessage != null -> {
+                                        Text(
+                                            "Error: $producerErrorMessage",
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                    }
+
+                                    producerDetail != null -> {
+                                        // When data is loaded, hide the manual loading indicator
+                                        showProducerLoading = false
+
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                            shape = RoundedCornerShape(12.dp),
+                                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(16.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                                            ) {
+                                                AsyncImage(
+                                                    model = producerDetail?.images,
+                                                    contentDescription = "Imagen del productor",
+                                                    modifier = Modifier
+                                                        .height(100.dp)
+                                                        .clip(RoundedCornerShape(8.dp)),
+                                                    contentScale = ContentScale.Fit
+                                                )
+                                                producerDetail?.titles?.firstOrNull()?.title?.let { title ->
+                                                    Text(
+                                                        text = title,
+                                                        style = MaterialTheme.typography.titleLarge,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceAround
+                                                ) {
+                                                    producerDetail?.established?.let { established ->
+                                                        val date =
+                                                            established.split("T").firstOrNull()
+                                                        InfoColumn(
+                                                            title = "Fundado",
+                                                            value = date ?: "N/A"
+                                                        )
+                                                    }
+                                                }
+
+                                                producerDetail?.about?.let { about ->
+                                                    var expandedProducerAbout by remember {
+                                                        mutableStateOf(
+                                                            false
+                                                        )
+                                                    }
+                                                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                                                        Text(
+                                                            text = about,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            textAlign = TextAlign.Justify,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            maxLines = if (expandedProducerAbout) Int.MAX_VALUE else 4
+                                                        )
+                                                        if (about.length > 200) { // Simple check to see if text is long enough to be expandable
+                                                            TextButton(
+                                                                onClick = {
+                                                                    expandedProducerAbout =
+                                                                        !expandedProducerAbout
+                                                                },
+                                                                modifier = Modifier.align(Alignment.End)
+                                                            ) {
+                                                                Text(if (expandedProducerAbout) "Leer menos" else "Leer más")
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                val externalLinks = producerDetail?.external
+                                                if (externalLinks!!.isNotEmpty()) {
+                                                    TitleWithPadding("Externals")
+                                                    LazyRow(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                    ){
+                                                        item {
+                                                            externalLinks.forEach { external ->
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .fillMaxWidth()
+                                                                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                                    verticalArrangement = Arrangement.Center
+                                                                ) {
+                                                                    AsyncImage(
+                                                                        model = producerDetail?.images,
+                                                                        contentDescription = "Imagen del estudio",
+                                                                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(50))
+                                                                            .clickable(
+                                                                                onClick = {
+                                                                                    external.url?.let { uriHandler.openUri(it) }
+                                                                                }
+                                                                            )
+                                                                    )
+                                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                                    Text(
+                                                                        text = external.name ?: "Unknown Link",
+                                                                        style = MaterialTheme.typography.labelMedium,
+                                                                        textAlign = TextAlign.Center,
+                                                                        maxLines = 1,
+                                                                        overflow = TextOverflow.Ellipsis
+                                                                    )
+                                                                }
+
+                                                            }
+                                                        }
+
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+}
                         }
                         if (selectedTabIndex == 4) {
                             item {
@@ -1489,7 +1666,8 @@ private fun InfoRow(
 }
 
 @Composable
-fun ThemeItem(title: String, icon: ImageVector, themes: List<String>) {
+fun ThemeItem(title: String, icon: ImageVector, themes: List<String>, context: Context, animeThemesViewModel: AnimeThemesViewModel = hiltViewModel()) {
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1538,7 +1716,9 @@ fun ThemeItem(title: String, icon: ImageVector, themes: List<String>) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp, horizontal = 12.dp)
-                            .clickable { }
+                            .clickable {
+                                animeThemesViewModel.openYoutubeSearch(context, theme)
+                            }
                     )
                 }
             }
@@ -1659,3 +1839,22 @@ fun RatingBar(
     }
 }
 
+@Composable
+private fun InfoColumn(title: String, value: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
