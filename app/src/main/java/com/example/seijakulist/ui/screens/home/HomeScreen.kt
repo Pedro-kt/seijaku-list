@@ -112,6 +112,25 @@ fun HomeScreen(
     val listTypeSeasonUpcoming = listOf("tv", "movie", "ova", "special", "ona", "music")
     val listTypeSeasonUpcomingFilter = listOf("TV", "Película", "OVA", "Especial", "ONA", "Música")
 
+    var selectedDayFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedTypeFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedUpcomingFilter by rememberSaveable { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(key1 = selectedDayFilter) {
+        selectedDayFilter?.let { day ->
+            animeScheduleViewModel.AnimeSchedule(day)
+        }
+    }
+    LaunchedEffect(key1 = selectedTypeFilter) {
+        selectedTypeFilter?.let { filter ->
+            animeFilterViewModel.TopAnimeFilter(filter)
+        }
+    }
+    LaunchedEffect(selectedUpcomingFilter) {
+        selectedUpcomingFilter?.let { filter ->
+            seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(filter)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -169,22 +188,17 @@ fun HomeScreen(
                     "Anime" -> {
                         LazyColumn() {
                             item {
-                                Spacer(modifier = Modifier.padding(4.dp))
-                            }
-                            item {
                                 SubTitleWithoutIcon("En emision")
+                                FilterAnimesHome(
+                                    list = listDays,
+                                    listLabel = listDaysFilter,
+                                    selectedFilter = selectedDayFilter,
+                                    onFilterSelected = { filter ->
+                                        selectedDayFilter = filter
+                                    }
+                                )
                             }
                             item {
-                                val selectedDayFilter = FilterAnimesHome(listDays, listDaysFilter)
-
-                                // 1. Move the API call logic here.
-                                LaunchedEffect(key1 = selectedDayFilter) {
-                                    selectedDayFilter?.let { day ->
-                                        animeScheduleViewModel.AnimeSchedule(day)
-                                    }
-                                }
-
-                                // 2. Display content based on the selected filter.
                                 selectedDayFilter?.let { day ->
                                     if (animeScheduleIsLoading) {
                                         CardAnimesHomeLoading()
@@ -193,11 +207,8 @@ fun HomeScreen(
                                     } else {
                                         Text(
                                             text = "No hay animes programados para este dia.",
-                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = RobotoRegular,
-                                            fontSize = 16.sp,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            modifier = Modifier
+                                                .padding(16.dp)
                                         )
                                     }
                                 } ?: run {
@@ -205,18 +216,17 @@ fun HomeScreen(
                                 }
                             }
                             item {
-                                SubTitleWithoutIcon("Top scores")
+                                SubTitleWithoutIcon("Top puntuacion")
+                                FilterAnimesHome(
+                                    list = listTypeAnime,
+                                    listLabel = listTypeAnimeFilter,
+                                    selectedFilter = selectedTypeFilter,
+                                    onFilterSelected = { filter ->
+                                        selectedTypeFilter = filter
+                                    }
+                                )
                             }
                             item {
-                                val selectedTypeFilter =
-                                    FilterAnimesHome(listTypeAnime, listTypeAnimeFilter)
-
-                                LaunchedEffect(key1 = selectedTypeFilter) {
-                                    selectedTypeFilter?.let { filter ->
-                                        animeFilterViewModel.TopAnimeFilter(filter)
-                                    }
-                                }
-
                                 selectedTypeFilter?.let { filter ->
                                     if (topAnimeFilterIsLoading) {
                                         CardAnimesHomeLoading()
@@ -225,36 +235,27 @@ fun HomeScreen(
                                     } else {
                                         Text(
                                             text = "No se encontraron animes para el filtro seleccionado.",
-                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = RobotoRegular,
-                                            fontSize = 16.sp,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            modifier = Modifier
+                                                .padding(16.dp)
                                         )
                                     }
                                 } ?: run {
-                                    // This part is for when no filter is selected.
                                     CardAnimesHome(topAnimes, navController)
                                 }
                             }
                             item {
                                 SubTitleWithoutIcon("Próxima temporada")
+                                FilterAnimesHome(
+                                    list = listTypeSeasonUpcoming,
+                                    listLabel = listTypeSeasonUpcomingFilter,
+                                    selectedFilter = selectedUpcomingFilter,
+                                    onFilterSelected = { filter ->
+                                        selectedUpcomingFilter = filter
+                                    }
+                                )
                             }
                             item {
-                                val selectedTypeSeasonUpcomingFilter = FilterAnimesHome(
-                                    listTypeSeasonUpcoming,
-                                    listTypeSeasonUpcomingFilter
-                                )
-
-                                LaunchedEffect(selectedTypeSeasonUpcomingFilter) {
-                                    selectedTypeSeasonUpcomingFilter?.let { filter ->
-                                        seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(
-                                            filter
-                                        )
-                                    }
-                                }
-
-                                selectedTypeSeasonUpcomingFilter?.let { filter ->
+                                selectedUpcomingFilter?.let { filter ->
                                     if (animeSeasonUpcomingFilterIsLoading) {
                                         CardAnimesHomeLoading()
                                     } else if (animeSeasonUpcomingFilter.isNotEmpty()) {
@@ -262,11 +263,8 @@ fun HomeScreen(
                                     } else {
                                         Text(
                                             text = "No se encontraron animes para el filtro seleccionado.",
-                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = RobotoRegular,
-                                            fontSize = 16.sp,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            modifier = Modifier
+                                                .padding(16.dp)
                                         )
                                     }
                                 } ?: run {

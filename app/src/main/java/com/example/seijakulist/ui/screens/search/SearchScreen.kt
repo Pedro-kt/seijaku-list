@@ -23,12 +23,15 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.seijakulist.R
+import com.example.seijakulist.ui.components.HorizontalDividerComponent
 import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.components.NoInternetScreen
 import com.example.seijakulist.ui.navigation.AppDestinations
@@ -61,12 +65,21 @@ import com.example.seijakulist.ui.theme.RobotoRegular
 @Composable
 fun SearchScreen(
     navController: NavController,
-    viewModel: AnimeSearchViewModel = hiltViewModel()
+    viewModel: AnimeSearchViewModel = hiltViewModel(),
+    listGenres: GenresViewModel = hiltViewModel()
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val animeList by viewModel.animeList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+
+    val genres by listGenres.genres.collectAsState()
+    val isLoadingGenres by listGenres.isLoading.collectAsState()
+    val errorMessageGenres by listGenres.errorMessage.collectAsState()
+
+    LaunchedEffect(Unit) {
+        listGenres.fetchGenres()
+    }
 
     val focusManager = LocalFocusManager.current
 
@@ -74,6 +87,7 @@ fun SearchScreen(
     var selectedFilter by remember { mutableStateOf<String?>(null) }
 
     var colapsedFilter by remember { mutableStateOf(false) }
+    var openBottomSheet by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -171,7 +185,11 @@ fun SearchScreen(
                 ElevatedFilterChip(
                     selected = isSelected,
                     onClick = {
-                        selectedFilter = if (isSelected) null else filter
+                        if (filter == "Generos") {
+                            openBottomSheet = true
+                        } else {
+                            selectedFilter = if (isSelected) null else filter
+                        }
                     },
                     label = {
                         Text(
@@ -195,7 +213,16 @@ fun SearchScreen(
                             Color.Transparent
                         }
                     ),
-                    shape = RoundedCornerShape(50.dp)
+                    shape = RoundedCornerShape(50.dp),
+                    trailingIcon = {
+                        if (filter == "Generos") {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Ver generos",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
                 )
             }
         }
@@ -384,11 +411,130 @@ fun SearchScreen(
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "Ingresa un término de búsqueda para encontrar animes.",
+                    text = "Ingresa un término de búsqueda.",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 13.sp
                 )
             }
+        }
+        if (openBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { openBottomSheet = false },
+            ) {
+                if (isLoadingGenres) {
+                    LoadingScreen()
+                } else if (errorMessageGenres != null) {
+                    Text(text = errorMessageGenres ?: "Error desconocido")
+                } else {
+                    LazyColumn() {
+                        item {
+                            Text(
+                                text = "Generos",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                val firstHalf = genres.take(genres.size / 2)
+                                val secondHalf = genres.takeLast(genres.size / 2)
+
+                                Column(modifier = Modifier.weight(1f).padding(end = 4.dp)) {
+                                    firstHalf.forEach { genre ->
+                                        GenreButton(genre = genre.name, onClick = { /* TODO: Implementar acción de filtro */ }, count = genre.count)
+                                    }
+                                }
+                                Column(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+                                    secondHalf.forEach { genre ->
+                                        GenreButton(genre = genre.name, onClick = { /* TODO: Implementar acción de filtro */ }, count = genre.count)
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(
+                                    onClick = { openBottomSheet = false },
+                                    modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "CERRAR",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Button(
+                                    onClick = { openBottomSheet = false },
+                                    modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "BUSCAR",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun GenreButton(genre: String, onClick: () -> Unit, count: Int) {
+    var isSelectedItem by remember { mutableStateOf(false) }
+
+    Button(
+        onClick = {
+            isSelectedItem = !isSelectedItem
+            onClick() // La lambda original se sigue llamando
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isSelectedItem) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+            contentColor = if (isSelectedItem) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        ),
+        contentPadding = PaddingValues(horizontal = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = genre,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Start,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.labelSmall,
+            )
         }
     }
 }

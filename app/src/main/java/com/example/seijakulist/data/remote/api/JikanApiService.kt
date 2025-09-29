@@ -8,6 +8,7 @@ import com.example.seijakulist.data.remote.models.SearchAnimeResponse
 import com.example.seijakulist.data.remote.models.anime_themes.AnimeThemesDto
 import com.example.seijakulist.data.remote.models.character_detail.CharacterResponseDto
 import com.example.seijakulist.data.remote.models.character_pictures.CharacterPicturesResponseDto
+import com.example.seijakulist.data.remote.models.genres.GenreResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Path
@@ -83,4 +84,7 @@ interface  JikanApiService {
     suspend fun getProducerDetail(
         @Path("id") producerId: Int
     ): ProducerResponseDto
+
+    @GET("genres/anime")
+    suspend fun getGenresAnime(): GenreResponse
 }

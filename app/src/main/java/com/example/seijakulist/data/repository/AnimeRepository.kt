@@ -17,6 +17,7 @@ import com.example.seijakulist.domain.models.AnimeDetail
 import com.example.seijakulist.domain.models.AnimeThemes
 import com.example.seijakulist.domain.models.CharacterDetail
 import com.example.seijakulist.domain.models.CharacterPictures
+import com.example.seijakulist.domain.models.Genre
 import com.example.seijakulist.domain.models.ProducerDetail
 import javax.inject.Inject
 
@@ -173,5 +174,17 @@ class AnimeRepository @Inject constructor(
         val producerDetail = producerDetailDto.toProducerDetail()
 
         return producerDetail
+    }
+
+    suspend fun getGenresAnime(): List<Genre> {
+        val response = ApiService.getGenresAnime()
+        return response.data.map { genreDto ->
+            Genre(
+                malId = genreDto.malId,
+                name = genreDto.name,
+                url = genreDto.url,
+                count = genreDto.count
+            )
+        }
     }
 }

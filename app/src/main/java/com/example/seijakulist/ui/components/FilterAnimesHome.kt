@@ -21,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun FilterAnimesHome(list: List<String>, listLabel: List<String>) : String? {
-
-    var selectedFilter by remember { mutableStateOf<String?>(null) }
-
+fun FilterAnimesHome(
+    list: List<String>,
+    listLabel: List<String>,
+    selectedFilter: String?, // Now it receives the state
+    onFilterSelected: (String?) -> Unit // Now it receives a callback
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -38,7 +40,7 @@ fun FilterAnimesHome(list: List<String>, listLabel: List<String>) : String? {
             FilterChip(
                 selected = isSelected,
                 onClick = {
-                    selectedFilter = if (isSelected) null else filter
+                    onFilterSelected(if (isSelected) null else filter) // Call the callback with the new state
                 },
                 label = {
                     Text(listLabel[index])
@@ -60,6 +62,4 @@ fun FilterAnimesHome(list: List<String>, listLabel: List<String>) : String? {
             )
         }
     }
-
-    return selectedFilter
 }

@@ -242,8 +242,8 @@ fun CharacterDetailScreen(
                                     .build(),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .height(250.dp) // Adjusted height
-                                    .fillParentMaxWidth(0.5f) // Take half of the parent width
+                                    .height(300.dp)
+                                    .fillParentMaxWidth(0.5f)
                                     .clip(RoundedCornerShape(16.dp))
                                     .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                     .clickable(

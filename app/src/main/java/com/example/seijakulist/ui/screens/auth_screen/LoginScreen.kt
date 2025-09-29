@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -48,6 +50,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -70,6 +74,7 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     val authResult by viewModel.authResult.collectAsState()
     val focusManager: FocusManager = LocalFocusManager.current
+    var isPasswordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(authResult) {
         if (authResult is AuthResult.Success) {
@@ -87,7 +92,8 @@ fun LoginScreen(
                     }
                 )
             }
-            .padding(bottom = 60.dp)
+            .padding(bottom = 60.dp),
+        verticalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = Modifier
@@ -211,6 +217,18 @@ fun LoginScreen(
                     alpha = 0.7f
                 )
             ),
+            visualTransformation = if (isPasswordVisible) { VisualTransformation.None } else { PasswordVisualTransformation() },
+            trailingIcon = {
+                IconButton(
+                    onClick = { isPasswordVisible = !isPasswordVisible },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Ver Contraseña",
+                    )
+                }
+            }
         )
         Row(
             modifier = Modifier
@@ -250,14 +268,14 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "Otras formas de iniciar sesión",
+                text = "O inicia sesión con",
                 fontFamily = RobotoRegular,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
                 fontSize = 14.sp,
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Center
             )
             Box(
                 modifier = Modifier
@@ -273,7 +291,7 @@ fun LoginScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Iniciar sesión con Google",
+                    text = "Continuar con Google",
                     fontFamily = RobotoRegular,
                     color = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
@@ -303,7 +321,7 @@ fun LoginScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Iniciar sesión con Facebook",
+                    text = "Continuar con Facebook",
                     fontFamily = RobotoRegular,
                     color = Color.White,
                     modifier = Modifier

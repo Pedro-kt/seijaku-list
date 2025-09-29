@@ -710,7 +710,7 @@ fun AnimeDetailScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "Studio",
+                                        text = "Estudio",
                                         style = MaterialTheme.typography.titleLarge,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -977,15 +977,13 @@ fun AnimeDetailScreen(
                                                 }
 
 
-                                                LazyVerticalGrid(
-                                                    columns = GridCells.Fixed(3),
-                                                    modifier = Modifier.heightIn(max = 600.dp),
-                                                    contentPadding = PaddingValues(
+                                                Column(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(
                                                         horizontal = 16.dp,
                                                         vertical = 16.dp
                                                     ),
-                                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                    verticalArrangement = Arrangement.spacedBy(12.dp)
                                                 ) {
                                                     val filteredCharacters =
                                                         if (searchQuery.isBlank()) {
@@ -999,107 +997,134 @@ fun AnimeDetailScreen(
                                                         }
 
                                                     if (filteredCharacters.isEmpty()) {
-                                                        item {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .fillMaxWidth()
-                                                                    .padding(top = 50.dp),
-                                                                contentAlignment = Alignment.Center
-                                                            ) {
-                                                                Text(
-                                                                    "No se encontraron personajes",
-                                                                    style = MaterialTheme.typography.bodyLarge
-                                                                )
-                                                            }
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(top = 50.dp),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Text(
+                                                                "No se encontraron personajes",
+                                                                style = MaterialTheme.typography.bodyLarge
+                                                            )
                                                         }
                                                     }
 
-                                                    items(
-                                                        items = filteredCharacters,
-                                                        key = { it.idCharacter!! }) { character ->
-                                                        Card(
-                                                            modifier = Modifier.clickable {
-                                                                navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.idCharacter}")
-                                                            },
-                                                            shape = RoundedCornerShape(12.dp),
-                                                            elevation = CardDefaults.cardElevation(
-                                                                defaultElevation = 2.dp
-                                                            ),
-                                                            colors = CardDefaults.cardColors(
-                                                                containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                                            )
-                                                        ) {
-                                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                                val imageUrl =
-                                                                    character.imageCharacter?.jpg?.imageUrl.orEmpty()
-                                                                val translatedRole =
-                                                                    when (character.role) {
-                                                                        "Main" -> "Principal"
-                                                                        "Supporting" -> "Secundario"
-                                                                        else -> character.role
+                                                    filteredCharacters.chunked(3)
+                                                        .forEach { rowItems ->
+                                                            Row(
+                                                                horizontalArrangement = Arrangement.spacedBy(
+                                                                    12.dp
+                                                                ),
+                                                                modifier = Modifier.padding(bottom = 12.dp)
+                                                            ) {
+                                                                rowItems.forEach { character ->
+                                                                    Card(
+                                                                        modifier = Modifier
+                                                                            .weight(1f)
+                                                                            .clickable {
+                                                                                navController.navigate(
+                                                                                    "${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.idCharacter}"
+                                                                                )
+                                                                            },
+                                                                        shape = RoundedCornerShape(
+                                                                            12.dp
+                                                                        ),
+                                                                        elevation = CardDefaults.cardElevation(
+                                                                            defaultElevation = 2.dp
+                                                                        ),
+                                                                        colors = CardDefaults.cardColors(
+                                                                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+
+                                                                            )
+                                                                    ) {
+                                                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                                            val imageUrl =
+                                                                                character.imageCharacter?.jpg?.imageUrl.orEmpty()
+                                                                            val translatedRole =
+                                                                                when (character.role) {
+                                                                                    "Main" -> "Principal"
+                                                                                    "Supporting" -> "Secundario"
+                                                                                    else -> character.role
+                                                                                }
+
+                                                                            AsyncImage(
+                                                                                model = ImageRequest.Builder(
+                                                                                    LocalContext.current
+                                                                                )
+                                                                                    .data(imageUrl)
+                                                                                    .size(Size.ORIGINAL)
+                                                                                    .crossfade(true)
+                                                                                    .build(),
+                                                                                contentDescription = "Imagen de ${character.nameCharacter}",
+                                                                                contentScale = ContentScale.Crop,
+                                                                                modifier = Modifier
+                                                                                    .height(150.dp)
+                                                                                    .fillMaxWidth()
+                                                                            )
+
+                                                                            Text(
+                                                                                text = character.nameCharacter
+                                                                                    ?: "Desconocido",
+                                                                                style = MaterialTheme.typography.titleSmall,
+                                                                                fontWeight = FontWeight.Bold,
+                                                                                maxLines = 1,
+                                                                                overflow = TextOverflow.Ellipsis,
+                                                                                textAlign = TextAlign.Center,
+                                                                                modifier = Modifier.padding(
+                                                                                    top = 8.dp,
+                                                                                    start = 4.dp,
+                                                                                    end = 4.dp
+                                                                                ),
+                                                                                color = MaterialTheme.colorScheme.onSurface
+                                                                            )
+
+                                                                            Box(
+                                                                                modifier = Modifier
+                                                                                    .padding(
+                                                                                        top = 4.dp,
+                                                                                        bottom = 8.dp
+                                                                                    )
+                                                                                    .clip(
+                                                                                        RoundedCornerShape(
+                                                                                            50
+                                                                                        )
+                                                                                    )
+                                                                                    .background(
+                                                                                        MaterialTheme.colorScheme.primaryContainer
+                                                                                    )
+                                                                                    .padding(
+                                                                                        horizontal = 8.dp,
+                                                                                        vertical = 4.dp
+                                                                                    )
+                                                                            ) {
+                                                                                Text(
+                                                                                    text = translatedRole
+                                                                                        ?: "Rol desconocido",
+                                                                                    style = MaterialTheme.typography.labelSmall,
+                                                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                                                )
+                                                                            }
+                                                                        }
                                                                     }
-
-                                                                AsyncImage(
-                                                                    model = ImageRequest.Builder(
-                                                                        LocalContext.current
-                                                                    )
-                                                                        .data(imageUrl)
-                                                                        .size(Size.ORIGINAL)
-                                                                        .crossfade(true).build(),
-                                                                    contentDescription = "Imagen de ${character.nameCharacter}",
-                                                                    contentScale = ContentScale.Crop,
-                                                                    modifier = Modifier
-                                                                        .height(150.dp)
-                                                                        .fillMaxWidth()
-                                                                )
-
-                                                                Text(
-                                                                    text = character.nameCharacter
-                                                                        ?: "Desconocido",
-                                                                    style = MaterialTheme.typography.titleSmall,
-                                                                    fontWeight = FontWeight.Bold,
-                                                                    maxLines = 1,
-                                                                    overflow = TextOverflow.Ellipsis,
-                                                                    textAlign = TextAlign.Center,
-                                                                    modifier = Modifier.padding(
-                                                                        top = 8.dp,
-                                                                        start = 4.dp,
-                                                                        end = 4.dp
-                                                                    ),
-                                                                    color = MaterialTheme.colorScheme.onSurface
-                                                                )
-
-                                                                Box(
-                                                                    modifier = Modifier
-                                                                        .padding(
-                                                                            top = 4.dp,
-                                                                            bottom = 8.dp
+                                                                }
+                                                            }
+                                                            if (rowItems.size < 3) {
+                                                                for (i in 0 until (3 - rowItems.size)) {
+                                                                    Spacer(
+                                                                        modifier = Modifier.weight(
+                                                                            1f
                                                                         )
-                                                                        .clip(RoundedCornerShape(50))
-                                                                        .background(MaterialTheme.colorScheme.primaryContainer)
-                                                                        .padding(
-                                                                            horizontal = 8.dp,
-                                                                            vertical = 4.dp
-                                                                        )
-                                                                ) {
-                                                                    Text(
-                                                                        text = translatedRole
-                                                                            ?: "Rol desconocido",
-                                                                        style = MaterialTheme.typography.labelSmall,
-                                                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                                                     )
                                                                 }
                                                             }
                                                         }
-                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-
-
                         }
                         if (selectedTabIndex == 2) {
 

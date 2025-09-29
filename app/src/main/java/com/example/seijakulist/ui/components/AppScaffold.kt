@@ -126,10 +126,7 @@ fun AppScaffold(
                             IconButton(
                                 onClick = {
                                     navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE)
-                                },
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Search,
