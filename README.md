@@ -35,6 +35,22 @@ Con **SeijakuList** podés:
 
 ---
 
+## 📸 Vistazo Rápido (Screenshots)
+
+Estas son algunas imagenes de las 13 pantallas implementadas hasta el momento
+
+<p align="center">
+  <img src="./images/Screenshot_20251003_090614.png" width="160" title="Filter Bottom Sheet">
+  <img src="./images/Screenshot_20251003_090715.png" width="160" title="Home Screen">
+  <img src="./images/Screenshot_20251003_090730.png" width="160" title="Anime Detail Screen">
+  <img src="./images/Screenshot_20251003_090932.png" width="160" title="Search Screen">
+  <img src="./images/Screenshot_20251003_091423.png" width="160" title="Profile Screen">
+</p>
+
+**De derecha a izquierda: Home, Busqueda, Detalle, Mis animes, Welcome.**
+
+---
+
 ## 🚀 Instalación y uso  
 
 1. Clonar el repositorio:  
