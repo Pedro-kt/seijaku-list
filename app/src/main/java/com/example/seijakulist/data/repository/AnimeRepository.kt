@@ -12,6 +12,7 @@ import com.example.seijakulist.data.remote.models.AnimeDetailDto
 import com.example.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.example.seijakulist.data.remote.models.anime_random.AnimeCardResponseDto
 import com.example.seijakulist.data.remote.models.SearchAnimeResponse
+import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.domain.models.AnimeCharactersDetail
 import com.example.seijakulist.domain.models.AnimeDetail
 import com.example.seijakulist.domain.models.AnimeThemes
@@ -186,5 +187,27 @@ class AnimeRepository @Inject constructor(
                 count = genreDto.count
             )
         }
+    }
+
+    suspend fun getAnimeByGenre(genre: String): List<AnimeCard> {
+
+        val response = ApiService.getAnimeByGenre(genre)
+
+        val animeDtoList = response.data
+
+        val animeList: List<AnimeCard> = animeDtoList.map { animeDto ->
+            AnimeCard(
+                malId = animeDto?.malId ?: 0,
+                title = animeDto?.title ?: "Título predeterminado",
+                images = animeDto?.images?.webp?.largeImageUrl ?: "URL de imagen predeterminada",
+                score = animeDto?.score ?: 0.0f,
+                status = animeDto?.status ?: "Sin estado",
+                genres = animeDto?.genres ?: emptyList(),
+                year = (animeDto?.year ?: "N/A").toString(),
+                episodes = (animeDto?.episodes ?: "N/A").toString()
+            )
+        }
+
+        return animeList
     }
 }

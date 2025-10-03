@@ -279,7 +279,7 @@ fun RegisterScreen(
             onClick = {
                 if (password == confirmPassword) {
                     viewModel
-                        .signIn(email, confirmPassword)
+                        .signUp(email, confirmPassword)
                 } else {
                     return@Button
                 }

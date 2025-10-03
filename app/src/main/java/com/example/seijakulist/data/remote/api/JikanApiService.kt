@@ -87,4 +87,9 @@ interface  JikanApiService {
 
     @GET("genres/anime")
     suspend fun getGenresAnime(): GenreResponse
+
+    @GET("anime")
+    suspend fun getAnimeByGenre(
+        @Query("genres") genre: String
+    ) : SearchAnimeResponse
 }

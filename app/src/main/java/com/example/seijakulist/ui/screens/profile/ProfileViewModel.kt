@@ -102,7 +102,7 @@ class ProfileViewModel @Inject constructor(
                 var imageUrl: String? = null
                 if (imageUri != null) {
                     _uiState.update { it.copy(isUploadingImage = true) }
-                    val imageRef = storage.reference.child("profile_pictures/${user.uid}.jpg")
+                    val imageRef = storage.reference.child("userProfiles/${user.uid}/profile.jpg")
                     val uploadTask = imageRef.putFile(imageUri).await()
                     imageUrl = uploadTask.storage.downloadUrl.await().toString()
                 }

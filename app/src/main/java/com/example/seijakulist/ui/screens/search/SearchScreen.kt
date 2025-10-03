@@ -77,8 +77,15 @@ fun SearchScreen(
     val isLoadingGenres by listGenres.isLoading.collectAsState()
     val errorMessageGenres by listGenres.errorMessage.collectAsState()
 
+    val animeListGenre by listGenres.animeList.collectAsState()
+    val genreId by remember { mutableStateOf(null) }
+    
     LaunchedEffect(Unit) {
         listGenres.fetchGenres()
+    }
+
+    LaunchedEffect(Unit) {
+        listGenres.fetchAnimeByGenre(genreId.toString())
     }
 
     val focusManager = LocalFocusManager.current
@@ -472,7 +479,10 @@ fun SearchScreen(
                                     )
                                 }
                                 Button(
-                                    onClick = { openBottomSheet = false },
+                                    onClick = { 
+                                        listGenres.fetchAnimeByGenre(genreId.toString())
+                                        openBottomSheet = false 
+                                              },
                                     modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
                                 ) {
                                     Text(

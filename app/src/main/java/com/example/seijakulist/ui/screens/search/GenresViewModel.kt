@@ -3,6 +3,7 @@ package com.example.seijakulist.ui.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seijakulist.data.repository.AnimeRepository
+import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.domain.models.Genre
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,9 @@ class GenresViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    private val _animeList = MutableStateFlow<List<AnimeCard>>(emptyList())
+    val animeList: StateFlow<List<AnimeCard>> = _animeList
+
     fun fetchGenres() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -33,6 +37,17 @@ class GenresViewModel @Inject constructor(
                 _isLoading.value = false
             } catch (e: Exception) {
                 _isLoading.value = false
+                _errorMessage.value = e.message
+            }
+        }
+    }
+
+    fun fetchAnimeByGenre(genre: String) {
+        viewModelScope.launch {
+            try {
+                val anime = repository.getAnimeByGenre(genre)
+                _animeList.value = anime
+            } catch (e: Exception) {
                 _errorMessage.value = e.message
             }
         }
