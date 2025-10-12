@@ -1,5 +1,9 @@
 # 📌 SeijakuList
 
+<p align="center">
+  <img src="./app/src/main/res/drawable/logo.png" alt="SeijakuList Logo" width="150" style="border-radius: 20px;"/>
+</p>
+
 **SeijakuList** es una aplicación Android desarrollada en **Kotlin con Jetpack Compose**, pensada para que los usuarios gestionen y registren sus animes favoritos de una forma simple y moderna.  
 
 ---
@@ -37,7 +41,7 @@ Con **SeijakuList** podés:
 
 ## 📸 Vistazo Rápido (Screenshots)
 
-Estas son algunas imagenes de las 13 pantallas implementadas hasta el momento
+Estas son algunas imagenes de las 13 pantallas implementadas hasta el momento.
 
 <p align="center">
   <img src="./images/Screenshot_20251003_090614.png" width="160" title="Filter Bottom Sheet">
@@ -47,7 +51,7 @@ Estas son algunas imagenes de las 13 pantallas implementadas hasta el momento
   <img src="./images/Screenshot_20251003_091423.png" width="160" title="Profile Screen">
 </p>
 
-**De derecha a izquierda: Home, Busqueda, Detalle, Mis animes, Welcome.**
+**De izquierda a derecha:** Home, Búsqueda, Detalle de Anime, Mis animes, Welcome.
 
 ---
 
@@ -57,12 +61,12 @@ Estas son algunas imagenes de las 13 pantallas implementadas hasta el momento
    ```bash
    git clone https://github.com/Pedro-kt/seijaku-list.git
 
-Abrir el proyecto en Android Studio.
+2. Abrir el proyecto en Android Studio.
 
-Configurar tu proyecto en Firebase y descargar el google-services.json.
+3. Configurar tu proyecto en Firebase y descargar el google-services.json.
 
-Colocar el archivo en la carpeta app/.
+4. Colocar el archivo en la carpeta app/.
 
-Selecciona un dispositivo o emulador con API 26 (Android 8.0) o superior y ejecutalo en el mismo
+5. Selecciona un dispositivo o emulador con API 26 (Android 8.0) o superior y ejecutalo en el mismo
 
 
