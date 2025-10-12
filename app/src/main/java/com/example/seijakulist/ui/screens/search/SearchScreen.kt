@@ -54,6 +54,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.seijakulist.R
+import com.example.seijakulist.domain.models.Anime
+import com.example.seijakulist.domain.models.AnimeCard
 import com.example.seijakulist.ui.components.HorizontalDividerComponent
 import com.example.seijakulist.ui.components.LoadingScreen
 import com.example.seijakulist.ui.components.NoInternetScreen
@@ -68,33 +70,22 @@ fun SearchScreen(
     viewModel: AnimeSearchViewModel = hiltViewModel(),
     listGenres: GenresViewModel = hiltViewModel()
 ) {
+
     val searchQuery by viewModel.searchQuery.collectAsState()
     val animeList by viewModel.animeList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val selectedFilter by viewModel.selectedFilter.collectAsState()
+    val selectedGenreId by viewModel.selectedGenreId.collectAsState()
 
     val genres by listGenres.genres.collectAsState()
     val isLoadingGenres by listGenres.isLoading.collectAsState()
     val errorMessageGenres by listGenres.errorMessage.collectAsState()
 
-    val animeListGenre by listGenres.animeList.collectAsState()
-    val genreId by remember { mutableStateOf(null) }
-    
-    LaunchedEffect(Unit) {
-        listGenres.fetchGenres()
-    }
-
-    LaunchedEffect(Unit) {
-        listGenres.fetchAnimeByGenre(genreId.toString())
-    }
+    var openBottomSheet by remember { mutableStateOf(false) }
 
     val focusManager = LocalFocusManager.current
-
     val listFilterChip = listOf("Anime", "Manga", "Generos", "Personajes", "Staff", "Estudios")
-    var selectedFilter by remember { mutableStateOf<String?>(null) }
-
-    var colapsedFilter by remember { mutableStateOf(false) }
-    var openBottomSheet by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -105,6 +96,7 @@ fun SearchScreen(
                 })
             }
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -164,6 +156,7 @@ fun SearchScreen(
                                 .clickable {
                                     viewModel.onSearchQueryChanged("")
                                     focusManager.clearFocus()
+                                    viewModel.performSearchOrFilter() // Limpiar y buscar
                                 }
                         )
                     }
@@ -174,7 +167,7 @@ fun SearchScreen(
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         if (searchQuery.isNotBlank()) {
-                            viewModel.searchAnimes()
+                            viewModel.performSearchOrFilter() // Usa la función unificada
                             focusManager.clearFocus()
                         }
                     }
@@ -182,6 +175,7 @@ fun SearchScreen(
             )
         }
 
+        // Chips de filtros
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
@@ -195,7 +189,7 @@ fun SearchScreen(
                         if (filter == "Generos") {
                             openBottomSheet = true
                         } else {
-                            selectedFilter = if (isSelected) null else filter
+                            viewModel.onFilterSelected(if (isSelected) null else filter)
                         }
                     },
                     label = {
@@ -234,7 +228,7 @@ fun SearchScreen(
             }
         }
 
-
+        // Contenido principal
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 LoadingScreen()
@@ -254,176 +248,21 @@ fun SearchScreen(
                 )
             ) {
                 items(animeList, key = { it.malId }) { anime ->
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(500), initialOffsetX = { -it / 2 })
-                    ) {
-
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                                },
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box {
-                                        AsyncImage(
-                                            model = anime.images,
-                                            contentDescription = "Imagen de portada de ${anime.title}",
-                                            modifier = Modifier
-                                                .height(180.dp)
-                                                .width(125.dp)
-                                                .clip(RoundedCornerShape(16.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                        Row(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomStart)
-                                                .padding(4.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(
-                                                    MaterialTheme.colorScheme.scrim.copy(alpha = 0.8f)
-                                                )
-                                                .padding(horizontal = 6.dp, vertical = 2.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Star,
-                                                contentDescription = "Puntuacion",
-                                                tint = Color.White,
-                                                modifier = Modifier.size(14.dp)
-
-                                            )
-                                            Text(
-                                                text = String.format("%.1f", anime.score),
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                textAlign = TextAlign.Start,
-                                                modifier = Modifier
-                                                    .wrapContentWidth(align = Alignment.Start),
-                                                color = Color.White,
-                                                fontSize = 12.sp,
-                                                fontFamily = RobotoBold
-                                            )
-                                        }
-                                    }
-                                    Column(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(horizontal = 16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Text(
-                                            text = anime.title,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        )
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            val (statusColor, onStatusColor) = when (anime.status) {
-                                                "Currently Airing" -> Color(0xFF4CAF50).copy(alpha = 0.2f) to Color(0xFF4CAF50) // Verde
-                                                "Finished Airing" -> Color(0xFF2196F3).copy(alpha = 0.2f) to Color(0xFF2196F3) // Azul
-                                                "Not yet aired" -> Color(0xFFFF9800).copy(alpha = 0.2f) to Color(0xFFFF9800) // Naranja
-                                                else -> MaterialTheme.colorScheme.surfaceContainer to MaterialTheme.colorScheme.onSurfaceVariant
-                                            }
-
-                                            Surface(
-                                                shape = RoundedCornerShape(8.dp),
-                                                color = statusColor,
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.AccessTime,
-                                                        contentDescription = "Estado",
-                                                        tint = onStatusColor,
-                                                        modifier = Modifier.size(16.dp)
-                                                    )
-                                                    Text(
-                                                        text = anime.status,
-                                                        style = MaterialTheme.typography.labelMedium,
-                                                        color = onStatusColor,
-                                                    )
-                                                }
-                                            }
-                                        }
-
-                                        if (anime.genres.isNotEmpty()) {
-                                            LazyRow(
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            ) {
-                                                items(anime.genres) { genre ->
-                                                    genre?.name?.let {
-                                                        SuggestionChip(
-                                                            onClick = { /* No action */ },
-                                                            label = {
-                                                                Text(
-                                                                    it,
-                                                                    style = MaterialTheme.typography.labelSmall
-                                                                )
-                                                            },
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        Text(
-                                            text = "Año ${anime.year ?: "N/A"} • ${anime.episodes ?: "N/A"} episodios",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                            )
-                                    }
-                                }
-                                IconButton(
-                                    onClick = { },
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(4.dp)
-                                ) {
-                                    Icon( // Cambiado para indicar "guardar" o "añadir a lista"
-                                        imageVector = Icons.Default.BookmarkBorder,
-                                        contentDescription = "Añadir a la lista",
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    AnimeCardItem(navController = navController, anime = anime)
                 }
             }
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "Ingresa un término de búsqueda.",
+                    text = if (selectedFilter != null) "No se encontraron resultados para el filtro seleccionado." else "Ingresa un término de búsqueda.",
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
                 )
             }
         }
+
         if (openBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = { openBottomSheet = false },
@@ -431,46 +270,55 @@ fun SearchScreen(
                 if (isLoadingGenres) {
                     LoadingScreen()
                 } else if (errorMessageGenres != null) {
-                    Text(text = errorMessageGenres ?: "Error desconocido")
+                    Text(text = errorMessageGenres ?: "Error desconocido", modifier = Modifier.padding(16.dp))
                 } else {
-                    LazyColumn() {
+                    LazyColumn(
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
                         item {
                             Text(
-                                text = "Generos",
+                                text = "Géneros",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
+                        }
 
+                        // Estructura de dos columnas para Géneros
+                        item {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                val firstHalf = genres.take(genres.size / 2)
-                                val secondHalf = genres.takeLast(genres.size / 2)
-
-                                Column(modifier = Modifier.weight(1f).padding(end = 4.dp)) {
-                                    firstHalf.forEach { genre ->
-                                        GenreButton(genre = genre.name, onClick = { /* TODO: Implementar acción de filtro */ }, count = genre.count)
-                                    }
-                                }
-                                Column(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
-                                    secondHalf.forEach { genre ->
-                                        GenreButton(genre = genre.name, onClick = { /* TODO: Implementar acción de filtro */ }, count = genre.count)
+                                // Usamos chunked para dividir la lista en dos partes
+                                genres.chunked(genres.size / 2).forEach { chunk ->
+                                    Column(modifier = Modifier.weight(1f).padding(horizontal = 4.dp)) {
+                                        chunk.forEach { genre ->
+                                            GenreButton(
+                                                genre = genre.name,
+                                                count = genre.count,
+                                                isSelected = selectedGenreId == genre.malId.toString(),
+                                                onClick = { viewModel.onGenreSelected(genre.malId.toString()) }
+                                            )
+                                        }
                                     }
                                 }
                             }
+                        }
+
+                        // Botones de acción del Bottom Sheet
+                        item {
                             Spacer(modifier = Modifier.height(16.dp))
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 TextButton(
                                     onClick = { openBottomSheet = false },
-                                    modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
+                                    modifier = Modifier.padding(end = 8.dp)
                                 ) {
                                     Text(
                                         text = "CERRAR",
@@ -479,11 +327,16 @@ fun SearchScreen(
                                     )
                                 }
                                 Button(
-                                    onClick = { 
-                                        listGenres.fetchAnimeByGenre(genreId.toString())
-                                        openBottomSheet = false 
-                                              },
-                                    modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
+                                    onClick = {
+                                        if (selectedGenreId != null) {
+                                            viewModel.onFilterSelected("Generos")
+                                            viewModel.performSearchOrFilter()
+                                        } else {
+                                            viewModel.onFilterSelected(null)
+                                        }
+                                        openBottomSheet = false
+                                    },
+                                    enabled = selectedGenreId != null
                                 ) {
                                     Text(
                                         text = "BUSCAR",
@@ -493,7 +346,6 @@ fun SearchScreen(
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -502,26 +354,182 @@ fun SearchScreen(
 }
 
 @Composable
-fun GenreButton(genre: String, onClick: () -> Unit, count: Int) {
-    var isSelectedItem by remember { mutableStateOf(false) }
+fun AnimeCardItem(navController: NavController, anime: AnimeCard) {
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn(animationSpec = tween(300)) + slideInHorizontally(animationSpec = tween(500), initialOffsetX = { -it / 2 })
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                },
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box {
+                        AsyncImage(
+                            model = anime.images,
+                            contentDescription = "Imagen de portada de ${anime.title}",
+                            modifier = Modifier
+                                .height(180.dp)
+                                .width(125.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.scrim.copy(alpha = 0.8f)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Puntuacion",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
 
+                            )
+                            Text(
+                                text = String.format("%.1f", anime.score),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier
+                                    .wrapContentWidth(align = Alignment.Start),
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontFamily = RobotoBold
+                            )
+                        }
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = anime.title,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val (statusColor, onStatusColor) = when (anime.status) {
+                                "Currently Airing" -> Color(0xFF4CAF50).copy(alpha = 0.2f) to Color(0xFF4CAF50)
+                                "Finished Airing" -> Color(0xFF2196F3).copy(alpha = 0.2f) to Color(0xFF2196F3)
+                                "Not yet aired" -> Color(0xFFFF9800).copy(alpha = 0.2f) to Color(0xFFFF9800)
+                                else -> MaterialTheme.colorScheme.surfaceContainer to MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = statusColor,
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AccessTime,
+                                        contentDescription = "Estado",
+                                        tint = onStatusColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = anime.status,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = onStatusColor,
+                                    )
+                                }
+                            }
+                        }
+
+                        if (anime.genres.isNotEmpty()) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(anime.genres) { genre ->
+                                    genre?.name?.let {
+                                        SuggestionChip(
+                                            onClick = { /* No action */ },
+                                            label = {
+                                                Text(
+                                                    it,
+                                                    style = MaterialTheme.typography.labelSmall
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Text(
+                            text = "Año ${anime.year ?: "N/A"} • ${anime.episodes ?: "N/A"} episodios",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = { },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.BookmarkBorder,
+                        contentDescription = "Añadir a la lista",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun GenreButton(genre: String, onClick: () -> Unit, count: Int, isSelected: Boolean) {
     Button(
-        onClick = {
-            isSelectedItem = !isSelectedItem
-            onClick() // La lambda original se sigue llamando
-        },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelectedItem) {
+            containerColor = if (isSelected) {
                 MaterialTheme.colorScheme.primary
             } else {
                 MaterialTheme.colorScheme.surfaceVariant
             },
-            contentColor = if (isSelectedItem) {
+            contentColor = if (isSelected) {
                 MaterialTheme.colorScheme.onPrimary
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
