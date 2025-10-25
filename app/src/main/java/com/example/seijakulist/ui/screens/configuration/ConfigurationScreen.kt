@@ -47,8 +47,8 @@ import com.example.seijakulist.ui.screens.auth_screen.AuthViewModel
 fun ConfigurationScreen(
     navController: NavController,
     viewModel: AuthViewModel = viewModel(),
-    isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit,
+    //isDarkTheme: Boolean,
+    //onThemeToggle: () -> Unit,
 ) {
 
     Column(
@@ -79,6 +79,7 @@ fun ConfigurationScreen(
                 modifier = Modifier.align(Alignment.Center)
             )
         }
+        /*
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,6 +103,8 @@ fun ConfigurationScreen(
                 ),
             )
         }
+
+         */
         Row(
             modifier = Modifier
             .fillMaxWidth()

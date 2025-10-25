@@ -88,7 +88,7 @@ private val LightColorScheme = lightColorScheme(
 fun SeijakuListTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Para desactivar el color dinámico y usar tu paleta, cambia a 'false'
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

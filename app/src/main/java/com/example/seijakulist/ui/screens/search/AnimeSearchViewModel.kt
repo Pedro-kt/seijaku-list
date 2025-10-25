@@ -80,7 +80,7 @@ class AnimeSearchViewModel @Inject constructor(
                         if (_searchQuery.value.isNotBlank()) {
                             getAnimeSearchUseCase(query = _searchQuery.value, page = 1)
                         } else {
-                            emptyList<AnimeCard>()
+                            emptyList()
                         }
                     }
                     "Generos" -> {
@@ -88,10 +88,10 @@ class AnimeSearchViewModel @Inject constructor(
                         if (id != null) {
                             animeRepository.getAnimeByGenre(id)
                         } else {
-                            emptyList<AnimeCard>()
+                            emptyList()
                         }
                     }
-                    else -> emptyList<AnimeCard>()
+                    else -> emptyList()
                 }
                 _animeList.value = results.distinctBy { it.malId }
 

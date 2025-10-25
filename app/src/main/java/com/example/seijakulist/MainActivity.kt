@@ -70,8 +70,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDismissSearch: () -> Unit) {
 
-    val settingsViewModel: SettingsViewModel = viewModel()
-    val isDarkTheme by settingsViewModel.isDarkThemeEnabled.collectAsState()
+    //val settingsViewModel: SettingsViewModel = viewModel()
+    //val isDarkTheme by settingsViewModel.isDarkThemeEnabled.collectAsState()
 
     val firebaseAuth = remember { FirebaseAuth.getInstance() }
 
@@ -80,13 +80,7 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
         startDestination = AppDestinations.HOME
     ) {
         composable(
-            route = AppDestinations.LOGIN_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = AppDestinations.LOGIN_ROUTE
         ) {
             LoginScreen(
                 onSignInSuccess = {
@@ -100,13 +94,7 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
             )
         }
         composable(
-            route = AppDestinations.REGISTER_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = AppDestinations.REGISTER_ROUTE
         ) {
             RegisterScreen(
                 onSignInSuccess = {
@@ -120,35 +108,17 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
             )
         }
         composable(
-            AppDestinations.PROFILE_LOADER_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            AppDestinations.PROFILE_LOADER_ROUTE
         ) {
             ProfileLoaderScreen(navController = navController)
         }
         composable(
-            AppDestinations.PROFILE_SETUP_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            AppDestinations.PROFILE_SETUP_ROUTE
         ) {
             ProfileSetupView(navController = navController)
         }
         composable(
-            AppDestinations.PROFILE_VIEW_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            AppDestinations.PROFILE_VIEW_ROUTE
         ) {
             ProfileView(navController = navController)
         }
@@ -160,69 +130,37 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
             )
         }
         composable(
-            route = AppDestinations.CONFIGURATION_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = AppDestinations.CONFIGURATION_ROUTE
         ) {
-            ConfigurationScreen(navController, isDarkTheme = isDarkTheme, onThemeToggle = {settingsViewModel.toggleTheme()})
+            ConfigurationScreen(
+                navController,
+        //isDarkTheme = isDarkTheme,
+        // onThemeToggle = {settingsViewModel.toggleTheme()}
+        )
         }
         composable(
-            route = AppDestinations.HOME,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = AppDestinations.HOME
         ) {
             HomeScreen(navController)
         }
         composable(
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
             route = AppDestinations.SEARCH_ANIME_ROUTE
         ) {
             SearchScreen(navController)
         }
         composable(
-            route = AppDestinations.MY_ANIMES_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = AppDestinations.MY_ANIMES_ROUTE
         ) {
             MyAnimeListScreen(navController = navController, isSearching = isSearching, onDismissSearch = onDismissSearch)
         }
         composable(
-            route = AppDestinations.MY_MANGAS_ROUTE,
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = AppDestinations.MY_MANGAS_ROUTE
         ) {
             MyMangasScreen(navController)
         }
         composable(
             arguments = listOf(navArgument("animeId") { type = NavType.IntType }),
-            route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}",
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}"
         ) { backStackEntry ->
             val animeId = backStackEntry.arguments?.getInt(AppDestinations.ANIME_ID_KEY)
             if (animeId != null) {
@@ -233,13 +171,7 @@ fun AppNavigation(navController: NavHostController, isSearching: Boolean, onDism
         }
         composable(
             arguments = listOf(navArgument("characterId") { type = NavType.IntType }),
-            route = "${AppDestinations.CHARACTER_DETAIL_ROUTE}/{${AppDestinations.CHARACTER_ID_KEY}}",
-            enterTransition = {
-                slideInVertically(animationSpec = tween(700), initialOffsetY = { it })
-            },
-            exitTransition = {
-                slideOutVertically(animationSpec = tween(700), targetOffsetY = { it })
-            },
+            route = "${AppDestinations.CHARACTER_DETAIL_ROUTE}/{${AppDestinations.CHARACTER_ID_KEY}}"
         ) { backStackEntry ->
             val characterId = backStackEntry.arguments?.getInt(AppDestinations.CHARACTER_ID_KEY)
             if (characterId != null) {

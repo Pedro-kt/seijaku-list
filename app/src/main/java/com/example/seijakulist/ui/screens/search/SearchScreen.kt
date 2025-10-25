@@ -254,7 +254,7 @@ fun SearchScreen(
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = if (selectedFilter != null) "No se encontraron resultados para el filtro seleccionado." else "Ingresa un término de búsqueda.",
+                    text = "Ingresa un término de búsqueda.",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center,

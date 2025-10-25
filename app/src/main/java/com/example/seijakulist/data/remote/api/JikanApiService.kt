@@ -46,7 +46,9 @@ interface  JikanApiService {
     ): CharacterPicturesResponseDto
 
     @GET("seasons/now")
-    suspend fun getAnimeSeasonNow(): SearchAnimeResponse
+    suspend fun getAnimeSeasonNow(
+        @Query("sfw") sfw: Boolean = true
+    ): SearchAnimeResponse
 
     @GET("top/anime")
     suspend fun getTopAnime(): SearchAnimeResponse
@@ -67,17 +69,20 @@ interface  JikanApiService {
 
     @GET("schedules")
     suspend fun getAnimeSchedule(
-        @Query("filter") filter: String
+        @Query("filter") filter: String,
+        @Query("sfw") sfw: Boolean = true
     ): SearchAnimeResponse
 
     @GET("top/anime")
     suspend fun getTopAnimeFilter(
-        @Query("type") filter: String
+        @Query("type") filter: String,
+        @Query("sfw") sfw: Boolean = true
     ): SearchAnimeResponse
 
     @GET("seasons/upcoming")
     suspend fun getSeasonUpcomingFilter(
-        @Query("filter") filter: String
+        @Query("filter") filter: String,
+        @Query("sfw") sfw: Boolean = true
     ) : SearchAnimeResponse
 
     @GET("producers/{id}/full")
