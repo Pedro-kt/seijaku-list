@@ -362,6 +362,11 @@ fun AnimeDetailScreen(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
+
+                        item {
+
+                        }
+
                         item {
                             Box(
                                 modifier = Modifier

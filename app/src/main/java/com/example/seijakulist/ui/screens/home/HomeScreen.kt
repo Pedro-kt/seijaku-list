@@ -1,25 +1,39 @@
 package com.example.seijakulist.ui.screens.home
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,25 +44,26 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.seijakulist.domain.models.Anime
 import com.example.seijakulist.ui.components.CardAnimesHome
 import com.example.seijakulist.ui.components.CardAnimesHomeLoading
-import com.example.seijakulist.ui.components.CompleteAnimeCard
-import com.example.seijakulist.ui.components.CompleteCharacterCard
-import com.example.seijakulist.ui.components.FilterAnimesHome
-import com.example.seijakulist.ui.components.HorizontalDividerComponent
+import com.example.seijakulist.ui.screens.home.FilterAnimesHome
 import com.example.seijakulist.ui.components.LoadingScreen
+import com.example.seijakulist.ui.components.MangaPlaceholder
 import com.example.seijakulist.ui.components.NoInternetScreen
-import com.example.seijakulist.ui.components.SubTitleWithoutIcon
 import com.example.seijakulist.ui.theme.RobotoBold
 import com.example.seijakulist.ui.theme.RobotoRegular
 
 
+// HomeScreen con UI mejorada
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -61,47 +76,31 @@ fun HomeScreen(
     animeFilterViewModel: TopAnimeFilterViewModel = hiltViewModel(),
     seasonUpcomingFilterViewModel: AnimeSeasonUpcomingFilterViewModel = hiltViewModel()
 ) {
-
+    // Estados
     val animeSeasonNow by seasonNowViewModel.animeList.collectAsState()
     val animeSeasonNowIsLoading by seasonNowViewModel.isLoading.collectAsState()
-    val animeSeasonNowErrorMessage by seasonNowViewModel.errorMessage.collectAsState()
     val animeSeasonNowError by seasonNowViewModel.isError.collectAsState()
 
     val topAnimes by topAnimesViewModel.animeList.collectAsState()
-    val topAnimeIsLoading by topAnimesViewModel.isLoading.collectAsState()
-    val topAnimeErrorMessage by topAnimesViewModel.errorMessage.collectAsState()
     val topAnimeError by topAnimesViewModel.isError.collectAsState()
 
     val animeSeasonUpcoming by seasonUpcomingViewModel.animeList.collectAsState()
     val animeSeasonUpcomingIsLoading by seasonUpcomingViewModel.isLoading.collectAsState()
-    val animeSeasonUpcomingErrorMessage by seasonUpcomingViewModel.errorMessage.collectAsState()
     val animeSeasonUpcomingError by seasonUpcomingViewModel.isError.collectAsState()
-
-    val characterRandom by characterRandomViewModel.uiCharacterState.collectAsState()
-
-    val animeRandom by animeRandomViewModel.uiState.collectAsStateWithLifecycle()
 
     val animeSchedule by animeScheduleViewModel.animeList.collectAsState()
     val animeScheduleIsLoading by animeScheduleViewModel.isLoading.collectAsState()
-    val animeScheduleErrorMessage by animeScheduleViewModel.errorMessage.collectAsState()
-    val animeScheduleError by animeScheduleViewModel.isError.collectAsState()
 
     val topAnimeFilter by animeFilterViewModel.animeList.collectAsState()
     val topAnimeFilterIsLoading by animeFilterViewModel.isLoading.collectAsState()
-    val topAnimeFilterErrorMessage by animeFilterViewModel.errorMessage.collectAsState()
-    val topAnimeFilterError by animeFilterViewModel.isError.collectAsState()
 
     val animeSeasonUpcomingFilter by seasonUpcomingFilterViewModel.animeList.collectAsState()
     val animeSeasonUpcomingFilterIsLoading by seasonUpcomingFilterViewModel.isLoading.collectAsState()
-    val animeSeasonUpcomingFilterErrorMessage by seasonUpcomingFilterViewModel.errorMessage.collectAsState()
-    val animeSeasonUpcomingFilterError by seasonUpcomingFilterViewModel.isError.collectAsState()
 
     val hasError = animeSeasonNowError || topAnimeError || animeSeasonUpcomingError
 
     val listTab = listOf("Anime", "Manga")
     val selectedTab = remember { mutableStateOf(listTab[0]) }
-
-    var visible by rememberSaveable { mutableStateOf(false) }
 
     val listDays = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
     val listDaysFilter = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
@@ -116,27 +115,19 @@ fun HomeScreen(
     var selectedTypeFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedUpcomingFilter by rememberSaveable { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(key1 = selectedDayFilter) {
-        selectedDayFilter?.let { day ->
-            animeScheduleViewModel.AnimeSchedule(day)
-        }
+    LaunchedEffect(selectedDayFilter) {
+        selectedDayFilter?.let { animeScheduleViewModel.AnimeSchedule(it) }
     }
-    LaunchedEffect(key1 = selectedTypeFilter) {
-        selectedTypeFilter?.let { filter ->
-            animeFilterViewModel.TopAnimeFilter(filter)
-        }
+
+    LaunchedEffect(selectedTypeFilter) {
+        selectedTypeFilter?.let { animeFilterViewModel.TopAnimeFilter(it) }
     }
+
     LaunchedEffect(selectedUpcomingFilter) {
-        selectedUpcomingFilter?.let { filter ->
-            seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(filter)
-        }
+        selectedUpcomingFilter?.let { seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(it) }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
+    Column(modifier = Modifier.fillMaxSize()) {
         if (hasError) {
             NoInternetScreen(
                 onRetryClick = {
@@ -151,173 +142,347 @@ fun HomeScreen(
             if (animeSeasonUpcomingIsLoading) {
                 LoadingScreen()
             } else if (animeSeasonNow.isNotEmpty()) {
-
-                TabRow(
-                    selectedTabIndex = listTab.indexOf(selectedTab.value),
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.background,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    indicator = { tabPositions ->
-                        HorizontalDivider(
-                            modifier = Modifier.tabIndicatorOffset(
-                                tabPositions[listTab.indexOf(
-                                    selectedTab.value
-                                )]
-                            ),
-                            color = MaterialTheme.colorScheme.primary,
-                            thickness = 3.dp
-                        )
-                    }
-                ) {
-                    listTab.forEach { tab ->
-                        Tab(
-                            selected = tab == selectedTab.value,
-                            onClick = { selectedTab.value = tab },
-                            text = {
-                                Text(
-                                    text = tab,
-                                    fontFamily = RobotoBold
-                                )
-                            }
-                        )
-                    }
-                }
+                HomeTabSection(
+                    selectedTab = selectedTab.value,
+                    tabs = listTab,
+                    onTabSelected = { selectedTab.value = it }
+                )
 
                 when (selectedTab.value) {
-
                     "Anime" -> {
-                        LazyColumn() {
-                            item {
-                                SubTitleWithoutIcon("En emision")
-                                FilterAnimesHome(
-                                    list = listDays,
-                                    listLabel = listDaysFilter,
-                                    selectedFilter = selectedDayFilter,
-                                    onFilterSelected = { filter ->
-                                        selectedDayFilter = filter
-                                    }
-                                )
-                            }
-                            item {
-                                selectedDayFilter?.let { day ->
-                                    if (animeScheduleIsLoading) {
-                                        CardAnimesHomeLoading()
-                                    } else if (animeSchedule.isNotEmpty()) {
-                                        CardAnimesHome(animeSchedule, navController)
-                                    } else {
-                                        Text(
-                                            text = "No hay animes programados para este dia.",
-                                            modifier = Modifier
-                                                .padding(16.dp)
-                                        )
-                                    }
-                                } ?: run {
-                                    CardAnimesHome(animeSeasonNow, navController)
-                                }
-                            }
-                            item {
-                                SubTitleWithoutIcon("Top puntuacion")
-                                FilterAnimesHome(
-                                    list = listTypeAnime,
-                                    listLabel = listTypeAnimeFilter,
-                                    selectedFilter = selectedTypeFilter,
-                                    onFilterSelected = { filter ->
-                                        selectedTypeFilter = filter
-                                    }
-                                )
-                            }
-                            item {
-                                selectedTypeFilter?.let { filter ->
-                                    if (topAnimeFilterIsLoading) {
-                                        CardAnimesHomeLoading()
-                                    } else if (topAnimeFilter.isNotEmpty()) {
-                                        CardAnimesHome(topAnimeFilter, navController)
-                                    } else {
-                                        Text(
-                                            text = "No se encontraron animes para el filtro seleccionado.",
-                                            modifier = Modifier
-                                                .padding(16.dp)
-                                        )
-                                    }
-                                } ?: run {
-                                    CardAnimesHome(topAnimes, navController)
-                                }
-                            }
-                            item {
-                                SubTitleWithoutIcon("Próxima temporada")
-                                FilterAnimesHome(
-                                    list = listTypeSeasonUpcoming,
-                                    listLabel = listTypeSeasonUpcomingFilter,
-                                    selectedFilter = selectedUpcomingFilter,
-                                    onFilterSelected = { filter ->
-                                        selectedUpcomingFilter = filter
-                                    }
-                                )
-                            }
-                            item {
-                                selectedUpcomingFilter?.let { filter ->
-                                    if (animeSeasonUpcomingFilterIsLoading) {
-                                        CardAnimesHomeLoading()
-                                    } else if (animeSeasonUpcomingFilter.isNotEmpty()) {
-                                        CardAnimesHome(animeSeasonUpcomingFilter, navController)
-                                    } else {
-                                        Text(
-                                            text = "No se encontraron animes para el filtro seleccionado.",
-                                            modifier = Modifier
-                                                .padding(16.dp)
-                                        )
-                                    }
-                                } ?: run {
-                                    CardAnimesHome(animeSeasonUpcoming, navController)
-                                }
-                            }
-                            /*
-                            item {
-                                SubTitleWithoutIcon("Anime aleatorio")
-                            }
-                            item {
-                                CompleteAnimeCard(animeRandom, navController, animeRandomViewModel)
-                            }
-                            item {
-                                Spacer(modifier = Modifier.padding(4.dp))
-                            }
-                            item {
-                                SubTitleWithoutIcon("Personaje aleatorio")
-                            }
-                            item {
-                                CompleteCharacterCard(
-                                    characterRandom,
-                                    navController,
-                                    characterRandomViewModel
-                                )
-                            }
-                        }
-
-                             */
-                        }
+                        AnimeContent(
+                            animeSeasonNow = animeSeasonNow,
+                            topAnimes = topAnimes,
+                            animeSeasonUpcoming = animeSeasonUpcoming,
+                            animeSchedule = animeSchedule,
+                            topAnimeFilter = topAnimeFilter,
+                            animeSeasonUpcomingFilter = animeSeasonUpcomingFilter,
+                            animeScheduleIsLoading = animeScheduleIsLoading,
+                            topAnimeFilterIsLoading = topAnimeFilterIsLoading,
+                            animeSeasonUpcomingFilterIsLoading = animeSeasonUpcomingFilterIsLoading,
+                            listDays = listDays,
+                            listDaysFilter = listDaysFilter,
+                            listTypeAnime = listTypeAnime,
+                            listTypeAnimeFilter = listTypeAnimeFilter,
+                            listTypeSeasonUpcoming = listTypeSeasonUpcoming,
+                            listTypeSeasonUpcomingFilter = listTypeSeasonUpcomingFilter,
+                            selectedDayFilter = selectedDayFilter,
+                            selectedTypeFilter = selectedTypeFilter,
+                            selectedUpcomingFilter = selectedUpcomingFilter,
+                            onDayFilterSelected = { selectedDayFilter = it },
+                            onTypeFilterSelected = { selectedTypeFilter = it },
+                            onUpcomingFilterSelected = { selectedUpcomingFilter = it },
+                            navController = navController
+                        )
                     }
-
                     "Manga" -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "En este momento no hay mangas disponibles, pero pronto lo estará!",
-                                fontFamily = RobotoRegular,
-                                textAlign = TextAlign.Center,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                        MangaPlaceholder()
                     }
-
                 }
-
-
             }
         }
+    }
+}
+
+@Composable
+private fun HomeTabSection(
+    selectedTab: String,
+    tabs: List<String>,
+    onTabSelected: (String) -> Unit
+) {
+    TabRow(
+        selectedTabIndex = tabs.indexOf(selectedTab),
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.background,
+        indicator = { tabPositions ->
+            SecondaryIndicator(
+                modifier = Modifier
+                    .tabIndicatorOffset(tabPositions[tabs.indexOf(selectedTab)])
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)),
+                color = MaterialTheme.colorScheme.primary
+            )
+        },
+        divider = {}
+    ) {
+        tabs.forEach { tab ->
+            Tab(
+                selected = tab == selectedTab,
+                onClick = { onTabSelected(tab) },
+                text = {
+                    Text(
+                        text = tab,
+                        fontFamily = RobotoBold,
+                        fontSize = 15.sp
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnimeContent(
+    animeSeasonNow: List<Any>,
+    topAnimes: List<Any>,
+    animeSeasonUpcoming: List<Any>,
+    animeSchedule: List<Any>,
+    topAnimeFilter: List<Any>,
+    animeSeasonUpcomingFilter: List<Any>,
+    animeScheduleIsLoading: Boolean,
+    topAnimeFilterIsLoading: Boolean,
+    animeSeasonUpcomingFilterIsLoading: Boolean,
+    listDays: List<String>,
+    listDaysFilter: List<String>,
+    listTypeAnime: List<String>,
+    listTypeAnimeFilter: List<String>,
+    listTypeSeasonUpcoming: List<String>,
+    listTypeSeasonUpcomingFilter: List<String>,
+    selectedDayFilter: String?,
+    selectedTypeFilter: String?,
+    selectedUpcomingFilter: String?,
+    onDayFilterSelected: (String?) -> Unit,
+    onTypeFilterSelected: (String?) -> Unit,
+    onUpcomingFilterSelected: (String?) -> Unit,
+    navController: NavController
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        // Sección En Emisión
+        item {
+            AnimeSectionWithFilter(
+                title = "En emisión",
+                icon = Icons.Default.Tv,
+                filters = listDays,
+                filterLabels = listDaysFilter,
+                selectedFilter = selectedDayFilter,
+                onFilterSelected = onDayFilterSelected,
+                isLoading = animeScheduleIsLoading,
+                animeList = if (selectedDayFilter != null) animeSchedule else animeSeasonNow,
+                emptyMessage = "No hay animes programados para este día.",
+                navController = navController,
+                onViewMoreClick = { /* TODO */ }
+            )
+        }
+
+        // Sección Top Puntuación
+        item {
+            AnimeSectionWithFilter(
+                title = "Top puntuación",
+                icon = Icons.Default.Star,
+                filters = listTypeAnime,
+                filterLabels = listTypeAnimeFilter,
+                selectedFilter = selectedTypeFilter,
+                onFilterSelected = onTypeFilterSelected,
+                isLoading = topAnimeFilterIsLoading,
+                animeList = if (selectedTypeFilter != null) topAnimeFilter else topAnimes,
+                emptyMessage = "No se encontraron animes para el filtro seleccionado.",
+                navController = navController,
+                onViewMoreClick = { /* TODO */ }
+            )
+        }
+
+        // Sección Próxima Temporada
+        item {
+            AnimeSectionWithFilter(
+                title = "Próxima temporada",
+                icon = Icons.Default.CalendarMonth,
+                filters = listTypeSeasonUpcoming,
+                filterLabels = listTypeSeasonUpcomingFilter,
+                selectedFilter = selectedUpcomingFilter,
+                onFilterSelected = onUpcomingFilterSelected,
+                isLoading = animeSeasonUpcomingFilterIsLoading,
+                animeList = if (selectedUpcomingFilter != null) animeSeasonUpcomingFilter else animeSeasonUpcoming,
+                emptyMessage = "No se encontraron animes para el filtro seleccionado.",
+                navController = navController,
+                onViewMoreClick = { /* TODO */ }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnimeSectionWithFilter(
+    title: String,
+    icon: ImageVector,
+    filters: List<String>,
+    filterLabels: List<String>,
+    selectedFilter: String?,
+    onFilterSelected: (String?) -> Unit,
+    isLoading: Boolean,
+    animeList: List<Any>,
+    emptyMessage: String,
+    navController: NavController,
+    onViewMoreClick: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeader(
+            title = title,
+            icon = icon,
+            onViewMoreClick = onViewMoreClick
+        )
+
+        FilterAnimesHome(
+            list = filters,
+            listLabel = filterLabels,
+            selectedFilter = selectedFilter,
+            onFilterSelected = onFilterSelected
+        )
+
+        when {
+            isLoading -> CardAnimesHomeLoading()
+            animeList.isNotEmpty() -> CardAnimesHome(animeList as List<Anime>, navController)
+            else -> EmptyStateMessage(emptyMessage)
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    icon: ImageVector,
+    onViewMoreClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = title,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 20.sp,
+                fontFamily = RobotoBold,
+                letterSpacing = 0.5.sp
+            )
+        }
+
+        TextButton(
+            onClick = onViewMoreClick,
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = "Ver más",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp,
+                fontFamily = RobotoRegular
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+fun FilterAnimesHome(
+    list: List<String>,
+    listLabel: List<String>,
+    selectedFilter: String?,
+    onFilterSelected: (String?) -> Unit
+) {
+    val scrollState = rememberScrollState()
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        list.forEachIndexed { index, filter ->
+            val isSelected = selectedFilter == filter
+
+            FilterChip(
+                selected = isSelected,
+                onClick = {
+                    onFilterSelected(if (isSelected) null else filter)
+                },
+                label = {
+                    Text(
+                        text = listLabel[index],
+                        fontFamily = if (isSelected) RobotoBold else RobotoRegular,
+                        fontSize = 14.sp
+                    )
+                },
+                leadingIcon = if (isSelected) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                } else null,
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    iconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = if (isSelected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    } else {
+                        Color.Transparent
+                    },
+                    selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    borderWidth = 1.dp,
+                    selectedBorderWidth = 1.dp
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyStateMessage(message: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Info,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            text = message,
+            fontFamily = RobotoRegular,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            lineHeight = 20.sp
+        )
     }
 }

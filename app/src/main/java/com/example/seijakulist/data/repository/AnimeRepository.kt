@@ -37,7 +37,6 @@ class AnimeRepository @Inject constructor(
     suspend fun getAnimeDetailsById(animeId: Int): AnimeDetail {
         try {
             val responseDto: AnimeDetailResponseDto = ApiService.getAnimeDetails(animeId)
-            Log.d("AnimeRepo", "Respuesta DTO de la API (con envoltorio): $responseDto")
 
             val animeDetailDto: AnimeDetailDto? = responseDto.data
 
@@ -46,12 +45,10 @@ class AnimeRepository @Inject constructor(
             }
 
             val animeDetail: AnimeDetail = animeDetailDto.toAnimeDetails()
-            Log.d("AnimeRepo", "AnimeDetail mapeado: $animeDetail")
 
             return animeDetail
 
         } catch (e: Exception) {
-            Log.e("AnimeRepo", "Error al obtener detalles del anime: ${e.message}", e)
             throw Exception("Failed to fetch anime details from API for ID $animeId", e)
         }
 
@@ -59,9 +56,6 @@ class AnimeRepository @Inject constructor(
 
     suspend fun getAnimeCharactersById(animeId: Int): List<AnimeCharactersDetail> {
         val responseDto = ApiService.getAnimeCharacters(animeId)
-
-        Log.d("REPO", "Personajes brutos desde la API: ${responseDto.data.size}")
-        Log.d("REPO", "Contenido: ${responseDto.data.joinToString("\n")}")
 
         val animeCharacterDto = responseDto.data
 
@@ -71,14 +65,11 @@ class AnimeRepository @Inject constructor(
 
         val characters = animeCharacterDto.toAnimeCharactersDetail()
 
-        Log.d("REPO", "Personajes mapeados: ${characters.size}")
         return characters
     }
 
     suspend fun getCharacterDetailById(characterId: Int): CharacterDetail {
         val responseDto = ApiService.getCharacterDetail(characterId)
-
-        Log.d("CHAR", "Personaje bruto desde la API: ${responseDto.data}")
 
         val characterFullDetailDto = responseDto.data
 
@@ -88,15 +79,11 @@ class AnimeRepository @Inject constructor(
 
         val characterDetail = characterFullDetailDto.toCharacterDetail()
 
-        Log.d("CHAR", "Personaje mapeado: $characterDetail")
-
         return characterDetail
     }
 
     suspend fun getCharacterPicturesById(characterId: Int): List<CharacterPictures> {
         val responseDto = ApiService.getCharacterPictures(characterId)
-
-        Log.d("CharPicture", "Personaje bruto desde la API: ${responseDto.data}")
 
         val characterPicturesDto = responseDto.data
 
@@ -152,8 +139,6 @@ class AnimeRepository @Inject constructor(
     suspend fun getCharacterRandom(): CharacterDetail {
         val responseDto = ApiService.getCharacterRandom()
 
-        Log.d("CHAR", "Personaje bruto desde la API: ${responseDto.data}")
-
         val characterFullDetailDto = responseDto.data
 
         if (characterFullDetailDto == null) {
@@ -161,8 +146,6 @@ class AnimeRepository @Inject constructor(
         }
 
         val characterDetail = characterFullDetailDto.toCharacterDetail()
-
-        Log.d("CHAR", "Personaje mapeado: $characterDetail")
 
         return characterDetail
     }

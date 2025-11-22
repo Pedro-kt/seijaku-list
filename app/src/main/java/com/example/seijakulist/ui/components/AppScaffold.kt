@@ -153,6 +153,21 @@ fun AppScaffold(
                         )
                     )
                 }
+
+                AppDestinations.LOGIN_ROUTE -> {
+                    TopAppBar(
+                        navigationIcon = { ArrowBackTopAppBar(navController) },
+                        title = {
+                            Text(
+                                text = "Iniciar sesión",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.background
+                        )
+                    )
+                }
             }
         },
         containerColor = MaterialTheme.colorScheme.background,

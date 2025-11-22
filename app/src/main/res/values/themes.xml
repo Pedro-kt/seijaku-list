@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Tu tema principal -->
     <style name="Theme.SeijakuList" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/black_backgroung</item>
+        <item name="android:windowBackground">@color/splsh_backgorund</item>
     </style>
 </resources>

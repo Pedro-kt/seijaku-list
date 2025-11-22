@@ -124,4 +124,6 @@ dependencies {
 
     // Firebase Storage
     implementation("com.google.firebase:firebase-storage-ktx")
+
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

@@ -55,9 +55,6 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
             ) {
                 Box() {
 
-                    val fakeYear = (2015..2023).random()
-                    val fakeEpisodes = (12..24).random()
-
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(anime.image)
@@ -75,7 +72,7 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
                             }
                     )
-                    if (anime.score != null && anime.score > 0) {
+                    if (anime.score > 0) {
                         Row(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
