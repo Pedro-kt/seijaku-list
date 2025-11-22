@@ -1,7 +1,7 @@
 # 📌 SeijakuList
 
 <p align="center">
-  <img src="./app/src/main/res/drawable/logo.png" alt="SeijakuList Logo" width="150" style="border-radius: 20px;"/>
+  <img src="./app/src/main/res/drawable/seijaku_logo_design.png" alt="SeijakuList Logo" width="150" style="border-radius: 20px;"/>
 </p>
 
 **SeijakuList** es una aplicación Android desarrollada en **Kotlin con Jetpack Compose**, pensada para que los usuarios gestionen y registren sus animes favoritos de una forma simple y moderna.  
@@ -41,17 +41,25 @@ Con **SeijakuList** podés:
 
 ## 📸 Vistazo Rápido (Screenshots)
 
-Estas son algunas imagenes de las 13 pantallas implementadas hasta el momento.
-
 <p align="center">
-  <img src="./images/Screenshot_20251003_090614.png" width="160" title="Filter Bottom Sheet">
-  <img src="./images/Screenshot_20251003_090715.png" width="160" title="Home Screen">
-  <img src="./images/Screenshot_20251003_090730.png" width="160" title="Anime Detail Screen">
-  <img src="./images/Screenshot_20251003_090932.png" width="160" title="Search Screen">
-  <img src="./images/Screenshot_20251003_091423.png" width="160" title="Profile Screen">
+  <img src="./images/mockup-welcome-login-register.png" width="700" title="Welcome, Login y Register">
 </p>
 
-**De izquierda a derecha:** Home, Búsqueda, Detalle de Anime, Mis animes, Welcome.
+<p align="center">
+  <img src="./images/mockup-home-search.png" width="700" title="Home y Búsqueda">
+</p>
+
+<p align="center">
+  <img src="./images/mockup-search-my_animes-detail.png" width="700" title="Búsqueda, Mis Animes y Detalle">
+</p>
+
+<p align="center">
+  <img src="./images/mockup-add-list.png" width="700" title="Agregar a Lista">
+</p>
+
+<p align="center">
+  <img src="./images/mockup-logros.png" width="700" title="Logros">
+</p>
 
 ---
 
