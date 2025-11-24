@@ -23,6 +23,7 @@ materialIconsExtended = "1.6.8"
 uiUtil = "1.8.3"
 animation = "1.8.3"
 animationVersion = "1.9.0"
+material3Version = "1.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -58,6 +59,7 @@ androidx-material-icons-extended = { group = "androidx.compose.material", name =
 androidx-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "uiUtil" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -10,11 +10,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.seijakulist"
+    namespace = "com.yumedev.seijakulist"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.seijakulist"
+        applicationId = "com.yumedev.seijakulist"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.androidx.ui.util)
     implementation(libs.androidx.animation)
     implementation(libs.animation)
+    implementation(libs.androidx.compose.material3)
     ksp(libs.room.ksp)
     implementation(libs.room.ktx)
 
