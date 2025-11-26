@@ -66,10 +66,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.compose.runtime.collectAsState
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.detail.AnimeDetailScreen
 import com.yumedev.seijakulist.ui.screens.search.SearchScreen
@@ -97,9 +99,13 @@ import com.yumedev.seijakulist.ui.theme.RobotoBold
 import com.yumedev.seijakulist.ui.theme.RobotoRegular
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         // Instalar splash screen ANTES de super.onCreate()
        // val splashScreen = installSplashScreen()
@@ -112,11 +118,15 @@ class MainActivity : ComponentActivity() {
         //splashScreen.setKeepOnScreenCondition { !isAppReady }
 
         setContent {
-            SeijakuListTheme {
+            val isJapaneseThemeEnabled by settingsViewModel.isJapaneseThemeEnabled.collectAsState()
+
+            android.util.Log.d("MainActivity", "Tema japonés activo: $isJapaneseThemeEnabled")
+
+            SeijakuListTheme(useJapaneseTheme = isJapaneseThemeEnabled) {
                 var showBetaDialog by remember { mutableStateOf(true) }
 
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    AppScaffold()
+                    AppScaffold(settingsViewModel = settingsViewModel)
                 }
 
                 // Mostrar diálogo de prueba beta
@@ -137,7 +147,8 @@ fun AppNavigation(
     isSearching: Boolean,
     onDismissSearch: () -> Unit,
     isGridView: Boolean = false,
-    sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE
+    sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE,
+    settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
 ) {
     NavHost(
         navController = navController,
@@ -197,9 +208,8 @@ fun AppNavigation(
             route = AppDestinations.CONFIGURATION_ROUTE
         ) {
             ConfigurationScreen(
-                navController,
-        //isDarkTheme = isDarkTheme,
-        // onThemeToggle = {settingsViewModel.toggleTheme()}
+                navController = navController,
+                settingsViewModel = settingsViewModel
         )
         }
         composable(

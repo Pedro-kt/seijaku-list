@@ -111,7 +111,7 @@ fun DeveloperInfoDialog(
 
                 // Descripción
                 Text(
-                    text = "Hola, soy el Desarrollador de Seijaku List, una aplicacion de registro personal de animes y mangas ( en desarrollo activo ), actualmente me desenvuelvo profesionalmente como Desarrollador Android, me gusta el anime, la musica y la programacion.\n\nPD: Mi anime favorito es K-on!",
+                    text = "Hola! Soy el desarrollador de Seijaku List (una app personal de registro de anime/manga en desarrollo activo).\n\nMe desenvuelvo profesionalmente como Desarrollador Android y me entusiasma combinar mis intereses: la programación, la música y el anime.\n\nDato curioso: Mi anime favorito es K-On!",
                     fontFamily = RobotoRegular,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),

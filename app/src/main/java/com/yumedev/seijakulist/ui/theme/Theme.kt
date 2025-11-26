@@ -84,15 +84,96 @@ private val LightColorScheme = lightColorScheme(
     scrim = LightScrim
 )
 
+// Tema Japonés Oscuro
+private val JapaneseDarkColorScheme = darkColorScheme(
+    primary = JapaneseDarkPrimary,
+    onPrimary = JapaneseDarkOnPrimary,
+    background = JapaneseDarkBackground,
+    primaryContainer = JapaneseDarkPrimaryContainer,
+    onPrimaryContainer = JapaneseDarkOnPrimaryContainer,
+    secondary = JapaneseDarkSecondary,
+    onSecondary = JapaneseDarkOnSecondary,
+    secondaryContainer = JapaneseDarkSecondaryContainer,
+    onSecondaryContainer = JapaneseDarkOnSecondaryContainer,
+    tertiary = JapaneseDarkTertiary,
+    onTertiary = JapaneseDarkOnTertiary,
+    tertiaryContainer = JapaneseDarkTertiaryContainer,
+    onTertiaryContainer = JapaneseDarkOnTertiaryContainer,
+    error = JapaneseDarkError,
+    onError = JapaneseDarkOnError,
+    errorContainer = JapaneseDarkErrorContainer,
+    onErrorContainer = JapaneseDarkOnErrorContainer,
+    onBackground = JapaneseDarkOnSurface,
+    surface = JapaneseDarkSurface,
+    onSurface = JapaneseDarkOnSurface,
+    surfaceDim = JapaneseDarkSurfaceDim,
+    surfaceBright = JapaneseDarkSurfaceBright,
+    surfaceContainer = JapaneseDarkSurfaceContainer,
+    surfaceContainerHigh = JapaneseDarkSurfaceContainerHigh,
+    surfaceContainerHighest = JapaneseDarkSurfaceContainerHighest,
+    surfaceContainerLow = JapaneseDarkSurfaceContainerLow,
+    surfaceContainerLowest = JapaneseDarkSurfaceContainerLowest,
+    inversePrimary = JapaneseDarkInversePrimary,
+    inverseSurface = JapaneseDarkInverseSurface,
+    inverseOnSurface = JapaneseDarkInverseOnSurface,
+    outline = JapaneseDarkOutline,
+    outlineVariant = JapaneseDarkOutlineVariant,
+    scrim = JapaneseDarkScrim
+)
+
+// Tema Japonés Claro
+private val JapaneseLightColorScheme = lightColorScheme(
+    primary = JapaneseLightPrimary,
+    onPrimary = JapaneseLightOnPrimary,
+    background = JapaneseLightBackground,
+    primaryContainer = JapaneseLightPrimaryContainer,
+    onPrimaryContainer = JapaneseLightOnPrimaryContainer,
+    secondary = JapaneseLightSecondary,
+    onSecondary = JapaneseLightOnSecondary,
+    secondaryContainer = JapaneseLightSecondaryContainer,
+    onSecondaryContainer = JapaneseLightOnSecondaryContainer,
+    tertiary = JapaneseLightTertiary,
+    onTertiary = JapaneseLightOnTertiary,
+    tertiaryContainer = JapaneseLightTertiaryContainer,
+    onTertiaryContainer = JapaneseLightOnTertiaryContainer,
+    error = JapaneseLightError,
+    onError = JapaneseLightOnError,
+    errorContainer = JapaneseLightErrorContainer,
+    onErrorContainer = JapaneseLightOnErrorContainer,
+    onBackground = JapaneseLightOnSurface,
+    surface = JapaneseLightSurface,
+    onSurface = JapaneseLightOnSurface,
+    surfaceDim = JapaneseLightSurfaceDim,
+    surfaceBright = JapaneseLightSurfaceBright,
+    surfaceContainer = JapaneseLightSurfaceContainer,
+    surfaceContainerHigh = JapaneseLightSurfaceContainerHigh,
+    surfaceContainerHighest = JapaneseLightSurfaceContainerHighest,
+    surfaceContainerLow = JapaneseLightSurfaceContainerLow,
+    surfaceContainerLowest = JapaneseLightSurfaceContainerLowest,
+    inversePrimary = JapaneseLightInversePrimary,
+    inverseSurface = JapaneseLightInverseSurface,
+    inverseOnSurface = JapaneseLightInverseOnSurface,
+    outline = JapaneseLightOutline,
+    outlineVariant = JapaneseLightOutlineVariant,
+    scrim = JapaneseLightScrim
+)
+
 @Composable
 fun SeijakuListTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Para desactivar el color dinámico y usar tu paleta, cambia a 'false'
     dynamicColor: Boolean = true,
+    // Nuevo parámetro para activar el tema japonés
+    useJapaneseTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        // Si el tema japonés está activado, SIEMPRE usar la paleta japonesa (ignora dynamicColor)
+        useJapaneseTheme -> {
+            if (darkTheme) JapaneseDarkColorScheme else JapaneseLightColorScheme
+        }
+        // Si no está activado el tema japonés, usar el comportamiento normal (dinámico o estándar)
+        !useJapaneseTheme && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }

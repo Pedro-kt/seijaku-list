@@ -52,7 +52,8 @@ enum class SortOrder {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppScaffold(
-    viewModel: MyAnimeListViewModel = hiltViewModel()
+    viewModel: MyAnimeListViewModel = hiltViewModel(),
+    settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
 ) {
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -185,7 +186,8 @@ fun AppScaffold(
                 isSearching = isSearching,
                 onDismissSearch = { isSearching = false },
                 isGridView = isGridView,
-                sortOrder = sortOrder
+                sortOrder = sortOrder,
+                settingsViewModel = settingsViewModel
             )
         }
     }
