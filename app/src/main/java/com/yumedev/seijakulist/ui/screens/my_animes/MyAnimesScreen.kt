@@ -56,7 +56,6 @@ import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -77,7 +76,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -113,7 +111,9 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.components.AnimeStatusChip
+import com.yumedev.seijakulist.ui.components.CustomDialog
 import com.yumedev.seijakulist.ui.components.DeleteMyAnime
+import com.yumedev.seijakulist.ui.components.DialogType
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import kotlinx.coroutines.launch
 
@@ -183,33 +183,79 @@ fun MyAnimeListScreen(
             }
     ) {
         if (savedAnimes.isEmpty()) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Parece que no hay animes aquí todavía. ¿Por qué no añades tu primer anime?",
-                    fontFamily = RobotoRegular,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                ElevatedButton(
-                    onClick = {
-                        navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE)
-                    },
-                    modifier = Modifier.padding(top = 16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 16.dp
-                    )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "Buscar anime!", color = Color.White)
+                    // Título principal
+                    Text(
+                        text = "¡Tu lista está vacía!",
+                        fontFamily = RobotoBold,
+                        fontSize = 28.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+
+                    // Descripción
+                    Text(
+                        text = "Comienza a construir tu colección de animes favoritos. Busca y agrega tus primeros títulos para empezar a llevar el control de lo que ves.",
+                        fontFamily = RobotoRegular,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 24.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Botón mejorado
+                    Button(
+                        onClick = {
+                            navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircleOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Buscar anime",
+                            fontFamily = RobotoBold,
+                            fontSize = 18.sp
+                        )
+                    }
+
+                    // Texto secundario
+                    Text(
+                        text = "Explora miles de títulos disponibles",
+                        fontFamily = RobotoRegular,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
         } else {
@@ -566,49 +612,28 @@ fun MyAnimeListScreen(
                                 )
 
                                 if (showDialog) {
-                                    AlertDialog(
+                                    CustomDialog(
                                         onDismissRequest = {
                                             showDialog = false
                                         },
-                                        title = {
-                                            Text(text = "Confirmar eliminación")
-                                        },
-                                        text = {
-                                            Text(
-                                                text = "¿Estás seguro de que quieres eliminar este anime de tu lista? \n" +
-                                                        "Una vez eliminado tendrás que volver a agregarlo de nuevo a tu lista"
-                                            )
-                                        },
-                                        confirmButton = {
-                                            TextButton(
-                                                onClick = {
-                                                    showDialog = false
-                                                    viewModel.deleteAnimeToList(animeIdToDelete)
-                                                    scope.launch {
-                                                        snackbarHostState.showSnackbar(
-                                                            message = "Anime eliminado de tu lista",
-                                                            actionLabel = "Deshacer",
-                                                            duration = SnackbarDuration.Long
-                                                        )
-                                                    }
-                                                },
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = MaterialTheme.colorScheme.primary,
-                                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                        onConfirm = {
+                                            viewModel.deleteAnimeToList(animeIdToDelete)
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = "Anime eliminado de tu lista",
+                                                    actionLabel = "Deshacer",
+                                                    duration = SnackbarDuration.Long
                                                 )
-                                            ) {
-                                                Text("Eliminar")
                                             }
                                         },
-                                        dismissButton = {
-                                            TextButton(
-                                                onClick = {
-                                                    showDialog = false
-                                                }
-                                            ) {
-                                                Text("Cancelar")
-                                            }
-                                        }
+                                        onDismiss = {
+                                            // Solo cierra el diálogo
+                                        },
+                                        title = "Confirmar eliminación",
+                                        message = "¿Estás seguro de que quieres eliminar este anime de tu lista?\n\nUna vez eliminado tendrás que volver a agregarlo de nuevo a tu lista.",
+                                        confirmButtonText = "Eliminar",
+                                        dismissButtonText = "Cancelar",
+                                        type = DialogType.DELETE
                                     )
                                 }
                             }

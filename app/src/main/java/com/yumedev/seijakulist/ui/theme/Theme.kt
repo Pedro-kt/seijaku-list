@@ -160,25 +160,34 @@ private val JapaneseLightColorScheme = lightColorScheme(
 
 @Composable
 fun SeijakuListTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Para desactivar el color dinámico y usar tu paleta, cambia a 'false'
-    dynamicColor: Boolean = true,
-    // Nuevo parámetro para activar el tema japonés
-    useJapaneseTheme: Boolean = false,
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        // Si el tema japonés está activado, SIEMPRE usar la paleta japonesa (ignora dynamicColor)
-        useJapaneseTheme -> {
-            if (darkTheme) JapaneseDarkColorScheme else JapaneseLightColorScheme
+    val systemDarkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
+
+    val colorScheme = when (themeMode) {
+        ThemeMode.JAPANESE -> {
+            // Tema japonés respeta el modo oscuro del sistema
+            if (systemDarkTheme) JapaneseDarkColorScheme else JapaneseLightColorScheme
         }
-        // Si no está activado el tema japonés, usar el comportamiento normal (dinámico o estándar)
-        !useJapaneseTheme && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        ThemeMode.DARK -> {
+            // Tema oscuro propio de la app
+            DarkColorScheme
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        ThemeMode.LIGHT -> {
+            // Tema claro propio de la app
+            LightColorScheme
+        }
+        ThemeMode.SYSTEM -> {
+            // Tema del sistema (Material dinámico si está disponible)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (systemDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            } else {
+                // Fallback para versiones anteriores de Android
+                if (systemDarkTheme) DarkColorScheme else LightColorScheme
+            }
+        }
     }
 
     MaterialTheme(

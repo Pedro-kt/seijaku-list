@@ -8,7 +8,7 @@ import com.yumedev.seijakulist.data.local.dao.UserProfileDao
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.data.local.entities.UserProfile
 
-@Database(entities = [AnimeEntity::class, UserProfile::class], version = 8, exportSchema = false)
+@Database(entities = [AnimeEntity::class, UserProfile::class], version = 10, exportSchema = false)
 abstract class AnimeDatabase : RoomDatabase() {
     abstract fun animeDao(): AnimeDao
     abstract fun userProfileDao(): UserProfileDao

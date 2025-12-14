@@ -42,4 +42,17 @@ interface AnimeDao {
 
     @Update
     suspend fun updateAnime(anime: AnimeEntity)
+
+    // Estadísticas para el perfil
+    @Query("SELECT COUNT(*) FROM animes")
+    fun getTotalAnimesCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM animes WHERE statusUser = 'Completado'")
+    fun getCompletedAnimesCount(): Flow<Int>
+
+    @Query("SELECT COALESCE(SUM(episodesWatched), 0) FROM animes")
+    fun getTotalEpisodesWatched(): Flow<Int>
+
+    @Query("SELECT genres FROM animes WHERE genres != ''")
+    fun getAllGenres(): Flow<List<String>>
 }

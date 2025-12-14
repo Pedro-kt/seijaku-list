@@ -9,5 +9,6 @@ data class AnimeEntityDomain(
     val userOpiniun: String,
     val totalEpisodes: Int,
     val episodesWatched: Int,
-    val rewatchCount: Int
+    val rewatchCount: Int,
+    val genres: String = ""
 )

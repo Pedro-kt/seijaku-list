@@ -83,15 +83,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.RobotoBold
 import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.components.DonutChart
+import com.yumedev.seijakulist.ui.components.PieChartData
 
 // Datos de prueba
 val favoriteAnimes = listOf("Shingeki no Kyojin", "Steins;Gate", "Fullmetal Alchemist: Brotherhood", "Hunter x Hunter", "Vinland Saga")
@@ -159,7 +164,7 @@ fun ProfileView(
     val userProfile = uiState.userProfile
     val username = userProfile?.username ?: "Nombre de usuario"
     val profilePictureUrl = userProfile?.profilePictureUrl
-    val userBio = "¡Hola! Estoy usando SeijakuList para seguir mis animes y mangas favoritos."
+    val userBio = userProfile?.bio ?: "Añade tu biografia!"
 
     if (userProfile != null) {
         LazyColumn(
@@ -174,7 +179,7 @@ fun ProfileView(
                 ) {
                     // Imagen de fondo con blur
                     AsyncImage(
-                        model = profilePictureUrl,
+                        model = profilePictureUrl ?: R.drawable.user_default,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
@@ -212,7 +217,7 @@ fun ProfileView(
                             shadowElevation = 12.dp
                         ) {
                             AsyncImage(
-                                model = profilePictureUrl,
+                                model = profilePictureUrl ?: R.drawable.user_default,
                                 contentDescription = "Foto de perfil",
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -284,20 +289,20 @@ fun ProfileView(
                     StatCard(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Default.PlayArrow,
-                        value = "127",
+                        value = uiState.stats.totalAnimes.toString(),
                         label = "Animes"
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
-                        icon = Icons.Default.Star,
-                        value = "2.5K",
-                        label = "Episodios"
+                        icon = Icons.Default.Check,
+                        value = uiState.stats.completedAnimes.toString(),
+                        label = "Completados"
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
-                        icon = Icons.Default.EmojiEvents,
-                        value = "${achievements.size}",
-                        label = "Logros"
+                        icon = Icons.Default.Star,
+                        value = uiState.stats.totalEpisodesWatched.toString(),
+                        label = "Episodios"
                     )
                 }
             }
@@ -331,6 +336,66 @@ fun ProfileView(
                     }
                 }
             }
+
+            // Géneros Favoritos
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (uiState.stats.genreStats.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        Text(
+                            text = "Géneros Favoritos",
+                            fontSize = 24.sp,
+                            fontFamily = RobotoBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            // Tomar los top 5 géneros
+                            val topGenres = uiState.stats.genreStats
+                                .entries
+                                .sortedByDescending { it.value }
+                                .take(5)
+
+                            val genreColors = listOf(
+                                Color(0xFFFF6B6B),
+                                Color(0xFF4ECDC4),
+                                Color(0xFF45B7D1),
+                                Color(0xFFFFA07A),
+                                Color(0xFF98D8C8)
+                            )
+
+                            val chartData = topGenres.mapIndexed { index, (genre, count) ->
+                                PieChartData(
+                                    label = genre,
+                                    value = count,
+                                    color = genreColors.getOrElse(index) { MaterialTheme.colorScheme.primary }
+                                )
+                            }
+
+                            DonutChart(
+                                data = chartData,
+                                modifier = Modifier.padding(24.dp),
+                                centerText = topGenres.sumOf { it.value }.toString(),
+                                centerSubtext = "Total de generos"
+                            )
+                        }
+                    }
+                }
+            }
+
             // Top 5 Animes
             item {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -449,6 +514,7 @@ fun ProfileView(
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 var expanded by rememberSaveable { mutableStateOf(false) }
+                var selectedAchievement by remember { mutableStateOf<Achievement?>(null) }
                 val achievementsToShow = if (expanded) achievements else achievements.take(5)
 
                 Column(
@@ -478,8 +544,19 @@ fun ProfileView(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     achievementsToShow.forEach { achievement ->
-                        AchievementCard(achievement = achievement)
+                        AchievementCard(
+                            achievement = achievement,
+                            onClick = { selectedAchievement = achievement }
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
+                    }
+
+                    // Diálogo de detalles del logro
+                    selectedAchievement?.let { achievement ->
+                        AchievementDetailDialog(
+                            achievement = achievement,
+                            onDismiss = { selectedAchievement = null }
+                        )
                     }
 
                     if (achievements.size > 5) {
@@ -1252,10 +1329,19 @@ private fun SelectedAnimeItem(
     }
 }
 
-data class Achievement(val name: String, val description: String, val typeAchievement: String)
+data class Achievement(
+    val name: String,
+    val description: String,
+    val typeAchievement: String,
+    val unlockDate: String = "Mayo 2025",
+    val reward: String = "Insignia exclusiva"
+)
 
 @Composable
-private fun AchievementCard(achievement: Achievement) {
+private fun AchievementCard(
+    achievement: Achievement,
+    onClick: () -> Unit = {}
+) {
     val (color, emoji) = when (achievement.typeAchievement) {
         "Normal" -> Color(0xFF4CAF50) to "🏆"
         "Rare" -> Color(0xFF2196F3) to "💎"
@@ -1270,7 +1356,8 @@ private fun AchievementCard(achievement: Achievement) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        ),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -1348,6 +1435,215 @@ private fun AchievementCard(achievement: Achievement) {
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 18.sp
                 )
+            }
+        }
+    }
+}
+@Composable
+private fun AchievementDetailDialog(
+    achievement: Achievement,
+    onDismiss: () -> Unit
+) {
+    val (color, emoji) = when (achievement.typeAchievement) {
+        "Normal" -> Color(0xFF4CAF50) to "🏆"
+        "Rare" -> Color(0xFF2196F3) to "💎"
+        "Epic" -> Color(0xFF9C27B0) to "⭐"
+        "Legendary" -> Color(0xFFFF9800) to "👑"
+        else -> MaterialTheme.colorScheme.primary to "🏆"
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Botón cerrar
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cerrar",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Icono grande del logro
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    color.copy(alpha = 0.8f),
+                                    color.copy(alpha = 0.4f)
+                                )
+                            )
+                        )
+                        .border(
+                            width = 4.dp,
+                            color = color,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = emoji,
+                        fontSize = 56.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Badge de rareza
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = color.copy(alpha = 0.2f)
+                ) {
+                    Text(
+                        text = achievement.typeAchievement,
+                        fontSize = 14.sp,
+                        fontFamily = RobotoBold,
+                        color = color,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Nombre del logro
+                Text(
+                    text = achievement.name,
+                    fontSize = 24.sp,
+                    fontFamily = RobotoBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Descripción
+                Text(
+                    text = achievement.description,
+                    fontSize = 16.sp,
+                    fontFamily = RobotoRegular,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Información adicional
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Fecha de desbloqueo
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = "Desbloqueado",
+                                fontSize = 14.sp,
+                                fontFamily = RobotoRegular,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            text = achievement.unlockDate,
+                            fontSize = 14.sp,
+                            fontFamily = RobotoBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // Recompensa
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.EmojiEvents,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = "Recompensa",
+                                fontSize = 14.sp,
+                                fontFamily = RobotoRegular,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            text = achievement.reward,
+                            fontSize = 14.sp,
+                            fontFamily = RobotoBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Botón de cerrar
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Cerrar",
+                        fontFamily = RobotoBold,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
     }

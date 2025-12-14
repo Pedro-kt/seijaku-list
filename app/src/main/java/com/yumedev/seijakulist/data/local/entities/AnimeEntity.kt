@@ -14,4 +14,5 @@ data class AnimeEntity(
     val totalEpisodes: Int, // campo nuevo v5
     val episodesWatched: Int, // campo nuevo v5
     val rewatchCount: Int, // campo nuevo v6
+    val genres: String = "", // campo nuevo v7 - géneros separados por comas
 )

@@ -80,6 +80,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.yumedev.seijakulist.ui.screens.auth_screen.AuthScreen
+import com.yumedev.seijakulist.ui.screens.auth_screen.LoginScreen
+import com.yumedev.seijakulist.ui.screens.auth_screen.RegisterScreen
 import com.yumedev.seijakulist.ui.screens.characters.CharacterDetailScreen
 import com.yumedev.seijakulist.ui.screens.home.HomeScreen
 import com.yumedev.seijakulist.ui.screens.local_anime_detail.AnimeDetailScreenLocal
@@ -87,8 +89,6 @@ import com.yumedev.seijakulist.ui.screens.my_animes.MyAnimeListScreen
 import com.yumedev.seijakulist.ui.screens.my_mangas.MyMangasScreen
 import com.yumedev.seijakulist.ui.components.AppScaffold
 import com.yumedev.seijakulist.ui.components.BetaTestDialog
-import com.yumedev.seijakulist.ui.screens.auth_screen.LoginScreen
-import com.yumedev.seijakulist.ui.screens.auth_screen.RegisterScreen
 import com.yumedev.seijakulist.ui.screens.configuration.ConfigurationScreen
 import com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
 import com.yumedev.seijakulist.ui.screens.profile.ProfileLoaderScreen
@@ -118,11 +118,11 @@ class MainActivity : ComponentActivity() {
         //splashScreen.setKeepOnScreenCondition { !isAppReady }
 
         setContent {
-            val isJapaneseThemeEnabled by settingsViewModel.isJapaneseThemeEnabled.collectAsState()
+            val themeMode by settingsViewModel.themeMode.collectAsState()
 
-            android.util.Log.d("MainActivity", "Tema japonés activo: $isJapaneseThemeEnabled")
+            android.util.Log.d("MainActivity", "Modo de tema activo: ${themeMode.name}")
 
-            SeijakuListTheme(useJapaneseTheme = isJapaneseThemeEnabled) {
+            SeijakuListTheme(themeMode = themeMode) {
                 var showBetaDialog by remember { mutableStateOf(true) }
 
                 Surface(modifier = Modifier.fillMaxSize()) {

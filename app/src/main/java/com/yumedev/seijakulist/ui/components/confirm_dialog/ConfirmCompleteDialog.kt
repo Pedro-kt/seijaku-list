@@ -1,11 +1,8 @@
 package com.yumedev.seijakulist.ui.components.confirm_dialog
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import com.yumedev.seijakulist.ui.components.CustomDialog
+import com.yumedev.seijakulist.ui.components.DialogType
 
 @Composable
 fun ConfirmCompleteDialog(
@@ -15,25 +12,14 @@ fun ConfirmCompleteDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    CustomDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Marcar como completado") },
-        text = {
-            Text("Actualmente llevas $watched de $total episodios vistos.\n" +
-                    "¿Quieres marcar \"$animeTitle\" como Completado?\n" +
-                    "Esto ajustará los episodios vistos a $total.")
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) { Text("Sí, completar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        }
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        title = "Marcar como completado",
+        message = "Actualmente llevas $watched de $total episodios vistos.\n\n¿Quieres marcar \"$animeTitle\" como Completado?\n\nEsto ajustará los episodios vistos a $total.",
+        confirmButtonText = "Sí, completar",
+        dismissButtonText = "Cancelar",
+        type = DialogType.SUCCESS
     )
 }

@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.storage
+import com.yumedev.seijakulist.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +33,15 @@ import javax.inject.Inject
 data class UserProfile(
     val uid: String,
     val username: String?,
-    val profilePictureUrl: String?
+    val profilePictureUrl: String?,
+    val bio: String?
+)
+
+data class AnimeStats(
+    val totalAnimes: Int = 0,
+    val completedAnimes: Int = 0,
+    val totalEpisodesWatched: Int = 0,
+    val genreStats: Map<String, Int> = emptyMap()
 )
 
 data class ProfileUiState(
@@ -44,7 +53,8 @@ data class ProfileUiState(
     val top5Animes: List<AnimeEntity> = emptyList(),
     val allSavedAnimes: List<AnimeEntity> = emptyList(),
     val isSavingTop5: Boolean = false,
-    val top5UpdateSuccess: Boolean = false
+    val top5UpdateSuccess: Boolean = false,
+    val stats: AnimeStats = AnimeStats()
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -94,6 +104,41 @@ class ProfileViewModel @Inject constructor(
                 _uiState.update { it.copy(allSavedAnimes = animes) }
             }
         }
+
+        // Cargar estadísticas
+        viewModelScope.launch {
+            animeLocalRepository.getTotalAnimesCount().collect { total ->
+                _uiState.update { it.copy(stats = it.stats.copy(totalAnimes = total)) }
+            }
+        }
+
+        viewModelScope.launch {
+            animeLocalRepository.getCompletedAnimesCount().collect { completed ->
+                _uiState.update { it.copy(stats = it.stats.copy(completedAnimes = completed)) }
+            }
+        }
+
+        viewModelScope.launch {
+            animeLocalRepository.getTotalEpisodesWatched().collect { episodes ->
+                _uiState.update { it.copy(stats = it.stats.copy(totalEpisodesWatched = episodes)) }
+            }
+        }
+
+        viewModelScope.launch {
+            animeLocalRepository.getAllGenres().collect { genresList ->
+                // Procesar los géneros (separados por comas) y contar cada uno
+                val genreMap = mutableMapOf<String, Int>()
+                genresList.forEach { genresString ->
+                    genresString.split(",").forEach { genre ->
+                        val trimmedGenre = genre.trim()
+                        if (trimmedGenre.isNotEmpty()) {
+                            genreMap[trimmedGenre] = genreMap.getOrDefault(trimmedGenre, 0) + 1
+                        }
+                    }
+                }
+                _uiState.update { it.copy(stats = it.stats.copy(genreStats = genreMap)) }
+            }
+        }
     }
 
     private fun syncProfileFromFirestore(uid: String) = flow<Nothing> {
@@ -101,10 +146,11 @@ class ProfileViewModel @Inject constructor(
             val doc = db.collection("users").document(uid).get().await()
             if (doc.exists()) {
                 val data = doc.data
-                val remoteProfile = UserProfile(
+                val remoteProfile = com.yumedev.seijakulist.data.local.entities.UserProfile(
                     uid = uid,
                     username = data?.get("username") as? String,
-                    profilePictureUrl = data?.get("profilePictureUrl") as? String
+                    profilePictureUrl = data?.get("profilePictureUrl") as? String,
+                    bio = data?.get("bio") as? String
                 )
                 userProfileLocalRepository.insertUserProfile(remoteProfile)
             }
@@ -114,7 +160,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     // 4. Lógica de actualización del perfil simplificada
-    fun updateUserProfile(username: String, imageUri: Uri?) {
+    fun updateUserProfile(username: String, bio: String, imageUri: Uri?) {
         val user = auth.currentUser ?: return
 
         _uiState.update { it.copy(isLoading = true, error = null, profileUpdateSuccess = false) }
@@ -133,6 +179,7 @@ class ProfileViewModel @Inject constructor(
 
                 val updates = hashMapOf<String, Any>(
                     "username" to username,
+                    "bio" to bio,
                     "profilePictureUrl" to (imageUrl ?: existingProfile?.profilePictureUrl ?: "")
                 )
 
@@ -141,6 +188,7 @@ class ProfileViewModel @Inject constructor(
                 val localProfile = UserProfile(
                     uid = user.uid,
                     username = username,
+                    bio = bio,
                     profilePictureUrl = imageUrl ?: existingProfile?.profilePictureUrl
                 )
                 userProfileLocalRepository.insertUserProfile(localProfile)
@@ -182,7 +230,8 @@ class ProfileViewModel @Inject constructor(
                         userOpiniun = anime.userOpiniun,
                         totalEpisodes = anime.totalEpisodes,
                         episodesWatched = anime.episodesWatched,
-                        rewatchCount = anime.rewatchCount
+                        rewatchCount = anime.rewatchCount,
+                        genres = anime.genres
                     )
                 )
             } catch (e: Exception) {

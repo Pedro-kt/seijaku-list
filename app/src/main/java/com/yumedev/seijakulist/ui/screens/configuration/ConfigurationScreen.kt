@@ -1,5 +1,7 @@
 package com.yumedev.seijakulist.ui.screens.configuration
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +37,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -59,6 +64,7 @@ import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.auth_screen.AuthViewModel
 import com.yumedev.seijakulist.ui.theme.RobotoBold
 import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.ThemeMode
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -71,7 +77,7 @@ fun ConfigurationScreen(
     settingsViewModel: SettingsViewModel
 ) {
     val context = LocalContext.current
-    val isJapaneseThemeEnabled by settingsViewModel.isJapaneseThemeEnabled.collectAsState()
+    val currentThemeMode by settingsViewModel.themeMode.collectAsState()
 
     // Obtener versión dinámica desde PackageManager
     val versionInfo = remember {
@@ -145,12 +151,47 @@ fun ConfigurationScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column {
-                        SettingItemWithSwitch(
-                            icon = Icons.Default.Palette,
-                            title = "Tema Japonés",
-                            subtitle = "Activa los colores tradicionales de Japón",
-                            checked = isJapaneseThemeEnabled,
-                            onCheckedChange = { settingsViewModel.toggleJapaneseTheme() }
+                        ThemeOption(
+                            title = "Sistema",
+                            subtitle = "Usa el tema del sistema",
+                            selected = currentThemeMode == ThemeMode.SYSTEM,
+                            onClick = { settingsViewModel.setThemeMode(ThemeMode.SYSTEM) }
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 68.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                        )
+
+                        ThemeOption(
+                            title = "Claro",
+                            subtitle = "Tema claro de la app",
+                            selected = currentThemeMode == ThemeMode.LIGHT,
+                            onClick = { settingsViewModel.setThemeMode(ThemeMode.LIGHT) }
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 68.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                        )
+
+                        ThemeOption(
+                            title = "Oscuro",
+                            subtitle = "Tema oscuro de la app",
+                            selected = currentThemeMode == ThemeMode.DARK,
+                            onClick = { settingsViewModel.setThemeMode(ThemeMode.DARK) }
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 68.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                        )
+
+                        ThemeOption(
+                            title = "Japonés",
+                            subtitle = "Colores tradicionales de Japón",
+                            selected = currentThemeMode == ThemeMode.JAPANESE,
+                            onClick = { settingsViewModel.setThemeMode(ThemeMode.JAPANESE) }
                         )
                     }
                 }
@@ -243,6 +284,26 @@ fun ConfigurationScreen(
                             title = "Desarrollador",
                             subtitle = "Bustamante Pedro",
                             onClick = { showDeveloperDialog = true },
+                            showArrow = true
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 68.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                        )
+
+                        // Política de Privacidad
+                        SettingItem(
+                            icon = Icons.Default.PrivacyTip,
+                            title = "Política de Privacidad",
+                            subtitle = "Lee nuestra política de privacidad",
+                            onClick = {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://pedro-kt.github.io/seijaku-list/privacy-policy.html")
+                                )
+                                context.startActivity(intent)
+                            },
                             showArrow = true
                         )
                     }
@@ -447,5 +508,55 @@ private fun SettingItemWithSwitch(
                 uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         )
+    }
+}
+
+@Composable
+private fun ThemeOption(
+    title: String,
+    subtitle: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Radio button
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = MaterialTheme.colorScheme.primary,
+                unselectedColor = MaterialTheme.colorScheme.outline
+            )
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Texto
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                fontFamily = RobotoBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (subtitle.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    fontSize = 13.sp,
+                    fontFamily = RobotoRegular,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
     }
 }

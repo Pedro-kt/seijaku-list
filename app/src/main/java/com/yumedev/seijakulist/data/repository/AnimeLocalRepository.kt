@@ -65,4 +65,21 @@ class AnimeLocalRepository @Inject constructor(
     suspend fun updateAnime(anime: AnimeEntity) {
         animeDao.updateAnime(anime)
     }
+
+    // Métodos para estadísticas
+    fun getTotalAnimesCount(): Flow<Int> {
+        return animeDao.getTotalAnimesCount()
+    }
+
+    fun getCompletedAnimesCount(): Flow<Int> {
+        return animeDao.getCompletedAnimesCount()
+    }
+
+    fun getTotalEpisodesWatched(): Flow<Int> {
+        return animeDao.getTotalEpisodesWatched()
+    }
+
+    fun getAllGenres(): Flow<List<String>> {
+        return animeDao.getAllGenres()
+    }
 }

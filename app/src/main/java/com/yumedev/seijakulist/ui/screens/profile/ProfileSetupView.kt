@@ -44,6 +44,7 @@ fun ProfileSetupView(
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     var username by remember { mutableStateOf("") }
+    var bio by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val uiState by profileViewModel.uiState.collectAsState()
@@ -62,6 +63,9 @@ fun ProfileSetupView(
         uiState.userProfile?.let { profile ->
             if (profile.username != null && username.isEmpty()) {
                 username = profile.username
+            }
+            if (profile.bio != null && bio.isEmpty()) {
+                bio = profile.bio
             }
         }
     }
@@ -219,6 +223,51 @@ fun ProfileSetupView(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Bio Card
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Biografía",
+                        fontSize = 14.sp,
+                        fontFamily = RobotoBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    OutlinedTextField(
+                        value = bio,
+                        onValueChange = { if (it.length <= 150) bio = it },
+                        placeholder = { Text("Cuéntanos sobre ti") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
+                        maxLines = 3,
+                        minLines = 3,
+                        supportingText = {
+                            Text(
+                                text = "${bio.length}/150",
+                                fontSize = 12.sp,
+                                fontFamily = RobotoRegular
+                            )
+                        }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             // Save Button
@@ -227,7 +276,7 @@ fun ProfileSetupView(
 
             Button(
                 onClick = {
-                    profileViewModel.updateUserProfile(username, selectedImageUri)
+                    profileViewModel.updateUserProfile(username, bio, selectedImageUri)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

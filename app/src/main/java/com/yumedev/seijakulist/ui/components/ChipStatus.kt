@@ -8,14 +8,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EventAvailable
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,11 +81,40 @@ fun AnimeStatusChip(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            containerColor = Color.DarkGray,
+            shape = RoundedCornerShape(12.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ) {
             statusAnime.forEach { newStatus ->
+                val isCurrentStatus = status == newStatus
+                val statusIcon = when (newStatus) {
+                    "Viendo" -> Icons.Default.PlayArrow
+                    "Completado" -> Icons.Default.CheckCircle
+                    "Pendiente" -> Icons.Default.Pause
+                    "Abandonado" -> Icons.Default.Stop
+                    "Planeado" -> Icons.Default.EventAvailable
+                    else -> null
+                }
+                val itemColor = when (newStatus) {
+                    "Viendo" -> Color(0xFF66BB6A)
+                    "Completado" -> Color(0xFF42A5F5)
+                    "Pendiente" -> Color(0xFFFFCA28)
+                    "Abandonado" -> Color(0xFFEF5350)
+                    "Planeado" -> Color(0xFF78909C)
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
+
                 DropdownMenuItem(
-                    text = { Text(newStatus, fontFamily = RobotoRegular, color = Color.White) },
+                    text = {
+                        Text(
+                            text = newStatus,
+                            fontFamily = RobotoRegular,
+                            color = if (isCurrentStatus) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    },
                     onClick = {
                         expanded = false
                         if (status == "Completado" && newStatus == "Completado") return@DropdownMenuItem
@@ -113,7 +150,29 @@ fun AnimeStatusChip(
                                 } else onStatusSelected(action)
                             }
                         }
-                    }
+                    },
+                    leadingIcon = {
+                        if (statusIcon != null) {
+                            Icon(
+                                imageVector = statusIcon,
+                                contentDescription = newStatus,
+                                tint = if (isCurrentStatus) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    itemColor
+                                },
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = if (isCurrentStatus) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    ),
+                    modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
         }
