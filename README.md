@@ -42,23 +42,14 @@ Con **SeijakuList** podés:
 ## 📸 Vistazo Rápido (Screenshots)
 
 <p align="center">
-  <img src="./images/mockup-welcome-login-register.png" width="700" title="Welcome, Login y Register">
+  <img src="./images/mockup-1767399718326.png" width="250" alt="Screenshot 1"/>
+  <img src="./images/mockup-1767399794807.png" width="250" alt="Screenshot 2"/>
+  <img src="./images/mockup-1767399921249.png" width="250" alt="Screenshot 3"/>
 </p>
 
 <p align="center">
-  <img src="./images/mockup-home-search.png" width="700" title="Home y Búsqueda">
-</p>
-
-<p align="center">
-  <img src="./images/mockup-search-my_animes-detail.png" width="700" title="Búsqueda, Mis Animes y Detalle">
-</p>
-
-<p align="center">
-  <img src="./images/mockup-add-list.png" width="700" title="Agregar a Lista">
-</p>
-
-<p align="center">
-  <img src="./images/mockup-logros.png" width="700" title="Logros">
+  <img src="./images/mockup-1767399975901.png" width="250" alt="Screenshot 4"/>
+  <img src="./images/mockup-1767400033600.png" width="250" alt="Screenshot 5"/>
 </p>
 
 ---
