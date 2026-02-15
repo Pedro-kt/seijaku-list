@@ -160,7 +160,7 @@ private val JapaneseLightColorScheme = lightColorScheme(
 
 @Composable
 fun SeijakuListTheme(
-    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    themeMode: ThemeMode = ThemeMode.DARK,
     content: @Composable () -> Unit
 ) {
     val systemDarkTheme = isSystemInDarkTheme()

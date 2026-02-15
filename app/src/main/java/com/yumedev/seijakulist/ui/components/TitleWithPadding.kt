@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yumedev.seijakulist.ui.theme.RobotoBold
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
 
 @Composable
 fun TitleWithPadding(title: String) {
@@ -19,6 +19,6 @@ fun TitleWithPadding(title: String) {
         textAlign = TextAlign.Center,
         modifier = Modifier
             .padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
-        fontFamily = RobotoBold
+        fontFamily = PoppinsBold
     )
 }

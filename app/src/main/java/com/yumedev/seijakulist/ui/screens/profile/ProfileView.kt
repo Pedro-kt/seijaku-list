@@ -1,5 +1,6 @@
 package com.yumedev.seijakulist.ui.screens.profile
 
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -52,15 +52,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,8 +74,10 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -90,11 +90,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.components.DonutChart
 import com.yumedev.seijakulist.ui.components.PieChartData
 
@@ -110,10 +114,192 @@ val achievements = listOf(
     Achievement("Maratonista", "Marcaste 50 episodios como vistos en una semana", "Epic"),
     Achievement("Coleccionista Avanzado", "Añadiste 50 animes a tu lista", "Rare"),
     Achievement("Coleccionista Experto", "Añadiste 100 animes a tu lista", "Legendary"),
-    Achievement("Tomamos un Té luego de las clases?", "Añadiste el anime favorito del desarrollador", "Legendary"),
     Achievement("Maratonista Avanzado", "Marcaste 100 episodios como vistos en una semana", "Legendary"),
     Achievement("Coleccionista Master", "Añadiste 200 animes a tu lista", "Legendary")
 )
+
+@Composable
+private fun EmptyProfileScreen(navController: NavController) {
+    var screenVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(100)
+        screenVisible = true
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Ilustración animada
+            androidx.compose.animation.AnimatedVisibility(
+                visible = screenVisible,
+                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(600)) +
+                        androidx.compose.animation.scaleIn(
+                            initialScale = 0.9f,
+                            animationSpec = androidx.compose.animation.core.tween(600)
+                        )
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(120.dp)
+                ) {
+                    // Círculo decorativo
+                    Box(
+                        modifier = Modifier
+                            .size(130.dp)
+                            .background(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        Color.Transparent
+                                    )
+                                ),
+                                shape = CircleShape
+                            )
+                    )
+
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(100.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Título simple
+            androidx.compose.animation.AnimatedVisibility(
+                visible = screenVisible,
+                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(600, delayMillis = 200))
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Crea tu cuenta",
+                        fontSize = 26.sp,
+                        fontFamily = PoppinsBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Sincroniza tus animes en la nube",
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsRegular,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Text(
+                            text = "Cambia de celular sin perder nada, desbloquea logros y accede a todas las características de SeijakuList",
+                            fontSize = 13.sp,
+                            fontFamily = PoppinsRegular,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Botón principal
+            androidx.compose.animation.AnimatedVisibility(
+                visible = screenVisible,
+                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(600, delayMillis = 400)) +
+                        androidx.compose.animation.slideInVertically(
+                            initialOffsetY = { 30 },
+                            animationSpec = androidx.compose.animation.core.tween(600)
+                        )
+            ) {
+                Button(
+                    onClick = { navController.navigate(AppDestinations.AUTH_ROUTE) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Comenzar",
+                        fontSize = 16.sp,
+                        fontFamily = PoppinsBold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+    }
+}
+
+@Composable
+private fun FeatureItem(
+    icon: ImageVector,
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontFamily = PoppinsBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = description,
+                fontSize = 14.sp,
+                fontFamily = PoppinsRegular,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
 
 @Composable
 fun ProfileView(
@@ -122,40 +308,9 @@ fun ProfileView(
 ) {
     val uiState by profileViewModel.uiState.collectAsState()
 
-    // 1. Muestra una carga si el perfil aún es nulo.
+    // 1. Muestra una pantalla mejorada si el perfil aún es nulo.
     if (uiState.userProfile == null) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Icono de perfil",
-                modifier = Modifier.size(100.dp),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Tu perfil te espera",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Inicia sesión o regístrate para ver tu perfil, tus listas y logros.",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                onClick = { navController.navigate(AppDestinations.AUTH_ROUTE) },
-                modifier = Modifier.fillMaxWidth(0.7f)
-            ) {
-                Text("Iniciar sesión o Registrarse")
-            }
-        }
+        EmptyProfileScreen(navController)
     } else if (uiState.isLoading) {
         CircularProgressIndicator()
     }
@@ -167,171 +322,213 @@ fun ProfileView(
     val userBio = userProfile?.bio ?: "Añade tu biografia!"
 
     if (userProfile != null) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Header con imagen de fondo y perfil
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(320.dp)
-                ) {
-                    // Imagen de fondo con blur
-                    AsyncImage(
-                        model = profilePictureUrl ?: R.drawable.user_default,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .blur(25.dp),
-                        contentScale = ContentScale.Crop
-                    )
+        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
 
-                    // Gradiente overlay
+        // Actualizar el ViewModel de manera más reactiva usando snapshotFlow
+        androidx.compose.runtime.LaunchedEffect(listState) {
+            androidx.compose.runtime.snapshotFlow {
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 100
+            }.collect { isAtTop ->
+                profileViewModel.updateScrollPosition(isAtTop)
+            }
+        }
+
+        // Detectar si estamos en la parte superior (header visible) para animaciones locales
+        val isAtTop = remember {
+            androidx.compose.runtime.derivedStateOf {
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 100
+            }
+        }
+
+        // Animar el color del header basado en la posición del scroll
+        val headerColor by androidx.compose.animation.animateColorAsState(
+            targetValue = if (isAtTop.value) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.background
+            },
+            animationSpec = androidx.compose.animation.core.tween(200),
+            label = "headerColor"
+        )
+
+        // Animar el color del texto basado en la posición del scroll
+        val textColor by androidx.compose.animation.animateColorAsState(
+            targetValue = if (isAtTop.value) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onBackground
+            },
+            animationSpec = androidx.compose.animation.core.tween(200),
+            label = "textColor"
+        )
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState
+        ) {
+            // Header con perfil
+            item {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
+                    color = headerColor,
+                    shadowElevation = 4.dp
+                ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Black.copy(alpha = 0.4f),
-                                        Color.Black.copy(alpha = 0.7f),
-                                        MaterialTheme.colorScheme.background
-                                    )
-                                )
-                            )
-                    )
-
-                    // Contenido del header
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp)
                     ) {
-                        // Foto de perfil
+                        // Botón de editar perfil flotante
                         Surface(
-                            modifier = Modifier.size(140.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surface,
-                            shadowElevation = 12.dp
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                                .zIndex(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            shadowElevation = 4.dp,
+                            onClick = { navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) }
                         ) {
-                            AsyncImage(
-                                model = profilePictureUrl ?: R.drawable.user_default,
-                                contentDescription = "Foto de perfil",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .border(
-                                        width = 4.dp,
-                                        color = MaterialTheme.colorScheme.surface,
-                                        shape = CircleShape
-                                    ),
-                                contentScale = ContentScale.Crop
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Editar perfil",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                                Text(
+                                    text = "Editar",
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Nombre de usuario
-                        Text(
-                            text = username,
-                            fontSize = 28.sp,
-                            fontFamily = RobotoBold,
-                            color = Color.White
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Bio
-                        Text(
-                            text = userBio,
-                            fontSize = 15.sp,
-                            fontFamily = RobotoRegular,
-                            color = Color.White.copy(alpha = 0.9f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Botón de editar perfil
-                        FilledTonalButton(
-                            onClick = { navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) },
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
+                        // Contenido del header
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp, bottom = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            // Foto de perfil
+                            Surface(
+                                modifier = Modifier.size(120.dp),
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface,
+                                shadowElevation = 8.dp
+                            ) {
+                                if (profilePictureUrl != null) {
+                                    AsyncImage(
+                                        model = profilePictureUrl,
+                                        contentDescription = "Foto de perfil",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .border(
+                                                width = 4.dp,
+                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                shape = CircleShape
+                                            ),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    val composition by rememberLottieComposition(LottieCompositionSpec.Asset("user_default.lottie"))
+                                    LottieAnimation(
+                                        composition = composition,
+                                        iterations = LottieConstants.IterateForever,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .border(
+                                                width = 4.dp,
+                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                shape = CircleShape
+                                            ),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Nombre de usuario
                             Text(
-                                text = "Editar perfil",
-                                fontFamily = RobotoBold
+                                text = username,
+                                fontSize = 28.sp,
+                                fontFamily = PoppinsBold,
+                                color = textColor
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Bio
+                            Text(
+                                text = userBio,
+                                fontSize = 15.sp,
+                                fontFamily = PoppinsRegular,
+                                color = textColor.copy(alpha = 0.8f),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 }
             }
 
-            // Estadísticas
+            // Estadísticas - Diseño compacto
             item {
-                Row(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.PlayArrow,
-                        value = uiState.stats.totalAnimes.toString(),
-                        label = "Animes"
-                    )
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.Check,
-                        value = uiState.stats.completedAnimes.toString(),
-                        label = "Completados"
-                    )
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.Star,
-                        value = uiState.stats.totalEpisodesWatched.toString(),
-                        label = "Episodios"
-                    )
-                }
-            }
-
-            // Información adicional
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
+                        .padding(horizontal = 20.dp)
+                        .padding(top = 20.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                    shape = RoundedCornerShape(16.dp)
+                    )
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        InfoRow(
-                            icon = Icons.Default.LocationOn,
-                            label = "Ubicación",
-                            value = "Argentina"
+                        Text(
+                            text = "Estadísticas",
+                            fontSize = 16.sp,
+                            fontFamily = PoppinsBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
-                        HorizontalDivider()
-                        InfoRow(
-                            icon = Icons.Default.CalendarToday,
-                            label = "Miembro desde",
-                            value = "Mayo 2025"
+
+                        StatChip(
+                            icon = Icons.Default.PlayArrow,
+                            value = uiState.stats.totalAnimes.toString(),
+                            label = "Animes en tu lista"
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                        StatChip(
+                            icon = Icons.Default.Check,
+                            value = uiState.stats.completedAnimes.toString(),
+                            label = "Completados"
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                        StatChip(
+                            icon = Icons.Default.Star,
+                            value = uiState.stats.totalEpisodesWatched.toString(),
+                            label = "Episodios vistos"
                         )
                     }
                 }
@@ -339,58 +536,58 @@ fun ProfileView(
 
             // Géneros Favoritos
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-
                 if (uiState.stats.genreStats.isNotEmpty()) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp)
+                            .padding(top = 20.dp)
                     ) {
+                        // Título
                         Text(
                             text = "Géneros Favoritos",
-                            fontSize = 24.sp,
-                            fontFamily = RobotoBold,
+                            fontSize = 20.sp,
+                            fontFamily = PoppinsBold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                        ElevatedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            // Tomar los top 5 géneros
-                            val topGenres = uiState.stats.genreStats
-                                .entries
-                                .sortedByDescending { it.value }
-                                .take(5)
+                        // Tomar los top 3 géneros
+                        val topGenres = uiState.stats.genreStats
+                            .entries
+                            .sortedByDescending { it.value }
+                            .take(3)
 
-                            val genreColors = listOf(
-                                Color(0xFFFF6B6B),
-                                Color(0xFF4ECDC4),
-                                Color(0xFF45B7D1),
-                                Color(0xFFFFA07A),
-                                Color(0xFF98D8C8)
-                            )
+                        // Total de géneros contados (la suma de todos los counts)
+                        val totalGenreCounts = topGenres.sumOf { it.value }
 
-                            val chartData = topGenres.mapIndexed { index, (genre, count) ->
-                                PieChartData(
-                                    label = genre,
-                                    value = count,
-                                    color = genreColors.getOrElse(index) { MaterialTheme.colorScheme.primary }
-                                )
+                        // Paleta de colores vibrante
+                        val genreColors = listOf(
+                            Color(0xFF3B82F6), // Azul
+                            Color(0xFF8B5CF6), // Púrpura
+                            Color(0xFFEC4899)  // Rosa
+                        )
+
+                        // Mostrar las 3 tarjetas
+                        topGenres.forEachIndexed { index, (genre, count) ->
+                            // Encontrar el primer anime de este género
+                            val animeWithGenre = uiState.allSavedAnimes.firstOrNull { anime ->
+                                anime.genres.split(",").any { it.trim().equals(genre, ignoreCase = true) }
                             }
 
-                            DonutChart(
-                                data = chartData,
-                                modifier = Modifier.padding(24.dp),
-                                centerText = topGenres.sumOf { it.value }.toString(),
-                                centerSubtext = "Total de generos"
+                            GenreFavoriteCard(
+                                genre = genre,
+                                count = count,
+                                totalCount = totalGenreCounts,
+                                imageUrl = animeWithGenre?.imageUrl,
+                                accentColor = genreColors.getOrElse(index) { Color(0xFF3B82F6) },
+                                modifier = Modifier.fillMaxWidth()
                             )
+
+                            if (index < topGenres.size - 1) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                            }
                         }
                     }
                 }
@@ -398,27 +595,29 @@ fun ProfileView(
 
             // Top 5 Animes
             item {
-                Spacer(modifier = Modifier.height(8.dp))
-                var showTop5Dialog by rememberSaveable { mutableStateOf(false) }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                        .padding(horizontal = 20.dp)
+                        .padding(top = 20.dp, bottom = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Top 5 Animes",
-                        fontSize = 24.sp,
-                        fontFamily = RobotoBold,
+                        fontSize = 20.sp,
+                        fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-                    IconButton(onClick = { showTop5Dialog = true }) {
+                    IconButton(
+                        onClick = { navController.navigate(AppDestinations.SELECT_TOP5_ROUTE) },
+                        modifier = Modifier.size(36.dp)
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Editar Top 5",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -458,61 +657,25 @@ fun ProfileView(
                             Text(
                                 text = "Selecciona tus 5 animes favoritos",
                                 fontSize = 16.sp,
-                                fontFamily = RobotoRegular,
+                                fontFamily = PoppinsRegular,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
-                            FilledTonalButton(onClick = { showTop5Dialog = true }) {
+                            FilledTonalButton(onClick = { navController.navigate(AppDestinations.SELECT_TOP5_ROUTE) }) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Elegir Top 5", fontFamily = RobotoBold)
+                                Text("Elegir Top 5", fontFamily = PoppinsBold)
                             }
                         }
-                    }
-                }
-
-                if (showTop5Dialog) {
-                    SelectTop5Dialog(
-                        allAnimes = uiState.allSavedAnimes,
-                        currentTop5Ids = uiState.top5Animes.map { it.malId },
-                        isSaving = uiState.isSavingTop5,
-                        onDismiss = {
-                            showTop5Dialog = false
-                            profileViewModel.resetTop5UpdateSuccess()
-                        },
-                        onConfirm = { selectedIds ->
-                            profileViewModel.updateTop5Animes(selectedIds)
-                        },
-                        onSuccess = {
-                            showTop5Dialog = false
-                            profileViewModel.resetTop5UpdateSuccess()
-                        },
-                        updateSuccess = uiState.top5UpdateSuccess
-                    )
-                }
-            }
-
-            // Top 5 Personajes
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                SectionTitle("Top 5 Personajes")
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
-                ) {
-                    items(favoriteCharacters.size) { index ->
-                        FavoriteCard(title = favoriteCharacters[index], position = index + 1)
                     }
                 }
             }
 
             // Logros
             item {
-                Spacer(modifier = Modifier.height(24.dp))
                 var expanded by rememberSaveable { mutableStateOf(false) }
                 var selectedAchievement by remember { mutableStateOf<Achievement?>(null) }
                 val achievementsToShow = if (expanded) achievements else achievements.take(5)
@@ -521,6 +684,7 @@ fun ProfileView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
+                        .padding(top = 20.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -529,14 +693,14 @@ fun ProfileView(
                     ) {
                         Text(
                             text = "Logros",
-                            fontSize = 24.sp,
-                            fontFamily = RobotoBold,
+                            fontSize = 20.sp,
+                            fontFamily = PoppinsBold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "${achievements.size} desbloqueados",
-                            fontSize = 14.sp,
-                            fontFamily = RobotoRegular,
+                            fontSize = 13.sp,
+                            fontFamily = PoppinsRegular,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -568,7 +732,7 @@ fun ProfileView(
                         ) {
                             Text(
                                 text = if (expanded) "Mostrar menos" else "Mostrar más logros",
-                                fontFamily = RobotoBold
+                                fontFamily = PoppinsBold
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
@@ -579,66 +743,55 @@ fun ProfileView(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
 }
 
 @Composable
-private fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        fontSize = 24.sp,
-        fontFamily = RobotoBold,
-        color = MaterialTheme.colorScheme.onBackground,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-    )
-}
-
-@Composable
-private fun StatCard(
-    modifier: Modifier = Modifier,
+private fun StatChip(
     icon: ImageVector,
     value: String,
     label: String
 ) {
-    ElevatedCard(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Label e icono
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(28.dp)
+                contentDescription = label,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
             )
-            Text(
-                text = value,
-                fontSize = 22.sp,
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+
             Text(
                 text = label,
-                fontSize = 13.sp,
-                fontFamily = RobotoRegular,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                fontSize = 14.sp,
+                fontFamily = PoppinsRegular,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
+
+        // Valor
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            fontFamily = PoppinsBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -665,13 +818,13 @@ private fun InfoRow(
             Text(
                 text = label,
                 fontSize = 13.sp,
-                fontFamily = RobotoRegular,
+                fontFamily = PoppinsRegular,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
                 fontSize = 16.sp,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -735,7 +888,7 @@ private fun FavoriteCard(title: String, position: Int) {
                     Text(
                         text = "#$position",
                         fontSize = 14.sp,
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -754,7 +907,7 @@ private fun FavoriteCard(title: String, position: Int) {
                     text = title,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp,
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
@@ -768,18 +921,57 @@ private fun FavoriteCard(title: String, position: Int) {
 
 @Composable
 private fun AnimeTop5Card(anime: AnimeEntity, position: Int, navController: NavController) {
-    ElevatedCard(
+    // Animación sutil de brillo
+    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "shimmer")
+    val shimmerAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.6f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(2000, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+        ),
+        label = "shimmerAlpha"
+    )
+
+    // Badge de posición y colores
+    val (bgColor, textColor) = when (position) {
+        1 -> Color(0xFFFFD700) to Color.Black  // Oro
+        2 -> Color(0xFFC0C0C0) to Color.Black  // Plata
+        3 -> Color(0xFFCD7F32) to Color.White  // Bronce
+        4 -> Color(0xFF6366F1) to Color.White  // Índigo
+        5 -> Color(0xFFEC4899) to Color.White  // Rosa
+        else -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+    }
+
+    // Borde especial solo para top 3
+    val borderModifier = if (position <= 3) {
+        Modifier.border(
+            width = 2.dp,
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    bgColor.copy(alpha = 0.8f),
+                    bgColor.copy(alpha = 0.4f),
+                    bgColor.copy(alpha = 0.8f)
+                )
+            ),
+            shape = RoundedCornerShape(16.dp)
+        )
+    } else {
+        Modifier
+    }
+
+    Card(
         modifier = Modifier
-            .width(180.dp)
-            .height(240.dp),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            .width(160.dp)
+            .height(230.dp)
+            .then(borderModifier),
+        shape = RoundedCornerShape(16.dp),
         onClick = {
             navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Imagen del animebien, ahora
+            // Imagen del anime
             AsyncImage(
                 model = anime.imageUrl,
                 contentDescription = anime.title,
@@ -787,543 +979,200 @@ private fun AnimeTop5Card(anime: AnimeEntity, position: Int, navController: NavC
                 contentScale = ContentScale.Crop
             )
 
-            // Gradiente overlay
+            // Gradiente overlay mejorado
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
+                                Color.Black.copy(alpha = 0.3f),
                                 Color.Transparent,
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.8f)
+                                Color.Black.copy(alpha = 0.6f),
+                                Color.Black.copy(alpha = 0.85f)
                             )
                         )
                     )
             )
 
-            // Badge de posición
-            val (bgColor, textColor) = when (position) {
-                1 -> Color(0xFFFFD700) to Color.Black  // Oro
-                2 -> Color(0xFFC0C0C0) to Color.Black  // Plata
-                3 -> Color(0xFFCD7F32) to Color.White  // Bronce
-                4 -> Color(0xFF6366F1) to Color.White  // Índigo
-                5 -> Color(0xFFEC4899) to Color.White  // Rosa
-                else -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+            // Efecto de brillo sutil para top 3
+            if (position <= 3) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    bgColor.copy(alpha = shimmerAlpha * 0.15f),
+                                    Color.Transparent,
+                                    Color.Transparent
+                                ),
+                                center = androidx.compose.ui.geometry.Offset(0f, 0f),
+                                radius = 800f
+                            )
+                        )
+                )
             }
 
             Surface(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(12.dp),
-                shape = RoundedCornerShape(10.dp),
+                    .align(Alignment.TopStart)
+                    .padding(10.dp),
+                shape = RoundedCornerShape(8.dp),
                 color = bgColor,
-                shadowElevation = 4.dp
+                shadowElevation = if (position <= 3) 6.dp else 4.dp
             ) {
                 Text(
                     text = "#$position",
-                    fontSize = 16.sp,
-                    fontFamily = RobotoBold,
+                    fontSize = 14.sp,
+                    fontFamily = PoppinsBold,
                     color = textColor,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
 
-            // Título en la parte inferior
-            Text(
-                text = anime.title,
-                textAlign = TextAlign.Center,
-                fontSize = 14.sp,
-                fontFamily = RobotoBold,
-                color = Color.White,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(12.dp)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SelectTop5Dialog(
-    allAnimes: List<AnimeEntity>,
-    currentTop5Ids: List<Int>,
-    isSaving: Boolean,
-    updateSuccess: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: (List<Int>) -> Unit,
-    onSuccess: () -> Unit
-) {
-    // Usar remember en lugar de rememberSaveable para que se reinicie con los valores actuales
-    var orderedSelectedIds by remember { mutableStateOf(currentTop5Ids) }
-
-    // Cerrar el diálogo automáticamente cuando se complete el guardado
-    LaunchedEffect(updateSuccess) {
-        if (updateSuccess) {
-            kotlinx.coroutines.delay(300) // Pequeño delay para que el usuario vea el cambio
-            onSuccess()
-        }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.background
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 700.dp)
-        ) {
-            // Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Selecciona tus Top 5 Animes",
-                        fontSize = 24.sp,
-                        fontFamily = RobotoBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "${orderedSelectedIds.size}/5 seleccionados",
-                        fontSize = 14.sp,
-                        fontFamily = RobotoRegular,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar"
-                    )
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-
-            // Sección de animes seleccionados (ordenables)
-            if (orderedSelectedIds.isNotEmpty()) {
-                Column(
+            // Puntuación del usuario en la esquina superior derecha
+            if (anime.userScore > 0) {
+                Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 250.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(10.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Black.copy(alpha = 0.7f)
                 ) {
-                    Text(
-                        text = "Tu Top 5 (usa las flechas para reordenar)",
-                        fontSize = 18.sp,
-                        fontFamily = RobotoBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(orderedSelectedIds.size) { index ->
-                            val animeId = orderedSelectedIds[index]
-                            val anime = allAnimes.find { it.malId == animeId }
-                            if (anime != null) {
-                                SelectedAnimeItem(
-                                    anime = anime,
-                                    position = index + 1,
-                                    canMoveUp = index > 0,
-                                    canMoveDown = index < orderedSelectedIds.size - 1,
-                                    onMoveUp = {
-                                        if (index > 0) {
-                                            val newList = orderedSelectedIds.toMutableList()
-                                            val temp = newList[index]
-                                            newList[index] = newList[index - 1]
-                                            newList[index - 1] = temp
-                                            orderedSelectedIds = newList
-                                        }
-                                    },
-                                    onMoveDown = {
-                                        if (index < orderedSelectedIds.size - 1) {
-                                            val newList = orderedSelectedIds.toMutableList()
-                                            val temp = newList[index]
-                                            newList[index] = newList[index + 1]
-                                            newList[index + 1] = temp
-                                            orderedSelectedIds = newList
-                                        }
-                                    },
-                                    onRemove = {
-                                        orderedSelectedIds = orderedSelectedIds - animeId
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant
-                )
-            }
-
-            // Título para la lista de selección
-            Text(
-                text = if (orderedSelectedIds.isEmpty()) "Tus animes guardados" else "Agregar más animes",
-                fontSize = 18.sp,
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-
-            // Lista de animes
-            if (allAnimes.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    Row(
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            tint = Color(0xFFFFD700),
+                            modifier = Modifier.size(14.dp)
                         )
                         Text(
-                            text = "No tienes animes guardados",
-                            fontSize = 16.sp,
-                            fontFamily = RobotoBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = "${anime.userScore}",
+                            fontSize = 12.sp,
+                            fontFamily = PoppinsBold,
+                            color = Color.White
                         )
-                        Text(
-                            text = "Agrega animes a tu lista para poder seleccionar tus favoritos",
-                            fontSize = 14.sp,
-                            fontFamily = RobotoRegular,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 32.dp)
-                        )
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .heightIn(max = 300.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(allAnimes.size) { index ->
-                        val anime = allAnimes[index]
-                        val isSelected = orderedSelectedIds.contains(anime.malId)
-
-                        ElevatedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected)
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                                else
-                                    MaterialTheme.colorScheme.surfaceContainerHigh
-                            ),
-                            onClick = {
-                                if (!isSelected && orderedSelectedIds.size < 5) {
-                                    orderedSelectedIds = orderedSelectedIds + anime.malId
-                                }
-                            }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Imagen
-                                AsyncImage(
-                                    model = anime.imageUrl,
-                                    contentDescription = anime.title,
-                                    modifier = Modifier
-                                        .width(60.dp)
-                                        .height(80.dp)
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop
-                                )
-
-                                // Información
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = anime.title,
-                                        fontSize = 16.sp,
-                                        fontFamily = RobotoBold,
-                                        color = if (isSelected)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else
-                                            MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = null,
-                                            tint = Color(0xFFFFD700),
-                                            modifier = Modifier.size(14.dp)
-                                        )
-                                        Text(
-                                            text = anime.userScore.toString(),
-                                            fontSize = 13.sp,
-                                            fontFamily = RobotoRegular,
-                                            color = if (isSelected)
-                                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                            else
-                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                        )
-                                    }
-                                }
-
-                                // Checkbox/Icono de selección
-                                if (isSelected) {
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.primary
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = "Seleccionado",
-                                            tint = Color.White,
-                                            modifier = Modifier
-                                                .padding(4.dp)
-                                                .size(20.dp)
-                                        )
-                                    }
-                                } else {
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.surface,
-                                        border = BorderStroke(
-                                            2.dp,
-                                            MaterialTheme.colorScheme.outline
-                                        ),
-                                        modifier = Modifier.size(28.dp)
-                                    ) {}
-                                }
-                            }
-                        }
                     }
                 }
             }
 
-            // Botones de acción
-            Row(
+            // Título en la parte inferior con mejor legibilidad
+            Column(
                 modifier = Modifier
+                    .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    enabled = !isSaving,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Cancelar", fontFamily = RobotoBold)
-                }
-                Button(
-                    onClick = { onConfirm(orderedSelectedIds) },
-                    enabled = orderedSelectedIds.size == 5 && !isSaving,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    if (isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Guardando...", fontFamily = RobotoBold)
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Guardar", fontFamily = RobotoBold)
-                    }
-                }
+                Text(
+                    text = anime.title,
+                    fontSize = 13.sp,
+                    fontFamily = PoppinsBold,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 16.sp
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SelectedAnimeItem(
-    anime: AnimeEntity,
-    position: Int,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
-    onRemove: () -> Unit
+private fun GenreFavoriteCard(
+    genre: String,
+    count: Int,
+    totalCount: Int,
+    imageUrl: String?,
+    accentColor: Color,
+    modifier: Modifier = Modifier
 ) {
-    val positionColors = mapOf(
-        1 to Color(0xFFFFD700),  // Oro
-        2 to Color(0xFFC0C0C0),  // Plata
-        3 to Color(0xFFCD7F32),  // Bronce
-        4 to Color(0xFF6366F1),  // Índigo
-        5 to Color(0xFFEC4899)   // Rosa
-    )
+    val percentage = if (totalCount > 0) ((count.toFloat() / totalCount) * 100).toInt() else 0
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Badge de posición
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = positionColors[position] ?: MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Box(
+            // Imagen de fondo
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "#$position",
-                        fontSize = 18.sp,
-                        fontFamily = RobotoBold,
-                        color = if (position <= 2) Color.Black else Color.White
-                    )
-                }
+                    contentScale = ContentScale.Crop
+                )
             }
 
-            // Imagen
-            AsyncImage(
-                model = anime.imageUrl,
-                contentDescription = anime.title,
+            // Gradiente overlay de negro a color
+            Box(
                 modifier = Modifier
-                    .width(50.dp)
-                    .height(70.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.85f),
+                                Color.Black.copy(alpha = 0.75f),
+                                accentColor.copy(alpha = 0.7f),
+                                accentColor.copy(alpha = 0.5f)
+                            )
+                        )
+                    )
             )
 
-            // Información
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            // Contenido
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Nombre del género
                 Text(
-                    text = anime.title,
-                    fontSize = 15.sp,
-                    fontFamily = RobotoBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
+                    text = genre,
+                    fontSize = 24.sp,
+                    fontFamily = PoppinsBold,
+                    color = Color.White,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Estadísticas
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = Color(0xFFFFD700),
-                        modifier = Modifier.size(14.dp)
+                    Text(
+                        text = "$percentage%",
+                        fontSize = 28.sp,
+                        fontFamily = PoppinsBold,
+                        color = Color.White
                     )
                     Text(
-                        text = anime.userScore.toString(),
-                        fontSize = 13.sp,
-                        fontFamily = RobotoRegular,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        text = "$count guardados",
+                        fontSize = 12.sp,
+                        fontFamily = PoppinsRegular,
+                        color = Color.White.copy(alpha = 0.9f)
                     )
                 }
-            }
-
-            // Botones de reordenar y quitar
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Botón subir
-                IconButton(
-                    onClick = onMoveUp,
-                    enabled = canMoveUp,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Subir",
-                        tint = if (canMoveUp)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    )
-                }
-
-                // Botón bajar
-                IconButton(
-                    onClick = onMoveDown,
-                    enabled = canMoveDown,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Bajar",
-                        tint = if (canMoveDown)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    )
-                }
-            }
-
-            // Botón eliminar
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Quitar",
-                    tint = MaterialTheme.colorScheme.error
-                )
             }
         }
     }
@@ -1350,10 +1199,9 @@ private fun AchievementCard(
         else -> MaterialTheme.colorScheme.primary to "🏆"
     }
 
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
@@ -1362,25 +1210,18 @@ private fun AchievementCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Icono con gradiente
+            // Icono más compacto
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                color.copy(alpha = 0.8f),
-                                color.copy(alpha = 0.4f)
-                            )
-                        )
-                    )
+                    .background(color.copy(alpha = 0.15f))
                     .border(
-                        width = 2.dp,
+                        width = 1.5.dp,
                         color = color,
                         shape = CircleShape
                     ),
@@ -1388,14 +1229,14 @@ private fun AchievementCard(
             ) {
                 Text(
                     text = emoji,
-                    fontSize = 28.sp
+                    fontSize = 22.sp
                 )
             }
 
             // Detalles del logro
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -1403,37 +1244,38 @@ private fun AchievementCard(
                 ) {
                     Text(
                         text = achievement.name,
-                        fontSize = 16.sp,
-                        fontFamily = RobotoBold,
+                        fontSize = 14.sp,
+                        fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
 
-                    // Badge de rareza
+                    // Badge de rareza más pequeño
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = color.copy(alpha = 0.2f)
+                        shape = RoundedCornerShape(6.dp),
+                        color = color.copy(alpha = 0.15f),
+                        border = BorderStroke(1.dp, color.copy(alpha = 0.3f))
                     ) {
                         Text(
                             text = achievement.typeAchievement,
-                            fontSize = 11.sp,
-                            fontFamily = RobotoBold,
+                            fontSize = 10.sp,
+                            fontFamily = PoppinsBold,
                             color = color,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
                 }
 
                 Text(
                     text = achievement.description,
-                    fontSize = 14.sp,
-                    fontFamily = RobotoRegular,
+                    fontSize = 12.sp,
+                    fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    lineHeight = 18.sp
+                    lineHeight = 16.sp
                 )
             }
         }
@@ -1527,7 +1369,7 @@ private fun AchievementDetailDialog(
                     Text(
                         text = achievement.typeAchievement,
                         fontSize = 14.sp,
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         color = color,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                     )
@@ -1539,7 +1381,7 @@ private fun AchievementDetailDialog(
                 Text(
                     text = achievement.name,
                     fontSize = 24.sp,
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
@@ -1550,7 +1392,7 @@ private fun AchievementDetailDialog(
                 Text(
                     text = achievement.description,
                     fontSize = 16.sp,
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     lineHeight = 22.sp
@@ -1586,14 +1428,14 @@ private fun AchievementDetailDialog(
                             Text(
                                 text = "Desbloqueado",
                                 fontSize = 14.sp,
-                                fontFamily = RobotoRegular,
+                                fontFamily = PoppinsRegular,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Text(
                             text = achievement.unlockDate,
                             fontSize = 14.sp,
-                            fontFamily = RobotoBold,
+                            fontFamily = PoppinsBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -1617,14 +1459,14 @@ private fun AchievementDetailDialog(
                             Text(
                                 text = "Recompensa",
                                 fontSize = 14.sp,
-                                fontFamily = RobotoRegular,
+                                fontFamily = PoppinsRegular,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Text(
                             text = achievement.reward,
                             fontSize = 14.sp,
-                            fontFamily = RobotoBold,
+                            fontFamily = PoppinsBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -1640,7 +1482,7 @@ private fun AchievementDetailDialog(
                 ) {
                     Text(
                         text = "Cerrar",
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         fontSize = 16.sp
                     )
                 }

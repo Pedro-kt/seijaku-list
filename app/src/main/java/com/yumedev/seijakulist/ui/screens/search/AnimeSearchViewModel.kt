@@ -42,8 +42,15 @@ class AnimeSearchViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
+
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    // Estados para paginación
+    private val _currentPage = MutableStateFlow(1)
+    private val _hasMorePages = MutableStateFlow(true)
 
     // --- ACCIONES ---
 
@@ -71,11 +78,13 @@ class AnimeSearchViewModel @Inject constructor(
         _selectedGenreId.value = if (_selectedGenreId.value == genreId) null else genreId
     }
 
-    // FUNCIÓN UNIFICADA DE BÚSQUEDA
+    // FUNCIÓN UNIFICADA DE BÚSQUEDA (reinicia la paginación)
     fun performSearchOrFilter() {
         viewModelScope.launch {
             _errorMessage.value = null
             _isLoading.value = true
+            _currentPage.value = 1
+            _hasMorePages.value = true
 
             try {
                 // Especificamos explícitamente que 'results' será List<AnimeCard>
@@ -99,12 +108,56 @@ class AnimeSearchViewModel @Inject constructor(
                 }
                 _animeList.value = results.distinctBy { it.malId }
 
+                // Si recibimos menos de 25 resultados, no hay más páginas
+                if (results.size < 25) {
+                    _hasMorePages.value = false
+                }
+
             } catch (e: Exception) {
                 _errorMessage.value = "Error al obtener datos: ${e.localizedMessage ?: "Error desconocido"}"
                 _animeList.value = emptyList()
 
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    // FUNCIÓN PARA CARGAR MÁS RESULTADOS (siguiente página)
+    fun loadMoreAnimes() {
+        // Solo cargar más si no estamos ya cargando y hay más páginas
+        if (_isLoadingMore.value || !_hasMorePages.value || _isLoading.value) return
+
+        // Solo funciona para búsqueda de anime por ahora
+        if (_selectedFilter.value != "Anime" || _searchQuery.value.isBlank()) return
+
+        viewModelScope.launch {
+            _isLoadingMore.value = true
+
+            try {
+                val nextPage = _currentPage.value + 1
+                val results = getAnimeSearchUseCase(query = _searchQuery.value, page = nextPage)
+
+                if (results.isNotEmpty()) {
+                    _currentPage.value = nextPage
+                    // Agregar los nuevos resultados a la lista existente, eliminando duplicados
+                    _animeList.value = (_animeList.value + results).distinctBy { it.malId }
+
+                    // Si recibimos menos de 25 resultados, no hay más páginas
+                    if (results.size < 25) {
+                        _hasMorePages.value = false
+                    }
+                } else {
+                    _hasMorePages.value = false
+                }
+
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error al cargar más animes: ${e.message}")
+                // No mostramos error en pantalla, solo dejamos de cargar
+                _hasMorePages.value = false
+
+            } finally {
+                _isLoadingMore.value = false
             }
         }
     }

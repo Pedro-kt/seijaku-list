@@ -73,6 +73,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -94,8 +95,8 @@ import com.yumedev.seijakulist.ui.components.HorizontalDividerComponent
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,6 +108,7 @@ fun SearchScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val animeList by viewModel.animeList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val selectedGenreId by viewModel.selectedGenreId.collectAsState()
@@ -116,8 +118,6 @@ fun SearchScreen(
     val errorMessageGenres by listGenres.errorMessage.collectAsState()
 
     var openBottomSheet by remember { mutableStateOf(false) }
-    var openAddAnimeDialog by remember { mutableStateOf(false) }
-    var selectedAnimeToAdd by remember { mutableStateOf<AnimeCard?>(null) }
     val focusManager = LocalFocusManager.current
 
     Column(
@@ -160,14 +160,12 @@ fun SearchScreen(
 
         SearchContent(
             isLoading = isLoading,
+            isLoadingMore = isLoadingMore,
             errorMessage = errorMessage,
             animeList = animeList,
             searchQuery = searchQuery,
             navController = navController,
-            onAddToListClick = { anime ->
-                selectedAnimeToAdd = anime
-                openAddAnimeDialog = true
-            }
+            onLoadMore = viewModel::loadMoreAnimes
         )
 
         if (openBottomSheet) {
@@ -189,28 +187,6 @@ fun SearchScreen(
                 }
             )
         }
-
-        if (openAddAnimeDialog && selectedAnimeToAdd != null) {
-            AddAnimeDialog(
-                anime = selectedAnimeToAdd!!,
-                onDismiss = {
-                    openAddAnimeDialog = false
-                    selectedAnimeToAdd = null
-                },
-                onConfirm = { userScore, userStatus, userOpinion ->
-                    viewModel.addAnimeToList(
-                        anime = selectedAnimeToAdd!!,
-                        userScore = userScore,
-                        userStatus = userStatus,
-                        userOpinion = userOpinion,
-                        onSuccess = {
-                            openAddAnimeDialog = false
-                            selectedAnimeToAdd = null
-                        }
-                    )
-                }
-            )
-        }
     }
 }
 
@@ -223,6 +199,10 @@ private fun SearchHeader(
     onSearch: () -> Unit,
     focusManager: FocusManager
 ) {
+    // Detectar dark mode comparando la luminancia del color de surface
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val isDarkTheme = surfaceColor.luminance() < 0.5f
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -240,7 +220,7 @@ private fun SearchHeader(
                 Text(
                     text = "Anime, manga, personajes...",
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    fontFamily = RobotoRegular
+                    fontFamily = PoppinsRegular
                 )
             },
             singleLine = true,
@@ -248,10 +228,22 @@ private fun SearchHeader(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedContainerColor = if (isDarkTheme) {
+                    MaterialTheme.colorScheme.surfaceContainerHigh
+                } else {
+                    Color.White
+                },
+                unfocusedContainerColor = if (isDarkTheme) {
+                    MaterialTheme.colorScheme.surfaceContainerHigh
+                } else {
+                    Color.White
+                },
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = if (isDarkTheme) {
+                    Color.Transparent
+                } else {
+                    Color.Black.copy(alpha = 0.2f)
+                },
                 cursorColor = MaterialTheme.colorScheme.primary
             ),
             leadingIcon = {
@@ -310,6 +302,10 @@ private fun SearchFilters(
         "Estudios" to Icons.Default.Business
     )
 
+    // Detectar dark mode comparando la luminancia del color de surface
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val isDarkTheme = surfaceColor.luminance() < 0.5f
+
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -323,7 +319,7 @@ private fun SearchFilters(
                 label = {
                     Text(
                         text = filter,
-                        fontFamily = if (isSelected) RobotoBold else RobotoRegular,
+                        fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                         fontSize = 14.sp
                     )
                 },
@@ -344,19 +340,31 @@ private fun SearchFilters(
                     }
                 } else null,
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    containerColor = if (isDarkTheme) {
+                        MaterialTheme.colorScheme.surfaceContainerHigh
+                    } else {
+                        Color.White
+                    },
+                    labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                     selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = Color.Transparent,
+                    borderColor = if (isSelected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    } else {
+                        if (isDarkTheme) {
+                            Color.Transparent
+                        } else {
+                            Color.Black.copy(alpha = 0.2f)
+                        }
+                    },
                     selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                    borderWidth = 0.dp,
+                    borderWidth = if (!isSelected && !isDarkTheme) 1.dp else 1.dp,
                     selectedBorderWidth = 1.dp
                 ),
                 shape = RoundedCornerShape(12.dp)
@@ -368,11 +376,12 @@ private fun SearchFilters(
 @Composable
 private fun SearchContent(
     isLoading: Boolean,
+    isLoadingMore: Boolean,
     errorMessage: String?,
     animeList: List<AnimeCard>,
     searchQuery: String,
     navController: NavController,
-    onAddToListClick: (AnimeCard) -> Unit = {}
+    onLoadMore: () -> Unit = {}
 ) {
     when {
         isLoading -> {
@@ -397,8 +406,8 @@ private fun SearchContent(
             ) {
                 item {
                     Text(
-                        text = "${animeList.size} resultados encontrados",
-                        fontFamily = RobotoRegular,
+                        text = "${animeList.size}+ resultados encontrados",
+                        fontFamily = PoppinsRegular,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -407,9 +416,36 @@ private fun SearchContent(
                 items(animeList, key = { it.malId }) { anime ->
                     AnimeCardItem(
                         navController = navController,
-                        anime = anime,
-                        onAddToListClick = onAddToListClick
+                        anime = anime
                     )
+
+                    // Detectar cuando llegamos al penúltimo item para cargar más
+                    if (anime == animeList[animeList.size - 2] && !isLoadingMore) {
+                        LaunchedEffect(key1 = anime.malId) {
+                            onLoadMore()
+                        }
+                    }
+                }
+
+                // Indicador de carga al final de la lista
+                if (isLoadingMore) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 3.dp
+                            )
+                        }
+                    }
+                }
+                item {
+                    Spacer(Modifier.height(100.dp))
                 }
             }
         }
@@ -441,7 +477,7 @@ private fun EmptySearchState(searchQuery: String) {
             } else {
                 "No se encontraron resultados"
             },
-            fontFamily = RobotoBold,
+            fontFamily = PoppinsBold,
             fontSize = 20.sp,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -452,7 +488,7 @@ private fun EmptySearchState(searchQuery: String) {
             } else {
                 "Intenta con otros términos de búsqueda"
             },
-            fontFamily = RobotoRegular,
+            fontFamily = PoppinsRegular,
             textAlign = TextAlign.Center,
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -464,13 +500,16 @@ private fun EmptySearchState(searchQuery: String) {
 @Composable
 fun AnimeCardItem(
     navController: NavController,
-    anime: AnimeCard,
-    onAddToListClick: (AnimeCard) -> Unit = {}
+    anime: AnimeCard
 ) {
     var isPressed by remember { mutableStateOf(false) }
 
+    // Detectar dark mode comparando la luminancia del color de surface
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val isDarkTheme = surfaceColor.luminance() < 0.5f
+
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
+        targetValue = if (isPressed) 0.98f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -498,9 +537,13 @@ fun AnimeCardItem(
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = if (isDarkTheme) {
+                MaterialTheme.colorScheme.surfaceContainer
+            } else {
+                Color.White
+            }
         ),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp,
             pressedElevation = 8.dp
@@ -509,123 +552,147 @@ fun AnimeCardItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .height(170.dp)
         ) {
-            // Imagen con efectos mejorados
+            // Imagen con efectos profesionales
             Box(
                 modifier = Modifier
-                    .width(130.dp)
+                    .width(120.dp)
                     .fillMaxHeight()
             ) {
-                // Imagen principal
+                // Imagen principal con placeholder
                 AsyncImage(
                     model = anime.images,
                     contentDescription = "Portada de ${anime.title}",
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(20.dp)),
-                    contentScale = ContentScale.Crop
+                        .clip(RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)),
+                    contentScale = ContentScale.Crop,
+                    placeholder = null,
+                    error = null
                 )
 
-                // Score badge flotante mejorado
+                // Gradiente sutil sobre la imagen
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.5f)
+                                )
+                            )
+                        )
+                )
+
+                // Score badge flotante con tema
                 Surface(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(6.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFF1E1E1E).copy(alpha = 0.88f),
-                    shadowElevation = 4.dp
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                    shadowElevation = 6.dp,
+                    tonalElevation = 2.dp
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
-                            tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(12.dp)
+                            tint = Color(0xFFFFB300),
+                            modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = String.format("%.1f", anime.score),
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontFamily = RobotoBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 13.sp,
+                            fontFamily = PoppinsBold,
                             letterSpacing = 0.2.sp
                         )
                     }
                 }
             }
 
-            // Contenido con mejor espaciado
+            // Contenido
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 12.dp),
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Sección superior: Título, Status y Géneros
+                // Sección superior
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(9.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
                         text = anime.title,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 16.sp,
-                        fontFamily = RobotoBold,
-                        lineHeight = 20.sp,
-                        letterSpacing = 0.1.sp
+                        fontSize = 15.sp,
+                        fontFamily = PoppinsBold,
+                        lineHeight = 19.sp,
+                        letterSpacing = 0.sp
                     )
 
-                    // Status badge moderno
-                    StatusBadgeModern(status = anime.status)
+                    // Status badge adaptado al tema
+                    StatusBadgePro(status = anime.status)
 
-                    // Géneros con scroll horizontal
+                    // Géneros optimizados
                     if (anime.genres.isNotEmpty()) {
                         LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            items(anime.genres.take(3)) { genre ->
+                            items(anime.genres.take(2)) { genre ->
                                 genre?.name?.let {
-                                    GenreChip(genreName = it)
+                                    GenreChipCompact(genreName = it)
+                                }
+                            }
+                            if (anime.genres.size > 2) {
+                                item {
+                                    GenreChipCompact(genreName = "+${anime.genres.size - 2}")
                                 }
                             }
                         }
                     }
                 }
 
-                // Sección inferior: Info y acciones
+                // Sección inferior
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Info compacta con colores del tema
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    // Info compacta
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        InfoRow(
+                        InfoChip(
                             icon = Icons.Default.CalendarToday,
-                            text = anime.year,
-                            color = MaterialTheme.colorScheme.tertiary
+                            text = anime.year
                         )
-                        InfoRow(
+                        InfoChip(
                             icon = Icons.Default.PlayCircleOutline,
-                            text = "${anime.episodes} eps",
-                            color = MaterialTheme.colorScheme.secondary
+                            text = "${anime.episodes}"
                         )
                     }
 
-                    // Botón de bookmark mejorado
+                    // Botón de añadir
                     Surface(
-                        onClick = { onAddToListClick(anime) },
+                        onClick = {
+                            navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}?tab=4")
+                        },
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(44.dp)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        modifier = Modifier.size(38.dp)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -635,7 +702,7 @@ fun AnimeCardItem(
                                 imageVector = Icons.Default.BookmarkBorder,
                                 contentDescription = "Añadir a lista",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -646,73 +713,84 @@ fun AnimeCardItem(
 }
 
 @Composable
-private fun StatusBadgeModern(status: String) {
-    val (statusColor, statusText, dotColor) = when (status) {
+private fun StatusBadgePro(status: String) {
+    val (statusColor, statusText, emoji) = when (status) {
         "Currently Airing" -> Triple(
             Color(0xFF10B981),
             "En emisión",
-            Color(0xFF34D399)
+            "●"
         )
         "Finished Airing" -> Triple(
-            Color(0xFF3B82F6),
+            MaterialTheme.colorScheme.primary,
             "Finalizado",
-            Color(0xFF60A5FA)
+            "✓"
         )
         "Not yet aired" -> Triple(
-            Color(0xFFF59E0B),
+            Color(0xFFFF9800),
             "Próximamente",
-            Color(0xFFFBBF24)
+            "◐"
         )
         else -> Triple(
-            Color.Gray,
+            MaterialTheme.colorScheme.outline,
             status,
-            Color.LightGray
+            "○"
         )
     }
 
     Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = statusColor.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))
+        shape = RoundedCornerShape(8.dp),
+        color = statusColor.copy(alpha = 0.15f)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Punto animado
-            Box(
-                modifier = Modifier
-                    .size(7.dp)
-                    .background(dotColor, CircleShape)
+            Text(
+                text = emoji,
+                color = statusColor,
+                fontSize = 10.sp,
+                fontFamily = PoppinsBold
             )
 
             Text(
                 text = statusText,
                 style = MaterialTheme.typography.labelSmall,
                 color = statusColor,
-                fontFamily = RobotoBold,
-                fontSize = 12.sp,
-                letterSpacing = 0.3.sp
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                letterSpacing = 0.2.sp
             )
         }
     }
 }
 
 @Composable
+private fun StatusBadgeModern(status: String) {
+    StatusBadgePro(status = status)
+}
+
+@Composable
 private fun GenreChip(genreName: String) {
+    GenreChipCompact(genreName = genreName)
+}
+
+@Composable
+private fun GenreChipCompact(genreName: String) {
     Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+        shape = RoundedCornerShape(6.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
     ) {
         Text(
             text = genreName,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
-            fontFamily = RobotoRegular,
-            fontSize = 11.sp,
-            letterSpacing = 0.2.sp
+            fontFamily = PoppinsRegular,
+            fontSize = 10.sp,
+            letterSpacing = 0.1.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -738,9 +816,35 @@ private fun InfoRow(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
             fontSize = 13.sp,
-            fontFamily = RobotoRegular,
+            fontFamily = PoppinsRegular,
             fontWeight = FontWeight.Medium,
             letterSpacing = 0.1.sp
+        )
+    }
+}
+
+@Composable
+private fun InfoChip(
+    icon: ImageVector,
+    text: String
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(12.dp),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            fontSize = 11.sp,
+            fontFamily = PoppinsRegular,
+            letterSpacing = 0.sp
         )
     }
 }
@@ -749,6 +853,10 @@ private fun InfoRow(
 @Composable
 fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
     var isPressed by remember { mutableStateOf(false) }
+
+    // Detectar dark mode comparando la luminancia del color de surface
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val isDarkTheme = surfaceColor.luminance() < 0.5f
 
     val elevation by animateDpAsState(
         targetValue = if (isPressed) 2.dp else 6.dp,
@@ -771,7 +879,11 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isDarkTheme) {
+                MaterialTheme.colorScheme.surface
+            } else {
+                Color.White
+            }
         ),
         shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation)
@@ -814,7 +926,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
                             overflow = TextOverflow.Ellipsis,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 17.sp,
-                            fontFamily = RobotoBold,
+                            fontFamily = PoppinsBold,
                             lineHeight = 20.sp
                         )
 
@@ -833,7 +945,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
                                 text = String.format("%.1f", anime.score),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.sp,
-                                fontFamily = RobotoBold
+                                fontFamily = PoppinsBold
                             )
                         }
                     }
@@ -891,7 +1003,7 @@ private fun StatusBadgeMinimal(status: String) {
         text = "● $statusText",
         style = MaterialTheme.typography.labelSmall,
         color = statusColor,
-        fontFamily = RobotoBold,
+        fontFamily = PoppinsBold,
         fontSize = 12.sp
     )
 }
@@ -926,7 +1038,7 @@ private fun GenresBottomSheet(
             ) {
                 Text(
                     text = "Seleccionar género",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -967,7 +1079,7 @@ private fun GenresBottomSheet(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.height(400.dp)
+                        modifier = Modifier.fillMaxHeight(0.7f)
                     ) {
                         items(genres) { genre ->
                             GenreChip(
@@ -991,14 +1103,14 @@ private fun GenresBottomSheet(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Cancelar", fontFamily = RobotoRegular)
+                    Text("Cancelar", fontFamily = PoppinsRegular)
                 }
                 Button(
                     onClick = onSearch,
                     modifier = Modifier.weight(1f),
                     enabled = selectedGenreId != null
                 ) {
-                    Text("Aplicar filtro", fontFamily = RobotoBold)
+                    Text("Aplicar filtro", fontFamily = PoppinsBold)
                 }
             }
         }
@@ -1033,7 +1145,7 @@ private fun GenreChip(
         ) {
             Text(
                 text = genre.name,
-                fontFamily = if (isSelected) RobotoBold else RobotoRegular,
+                fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                 fontSize = 14.sp,
                 color = if (isSelected) {
                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -1118,7 +1230,7 @@ private fun AddAnimeDialog(
                         text = "Añadir a mi lista",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 26.sp,
-                        fontFamily = RobotoBold
+                        fontFamily = PoppinsBold
                     )
                 }
             }
@@ -1159,7 +1271,7 @@ private fun AddAnimeDialog(
                                 text = "Estado",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 20.sp,
-                                fontFamily = RobotoBold
+                                fontFamily = PoppinsBold
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             if (selectedStatus != null) {
@@ -1335,7 +1447,7 @@ private fun AddAnimeDialog(
                                     text = "Calificación",
                                     color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 20.sp,
-                                    fontFamily = RobotoBold
+                                    fontFamily = PoppinsBold
                                 )
                             }
 
@@ -1402,7 +1514,7 @@ private fun AddAnimeDialog(
                                 text = "Opinión",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 20.sp,
-                                fontFamily = RobotoBold
+                                fontFamily = PoppinsBold
                             )
                         }
 
@@ -1557,7 +1669,7 @@ private fun RatingBar(
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = RobotoBold,
+            fontFamily = PoppinsBold,
             modifier = Modifier
                 .background(
                     MaterialTheme.colorScheme.surfaceContainerHigh,

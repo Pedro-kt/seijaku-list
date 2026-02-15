@@ -11,7 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class SettingsViewModel @Inject constructor() : ViewModel() {
     // Estado para el modo de tema seleccionado
-    private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+    private val _themeMode = MutableStateFlow(ThemeMode.DARK)
     val themeMode = _themeMode.asStateFlow()
 
     fun setThemeMode(mode: ThemeMode) {

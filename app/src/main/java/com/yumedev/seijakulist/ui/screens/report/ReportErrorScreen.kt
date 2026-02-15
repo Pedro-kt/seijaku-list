@@ -15,7 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.painterResource
+import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,8 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -102,7 +103,7 @@ fun ReportErrorScreen(
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    painter = painterResource(id = R.drawable.ic_arrow_left_line),
                     contentDescription = "Volver",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
@@ -111,7 +112,7 @@ fun ReportErrorScreen(
                 text = "Reportar Error",
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 20.sp,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -127,7 +128,7 @@ fun ReportErrorScreen(
             // Descripción
             Text(
                 text = "Completa los campos para reportar un error. Al enviar se abrirá tu aplicación de email.\n\nReportar los errores que encuentres nos ayuda a corregirlos y mejorar nuestra aplicación y la experiencia de usuario, gracias por tu colaboracion!",
-                fontFamily = RobotoRegular,
+                fontFamily = PoppinsRegular,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 lineHeight = 20.sp
@@ -138,7 +139,7 @@ fun ReportErrorScreen(
             // Campo de Email
             Text(
                 text = "Tu Email",
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -150,7 +151,7 @@ fun ReportErrorScreen(
                 placeholder = {
                     Text(
                         "tu@email.com",
-                        fontFamily = RobotoRegular
+                        fontFamily = PoppinsRegular
                     )
                 },
                 shape = RoundedCornerShape(12.dp),
@@ -161,7 +162,7 @@ fun ReportErrorScreen(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 ),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = RobotoRegular
+                    fontFamily = PoppinsRegular
                 ),
                 singleLine = true
             )
@@ -171,7 +172,7 @@ fun ReportErrorScreen(
             // Campo de Reporte
             Text(
                 text = "Descripción del Error",
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -185,7 +186,7 @@ fun ReportErrorScreen(
                 placeholder = {
                     Text(
                         placeholder,
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 },
@@ -197,7 +198,7 @@ fun ReportErrorScreen(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 ),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = RobotoRegular
+                    fontFamily = PoppinsRegular
                 ),
                 maxLines = 15
             )
@@ -259,7 +260,7 @@ fun ReportErrorScreen(
                 )
                 Text(
                     text = "Enviar Reporte",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 16.sp
                 )
             }

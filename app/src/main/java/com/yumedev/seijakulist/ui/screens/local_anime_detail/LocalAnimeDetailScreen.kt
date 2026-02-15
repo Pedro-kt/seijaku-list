@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,10 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.painterResource
+import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -61,8 +66,8 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.yumedev.seijakulist.ui.components.TitleWithPadding
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +118,7 @@ fun AnimeDetailScreenLocal(
                             modifier = Modifier.align(Alignment.CenterStart)
                         ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.ic_arrow_left_line),
                                 contentDescription = "Volver",
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
@@ -122,7 +127,7 @@ fun AnimeDetailScreenLocal(
                             text = "Mi Anime",
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 20.sp,
-                            fontFamily = RobotoBold,
+                            fontFamily = PoppinsBold,
                             modifier = Modifier.align(Alignment.Center)
                         )
                         IconButton(
@@ -150,12 +155,12 @@ fun AnimeDetailScreenLocal(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // Header con imagen
+                    // Header mejorado con imagen
                     item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(350.dp)
+                                .height(320.dp)
                         ) {
                             // Fondo borroso
                             Image(
@@ -169,19 +174,25 @@ fun AnimeDetailScreenLocal(
                                 contentDescription = "Fondo",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .blur(radius = 25.dp)
-                                    .scale(1.2f),
-                                contentScale = ContentScale.Crop,
+                                    .blur(radius = 30.dp)
+                                    .scale(1.3f),
+                                contentScale = ContentScale.Crop
                             )
-                            // Overlay gradient
+
+                            // Overlay gradient mejorado para TopAppBar
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(
                                         brush = Brush.verticalGradient(
                                             colors = listOf(
+                                                MaterialTheme.colorScheme.background,
+                                                MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
+                                                MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
                                                 MaterialTheme.colorScheme.background.copy(alpha = 0.6f),
-                                                Color.Transparent,
+                                                MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
+                                                MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+                                                MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
                                                 MaterialTheme.colorScheme.background
                                             ),
                                             startY = 0f,
@@ -189,20 +200,22 @@ fun AnimeDetailScreenLocal(
                                         )
                                     )
                             )
+
                             // Contenido
                             Row(
                                 modifier = Modifier
-                                    .padding(horizontal = 20.dp)
+                                    .padding(horizontal = 20.dp, vertical = 20.dp)
                                     .fillMaxSize(),
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                // Imagen del anime
+                                // Imagen del anime con sombra
                                 Card(
                                     modifier = Modifier
-                                        .width(160.dp)
-                                        .height(240.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                                        .width(140.dp)
+                                        .height(210.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
                                 ) {
                                     Image(
                                         painter = rememberAsyncImagePainter(currentAnime.image),
@@ -212,63 +225,69 @@ fun AnimeDetailScreenLocal(
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.width(16.dp))
-
                                 // Información básica
                                 Column(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .padding(end = 4.dp)
+                                        .fillMaxHeight(),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.Start
                                 ) {
+                                    // Título
                                     Text(
                                         text = currentAnime.title,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 22.sp,
-                                        fontFamily = RobotoBold,
+                                        fontSize = 20.sp,
+                                        fontFamily = PoppinsBold,
                                         maxLines = 4,
                                         overflow = TextOverflow.Ellipsis,
-                                        lineHeight = 26.sp
+                                        lineHeight = 24.sp
                                     )
 
-                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Spacer(modifier = Modifier.height(12.dp))
 
-                                    // Puntuación
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        modifier = Modifier.padding(bottom = 8.dp)
+                                    // Puntuación usuario
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Star,
-                                                contentDescription = "Puntuación",
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(
-                                                text = if (currentAnime.userScore % 1.0 == 0.0) {
-                                                    "${currentAnime.userScore.toInt()}/10"
-                                                } else {
-                                                    "${currentAnime.userScore}/10"
-                                                },
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                fontSize = 16.sp,
-                                                fontFamily = RobotoBold
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = "Tu puntuación",
+                                            tint = Color(0xFFFFD700),
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                        Text(
+                                            text = if (currentAnime.userScore % 1.0 == 0.0) {
+                                                "${currentAnime.userScore.toInt()}/10"
+                                            } else {
+                                                "${currentAnime.userScore}/10"
+                                            },
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 18.sp,
+                                            fontFamily = PoppinsBold
+                                        )
                                     }
 
+                                    Spacer(modifier = Modifier.height(8.dp))
+
                                     // Estado
-                                    Text(
-                                        text = currentAnime.userStatus,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 14.sp,
-                                        fontFamily = RobotoRegular
-                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                        border = androidx.compose.foundation.BorderStroke(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                        )
+                                    ) {
+                                        Text(
+                                            text = currentAnime.userStatus,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            fontSize = 13.sp,
+                                            fontFamily = PoppinsBold,
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -312,7 +331,7 @@ fun AnimeDetailScreenLocal(
                         }
                     }
 
-                    // Estadísticas rápidas
+                    // Estadísticas rápidas - Diseño compacto
                     item {
                         Card(
                             modifier = Modifier
@@ -320,118 +339,531 @@ fun AnimeDetailScreenLocal(
                                 .padding(horizontal = 20.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                            )
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            Row(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(20.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 // Episodios vistos
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Tv,
-                                        contentDescription = "Episodios",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "${currentAnime.episodesWatched}/${currentAnime.totalEpisodes ?: "?"}",
-                                        fontSize = 18.sp,
-                                        fontFamily = RobotoBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "Episodios",
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-
-                                // Veces visto
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Autorenew,
-                                        contentDescription = "Veces visto",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "${currentAnime.rewatchCount}",
-                                        fontSize = 18.sp,
-                                        fontFamily = RobotoBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "Veces visto",
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Reseña
-                    item {
-                        if (!currentAnime.userOpiniun.isNullOrEmpty()) {
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Tv,
+                                            contentDescription = "Episodios",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = "Episodios vistos",
+                                            fontSize = 14.sp,
+                                            fontFamily = PoppinsRegular,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                     Text(
-                                        text = "Mi Reseña",
-                                        fontSize = 20.sp,
-                                        fontFamily = RobotoBold,
+                                        text = "${currentAnime.episodesWatched}/${currentAnime.totalEpisodes ?: "?"}",
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                androidx.compose.material3.HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                )
+
+                                // Veces visto
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Autorenew,
+                                            contentDescription = "Veces visto",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = "Veces visto",
+                                            fontSize = 14.sp,
+                                            fontFamily = PoppinsRegular,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Text(
+                                        text = "${currentAnime.rewatchCount}",
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
+                    // Géneros - Diseño moderno
+                    if (!currentAnime.genres.isNullOrEmpty()) {
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Text(
+                                        text = "Géneros",
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
 
-                                    IconButton(
-                                        onClick = { /* TODO: Editar reseña */ }
+                                    val genresList = currentAnime.genres.split(",").map { it.trim() }
+                                    androidx.compose.foundation.layout.FlowRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "Editar reseña",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
+                                        genresList.forEach { genre ->
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                                border = androidx.compose.foundation.BorderStroke(
+                                                    1.dp,
+                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                                )
+                                            ) {
+                                                Text(
+                                                    text = genre,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    fontFamily = PoppinsRegular,
+                                                    fontSize = 13.sp,
+                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
 
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                    )
+                    // Sinopsis - Diseño mejorado
+                    if (!currentAnime.synopsis.isNullOrEmpty()) {
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Text(
-                                        text = currentAnime.userOpiniun,
-                                        modifier = Modifier.padding(20.dp),
+                                        text = "Sinopsis",
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = currentAnime.synopsis,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 14.sp,
+                                        fontFamily = PoppinsRegular,
                                         textAlign = TextAlign.Justify,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        lineHeight = 22.sp
+                                        lineHeight = 20.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
+
+                    // Otros títulos - Diseño compacto
+                    if (!currentAnime.titleEnglish.isNullOrEmpty() || !currentAnime.titleJapanese.isNullOrEmpty()) {
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Text(
+                                        text = "Otros títulos",
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+
+                                    if (!currentAnime.titleEnglish.isNullOrEmpty()) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(
+                                                text = "Inglés",
+                                                fontSize = 12.sp,
+                                                fontFamily = PoppinsRegular,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = currentAnime.titleEnglish,
+                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                        if (!currentAnime.titleJapanese.isNullOrEmpty()) {
+                                            androidx.compose.material3.HorizontalDivider(
+                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                            )
+                                        }
+                                    }
+
+                                    if (!currentAnime.titleJapanese.isNullOrEmpty()) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(
+                                                text = "Japonés",
+                                                fontSize = 12.sp,
+                                                fontFamily = PoppinsRegular,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = currentAnime.titleJapanese,
+                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
+
+                    // Estudio - Diseño moderno
+                    if (!currentAnime.studios.isNullOrEmpty()) {
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Text(
+                                        text = "Estudio",
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+
+                                    val studiosList = currentAnime.studios.split(",").map { it.trim() }
+                                    androidx.compose.foundation.layout.FlowRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        studiosList.forEach { studio ->
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                                                border = androidx.compose.foundation.BorderStroke(
+                                                    1.dp,
+                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                                )
+                                            ) {
+                                                Text(
+                                                    text = studio,
+                                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                    fontFamily = PoppinsRegular,
+                                                    fontSize = 13.sp,
+                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
+
+                    // Información completa - Diseño compacto
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Información",
+                                    fontSize = 16.sp,
+                                    fontFamily = PoppinsBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+
+                                currentAnime.score?.let {
+                                    CompactInfoRow(label = "Puntuación MAL", value = "$it")
+                                }
+                                currentAnime.scoreBy?.let {
+                                    CompactInfoRow(label = "Puntuado por", value = "$it personas")
+                                }
+                                currentAnime.typeAnime?.let {
+                                    CompactInfoRow(label = "Tipo", value = it)
+                                }
+                                currentAnime.duration?.let {
+                                    CompactInfoRow(label = "Duración", value = it)
+                                }
+                                currentAnime.season?.let {
+                                    CompactInfoRow(label = "Temporada", value = it)
+                                }
+                                currentAnime.year?.let {
+                                    CompactInfoRow(label = "Año", value = it)
+                                }
+                                currentAnime.status?.let {
+                                    CompactInfoRow(label = "Estado", value = it)
+                                }
+                                currentAnime.aired?.let {
+                                    CompactInfoRow(label = "Transmitido", value = it)
+                                }
+                                currentAnime.rank?.let {
+                                    CompactInfoRow(label = "Ranking", value = "#$it")
+                                }
+                                currentAnime.rating?.let {
+                                    CompactInfoRow(label = "Rating", value = it)
+                                }
+                                currentAnime.source?.let {
+                                    CompactInfoRow(label = "Origen", value = it)
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+
+                    // Fechas de seguimiento - Diseño compacto
+                    item {
+                        if (currentAnime.startDate != null || currentAnime.endDate != null) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Text(
+                                        text = "Seguimiento",
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+
+                                    currentAnime.startDate?.let { date ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CalendarToday,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                Text(
+                                                    text = "Fecha de inicio",
+                                                    fontSize = 14.sp,
+                                                    fontFamily = PoppinsRegular,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            Text(
+                                                text = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(date),
+                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                        if (currentAnime.endDate != null) {
+                                            androidx.compose.material3.HorizontalDivider(
+                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                            )
+                                        }
+                                    }
+
+                                    currentAnime.endDate?.let { date ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CalendarToday,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                Text(
+                                                    text = "Fecha de finalización",
+                                                    fontSize = 14.sp,
+                                                    fontFamily = PoppinsRegular,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            Text(
+                                                text = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(date),
+                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
+
+                    // Mi Reseña - Diseño mejorado
+                    item {
+                        if (!currentAnime.userOpiniun.isNullOrEmpty()) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Mi Reseña",
+                                            fontSize = 16.sp,
+                                            fontFamily = PoppinsBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+
+                                        IconButton(
+                                            onClick = { /* TODO: Editar reseña */ },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Editar reseña",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Text(
+                                        text = currentAnime.userOpiniun,
+                                        textAlign = TextAlign.Justify,
+                                        fontSize = 14.sp,
+                                        fontFamily = PoppinsRegular,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 20.sp
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(20.dp))
                         }
                     }
                 }
@@ -440,5 +872,36 @@ fun AnimeDetailScreenLocal(
     }
 }
 
+@Composable
+private fun CompactInfoRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontFamily = PoppinsRegular,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(0.5f)
+        )
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            fontFamily = PoppinsBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(0.5f),
+            textAlign = TextAlign.End,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
 
 

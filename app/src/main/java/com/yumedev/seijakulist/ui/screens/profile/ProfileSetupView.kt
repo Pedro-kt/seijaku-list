@@ -8,22 +8,37 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -35,8 +50,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.auth_screen.AuthResult
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsMedium
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun ProfileSetupView(
@@ -46,8 +62,14 @@ fun ProfileSetupView(
     var username by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var isVisible by remember { mutableStateOf(false) }
 
     val uiState by profileViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(100)
+        isVisible = true
+    }
 
     LaunchedEffect(uiState.profileUpdateSuccess) {
         if (uiState.profileUpdateSuccess) {
@@ -58,7 +80,6 @@ fun ProfileSetupView(
         }
     }
 
-    // Prellenar los campos si el usuario ya tiene un perfil (modo edición)
     LaunchedEffect(uiState.userProfile) {
         uiState.userProfile?.let { profile ->
             if (profile.username != null && username.isEmpty()) {
@@ -79,264 +100,378 @@ fun ProfileSetupView(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        MaterialTheme.colorScheme.background
-                    )
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Text
-            Text(
-                text = "Completa tu perfil",
-                fontSize = 32.sp,
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = "Personaliza tu experiencia",
-                fontSize = 16.sp,
-                fontFamily = RobotoRegular,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Profile Image Section
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(180.dp)
+            // Header animado
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(animationSpec = tween(600)) +
+                        slideInVertically(
+                            initialOffsetY = { -30 },
+                            animationSpec = tween(600, easing = FastOutSlowInEasing)
+                        )
             ) {
-                // Image preview or placeholder
-                Surface(
-                    modifier = Modifier
-                        .size(180.dp)
-                        .clickable { launcher.launch("image/*") },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shadowElevation = 8.dp
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val imageToShow = selectedImageUri ?: uiState.userProfile?.profilePictureUrl
+                    Text(
+                        text = "Crea tu perfil",
+                        fontSize = 28.sp,
+                        fontFamily = PoppinsBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
 
-                    if (imageToShow != null) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(imageToShow)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "Foto de perfil",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AccountCircle,
-                                contentDescription = "Agregar foto",
-                                modifier = Modifier.size(100.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
+                    Text(
+                        text = "Cuéntanos un poco sobre ti",
+                        fontSize = 15.sp,
+                        fontFamily = PoppinsRegular,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
                 }
+            }
 
-                // Camera icon overlay
-                Surface(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .align(Alignment.BottomEnd)
-                        .clickable { launcher.launch("image/*") },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    shadowElevation = 4.dp
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddAPhoto,
-                            contentDescription = "Cambiar foto",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(24.dp)
+            Spacer(modifier = Modifier.height(50.dp))
+
+            // Profile Image Section con animación
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(animationSpec = tween(700, delayMillis = 200)) +
+                        scaleIn(
+                            initialScale = 0.8f,
+                            animationSpec = tween(700, delayMillis = 200, easing = FastOutSlowInEasing)
                         )
-                    }
-                }
+            ) {
+                ProfileImagePicker(
+                    imageUri = selectedImageUri ?: uiState.userProfile?.profilePictureUrl,
+                    onImagePick = { launcher.launch("image/*") }
+                )
             }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Username Card
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            // Username Field con animación
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 400)) +
+                        slideInVertically(
+                            initialOffsetY = { 30 },
+                            animationSpec = tween(600, delayMillis = 400)
+                        )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "Nombre de usuario",
-                        fontSize = 14.sp,
-                        fontFamily = RobotoBold,
-                        color = MaterialTheme.colorScheme.primary
+                        fontSize = 13.sp,
+                        fontFamily = PoppinsMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(start = 4.dp)
                     )
 
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        placeholder = { Text("Ingresa tu nombre de usuario") },
+                        placeholder = {
+                            Text(
+                                "Tu nombre",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 15.sp
+                            )
+                        },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Person,
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
-                        singleLine = true
+                        singleLine = true,
+                        textStyle = LocalTextStyle.current.copy(
+                            fontFamily = PoppinsMedium,
+                            fontSize = 15.sp
+                        )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Bio Card
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            // Bio Field con animación
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 500)) +
+                        slideInVertically(
+                            initialOffsetY = { 30 },
+                            animationSpec = tween(600, delayMillis = 500)
+                        )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = "Biografía",
-                        fontSize = 14.sp,
-                        fontFamily = RobotoBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Biografía (opcional)",
+                            fontSize = 13.sp,
+                            fontFamily = PoppinsMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                        Text(
+                            text = "${bio.length}/150",
+                            fontSize = 12.sp,
+                            fontFamily = PoppinsRegular,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
 
                     OutlinedTextField(
                         value = bio,
                         onValueChange = { if (it.length <= 150) bio = it },
-                        placeholder = { Text("Cuéntanos sobre ti") },
+                        placeholder = {
+                            Text(
+                                "¿Qué animes te gustan?",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 15.sp
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
                         maxLines = 3,
                         minLines = 3,
-                        supportingText = {
-                            Text(
-                                text = "${bio.length}/150",
-                                fontSize = 12.sp,
-                                fontFamily = RobotoRegular
-                            )
-                        }
+                        textStyle = LocalTextStyle.current.copy(
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.sp
+                        )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // Save Button
-            val isEditMode = uiState.userProfile?.username != null
-            val buttonText = if (isEditMode) "Actualizar perfil" else "Guardar y continuar"
-
-            Button(
-                onClick = {
-                    profileViewModel.updateUserProfile(username, bio, selectedImageUri)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                enabled = username.isNotBlank() && !uiState.isLoading,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 6.dp,
-                    pressedElevation = 8.dp
-                )
+            // Save Button con animación
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 600)) +
+                        scaleIn(
+                            initialScale = 0.9f,
+                            animationSpec = tween(600, delayMillis = 600)
+                        )
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = buttonText,
-                        fontSize = 18.sp,
-                        fontFamily = RobotoBold
-                    )
+                val isEditMode = uiState.userProfile?.username != null
+                val buttonText = if (isEditMode) "Actualizar" else "Continuar"
+
+                val interactionSource = remember { MutableInteractionSource() }
+                val isPressed by interactionSource.collectIsPressedAsState()
+
+                val scale by animateFloatAsState(
+                    targetValue = if (isPressed) 0.96f else 1f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    ),
+                    label = "button_scale"
+                )
+
+                Button(
+                    onClick = {
+                        profileViewModel.updateUserProfile(username, bio, selectedImageUri)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        },
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = username.isNotBlank() && !uiState.isLoading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    interactionSource = interactionSource
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.5.dp
+                        )
+                    } else {
+                        Text(
+                            text = buttonText,
+                            fontSize = 16.sp,
+                            fontFamily = PoppinsBold
+                        )
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Loading message
             AnimatedVisibility(visible = uiState.isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = if (uiState.isUploadingImage) "Subiendo imagen..." else "Guardando perfil...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontFamily = RobotoRegular
+                    text = if (uiState.isUploadingImage) "Subiendo imagen..." else "Guardando...",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    fontFamily = PoppinsRegular
                 )
             }
 
             // Error message
             AnimatedVisibility(visible = uiState.error != null) {
+                Spacer(modifier = Modifier.height(16.dp))
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "Error: ${uiState.error}",
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = uiState.error ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 13.sp,
                         modifier = Modifier.padding(16.dp),
                         textAlign = TextAlign.Center,
-                        fontFamily = RobotoRegular
+                        fontFamily = PoppinsRegular
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProfileImagePicker(
+    imageUri: Any?,
+    onImagePick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "image_scale"
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(140.dp)
+    ) {
+        // Círculo decorativo de fondo
+        Box(
+            modifier = Modifier
+                .size(150.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                )
+        )
+
+        // Imagen principal
+        Surface(
+            modifier = Modifier
+                .size(140.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onImagePick
+                ),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 2.dp
+        ) {
+            if (imageUri != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Agregar foto",
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                    )
+                }
+            }
+        }
+
+        // Botón de editar
+        Surface(
+            modifier = Modifier
+                .size(42.dp)
+                .align(Alignment.BottomEnd)
+                .offset(x = (-4).dp, y = (-4).dp)
+                .clickable(onClick = onImagePick),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary,
+            tonalElevation = 6.dp
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Cambiar foto",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

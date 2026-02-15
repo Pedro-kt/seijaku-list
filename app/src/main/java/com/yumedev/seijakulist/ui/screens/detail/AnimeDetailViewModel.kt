@@ -13,6 +13,10 @@ import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.domain.models.AnimeDetail
+import com.yumedev.seijakulist.domain.models.AnimeEpisode
+import com.yumedev.seijakulist.domain.models.AnimeEpisodeDetail
+import com.yumedev.seijakulist.domain.models.AnimePicture
+import com.yumedev.seijakulist.domain.models.AnimeVideos
 import com.yumedev.seijakulist.domain.usecase.GetAnimeDetailUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +30,8 @@ import javax.inject.Inject
 class AnimeDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getAnimeDetailUseCase: GetAnimeDetailUseCase,
-    private val animeLocalRepository: AnimeLocalRepository
+    private val animeLocalRepository: AnimeLocalRepository,
+    private val animeRepository: AnimeRepository
 ) : ViewModel() {
 
     private val _animeDetail: MutableStateFlow<AnimeDetail?> = MutableStateFlow(null)
@@ -40,6 +45,35 @@ class AnimeDetailViewModel @Inject constructor(
 
     private val _isAdded = MutableStateFlow(false)
     val isAdded: StateFlow<Boolean> = _isAdded.asStateFlow()
+
+    private val _animePictures = MutableStateFlow<List<AnimePicture>>(emptyList())
+    val animePictures: StateFlow<List<AnimePicture>> = _animePictures.asStateFlow()
+
+    private val _isPicturesLoading = MutableStateFlow(false)
+    val isPicturesLoading: StateFlow<Boolean> = _isPicturesLoading.asStateFlow()
+
+    private val _animeVideos = MutableStateFlow<AnimeVideos?>(null)
+    val animeVideos: StateFlow<AnimeVideos?> = _animeVideos.asStateFlow()
+
+    private val _isVideosLoading = MutableStateFlow(false)
+    val isVideosLoading: StateFlow<Boolean> = _isVideosLoading.asStateFlow()
+
+    private val _animeEpisodes = MutableStateFlow<List<AnimeEpisode>>(emptyList())
+    val animeEpisodes: StateFlow<List<AnimeEpisode>> = _animeEpisodes.asStateFlow()
+
+    private val _isEpisodesLoading = MutableStateFlow(false)
+    val isEpisodesLoading: StateFlow<Boolean> = _isEpisodesLoading.asStateFlow()
+
+    private val _hasMoreEpisodes = MutableStateFlow(false)
+    val hasMoreEpisodes: StateFlow<Boolean> = _hasMoreEpisodes.asStateFlow()
+
+    private val _selectedEpisodeDetail = MutableStateFlow<AnimeEpisodeDetail?>(null)
+    val selectedEpisodeDetail: StateFlow<AnimeEpisodeDetail?> = _selectedEpisodeDetail.asStateFlow()
+
+    private val _isEpisodeDetailLoading = MutableStateFlow(false)
+    val isEpisodeDetailLoading: StateFlow<Boolean> = _isEpisodeDetailLoading.asStateFlow()
+
+    private var currentEpisodesPage = 1
 
     private var isDataLoaded = false
     private val animeId: Int = savedStateHandle["animeId"] ?: 0
@@ -69,7 +103,97 @@ class AnimeDetailViewModel @Inject constructor(
         }
     }
 
-    fun addAnimeToList(userScore: Float, userStatus: String, userOpinion: String) {
+    fun loadAnimePictures(animeId: Int) {
+        if (_animePictures.value.isNotEmpty()) return // Ya cargadas
+
+        _isPicturesLoading.value = true
+        viewModelScope.launch {
+            try {
+                val pictures = animeRepository.getAnimePicturesById(animeId)
+                _animePictures.value = pictures
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al cargar imágenes: ${e.localizedMessage}")
+                _animePictures.value = emptyList()
+            } finally {
+                _isPicturesLoading.value = false
+            }
+        }
+    }
+
+    fun loadAnimeVideos(animeId: Int) {
+        if (_animeVideos.value != null) return // Ya cargados
+
+        _isVideosLoading.value = true
+        viewModelScope.launch {
+            try {
+                val videos = animeRepository.getAnimeVideosById(animeId)
+                _animeVideos.value = videos
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al cargar videos: ${e.localizedMessage}")
+                _animeVideos.value = null
+            } finally {
+                _isVideosLoading.value = false
+            }
+        }
+    }
+
+    fun loadAnimeEpisodes(animeId: Int, loadMore: Boolean = false) {
+        if (!loadMore && _animeEpisodes.value.isNotEmpty()) return // Ya cargados
+
+        if (loadMore) {
+            currentEpisodesPage++
+        } else {
+            currentEpisodesPage = 1
+        }
+
+        _isEpisodesLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = animeRepository.getAnimeEpisodesById(animeId, currentEpisodesPage)
+                if (loadMore) {
+                    _animeEpisodes.value = _animeEpisodes.value + result.episodes
+                } else {
+                    _animeEpisodes.value = result.episodes
+                }
+                _hasMoreEpisodes.value = result.pagination?.hasNextPage ?: false
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al cargar episodios: ${e.localizedMessage}")
+                if (!loadMore) {
+                    _animeEpisodes.value = emptyList()
+                }
+                _hasMoreEpisodes.value = false
+            } finally {
+                _isEpisodesLoading.value = false
+            }
+        }
+    }
+
+    fun loadEpisodeDetail(animeId: Int, episodeId: Int) {
+        _isEpisodeDetailLoading.value = true
+        viewModelScope.launch {
+            try {
+                val detail = animeRepository.getAnimeEpisodeDetailById(animeId, episodeId)
+                _selectedEpisodeDetail.value = detail
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al cargar detalle del episodio: ${e.localizedMessage}")
+                _selectedEpisodeDetail.value = null
+            } finally {
+                _isEpisodeDetailLoading.value = false
+            }
+        }
+    }
+
+    fun clearEpisodeDetail() {
+        _selectedEpisodeDetail.value = null
+    }
+
+    fun addAnimeToList(
+        userScore: Float,
+        userStatus: String,
+        userOpinion: String,
+        startDate: Long? = null,
+        endDate: Long? = null
+    ) {
         val current = _animeDetail.value ?: return
 
         viewModelScope.launch {
@@ -77,6 +201,11 @@ class AnimeDetailViewModel @Inject constructor(
                 // Convertir la lista de géneros a una cadena separada por comas
                 val genresString = current.genres
                     .mapNotNull { it?.name }
+                    .joinToString(", ")
+
+                // Convertir la lista de studios a una cadena separada por comas
+                val studiosString = current.studios
+                    .mapNotNull { it?.nameStudio }
                     .joinToString(", ")
 
                 val entity = AnimeEntity(
@@ -89,7 +218,26 @@ class AnimeDetailViewModel @Inject constructor(
                     totalEpisodes = current.episodes,
                     episodesWatched = if (userStatus == "Completado") current.episodes else 0,
                     rewatchCount = if (userStatus == "Completado") 1 else 0,
-                    genres = genresString
+                    genres = genresString,
+                    // Campos adicionales del detalle del anime
+                    synopsis = current.synopsis,
+                    titleEnglish = current.titleEnglish,
+                    titleJapanese = current.titleJapanese,
+                    studios = studiosString,
+                    score = current.score,
+                    scoreBy = current.scoreBy,
+                    typeAnime = current.typeAnime,
+                    duration = current.duration,
+                    season = current.season,
+                    year = current.year.toString(),
+                    status = current.status,
+                    aired = current.aired,
+                    rank = current.rank,
+                    rating = current.rating,
+                    source = current.source,
+                    // Fechas de seguimiento
+                    startDate = startDate,
+                    endDate = endDate
                 )
                 animeLocalRepository.insertAnime(entity)
                 _isAdded.value = true

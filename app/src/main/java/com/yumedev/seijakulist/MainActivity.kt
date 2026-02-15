@@ -94,9 +94,11 @@ import com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
 import com.yumedev.seijakulist.ui.screens.profile.ProfileLoaderScreen
 import com.yumedev.seijakulist.ui.screens.profile.ProfileSetupView
 import com.yumedev.seijakulist.ui.screens.profile.ProfileView
+import com.yumedev.seijakulist.ui.screens.profile.SelectTop5Screen
 import com.yumedev.seijakulist.ui.screens.report.ReportErrorScreen
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.screens.splash.SplashScreen
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import javax.inject.Inject
@@ -122,8 +124,8 @@ class MainActivity : ComponentActivity() {
 
             android.util.Log.d("MainActivity", "Modo de tema activo: ${themeMode.name}")
 
-            SeijakuListTheme(themeMode = themeMode) {
-                var showBetaDialog by remember { mutableStateOf(true) }
+            SeijakuListTheme(themeMode) {
+                var showBetaDialog by remember { mutableStateOf(false) }
 
                 Surface(modifier = Modifier.fillMaxSize()) {
                     AppScaffold(settingsViewModel = settingsViewModel)
@@ -146,16 +148,51 @@ fun AppNavigation(
     navController: NavHostController,
     isSearching: Boolean,
     onDismissSearch: () -> Unit,
-    isGridView: Boolean = false,
+    viewMode: com.yumedev.seijakulist.ui.components.ViewMode = com.yumedev.seijakulist.ui.components.ViewMode.LIST,
     sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE,
     settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
 ) {
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.HOME
+        startDestination = AppDestinations.SPLASH
     ) {
         composable(
-            route = AppDestinations.LOGIN_ROUTE
+            route = AppDestinations.SPLASH
+        ) {
+            SplashScreen(
+                onSplashFinished = {
+                    navController.navigate(AppDestinations.HOME) {
+                        popUpTo(AppDestinations.SPLASH) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(
+            route = AppDestinations.LOGIN_ROUTE,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            }
         ) {
             LoginScreen(
                 onSignInSuccess = {
@@ -169,7 +206,31 @@ fun AppNavigation(
             )
         }
         composable(
-            route = AppDestinations.REGISTER_ROUTE
+            route = AppDestinations.REGISTER_ROUTE,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            }
         ) {
             RegisterScreen(
                 onSignInSuccess = {
@@ -198,10 +259,28 @@ fun AppNavigation(
             ProfileView(navController = navController)
         }
         composable(
+            AppDestinations.SELECT_TOP5_ROUTE
+        ) {
+            SelectTop5Screen(navController = navController)
+        }
+        composable(
             route = AppDestinations.AUTH_ROUTE,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            }
         ) {
             AuthScreen(
-                navController = navController
+                navController = navController,
+                settingsViewModel = settingsViewModel
             )
         }
         composable(
@@ -211,6 +290,11 @@ fun AppNavigation(
                 navController = navController,
                 settingsViewModel = settingsViewModel
         )
+        }
+        composable(
+            route = AppDestinations.NOVEDADES_ROUTE
+        ) {
+            com.yumedev.seijakulist.ui.screens.novedades.NovedadesScreen()
         }
         composable(
             route = AppDestinations.REPORT_ERROR_ROUTE
@@ -234,7 +318,7 @@ fun AppNavigation(
                 navController = navController,
                 isSearching = isSearching,
                 onDismissSearch = onDismissSearch,
-                isGridView = isGridView,
+                viewMode = viewMode,
                 sortOrder = sortOrder
             )
         }
@@ -244,12 +328,19 @@ fun AppNavigation(
             MyMangasScreen(navController)
         }
         composable(
-            arguments = listOf(navArgument("animeId") { type = NavType.IntType }),
-            route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}"
+            arguments = listOf(
+                navArgument("animeId") { type = NavType.IntType },
+                navArgument("tab") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
+            ),
+            route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}?tab={tab}"
         ) { backStackEntry ->
             val animeId = backStackEntry.arguments?.getInt(AppDestinations.ANIME_ID_KEY)
+            val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
             if (animeId != null) {
-                AnimeDetailScreen(navController, animeId = animeId)
+                AnimeDetailScreen(navController, animeId = animeId, initialTab = initialTab)
             } else {
                 Text("Error: anime no encontrado")
             }
@@ -274,6 +365,21 @@ fun AppNavigation(
                 AnimeDetailScreenLocal(navController, animeId = animeId)
             } else {
                 Text("Error: anime no encontrado")
+            }
+        }
+        composable(
+            arguments = listOf(navArgument(AppDestinations.VIEW_MORE_SECTION_KEY) { type = NavType.StringType }),
+            route = "${AppDestinations.VIEW_MORE_ROUTE}/{${AppDestinations.VIEW_MORE_SECTION_KEY}}"
+        ) { backStackEntry ->
+            val section = backStackEntry.arguments?.getString(AppDestinations.VIEW_MORE_SECTION_KEY)
+            if (section != null) {
+                com.yumedev.seijakulist.ui.screens.viewmore.ViewMoreScreen(
+                    navController = navController,
+                    section = section,
+                    filter = null
+                )
+            } else {
+                Text("Error: sección no encontrada")
             }
         }
     }
@@ -425,7 +531,7 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                                 .padding(4.dp)
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.seijaku_logo_design),
+                                painter = painterResource(R.drawable.logo),
                                 contentDescription = "Logo SeijakuList",
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -456,7 +562,7 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                 ) {
                     Text(
                         text = "SeijakuList",
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         fontSize = 42.sp,
                         color = Color.White,
                         letterSpacing = 2.5.sp,
@@ -503,7 +609,7 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                 ) {
                     Text(
                         text = "Tu colección de anime y manga",
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         fontSize = 15.sp,
                         color = Color.White.copy(alpha = 0.9f),
                         letterSpacing = 0.8.sp,
@@ -555,7 +661,7 @@ fun WelcomeScreen(onFinish: () -> Unit) {
         ) {
             Text(
                 text = "v0.1.6 alpha",
-                fontFamily = RobotoRegular,
+                fontFamily = PoppinsRegular,
                 fontSize = 12.sp,
                 color = Color.White.copy(alpha = 0.5f),
                 letterSpacing = 1.sp

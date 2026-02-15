@@ -5,9 +5,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -54,6 +59,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlusOne
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
@@ -96,6 +102,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -114,7 +121,10 @@ import com.yumedev.seijakulist.ui.components.AnimeStatusChip
 import com.yumedev.seijakulist.ui.components.CustomDialog
 import com.yumedev.seijakulist.ui.components.DeleteMyAnime
 import com.yumedev.seijakulist.ui.components.DialogType
+import com.yumedev.seijakulist.ui.components.ViewMode
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.launch
 
 @Composable
@@ -123,7 +133,7 @@ fun MyAnimeListScreen(
     viewModel: MyAnimeListViewModel = hiltViewModel(),
     isSearching: Boolean,
     onDismissSearch: () -> Unit,
-    isGridView: Boolean = false,
+    viewMode: ViewMode = ViewMode.LIST,
     sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE
 ) {
     val savedAnimes by viewModel.savedAnimes.collectAsState()
@@ -199,7 +209,7 @@ fun MyAnimeListScreen(
                     // Título principal
                     Text(
                         text = "¡Tu lista está vacía!",
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         fontSize = 28.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
@@ -208,7 +218,7 @@ fun MyAnimeListScreen(
                     // Descripción
                     Text(
                         text = "Comienza a construir tu colección de animes favoritos. Busca y agrega tus primeros títulos para empezar a llevar el control de lo que ves.",
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,
@@ -236,14 +246,14 @@ fun MyAnimeListScreen(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.AddCircleOutline,
+                            imageVector = Icons.Default.Search,
                             contentDescription = null,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Buscar anime",
-                            fontFamily = RobotoBold,
+                            fontFamily = PoppinsBold,
                             fontSize = 18.sp
                         )
                     }
@@ -251,7 +261,7 @@ fun MyAnimeListScreen(
                     // Texto secundario
                     Text(
                         text = "Explora miles de títulos disponibles",
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center
@@ -309,6 +319,10 @@ fun MyAnimeListScreen(
                 }
             }
 
+            // Detectar dark mode comparando la luminancia del color de surface
+            val surfaceColor = MaterialTheme.colorScheme.surface
+            val isDarkTheme = surfaceColor.luminance() < 0.5f
+
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -334,7 +348,7 @@ fun MyAnimeListScreen(
                         label = {
                             Text(
                                 text = filter,
-                                fontFamily = if (isSelected) RobotoBold else RobotoRegular,
+                                fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                                 fontSize = 14.sp
                             )
                         },
@@ -346,19 +360,31 @@ fun MyAnimeListScreen(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            containerColor = if (isDarkTheme) {
+                                MaterialTheme.colorScheme.surfaceContainerHigh
+                            } else {
+                                Color.White
+                            },
+                            labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                         ),
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
                             selected = isSelected,
-                            borderColor = Color.Transparent,
+                            borderColor = if (isSelected) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            } else {
+                                if (isDarkTheme) {
+                                    Color.Transparent
+                                } else {
+                                    Color.Black.copy(alpha = 0.2f)
+                                }
+                            },
                             selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            borderWidth = 0.dp,
+                            borderWidth = if (!isSelected && !isDarkTheme) 1.dp else 1.dp,
                             selectedBorderWidth = 1.dp
                         ),
                         shape = RoundedCornerShape(12.dp)
@@ -382,31 +408,52 @@ fun MyAnimeListScreen(
                 }
             }
 
-            if (isGridView) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
-                ) {
-                    items(displayedAnimes) { anime ->
-                        CompactAnimeCard(
-                            anime = anime,
-                            statusColor = statusColors[anime.statusUser] ?: Color.Gray,
-                            onAnimeClick = {
-                                navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
-                            },
-                            onDeleteConfirmed = {
-                                showDialog = true
-                                animeIdToDelete = anime.malId
-                            },
-                            viewModel = viewModel
-                        )
+            when (viewMode) {
+                ViewMode.GRID -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 116.dp)
+                    ) {
+                        items(displayedAnimes) { anime ->
+                            CompactAnimeCard(
+                                anime = anime,
+                                statusColor = statusColors[anime.statusUser] ?: Color.Gray,
+                                onAnimeClick = {
+                                    navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
+                                },
+                                onDeleteConfirmed = {
+                                    showDialog = true
+                                    animeIdToDelete = anime.malId
+                                },
+                                viewModel = viewModel
+                            )
+                        }
                     }
                 }
-            } else {
-                LazyColumn(
+                ViewMode.CARD -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 116.dp)
+                    ) {
+                        items(displayedAnimes) { anime ->
+                            OnboardingStyleAnimeCard(
+                                anime = anime,
+                                statusColor = statusColors[anime.statusUser] ?: Color.Gray,
+                                onAnimeClick = {
+                                    navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
+                                }
+                            )
+                        }
+                    }
+                }
+                ViewMode.LIST -> {
+                    LazyColumn(
                 modifier = Modifier
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -438,7 +485,7 @@ fun MyAnimeListScreen(
                         ElevatedCard(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(150.dp)
+                                .height(160.dp)
                                 .graphicsLayer {
                                     scaleX = scale
                                     scaleY = scale
@@ -456,22 +503,22 @@ fun MyAnimeListScreen(
                                     )
                                 },
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                containerColor = MaterialTheme.colorScheme.surface
                             ),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(20.dp),
                             elevation = CardDefaults.cardElevation(
-                                defaultElevation = 3.dp,
-                                pressedElevation = 6.dp
+                                defaultElevation = 4.dp,
+                                pressedElevation = 8.dp
                             )
                         ) {
                             Box(modifier = Modifier.fillMaxSize()) {
                                 Row(
                                     modifier = Modifier.fillMaxSize()
                                 ) {
-                                    // Imagen compacta
+                                    // Imagen
                                     Box(
                                         modifier = Modifier
-                                            .width(110.dp)
+                                            .width(120.dp)
                                             .fillMaxHeight()
                                     ) {
                                         Image(
@@ -479,61 +526,163 @@ fun MyAnimeListScreen(
                                             contentDescription = anime.title,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)),
+                                                .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
                                             contentScale = ContentScale.Crop
                                         )
 
-                                        // Score badge compacto
-                                        Surface(
+                                        // Badges de puntuación
+                                        Column(
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
-                                                .padding(4.dp),
-                                            shape = RoundedCornerShape(6.dp),
-                                            color = Color(0xFF1E1E1E).copy(alpha = 0.9f)
+                                                .padding(6.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                                            horizontalAlignment = Alignment.End
                                         ) {
-                                            Row(
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Star,
-                                                    contentDescription = null,
-                                                    tint = Color(0xFFFFD700),
-                                                    modifier = Modifier.size(10.dp)
-                                                )
-                                                Text(
-                                                    text = String.format("%.1f", anime.userScore),
-                                                    color = Color.White,
-                                                    fontSize = 10.sp,
-                                                    fontFamily = RobotoBold
-                                                )
+                                            // Score MAL
+                                            if (anime.score != null && anime.score > 0f) {
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = Color.Black.copy(alpha = 0.7f)
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                                                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Star,
+                                                            contentDescription = null,
+                                                            tint = Color(0xFFFFD700),
+                                                            modifier = Modifier.size(11.dp)
+                                                        )
+                                                        Text(
+                                                            text = String.format("%.1f", anime.userScore),
+                                                            color = Color.White,
+                                                            fontSize = 11.sp,
+                                                            fontFamily = PoppinsBold
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     }
 
-                                    // Contenido compacto
+                                    // Contenido
                                     Column(
                                         modifier = Modifier
                                             .weight(1f)
                                             .fillMaxHeight()
-                                            .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 8.dp),
+                                            .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 10.dp),
                                         verticalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        // Título y estado
+                                        // Título e información
                                         Column(
-                                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                                            verticalArrangement = Arrangement.spacedBy(5.dp)
                                         ) {
                                             Text(
                                                 text = anime.title,
-                                                fontFamily = RobotoBold,
-                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsBold,
+                                                fontSize = 15.sp,
                                                 color = MaterialTheme.colorScheme.onSurface,
                                                 maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis
+                                                overflow = TextOverflow.Ellipsis,
+                                                lineHeight = 17.sp
                                             )
 
-                                            // Status chip compacto
+                                            // Información adicional (tipo y año si existen)
+                                            if (!anime.typeAnime.isNullOrBlank() || !anime.year.isNullOrBlank()) {
+                                                Row(
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    if (!anime.typeAnime.isNullOrBlank()) {
+                                                        Text(
+                                                            text = anime.typeAnime ?: "",
+                                                            fontFamily = PoppinsRegular,
+                                                            fontSize = 11.sp,
+                                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                        )
+                                                    }
+                                                    if (!anime.typeAnime.isNullOrBlank() && !anime.year.isNullOrBlank()) {
+                                                        Text(
+                                                            text = "•",
+                                                            fontFamily = PoppinsRegular,
+                                                            fontSize = 11.sp,
+                                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                                        )
+                                                    }
+                                                    if (!anime.year.isNullOrBlank()) {
+                                                        Text(
+                                                            text = anime.year ?: "",
+                                                            fontFamily = PoppinsRegular,
+                                                            fontSize = 11.sp,
+                                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                        )
+                                                    }
+                                                }
+                                            }
+
+                                            // Progreso de episodios
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.PlayArrow,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(14.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                                Text(
+                                                    text = "${anime.episodesWatched}/${anime.totalEpisodes}",
+                                                    fontFamily = PoppinsBold,
+                                                    fontSize = 12.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Text(
+                                                    text = "eps",
+                                                    fontFamily = PoppinsRegular,
+                                                    fontSize = 11.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                )
+                                            }
+
+                                            // Progress bar
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(6.dp)
+                                                    .clip(RoundedCornerShape(3.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxHeight()
+                                                        .fillMaxWidth(
+                                                            if (anime.totalEpisodes > 0) {
+                                                                (anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()).coerceIn(0f, 1f)
+                                                            } else 0f
+                                                        )
+                                                        .clip(RoundedCornerShape(3.dp))
+                                                        .background(
+                                                            Brush.horizontalGradient(
+                                                                colors = listOf(
+                                                                    MaterialTheme.colorScheme.primary,
+                                                                    MaterialTheme.colorScheme.tertiary
+                                                                )
+                                                            )
+                                                        )
+                                                )
+                                            }
+                                        }
+
+                                        // Status chip y botón +1
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            // Status chip con funcionalidad
                                             AnimeStatusChip(
                                                 status = anime.statusUser,
                                                 statusColor = statusColors[anime.statusUser] ?: Color.Gray,
@@ -544,59 +693,31 @@ fun MyAnimeListScreen(
                                                 totalEpisodes = anime.totalEpisodes,
                                                 animeTitle = anime.title
                                             )
-                                        }
 
-                                        // Progreso compacto
-                                        Column(
-                                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "${anime.episodesWatched}/${anime.totalEpisodes} eps",
-                                                    fontFamily = RobotoRegular,
-                                                    fontSize = 11.sp,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                                )
-
-                                                if (anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes) {
-                                                    IconButton(
-                                                        onClick = {
-                                                            val newEpisodesWatched = anime.episodesWatched + 1
-                                                            viewModel.updateEpisodesWatched(anime.malId, newEpisodesWatched)
-                                                        },
-                                                        modifier = Modifier.size(28.dp),
-                                                        colors = IconButtonDefaults.iconButtonColors(
-                                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
+                                            // Botón +1
+                                            if (anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes) {
+                                                Surface(
+                                                    onClick = {
+                                                        val newEpisodesWatched = anime.episodesWatched + 1
+                                                        viewModel.updateEpisodesWatched(anime.malId, newEpisodesWatched)
+                                                    },
+                                                    shape = RoundedCornerShape(10.dp),
+                                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                                    modifier = Modifier.size(32.dp)
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
                                                     ) {
                                                         Icon(
-                                                            imageVector = Icons.Default.AddCircleOutline,
+                                                            imageVector = Icons.Default.PlusOne,
                                                             contentDescription = "Marcar episodio",
-                                                            modifier = Modifier.size(16.dp)
+                                                            modifier = Modifier.size(18.dp),
+                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                                                         )
                                                     }
                                                 }
                                             }
-
-                                            LinearProgressIndicator(
-                                                progress = {
-                                                    if (anime.totalEpisodes > 0) {
-                                                        anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()
-                                                    } else 0f
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(4.dp)
-                                                    .clip(RoundedCornerShape(4.dp)),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap
-                                            )
                                         }
                                     }
                                 }
@@ -604,7 +725,7 @@ fun MyAnimeListScreen(
                                 DeleteMyAnime(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
-                                        .padding(8.dp),
+                                        .padding(10.dp),
                                     onDeleteConfirmed = {
                                         showDialog = true
                                         animeIdToDelete = anime.malId
@@ -640,7 +761,11 @@ fun MyAnimeListScreen(
                         }
                     }
                 }
-            }
+                    item {
+                        Spacer(Modifier.height(100.dp))
+                    }
+                }
+                }
             }
         }
     }
@@ -691,12 +816,12 @@ fun CompactAnimeCard(
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 3.dp,
-            pressedElevation = 6.dp
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -739,7 +864,7 @@ fun CompactAnimeCard(
                                 text = String.format("%.1f", anime.userScore),
                                 color = Color.White,
                                 fontSize = 11.sp,
-                                fontFamily = RobotoBold
+                                fontFamily = PoppinsBold
                             )
                         }
                     }
@@ -755,7 +880,7 @@ fun CompactAnimeCard(
                 ) {
                     Text(
                         text = anime.title,
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
@@ -771,7 +896,7 @@ fun CompactAnimeCard(
                     ) {
                         Text(
                             text = "${anime.episodesWatched}/${anime.totalEpisodes}",
-                            fontFamily = RobotoRegular,
+                            fontFamily = PoppinsRegular,
                             fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -799,6 +924,227 @@ fun CompactAnimeCard(
                     .padding(6.dp),
                 onDeleteConfirmed = onDeleteConfirmed
             )
+        }
+    }
+}
+
+@Composable
+fun OnboardingStyleAnimeCard(
+    anime: com.yumedev.seijakulist.data.local.entities.AnimeEntity,
+    statusColor: Color,
+    onAnimeClick: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "card")
+
+    val shimmerAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shimmer"
+    )
+
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "onboarding_card_scale"
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(260.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = { onAnimeClick() }
+                )
+            },
+        shape = RoundedCornerShape(20.dp),
+        shadowElevation = 12.dp,
+        tonalElevation = 2.dp
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Imagen de fondo
+            Image(
+                painter = rememberAsyncImagePainter(anime.imageUrl),
+                contentDescription = anime.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            // Degradado negro desde abajo hasta la mitad
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.4f),
+                                Color.Black.copy(alpha = 0.7f),
+                                Color.Black.copy(alpha = 0.85f)
+                            )
+                        )
+                    )
+            )
+
+            // Efecto de brillo diagonal
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .align(Alignment.TopStart)
+                    .graphicsLayer {
+                        rotationZ = -45f
+                        alpha = shimmerAlpha * 0.2f
+                    }
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.6f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Badge de tipo
+                    if (!anime.typeAnime.isNullOrBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                        ) {
+                            Text(
+                                text = anime.typeAnime ?: "",
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
+
+                    // Badge de rating
+                    if (anime.userScore > 0f) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Text(
+                                    text = String.format("%.1f", anime.userScore),
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 11.sp,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Título
+                    Text(
+                        text = anime.title,
+                        fontFamily = PoppinsBold,
+                        fontSize = 15.sp,
+                        color = Color.White,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 17.sp
+                    )
+
+                    // Año si existe
+                    if (!anime.year.isNullOrBlank()) {
+                        Text(
+                            text = anime.year ?: "",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 11.sp,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Estado
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = statusColor.copy(alpha = 0.2f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(statusColor, CircleShape)
+                                )
+                                Text(
+                                    text = anime.statusUser,
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 11.sp,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
+                        // Episodios
+                        Text(
+                            text = "${anime.episodesWatched}/${anime.totalEpisodes}",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
         }
     }
 }

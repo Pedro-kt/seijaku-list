@@ -42,8 +42,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun AnimeRandomCard(
@@ -101,7 +101,7 @@ fun AnimeRandomCard(
                                 .fillMaxWidth(),
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 18.sp,
-                            fontFamily = RobotoBold
+                            fontFamily = PoppinsBold
                         )
                         Text(
                             text = "${anime.year ?: "N/A"} • ${anime.episodes ?: "?"} episodes",
@@ -110,7 +110,7 @@ fun AnimeRandomCard(
                             modifier = Modifier.padding(top = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
-                            fontFamily = RobotoRegular,
+                            fontFamily = PoppinsRegular,
                         )
                     }
 

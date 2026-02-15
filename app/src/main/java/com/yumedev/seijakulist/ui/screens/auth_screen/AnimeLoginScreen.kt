@@ -61,8 +61,8 @@ import com.yumedev.seijakulist.ui.components.custom.AnimeStar
 import com.yumedev.seijakulist.ui.components.custom.AnimeTextField
 import com.yumedev.seijakulist.ui.components.custom.SakuraFlower
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
 
 @Composable
@@ -171,7 +171,7 @@ fun AnimeLoginScreen(
                 Text(
                     text = "SeijakuList",
                     fontSize = 52.sp,
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.displayLarge.copy(
                         brush = Brush.linearGradient(
@@ -200,7 +200,7 @@ fun AnimeLoginScreen(
                     Text(
                         text = "アニメリスト",
                         fontSize = 14.sp,
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         letterSpacing = 2.sp
                     )
@@ -222,7 +222,7 @@ fun AnimeLoginScreen(
             ) {
                 Text(
                     text = "¡Bienvenido de nuevo!",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 26.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -231,7 +231,7 @@ fun AnimeLoginScreen(
 
                 Text(
                     text = "Ingresa a tu cuenta para continuar",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
@@ -295,7 +295,7 @@ fun AnimeLoginScreen(
                 TextButton(onClick = { /* TODO */ }) {
                     Text(
                         text = "¿Olvidaste tu contraseña?",
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 14.sp
                     )
@@ -334,7 +334,7 @@ fun AnimeLoginScreen(
                         text = "⚠️ ${(authResult as AuthResult.Error).message}",
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp,
-                        fontFamily = RobotoRegular
+                        fontFamily = PoppinsRegular
                     )
                 }
             }
@@ -349,7 +349,7 @@ fun AnimeLoginScreen(
             ) {
                 Text(
                     text = "¿No tienes cuenta?",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     fontSize = 15.sp
                 )
@@ -359,7 +359,7 @@ fun AnimeLoginScreen(
                 ) {
                     Text(
                         text = "Regístrate",
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 15.sp
                     )

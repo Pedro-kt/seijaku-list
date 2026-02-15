@@ -34,8 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun DeveloperInfoDialog(
@@ -73,7 +73,7 @@ fun DeveloperInfoDialog(
 
                     Text(
                         text = "Desarrollador",
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         fontSize = 24.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
@@ -103,7 +103,7 @@ fun DeveloperInfoDialog(
                 // Nombre
                 Text(
                     text = "Bustamante Pedro",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
@@ -112,7 +112,7 @@ fun DeveloperInfoDialog(
                 // Descripción
                 Text(
                     text = "Hola! Soy el desarrollador de Seijaku List (una app personal de registro de anime/manga en desarrollo activo).\n\nMe desenvuelvo profesionalmente como Desarrollador Android y me entusiasma combinar mis intereses: la programación, la música y el anime.\n\nDato curioso: Mi anime favorito es K-On!",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Justify,
@@ -124,7 +124,7 @@ fun DeveloperInfoDialog(
                 // Título de redes sociales
                 Text(
                     text = "Redes Sociales",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
@@ -202,7 +202,7 @@ private fun SocialMediaLink(
 
         Text(
             text = label,
-            fontFamily = RobotoRegular,
+            fontFamily = PoppinsRegular,
             fontSize = 16.sp,
             color = MaterialTheme.colorScheme.onSurface
         )

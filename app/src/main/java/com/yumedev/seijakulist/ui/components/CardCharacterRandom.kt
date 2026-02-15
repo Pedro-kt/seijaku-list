@@ -54,8 +54,8 @@ import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.models.CharacterDetail
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun CharacterRandomCard(
@@ -119,7 +119,7 @@ fun CharacterRandomCard(
                             .fillMaxWidth(),
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
-                        fontFamily = RobotoBold
+                        fontFamily = PoppinsBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
@@ -141,7 +141,7 @@ fun CharacterRandomCard(
                                 .padding(end = 8.dp),
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
-                            fontFamily = RobotoRegular
+                            fontFamily = PoppinsRegular
                         )
                         Text(
                             text = character.nameKanjiCharacter,
@@ -153,7 +153,7 @@ fun CharacterRandomCard(
                                 .padding(end = 16.dp),
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 12.sp,
-                            fontFamily = RobotoRegular
+                            fontFamily = PoppinsRegular
                         )
                     }
                 }

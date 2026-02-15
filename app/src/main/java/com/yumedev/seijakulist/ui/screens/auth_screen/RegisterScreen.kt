@@ -1,59 +1,25 @@
 package com.yumedev.seijakulist.ui.screens.auth_screen
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.MarkEmailRead
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -63,10 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.yumedev.seijakulist.R
-import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import kotlinx.coroutines.delay
 
 @Composable
 fun RegisterScreen(
@@ -80,8 +45,14 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
+    var screenVisible by remember { mutableStateOf(false) }
     val authResult by viewModel.authResult.collectAsState()
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        screenVisible = true
+    }
 
     LaunchedEffect(authResult) {
         if (authResult is AuthResult.Success) {
@@ -89,431 +60,276 @@ fun RegisterScreen(
         }
     }
 
-    Column(
+    val passwordsMatch = password == confirmPassword
+    val showPasswordMismatch = confirmPassword.isNotEmpty() && !passwordsMatch
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = { focusManager.clearFocus() })
-            }
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        RegisterTopBar(onBackClick = { navController.popBackStack() })
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            RegisterHeader()
+            // Header
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600)) + slideInVertically(
+                    initialOffsetY = { -30 },
+                    animationSpec = tween(600, easing = FastOutSlowInEasing)
+                )
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Crea una Cuenta!",
+                        fontFamily = PoppinsBold,
+                        fontSize = 32.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Únete a nuestra comunidad",
+                        fontFamily = PoppinsRegular,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            RegisterForm(
-                email = email,
-                password = password,
-                confirmPassword = confirmPassword,
-                isPasswordVisible = isPasswordVisible,
-                isConfirmPasswordVisible = isConfirmPasswordVisible,
-                onEmailChange = { email = it },
-                onPasswordChange = { password = it },
-                onConfirmPasswordChange = { confirmPassword = it },
-                onPasswordVisibilityToggle = { isPasswordVisible = !isPasswordVisible },
-                onConfirmPasswordVisibilityToggle = { isConfirmPasswordVisible = !isConfirmPasswordVisible }
-            )
+            // Formulario
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 200)) + slideInVertically(
+                    initialOffsetY = { 30 },
+                    animationSpec = tween(600, easing = FastOutSlowInEasing)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Campo de email
+                    ModernTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Correo electrónico",
+                        placeholder = "tu@email.com",
+                        leadingIcon = Icons.Outlined.Email,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        )
+                    )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    // Campo de contraseña
+                    ModernTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Contraseña",
+                        placeholder = "Mínimo 6 caracteres",
+                        leadingIcon = Icons.Outlined.Lock,
+                        isPassword = true,
+                        isPasswordVisible = isPasswordVisible,
+                        onPasswordVisibilityToggle = { isPasswordVisible = !isPasswordVisible },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        )
+                    )
 
-            InfoMessage(
-                text = "Te enviaremos un email para verificar tu cuenta",
-                icon = Icons.Default.MarkEmailRead
-            )
+                    // Campo de confirmar contraseña
+                    ModernTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = "Confirmar contraseña",
+                        placeholder = "Repite tu contraseña",
+                        leadingIcon = Icons.Outlined.Lock,
+                        isPassword = true,
+                        isPasswordVisible = isConfirmPasswordVisible,
+                        onPasswordVisibilityToggle = { isConfirmPasswordVisible = !isConfirmPasswordVisible },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                if (email.isNotEmpty() && password.isNotEmpty() && passwordsMatch) {
+                                    viewModel.signUp(email, password)
+                                }
+                            }
+                        ),
+                        isError = showPasswordMismatch
+                    )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            RegisterButton(
-                onClick = {
-                    if (password == confirmPassword && password.isNotEmpty()) {
-                        viewModel.signUp(email, password)
+                    // Mensaje de error de contraseñas
+                    if (showPasswordMismatch) {
+                        Text(
+                            text = "Las contraseñas no coinciden",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
                     }
-                },
-                enabled = email.isNotEmpty() && password.isNotEmpty() &&
-                        confirmPassword.isNotEmpty() && password == confirmPassword
-            )
+                }
+            }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Separador con "o"
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 400))
+            ) {
+                SocialDivider()
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Botones de redes sociales
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 500)) + scaleIn(
+                    initialScale = 0.8f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+            ) {
+                SocialLoginButtons()
+            }
+
+            // Error message
             if (authResult is AuthResult.Error) {
-                Spacer(modifier = Modifier.height(12.dp))
-                ErrorMessage(message = (authResult as AuthResult.Error).message)
+                Spacer(modifier = Modifier.height(16.dp))
+                ErrorBanner(message = (authResult as AuthResult.Error).message)
             }
 
-            if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
-                Spacer(modifier = Modifier.height(12.dp))
-                WarningMessage(text = "Las contraseñas no coinciden")
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Botón de registro
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 400)) + scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+            ) {
+                RegisterButton(
+                    onClick = { viewModel.signUp(email, password) },
+                    enabled = email.isNotEmpty() && password.isNotEmpty() && passwordsMatch,
+                    isLoading = authResult is AuthResult.Loading
+                )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            SocialRegisterSection()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            LoginPrompt(
-                onLoginClick = { navController.navigate(AppDestinations.LOGIN_ROUTE) }
-            )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun RegisterTopBar(onBackClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        IconButton(
-            onClick = onBackClick,
-            modifier = Modifier.align(Alignment.CenterStart)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        Text(
-            text = "Crear cuenta",
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 18.sp,
-            fontFamily = RobotoBold,
-            modifier = Modifier.align(Alignment.Center)
-        )
-    }
-}
-
-@Composable
-private fun RegisterHeader() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = "SeijakuList",
-            fontFamily = RobotoBold,
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 42.sp,
-            fontStyle = FontStyle.Italic,
-            letterSpacing = 1.sp
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "¡Únete a la comunidad!",
-            fontFamily = RobotoBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 24.sp
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "Tu lista personal de anime y manga",
-            fontFamily = RobotoRegular,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            fontSize = 15.sp,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-private fun RegisterForm(
-    email: String,
-    password: String,
-    confirmPassword: String,
-    isPasswordVisible: Boolean,
-    isConfirmPasswordVisible: Boolean,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit,
-    onPasswordVisibilityToggle: () -> Unit,
-    onConfirmPasswordVisibilityToggle: () -> Unit
+private fun ModernTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String,
+    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    isPassword: Boolean = false,
+    isPasswordVisible: Boolean = false,
+    onPasswordVisibilityToggle: (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    isError: Boolean = false
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Email Field
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = "Email",
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(start = 4.dp)
-            )
+        Text(
+            text = label,
+            fontFamily = PoppinsBold,
+            fontSize = 14.sp,
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 4.dp)
+        )
 
-            OutlinedTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                placeholder = {
-                    Text(
-                        "ejemplo@correo.com",
-                        fontFamily = RobotoRegular
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    fontFamily = PoppinsRegular,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
-            )
-        }
-
-        // Password Field
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = "Contraseña",
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(start = 4.dp)
-            )
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = onPasswordChange,
-                placeholder = {
-                    Text(
-                        "Mínimo 6 caracteres",
-                        fontFamily = RobotoRegular
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                visualTransformation = if (isPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = onPasswordVisibilityToggle) {
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null,
+                    tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                )
+            },
+            trailingIcon = if (isPassword) {
+                {
+                    IconButton(onClick = { onPasswordVisibilityToggle?.invoke() }) {
                         Icon(
-                            imageVector = if (isPasswordVisible) {
-                                Icons.Default.VisibilityOff
-                            } else {
-                                Icons.Default.Visibility
-                            },
-                            contentDescription = if (isPasswordVisible) {
-                                "Ocultar contraseña"
-                            } else {
-                                "Mostrar contraseña"
-                            },
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (isPasswordVisible) "Ocultar" else "Mostrar",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Next
-                )
-            )
-        }
-
-        // Confirm Password Field
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = "Confirmar contraseña",
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(start = 4.dp)
-            )
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = onConfirmPasswordChange,
-                placeholder = {
-                    Text(
-                        "Repite tu contraseña",
-                        fontFamily = RobotoRegular
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                visualTransformation = if (isConfirmPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.LockOpen,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = onConfirmPasswordVisibilityToggle) {
-                        Icon(
-                            imageVector = if (isConfirmPasswordVisible) {
-                                Icons.Default.VisibilityOff
-                            } else {
-                                Icons.Default.Visibility
-                            },
-                            contentDescription = if (isConfirmPasswordVisible) {
-                                "Ocultar contraseña"
-                            } else {
-                                "Mostrar contraseña"
-                            },
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    focusedBorderColor = if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password == confirmPassword) {
-                        Color(0xFF4CAF50)
-                    } else if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                )
-            )
-        }
-    }
-}
-
-@Composable
-private fun InfoMessage(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-            fontFamily = RobotoRegular,
-            fontSize = 13.sp,
-            lineHeight = 18.sp
-        )
-    }
-}
-
-@Composable
-private fun WarningMessage(text: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Warning,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            fontFamily = RobotoRegular,
-            fontSize = 14.sp
-        )
-    }
-}
-
-@Composable
-private fun ErrorMessage(message: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Error,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = message,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            fontFamily = RobotoRegular,
-            fontSize = 14.sp
+                }
+            } else null,
+            visualTransformation = if (isPassword && !isPasswordVisible) {
+                PasswordVisualTransformation()
+            } else {
+                VisualTransformation.None
+            },
+            isError = isError,
+            singleLine = true,
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error.copy(alpha = 0.5f) else Color.Transparent,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                errorBorderColor = MaterialTheme.colorScheme.error,
+                errorCursorColor = MaterialTheme.colorScheme.error
+            ),
+            textStyle = LocalTextStyle.current.copy(
+                fontFamily = PoppinsRegular,
+                fontSize = 16.sp
+            ),
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions
         )
     }
 }
@@ -521,139 +337,203 @@ private fun ErrorMessage(message: String) {
 @Composable
 private fun RegisterButton(
     onClick: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
+    isLoading: Boolean
 ) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "buttonScale",
+        finishedListener = {
+            if (isPressed) isPressed = false
+        }
+    )
+
     Button(
-        onClick = onClick,
+        onClick = {
+            if (enabled && !isLoading) {
+                isPressed = true
+                onClick()
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
-        enabled = enabled,
+            .height(56.dp)
+            .scale(scale),
+        enabled = enabled && !isLoading,
         shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
         elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 2.dp,
-            pressedElevation = 6.dp,
-            disabledElevation = 0.dp
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
         )
     ) {
-        Icon(
-            imageVector = Icons.Default.PersonAdd,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Crear cuenta",
-            fontFamily = RobotoBold,
-            fontSize = 16.sp
-        )
-    }
-}
-
-@Composable
-private fun SocialRegisterSection() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            HorizontalDivider(
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+                strokeWidth = 2.dp
             )
+        } else {
             Text(
-                text = "O regístrate con",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                fontFamily = RobotoRegular,
-                fontSize = 14.sp
-            )
-            HorizontalDivider(
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                text = "Crear Cuenta",
+                fontFamily = PoppinsBold,
+                fontSize = 17.sp,
+                letterSpacing = 0.5.sp
             )
         }
-
-        // Google Button
-        SocialRegisterButton(
-            text = "Continuar con Google",
-            icon = R.drawable.google,
-            backgroundColor = MaterialTheme.colorScheme.surface,
-            textColor = MaterialTheme.colorScheme.onSurface,
-            onClick = { /* TODO */ }
-        )
-
-        // Facebook Button
-        SocialRegisterButton(
-            text = "Continuar con Facebook",
-            icon = R.drawable.facebook,
-            backgroundColor = Color(0xFF1877F2),
-            textColor = Color.White,
-            onClick = { /* TODO */ }
-        )
     }
 }
 
 @Composable
-private fun SocialRegisterButton(
-    text: String,
-    icon: Int,
-    backgroundColor: Color,
-    textColor: Color,
-    onClick: () -> Unit
-) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = backgroundColor,
-            contentColor = textColor
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-        )
-    ) {
-        Image(
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = text,
-            fontFamily = RobotoBold,
-            fontSize = 15.sp
-        )
-    }
-}
-
-@Composable
-private fun LoginPrompt(onLoginClick: () -> Unit) {
+private fun SocialDivider() {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        )
+
+        Text(
+            text = "o",
+            fontFamily = PoppinsRegular,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        )
+    }
+}
+
+@Composable
+private fun SocialLoginButtons() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "¿Ya tienes cuenta?",
-            fontFamily = RobotoRegular,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            fontSize = 15.sp
+        // Botón de Google
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.google_icon_logo_svgrepo_com,
+            contentDescription = "Google",
+            onClick = { /* TODO: Implementar login con Google */ }
         )
-        TextButton(onClick = onLoginClick) {
+
+        // Botón de Facebook
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.facebook_2_logo_svgrepo_com,
+            contentDescription = "Facebook",
+            onClick = { /* TODO: Implementar login con Facebook */ }
+        )
+
+        // Botón de Play Games
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.google_play_games_logo_4,
+            contentDescription = "Play Games",
+            onClick = { /* TODO: Implementar login con Play Games */ }
+        )
+
+        // Botón de GitHub
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.github_142_svgrepo_com,
+            contentDescription = "GitHub",
+            onClick = { /* TODO: Implementar login con GitHub */ }
+        )
+    }
+}
+
+@Composable
+private fun SocialButtonIcon(
+    iconRes: Int,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.9f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "socialButtonScale",
+        finishedListener = {
+            if (isPressed) isPressed = false
+        }
+    )
+
+    OutlinedButton(
+        onClick = {
+            isPressed = true
+            onClick()
+        },
+        modifier = Modifier
+            .size(64.dp)
+            .scale(scale),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = Color.White.copy(alpha = 0.3f)
+        ),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun ErrorBanner(message: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(20.dp)
+            )
+
             Text(
-                text = "Inicia sesión",
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 15.sp
+                text = message,
+                fontFamily = PoppinsRegular,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.weight(1f)
             )
         }
     }

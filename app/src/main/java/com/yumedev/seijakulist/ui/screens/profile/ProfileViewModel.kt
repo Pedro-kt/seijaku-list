@@ -54,7 +54,8 @@ data class ProfileUiState(
     val allSavedAnimes: List<AnimeEntity> = emptyList(),
     val isSavingTop5: Boolean = false,
     val top5UpdateSuccess: Boolean = false,
-    val stats: AnimeStats = AnimeStats()
+    val stats: AnimeStats = AnimeStats(),
+    val isAtTop: Boolean = true  // Estado para el scroll del header
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -278,5 +279,10 @@ class ProfileViewModel @Inject constructor(
     // Resetear el flag de éxito de top 5 después de mostrar
     fun resetTop5UpdateSuccess() {
         _uiState.update { it.copy(top5UpdateSuccess = false) }
+    }
+
+    // Actualizar el estado del scroll del header
+    fun updateScrollPosition(isAtTop: Boolean) {
+        _uiState.update { it.copy(isAtTop = isAtTop) }
     }
 }

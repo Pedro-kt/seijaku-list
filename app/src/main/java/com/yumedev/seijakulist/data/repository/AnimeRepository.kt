@@ -15,7 +15,16 @@ import com.yumedev.seijakulist.data.remote.models.SearchAnimeResponse
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.models.AnimeCharactersDetail
 import com.yumedev.seijakulist.domain.models.AnimeDetail
+import com.yumedev.seijakulist.domain.models.AnimeEpisode
+import com.yumedev.seijakulist.domain.models.AnimeEpisodeDetail
+import com.yumedev.seijakulist.domain.models.AnimeEpisodesPagination
+import com.yumedev.seijakulist.domain.models.AnimeEpisodesResult
+import com.yumedev.seijakulist.domain.models.AnimeEpisodeVideo
+import com.yumedev.seijakulist.domain.models.AnimeMusicVideo
+import com.yumedev.seijakulist.domain.models.AnimePicture
+import com.yumedev.seijakulist.domain.models.AnimePromo
 import com.yumedev.seijakulist.domain.models.AnimeThemes
+import com.yumedev.seijakulist.domain.models.AnimeVideos
 import com.yumedev.seijakulist.domain.models.CharacterDetail
 import com.yumedev.seijakulist.domain.models.CharacterPictures
 import com.yumedev.seijakulist.domain.models.Genre
@@ -96,34 +105,32 @@ class AnimeRepository @Inject constructor(
         return characterPictures
     }
 
-    suspend fun searchAnimeSeasonNow(): SearchAnimeResponse {
-
-        return ApiService.getAnimeSeasonNow()
-
+    suspend fun searchAnimeSeasonNow(page: Int? = 1): SearchAnimeResponse {
+        return ApiService.getAnimeSeasonNow(page = page)
     }
 
-    suspend fun searchTopAnimes(): SearchAnimeResponse {
-        return ApiService.getTopAnime()
+    suspend fun searchTopAnimes(page: Int? = 1): SearchAnimeResponse {
+        return ApiService.getTopAnime(page = page)
     }
 
-    suspend fun searchAnimeSeasonUpcoming(): SearchAnimeResponse {
-        return ApiService.getSeasonUpcoming()
+    suspend fun searchAnimeSeasonUpcoming(page: Int? = 1): SearchAnimeResponse {
+        return ApiService.getSeasonUpcoming(page = page)
     }
 
     suspend fun searchAnimeRandom(): AnimeCardResponseDto {
         return ApiService.getAnimeRandom()
     }
 
-    suspend fun searchAnimeSchedule(day: String): SearchAnimeResponse {
-        return ApiService.getAnimeSchedule(day)
+    suspend fun searchAnimeSchedule(day: String, page: Int? = 1): SearchAnimeResponse {
+        return ApiService.getAnimeSchedule(day, page = page)
     }
 
-    suspend fun searchTopAnimeFilter(filter: String): SearchAnimeResponse {
-        return ApiService.getTopAnimeFilter(filter)
+    suspend fun searchTopAnimeFilter(filter: String, page: Int? = 1): SearchAnimeResponse {
+        return ApiService.getTopAnimeFilter(filter, page = page)
     }
 
-    suspend fun searchAnimeSeasonUpcomingFilter(filter: String): SearchAnimeResponse {
-        return ApiService.getSeasonUpcomingFilter(filter)
+    suspend fun searchAnimeSeasonUpcomingFilter(filter: String, page: Int? = 1): SearchAnimeResponse {
+        return ApiService.getSeasonUpcomingFilter(filter, page = page)
     }
 
     suspend fun getAnimeThemesById(animeId: Int): AnimeThemes {
@@ -192,5 +199,132 @@ class AnimeRepository @Inject constructor(
         }
 
         return animeList
+    }
+
+    suspend fun getAnimePicturesById(animeId: Int): List<AnimePicture> {
+        val response = ApiService.getAnimePictures(animeId)
+
+        return response.data.map { dto ->
+            AnimePicture(
+                imageUrl = dto.jpg?.imageUrl ?: dto.webp?.imageUrl,
+                smallImageUrl = dto.jpg?.smallImageUrl ?: dto.webp?.smallImageUrl,
+                largeImageUrl = dto.jpg?.largeImageUrl ?: dto.webp?.largeImageUrl
+            )
+        }
+    }
+
+    suspend fun getAnimeVideosById(animeId: Int): AnimeVideos {
+        val response = ApiService.getAnimeVideos(animeId)
+        val data = response.data
+
+        val promos = data.promo?.map { promo ->
+            // Usar la mejor imagen disponible con fallback completo
+            val thumbnailUrl = promo.trailer?.images?.let { images ->
+                images.maximumImageUrl
+                    ?: images.largeImageUrl
+                    ?: images.mediumImageUrl
+                    ?: images.smallImageUrl
+                    ?: images.imageUrl
+            }
+            // Construir URL de YouTube si tenemos el ID
+            val youtubeUrl = promo.trailer?.url
+                ?: promo.trailer?.youtubeId?.let { "https://www.youtube.com/watch?v=$it" }
+
+            AnimePromo(
+                title = promo.title,
+                youtubeId = promo.trailer?.youtubeId,
+                youtubeUrl = youtubeUrl,
+                thumbnailUrl = thumbnailUrl
+            )
+        } ?: emptyList()
+
+        val episodes = data.episodes?.map { episode ->
+            AnimeEpisodeVideo(
+                malId = episode.malId,
+                title = episode.title,
+                episode = episode.episode,
+                url = episode.url,
+                imageUrl = episode.images?.jpg?.imageUrl
+            )
+        } ?: emptyList()
+
+        val musicVideos = data.musicVideos?.map { mv ->
+            // Usar la mejor imagen disponible con fallback completo
+            val thumbnailUrl = mv.video?.images?.let { images ->
+                images.maximumImageUrl
+                    ?: images.largeImageUrl
+                    ?: images.mediumImageUrl
+                    ?: images.smallImageUrl
+                    ?: images.imageUrl
+            }
+            // Construir URL de YouTube si tenemos el ID
+            val youtubeUrl = mv.video?.url
+                ?: mv.video?.youtubeId?.let { "https://www.youtube.com/watch?v=$it" }
+
+            AnimeMusicVideo(
+                title = mv.title,
+                youtubeId = mv.video?.youtubeId,
+                youtubeUrl = youtubeUrl,
+                thumbnailUrl = thumbnailUrl,
+                songTitle = mv.meta?.title,
+                artist = mv.meta?.author
+            )
+        } ?: emptyList()
+
+        return AnimeVideos(
+            promos = promos,
+            episodes = episodes,
+            musicVideos = musicVideos
+        )
+    }
+
+    suspend fun getAnimeEpisodesById(animeId: Int, page: Int = 1): AnimeEpisodesResult {
+        val response = ApiService.getAnimeEpisodes(animeId, page)
+
+        val episodes = response.data.map { dto ->
+            AnimeEpisode(
+                malId = dto.malId,
+                url = dto.url,
+                title = dto.title,
+                titleJapanese = dto.titleJapanese,
+                titleRomanji = dto.titleRomanji,
+                aired = dto.aired,
+                score = dto.score,
+                filler = dto.filler,
+                recap = dto.recap,
+                forumUrl = dto.forumUrl
+            )
+        }
+
+        val pagination = response.pagination?.let {
+            AnimeEpisodesPagination(
+                lastVisiblePage = it.lastVisiblePage,
+                hasNextPage = it.hasNextPage
+            )
+        }
+
+        return AnimeEpisodesResult(
+            episodes = episodes,
+            pagination = pagination
+        )
+    }
+
+    suspend fun getAnimeEpisodeDetailById(animeId: Int, episodeId: Int): AnimeEpisodeDetail? {
+        val response = ApiService.getAnimeEpisodeDetail(animeId, episodeId)
+
+        return response.data?.let { dto ->
+            AnimeEpisodeDetail(
+                malId = dto.malId,
+                url = dto.url,
+                title = dto.title,
+                titleJapanese = dto.titleJapanese,
+                titleRomanji = dto.titleRomanji,
+                duration = dto.duration,
+                aired = dto.aired,
+                filler = dto.filler,
+                recap = dto.recap,
+                synopsis = dto.synopsis
+            )
+        }
     }
 }

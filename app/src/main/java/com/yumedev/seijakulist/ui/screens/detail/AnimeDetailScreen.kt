@@ -1,10 +1,13 @@
 package com.yumedev.seijakulist.ui.screens.detail
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,8 +19,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.padding
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
@@ -27,7 +33,8 @@ import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.painterResource
+import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.StarHalf
@@ -46,7 +53,12 @@ import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.MusicOff
+import androidx.compose.material.icons.filled.OndemandVideo
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -77,9 +89,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
@@ -107,6 +121,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.clip
@@ -129,6 +144,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -137,12 +156,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
+import com.yumedev.seijakulist.domain.models.AnimeEpisode
+import com.yumedev.seijakulist.domain.models.AnimeEpisodeDetail
 import com.yumedev.seijakulist.ui.components.DescriptionAnime
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.TitleWithPadding
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsMedium
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import java.text.SimpleDateFormat
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.launch
@@ -153,6 +175,7 @@ import kotlinx.coroutines.delay
 fun AnimeDetailScreen(
     navController: NavController,
     animeId: Int?,
+    initialTab: Int = 0,
     animeDetailViewModel: AnimeDetailViewModel = hiltViewModel(),
     animeCharacterDetailViewModel: AnimeCharacterDetailViewModel = hiltViewModel(),
     animeThemesViewModel: AnimeThemesViewModel = hiltViewModel(),
@@ -173,6 +196,22 @@ fun AnimeDetailScreen(
 
     val animeThemes by animeThemesViewModel.themes.collectAsState()
 
+    val animePictures by animeDetailViewModel.animePictures.collectAsState()
+    val isPicturesLoading by animeDetailViewModel.isPicturesLoading.collectAsState()
+
+    val animeVideos by animeDetailViewModel.animeVideos.collectAsState()
+    val isVideosLoading by animeDetailViewModel.isVideosLoading.collectAsState()
+
+    val animeEpisodes by animeDetailViewModel.animeEpisodes.collectAsState()
+    val isEpisodesLoading by animeDetailViewModel.isEpisodesLoading.collectAsState()
+    val hasMoreEpisodes by animeDetailViewModel.hasMoreEpisodes.collectAsState()
+
+    val selectedEpisodeDetail by animeDetailViewModel.selectedEpisodeDetail.collectAsState()
+    val isEpisodeDetailLoading by animeDetailViewModel.isEpisodeDetailLoading.collectAsState()
+
+    // Estado para el modal de imagen
+    var selectedPictureUrl by remember { mutableStateOf<String?>(null) }
+
     val isAdded by animeDetailViewModel.isAdded.collectAsState()
 
     //snakbar de notificacion
@@ -187,21 +226,24 @@ fun AnimeDetailScreen(
         }
     }
 
-    LaunchedEffect(key1 = animeId, key2 = animeDetail?.studios) {
-        if (animeId != null && animeDetail?.studios?.isNotEmpty() == true) {
-            showProducerLoading = true
-            delay(2000L) // delay to show loading, as requested
-            showProducerLoading = false
-            producerDetailViewModel.getProducerDetail(animeDetail?.studios[0]?.idStudio ?: 56)
-        }
-    }
-
     var showDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
 
     val score = remember { mutableFloatStateOf(1f) }
 
     var expanded by rememberSaveable { mutableStateOf(false) }
+
+    // Estado para manejar el estudio expandido
+    var expandedStudioId by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(key1 = expandedStudioId) {
+        if (expandedStudioId != null) {
+            showProducerLoading = true
+            delay(500L) // delay to show loading
+            showProducerLoading = false
+            producerDetailViewModel.getProducerDetail(expandedStudioId!!)
+        }
+    }
 
     val tabIcons = listOf(
         Icons.Default.Description,
@@ -221,8 +263,26 @@ fun AnimeDetailScreen(
         "Planeado" to Color(0xFF78909C)
     )
 
+    val animeVideosRemember = remember(animeVideos) {
+        animeVideos?.episodes?.associateBy(
+            keySelector = { it.malId },
+            valueTransform = { it }
+        ) ?: emptyMap()
+    }
 
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedTabIndex by remember { mutableStateOf(initialTab) }
+
+    // Cargar imágenes, videos y episodios cuando se selecciona el tab 2
+    // Con delay de 1 segundo entre cada petición para respetar el rate limit de la API (3/seg)
+    LaunchedEffect(selectedTabIndex) {
+        if (selectedTabIndex == 2 && animeDetail != null) {
+            animeDetailViewModel.loadAnimePictures(animeDetail!!.malId)
+            delay(1000L)
+            animeDetailViewModel.loadAnimeVideos(animeDetail!!.malId)
+            delay(1000L)
+            animeDetailViewModel.loadAnimeEpisodes(animeDetail!!.malId)
+        }
+    }
 
     var userOpinion by remember { mutableStateOf("") }
     val focusManager: FocusManager = LocalFocusManager.current
@@ -259,7 +319,7 @@ fun AnimeDetailScreen(
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painter = painterResource(id = R.drawable.ic_arrow_left_line),
                             contentDescription = "Volver",
                             tint = MaterialTheme.colorScheme.onSurface
                         )
@@ -268,7 +328,7 @@ fun AnimeDetailScreen(
                         text = "Detalle del anime",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -283,7 +343,7 @@ fun AnimeDetailScreen(
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center,
-                        fontFamily = RobotoBold
+                        fontFamily = PoppinsBold
                     )
                 }
             }
@@ -297,35 +357,82 @@ fun AnimeDetailScreen(
                         contentAlignment = Alignment.TopCenter
                     ) {
                         SnackbarHost(hostState = snackbarHostState) { data ->
+                            var visible by remember { mutableStateOf(false) }
+
+                            LaunchedEffect(data) {
+                                visible = true
+                            }
+
+                            val offsetY by animateDpAsState(
+                                targetValue = if (visible) 0.dp else (-100).dp,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                ),
+                                label = "snackbar_slide"
+                            )
+
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .offset(y = offsetY),
+                                shape = RoundedCornerShape(16.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                )
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
+                                    // Ícono de éxito verde
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = Color(0xFF4CAF50),
+                                        modifier = Modifier.size(40.dp)
+                                    ) {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    }
+
+                                    // Mensaje
                                     Text(
                                         text = data.visuals.message,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.SemiBold,
                                         modifier = Modifier.weight(1f)
                                     )
-                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    // Botón de acción
                                     if (data.visuals.actionLabel != null) {
-                                        Text(
-                                            text = data.visuals.actionLabel!!,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            style = MaterialTheme.typography.labelLarge,
-                                            modifier = Modifier
-                                                .padding(start = 16.dp)
-                                                .clickable { data.performAction() }
-                                        )
+                                        Surface(
+                                            onClick = { data.performAction() },
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = MaterialTheme.colorScheme.surfaceContainerHighest
+                                        ) {
+                                            Text(
+                                                text = data.visuals.actionLabel!!,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                style = MaterialTheme.typography.labelLarge,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -357,7 +464,7 @@ fun AnimeDetailScreen(
                             modifier = Modifier.align(Alignment.CenterStart)
                         ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.ic_arrow_left_line),
                                 contentDescription = "Volver",
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
@@ -366,7 +473,7 @@ fun AnimeDetailScreen(
                             text = "Detalle del anime",
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 18.sp,
-                            fontFamily = RobotoBold,
+                            fontFamily = PoppinsBold,
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
@@ -454,7 +561,7 @@ fun AnimeDetailScreen(
                                                 text = animeDetail?.title ?: "",
                                                 color = MaterialTheme.colorScheme.onSurface,
                                                 fontSize = 20.sp,
-                                                fontFamily = RobotoBold,
+                                                fontFamily = PoppinsBold,
                                                 maxLines = 3,
                                                 overflow = TextOverflow.Ellipsis
                                             )
@@ -609,100 +716,86 @@ fun AnimeDetailScreen(
                         }
 
                         if (selectedTabIndex == 0) {
-                            item {
-                                Spacer(modifier = Modifier.height(20.dp))
-
-                                // Sección de Géneros mejorada
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(bottom = 12.dp)
+                            // Géneros
+                            if (!animeDetail?.genres.isNullOrEmpty()) {
+                                item {
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 20.dp, end = 20.dp, top = 20.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                     ) {
-                                        Icon(
-                                            Icons.Default.FilterList,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Géneros",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            fontFamily = RobotoBold
-                                        )
-                                    }
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            Text(
+                                                text = "Géneros",
+                                                fontSize = 16.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
 
-                                    LazyRow(
-                                        contentPadding = PaddingValues(vertical = 8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        items(animeDetail?.genres.orEmpty()) { genre ->
-                                            genre?.let {
-                                                Card(
-                                                    shape = RoundedCornerShape(20.dp),
-                                                    colors = CardDefaults.cardColors(
-                                                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                                                    ),
-                                                    elevation = CardDefaults.cardElevation(
-                                                        defaultElevation = 2.dp
-                                                    )
-                                                ) {
-                                                    Text(
-                                                        text = it.name ?: "No encontrado",
-                                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        fontSize = 14.sp,
-                                                        modifier = Modifier.padding(
-                                                            horizontal = 16.dp,
-                                                            vertical = 8.dp
+                                            FlowRow(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                animeDetail?.genres?.filterNotNull()?.forEach { genre ->
+                                                    Surface(
+                                                        shape = RoundedCornerShape(8.dp),
+                                                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                                        border = BorderStroke(
+                                                            1.dp,
+                                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                                                         )
-                                                    )
+                                                    ) {
+                                                        Text(
+                                                            text = genre.name ?: "N/A",
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                            fontFamily = PoppinsRegular,
+                                                            fontSize = 13.sp,
+                                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
                                     }
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
-
-
                             }
-                            item {
-                                Spacer(modifier = Modifier.height(20.dp))
 
-                                // Sección de Synopsis mejorada
+                            // Sinopsis
+                            item {
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
+                                        .padding(horizontal = 20.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                                     ),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
-                                    Column(modifier = Modifier.padding(20.dp)) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(bottom = 12.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Description,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = "Sinopsis",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                fontFamily = RobotoBold
-                                            )
-                                        }
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Text(
+                                            text = "Sinopsis",
+                                            fontSize = 16.sp,
+                                            fontFamily = PoppinsBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
 
                                         var textLayoutResult by remember {
                                             mutableStateOf<TextLayoutResult?>(null)
@@ -711,290 +804,261 @@ fun AnimeDetailScreen(
                                         Text(
                                             text = animeDetail?.synopsis ?: "Sinopsis no encontrada",
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 15.sp,
-                                            fontFamily = RobotoRegular,
+                                            fontSize = 14.sp,
+                                            fontFamily = PoppinsRegular,
                                             textAlign = TextAlign.Justify,
-                                            lineHeight = 22.sp,
+                                            lineHeight = 20.sp,
                                             maxLines = if (expanded) Int.MAX_VALUE else 8,
                                             onTextLayout = { textLayoutResult = it }
                                         )
 
                                         if ((textLayoutResult?.hasVisualOverflow ?: false) || expanded) {
-                                            TextButton(
-                                                onClick = { expanded = !expanded },
-                                                modifier = Modifier.align(Alignment.End)
-                                            ) {
-                                                Text(
-                                                    text = if (expanded) "Ver menos" else "Ver más",
-                                                    fontWeight = FontWeight.SemiBold
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Icon(
-                                                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                                    contentDescription = if (expanded) "Contraer sinopsis" else "Expandir sinopsis",
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
+                                            Text(
+                                                text = if (expanded) "Ver menos" else "Ver más",
+                                                fontFamily = PoppinsBold,
+                                                fontSize = 13.sp,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.clickable { expanded = !expanded }
+                                            )
                                         }
                                     }
                                 }
-
                                 Spacer(modifier = Modifier.height(20.dp))
                             }
-                            item {
-                                // Sección de Otros títulos mejorada
-                                if (!animeDetail?.titleEnglish.isNullOrBlank() || !animeDetail?.titleJapanese.isNullOrBlank()) {
-                                    Column(
+
+                            // Otros títulos
+                            if (!animeDetail?.titleEnglish.isNullOrBlank() || !animeDetail?.titleJapanese.isNullOrBlank()) {
+                                item {
+                                    Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 16.dp)
+                                            .padding(horizontal = 20.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(bottom = 12.dp)
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
-                                            Icon(
-                                                Icons.AutoMirrored.Filled.List,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
                                             Text(
                                                 text = "Otros títulos",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                fontFamily = RobotoBold
+                                                fontSize = 16.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
-                                        }
 
-                                        OtherTitleItem(
-                                            label = "Título en Inglés:",
-                                            value = animeDetail?.titleEnglish
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        OtherTitleItem(
-                                            label = "Título en Japonés:",
-                                            value = animeDetail?.titleJapanese
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(20.dp))
-                                }
-                            }
-                            item {
-                                // Sección de Estudio mejorada
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(bottom = 12.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Business,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Estudio",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            fontFamily = RobotoBold
-                                        )
-                                    }
-
-                                    LazyRow(
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        items(animeDetail?.studios.orEmpty()) { studio ->
-                                            Card(
-                                                onClick = {
-                                                    selectedTabIndex = 3
-                                                },
-                                                shape = RoundedCornerShape(12.dp),
-                                                colors = CardDefaults.cardColors(
-                                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                                                ),
-                                                elevation = CardDefaults.cardElevation(
-                                                    defaultElevation = 2.dp
-                                                )
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier.padding(
-                                                        horizontal = 16.dp,
-                                                        vertical = 10.dp
-                                                    ),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Icon(
-                                                        Icons.Default.Business,
-                                                        contentDescription = "Studio Icon",
-                                                        modifier = Modifier.size(18.dp),
-                                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
+                                            if (!animeDetail?.titleEnglish.isNullOrBlank()) {
+                                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                                     Text(
-                                                        studio?.nameStudio ?: "No encontrado",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                                        text = "Inglés",
+                                                        fontSize = 12.sp,
+                                                        fontFamily = PoppinsRegular,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
-                                                    Spacer(modifier = Modifier.width(4.dp))
-                                                    Icon(
-                                                        Icons.AutoMirrored.Filled.ArrowRight,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(16.dp),
-                                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                                    Text(
+                                                        text = animeDetail?.titleEnglish ?: "",
+                                                        fontSize = 14.sp,
+                                                        fontFamily = PoppinsBold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+                                                if (!animeDetail?.titleJapanese.isNullOrBlank()) {
+                                                    HorizontalDivider(
+                                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                                    )
+                                                }
+                                            }
+
+                                            if (!animeDetail?.titleJapanese.isNullOrBlank()) {
+                                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                                    Text(
+                                                        text = "Japonés",
+                                                        fontSize = 12.sp,
+                                                        fontFamily = PoppinsRegular,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                    Text(
+                                                        text = animeDetail?.titleJapanese ?: "",
+                                                        fontSize = 14.sp,
+                                                        fontFamily = PoppinsBold,
+                                                        color = MaterialTheme.colorScheme.onSurface
                                                     )
                                                 }
                                             }
                                         }
                                     }
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
-
-                                Spacer(modifier = Modifier.height(20.dp))
                             }
+
+                            // Estudio
+                            if (!animeDetail?.studios.isNullOrEmpty()) {
+                                item {
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                        ),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            Text(
+                                                text = "Estudio",
+                                                fontSize = 16.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+
+                                            FlowRow(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                animeDetail?.studios?.filterNotNull()?.forEach { studio ->
+                                                    Surface(
+                                                        onClick = { selectedTabIndex = 3 },
+                                                        shape = RoundedCornerShape(8.dp),
+                                                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                                                        border = BorderStroke(
+                                                            1.dp,
+                                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                                        )
+                                                    ) {
+                                                        Text(
+                                                            text = studio.nameStudio ?: "N/A",
+                                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                            fontFamily = PoppinsRegular,
+                                                            fontSize = 13.sp,
+                                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
+                            }
+
+                            // Información
                             item {
-                                // Sección de Información mejorada
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
+                                        .padding(horizontal = 20.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                                     ),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
-                                    Column(modifier = Modifier.padding(20.dp)) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(bottom = 16.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.BarChart,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                text = "Información",
-                                                style = MaterialTheme.typography.titleLarge,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                fontFamily = RobotoBold
-                                            )
-                                        }
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text(
+                                            text = "Información",
+                                            fontSize = 16.sp,
+                                            fontFamily = PoppinsBold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        )
 
-                                        InfoGridItem(
-                                            icon = Icons.Default.Star,
-                                            label = "Puntuación",
-                                            value = "${animeDetail?.score}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.People,
-                                            label = "Puntuado por",
-                                            value = if (animeDetail?.scoreBy == 0) "No encontrado" else "${animeDetail?.scoreBy} personas"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.Tv,
-                                            label = "Tipo",
-                                            value = "${animeDetail?.typeAnime}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.FormatListNumbered,
-                                            label = "Episodios",
-                                            value = "${animeDetail?.episodes}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.Timer,
-                                            label = "Duración",
-                                            value = "${animeDetail?.duration}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.WbSunny,
-                                            label = "Temporada",
-                                            value = "${animeDetail?.season}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.AvTimer,
-                                            label = "Año",
-                                            value = "${animeDetail?.year}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.LiveTv,
-                                            label = "Estado",
-                                            value = "${animeDetail?.status}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.CalendarMonth,
-                                            label = "Transmitido",
-                                            value = "${animeDetail?.aired}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.BarChart,
-                                            label = "Ranking",
-                                            value = "#${animeDetail?.rank}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.Default.Filter9Plus,
-                                            label = "Rating",
-                                            value = "${animeDetail?.rating}"
-                                        )
-                                        InfoGridItem(
-                                            icon = Icons.AutoMirrored.Filled.LibraryBooks,
-                                            label = "Origen",
-                                            value = "${animeDetail?.source}",
-                                            isLast = true
-                                        )
+                                        animeDetail?.score?.let {
+                                            CompactInfoRow(label = "Puntuación", value = "$it")
+                                        }
+                                        animeDetail?.scoreBy?.let {
+                                            if (it > 0) CompactInfoRow(label = "Puntuado por", value = "$it personas")
+                                        }
+                                        animeDetail?.typeAnime?.let {
+                                            CompactInfoRow(label = "Tipo", value = it)
+                                        }
+                                        animeDetail?.episodes?.let {
+                                            CompactInfoRow(label = "Episodios", value = "$it")
+                                        }
+                                        animeDetail?.duration?.let {
+                                            CompactInfoRow(label = "Duración", value = it)
+                                        }
+                                        animeDetail?.season?.let {
+                                            CompactInfoRow(label = "Temporada", value = it)
+                                        }
+                                        animeDetail?.year?.let {
+                                            CompactInfoRow(label = "Año", value = "$it")
+                                        }
+                                        animeDetail?.status?.let {
+                                            CompactInfoRow(label = "Estado", value = it)
+                                        }
+                                        animeDetail?.aired?.let {
+                                            CompactInfoRow(label = "Transmitido", value = it)
+                                        }
+                                        animeDetail?.rank?.let {
+                                            CompactInfoRow(label = "Ranking", value = "#$it")
+                                        }
+                                        animeDetail?.rating?.let {
+                                            CompactInfoRow(label = "Rating", value = it)
+                                        }
+                                        animeDetail?.source?.let {
+                                            CompactInfoRow(label = "Origen", value = it)
+                                        }
                                     }
                                 }
-
                                 Spacer(modifier = Modifier.height(20.dp))
                             }
+
+                            // Temas Musicales
                             item {
-                                // Sección de Temas mejorada
-                                Column(
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
+                                        .padding(horizontal = 20.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                    ),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(bottom = 12.dp)
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        Icon(
-                                            Icons.Default.MusicNote,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = "Temas Musicales",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            fontFamily = RobotoBold
+                                            fontSize = 16.sp,
+                                            fontFamily = PoppinsBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+
+                                        ThemeItem(
+                                            title = "Openings",
+                                            icon = Icons.Default.MusicNote,
+                                            themes = animeThemes.openings,
+                                            context,
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        ThemeItem(
+                                            title = "Endings",
+                                            icon = Icons.Default.MusicOff,
+                                            themes = animeThemes.endings,
+                                            context
                                         )
                                     }
-
-                                    ThemeItem(
-                                        title = "Openings",
-                                        icon = Icons.Default.MusicNote,
-                                        themes = animeThemes.openings,
-                                        context,
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    ThemeItem(
-                                        title = "Endings",
-                                        icon = Icons.Default.MusicOff,
-                                        themes = animeThemes.endings,
-                                        context
-                                    )
                                 }
                                 Spacer(modifier = Modifier.height(24.dp))
                             }
@@ -1024,7 +1088,7 @@ fun AnimeDetailScreen(
                                             text = "Personajes",
                                             style = MaterialTheme.typography.titleLarge,
                                             color = MaterialTheme.colorScheme.onSurface,
-                                            fontFamily = RobotoBold
+                                            fontFamily = PoppinsBold
                                         )
                                     }
                                     IconButton(
@@ -1310,85 +1374,784 @@ fun AnimeDetailScreen(
                             }
                         }
                         if (selectedTabIndex == 2) {
-
-                        }
-                        if (selectedTabIndex == 3) {
-
+                            // ========== GALERÍA DE IMÁGENES ==========
                             item {
                                 Spacer(modifier = Modifier.height(20.dp))
-
-                                // Header de Estudio mejorado
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(
-                                            start = 16.dp, bottom = 16.dp, end = 16.dp
-                                        )
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
                                 ) {
                                     Icon(
-                                        Icons.Default.Business,
+                                        Icons.Default.PhotoLibrary,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(24.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
                                     Text(
-                                        text = "Estudio de Producción",
-                                        style = MaterialTheme.typography.titleLarge,
+                                        text = "Galería",
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        fontFamily = RobotoBold
+                                        fontFamily = PoppinsBold,
+                                        fontSize = 20.sp
                                     )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Text(
+                                        text = if (isPicturesLoading) "Cargando..." else "${animePictures.size} imagen${if (animePictures.size != 1) "es" else ""}",
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        fontFamily = PoppinsRegular,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+
+                            if (isPicturesLoading) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
+                            } else if (animePictures.isEmpty()) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(150.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(
+                                                Icons.Default.PhotoLibrary,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                                modifier = Modifier.size(48.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = "No hay imágenes disponibles",
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                fontFamily = PoppinsRegular,
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                item {
+                                    LazyRow(
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        items(animePictures) { picture ->
+                                            Card(
+                                                modifier = Modifier
+                                                    .height(200.dp)
+                                                    .aspectRatio(0.7f)
+                                                    .clickable {
+                                                        selectedPictureUrl = picture.largeImageUrl ?: picture.imageUrl
+                                                    },
+                                                shape = RoundedCornerShape(12.dp),
+                                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                            ) {
+                                                AsyncImage(
+                                                    model = picture.largeImageUrl ?: picture.imageUrl,
+                                                    contentDescription = "Anime picture",
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
                             item {
-                                when {
-                                    producerIsLoading || showProducerLoading -> {
+                                Spacer(modifier = Modifier.height(24.dp))
+                            }
+
+                            // ========== SECCIÓN DE VIDEOS ==========
+                            if (isVideosLoading) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(100.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
+                            } else if (animeVideos != null) {
+                                // Filtrar promos con URL válida
+                                val validPromos = animeVideos!!.promos.filter { !it.youtubeUrl.isNullOrBlank() }
+
+                                // ========== TRAILERS / PROMOS ==========
+                                if (validPromos.isNotEmpty()) {
+                                    item {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.PlayCircle,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(
+                                                text = "Trailers",
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontFamily = PoppinsBold,
+                                                fontSize = 20.sp
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Text(
+                                                text = "${validPromos.size} video${if (validPromos.size != 1) "s" else ""}",
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                fontFamily = PoppinsRegular,
+                                                fontSize = 13.sp
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                    }
+
+                                    item {
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            contentPadding = PaddingValues(horizontal = 16.dp)
+                                        ) {
+                                            items(validPromos) { promo ->
+                                                VideoCard(
+                                                    title = promo.title ?: "Trailer",
+                                                    thumbnailUrl = promo.thumbnailUrl,
+                                                    youtubeUrl = promo.youtubeUrl,
+                                                    context = context
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Filtrar music videos con URL válida
+                                val validMusicVideos = animeVideos!!.musicVideos.filter { !it.youtubeUrl.isNullOrBlank() }
+
+                                // ========== MUSIC VIDEOS ==========
+                                if (validMusicVideos.isNotEmpty()) {
+                                    item {
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.MusicNote,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(
+                                                text = "Music Videos",
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontFamily = PoppinsBold,
+                                                fontSize = 20.sp
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Text(
+                                                text = "${validMusicVideos.size} video${if (validMusicVideos.size != 1) "s" else ""}",
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                fontFamily = PoppinsRegular,
+                                                fontSize = 13.sp
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                    }
+
+                                    item {
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            contentPadding = PaddingValues(horizontal = 16.dp)
+                                        ) {
+                                            items(validMusicVideos) { musicVideo ->
+                                                VideoCard(
+                                                    title = musicVideo.title ?: musicVideo.songTitle ?: "Music Video",
+                                                    subtitle = musicVideo.artist,
+                                                    thumbnailUrl = musicVideo.thumbnailUrl,
+                                                    youtubeUrl = musicVideo.youtubeUrl,
+                                                    context = context
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+
+                            // ========== SECCIÓN DE EPISODIOS UNIFICADA ==========
+                            item {
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = "Episodios",
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontFamily = PoppinsBold,
+                                        fontSize = 20.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    if (!isEpisodesLoading || animeEpisodes.isNotEmpty()) {
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                        ) {
+                                            Text(
+                                                text = "${animeEpisodes.size}",
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontFamily = PoppinsBold,
+                                                fontSize = 13.sp
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            if (isEpisodesLoading && animeEpisodes.isEmpty()) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(100.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            color = MaterialTheme.colorScheme.primary,
+                                            strokeWidth = 2.dp,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
+                                }
+                            } else if (animeEpisodes.isEmpty()) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(100.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "No hay episodios disponibles",
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                            fontFamily = PoppinsRegular,
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Mapa de imágenes de episodios desde el endpoint de videos
+                                val episodeVideoImages = animeVideosRemember
+
+                                item {
+                                    var selectedEpisodeId by remember { mutableStateOf<Int?>(null) }
+                                    val selectedEp = animeEpisodes.find { it.malId == selectedEpisodeId }
+                                    val selectedEpVideo = selectedEpisodeId?.let { episodeVideoImages[it] }
+
+                                    Column {
+                                        // LazyRow de episodios
+                                        LazyRow(
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                            contentPadding = PaddingValues(horizontal = 16.dp)
+                                        ) {
+                                            items(animeEpisodes) { episode ->
+                                                val videoInfo = episodeVideoImages[episode.malId]
+                                                val isSelected = selectedEpisodeId == episode.malId
+
+                                                Card(
+                                                    modifier = Modifier
+                                                        .width(150.dp)
+                                                        .border(
+                                                            width = if (isSelected) 2.dp else 0.dp,
+                                                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                                            shape = RoundedCornerShape(12.dp)
+                                                        )
+                                                        .clickable {
+                                                            selectedEpisodeId = if (isSelected) null else episode.malId
+                                                        },
+                                                    shape = RoundedCornerShape(12.dp),
+                                                    elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 6.dp else 2.dp),
+                                                    colors = CardDefaults.cardColors(
+                                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                                    )
+                                                ) {
+                                                    Column {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .height(85.dp)
+                                                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                                        ) {
+                                                            if (!videoInfo?.imageUrl.isNullOrBlank()) {
+                                                                AsyncImage(
+                                                                    model = videoInfo?.imageUrl,
+                                                                    contentDescription = episode.title,
+                                                                    contentScale = ContentScale.Crop,
+                                                                    modifier = Modifier.fillMaxSize()
+                                                                )
+                                                            } else {
+                                                                Box(
+                                                                    modifier = Modifier.fillMaxSize(),
+                                                                    contentAlignment = Alignment.Center
+                                                                ) {
+                                                                    Icon(
+                                                                        imageVector = Icons.Default.OndemandVideo,
+                                                                        contentDescription = null,
+                                                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                                                        modifier = Modifier.size(28.dp)
+                                                                    )
+                                                                }
+                                                            }
+                                                            // Episode number badge
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .align(Alignment.TopStart)
+                                                                    .padding(6.dp)
+                                                                    .background(
+                                                                        MaterialTheme.colorScheme.primary,
+                                                                        RoundedCornerShape(6.dp)
+                                                                    )
+                                                                    .padding(horizontal = 7.dp, vertical = 3.dp)
+                                                            ) {
+                                                                Text(
+                                                                    text = "Ep ${episode.malId ?: "?"}",
+                                                                    color = MaterialTheme.colorScheme.onPrimary,
+                                                                    fontSize = 10.sp,
+                                                                    fontFamily = PoppinsBold
+                                                                )
+                                                            }
+                                                            // Filler/Recap badge
+                                                            if (episode.filler == true || episode.recap == true) {
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .align(Alignment.TopEnd)
+                                                                        .padding(6.dp)
+                                                                        .background(
+                                                                            if (episode.filler == true) Color(0xFFFF9800) else Color(0xFF9C27B0),
+                                                                            RoundedCornerShape(6.dp)
+                                                                        )
+                                                                        .padding(horizontal = 7.dp, vertical = 3.dp)
+                                                                ) {
+                                                                    Text(
+                                                                        text = if (episode.filler == true) "Filler" else "Recap",
+                                                                        color = Color.White,
+                                                                        fontSize = 9.sp,
+                                                                        fontFamily = PoppinsBold
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Title
+                                                        Column(
+                                                            modifier = Modifier.padding(8.dp),
+                                                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                                                        ) {
+                                                            Text(
+                                                                text = episode.title ?: "Episodio ${episode.malId}",
+                                                                color = MaterialTheme.colorScheme.onSurface,
+                                                                fontSize = 12.sp,
+                                                                fontFamily = PoppinsMedium,
+                                                                maxLines = 2,
+                                                                overflow = TextOverflow.Ellipsis,
+                                                                lineHeight = 16.sp
+                                                            )
+                                                            if (episode.score != null && episode.score > 0) {
+                                                                Row(
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                                                ) {
+                                                                    Icon(
+                                                                        Icons.Default.Star,
+                                                                        contentDescription = null,
+                                                                        tint = Color(0xFFFFD700),
+                                                                        modifier = Modifier.size(12.dp)
+                                                                    )
+                                                                    Text(
+                                                                        text = String.format("%.1f", episode.score),
+                                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                                        fontSize = 11.sp,
+                                                                        fontFamily = PoppinsMedium
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // Detalle expandido del episodio seleccionado
+                                        AnimatedVisibility(
+                                            visible = selectedEp != null,
+                                            enter = expandVertically(
+                                                animationSpec = tween(300),
+                                                expandFrom = Alignment.Top
+                                            ) + fadeIn(animationSpec = tween(300)),
+                                            exit = shrinkVertically(
+                                                animationSpec = tween(300),
+                                                shrinkTowards = Alignment.Top
+                                            ) + fadeOut(animationSpec = tween(300))
+                                        ) {
+                                            selectedEp?.let { ep ->
+                                                Surface(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                                                    shape = RoundedCornerShape(14.dp),
+                                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                                    border = BorderStroke(
+                                                        1.dp,
+                                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                                    )
+                                                ) {
+                                                    Column(
+                                                        modifier = Modifier.padding(14.dp),
+                                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                                    ) {
+                                                        // Title row
+                                                        Row(
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .size(36.dp)
+                                                                    .background(
+                                                                        MaterialTheme.colorScheme.primary,
+                                                                        RoundedCornerShape(8.dp)
+                                                                    ),
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                Text(
+                                                                    text = "${ep.malId ?: "?"}",
+                                                                    color = MaterialTheme.colorScheme.onPrimary,
+                                                                    fontSize = 14.sp,
+                                                                    fontFamily = PoppinsBold
+                                                                )
+                                                            }
+                                                            Spacer(modifier = Modifier.width(12.dp))
+                                                            Column(modifier = Modifier.weight(1f)) {
+                                                                Text(
+                                                                    text = ep.title ?: "Episodio ${ep.malId}",
+                                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                                    fontSize = 15.sp,
+                                                                    fontFamily = PoppinsBold,
+                                                                    maxLines = 2,
+                                                                    overflow = TextOverflow.Ellipsis
+                                                                )
+                                                                if (!ep.titleJapanese.isNullOrBlank()) {
+                                                                    Text(
+                                                                        text = ep.titleJapanese,
+                                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                                        fontSize = 12.sp,
+                                                                        fontFamily = PoppinsRegular,
+                                                                        maxLines = 1,
+                                                                        overflow = TextOverflow.Ellipsis
+                                                                    )
+                                                                }
+                                                            }
+                                                            IconButton(
+                                                                onClick = { selectedEpisodeId = null },
+                                                                modifier = Modifier.size(32.dp)
+                                                            ) {
+                                                                Icon(
+                                                                    Icons.Default.Close,
+                                                                    contentDescription = "Cerrar",
+                                                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                                    modifier = Modifier.size(18.dp)
+                                                                )
+                                                            }
+                                                        }
+
+                                                        // Info chips row
+                                                        Row(
+                                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                            if (!ep.aired.isNullOrBlank()) {
+                                                                Surface(
+                                                                    shape = RoundedCornerShape(6.dp),
+                                                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                                                                ) {
+                                                                    Text(
+                                                                        text = ep.aired.substringBefore("T"),
+                                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                                        fontSize = 11.sp,
+                                                                        fontFamily = PoppinsMedium
+                                                                    )
+                                                                }
+                                                            }
+                                                            if (ep.score != null && ep.score > 0) {
+                                                                Surface(
+                                                                    shape = RoundedCornerShape(6.dp),
+                                                                    color = Color(0xFFFFD700).copy(alpha = 0.15f)
+                                                                ) {
+                                                                    Row(
+                                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                                        verticalAlignment = Alignment.CenterVertically,
+                                                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                                    ) {
+                                                                        Icon(
+                                                                            Icons.Default.Star,
+                                                                            contentDescription = null,
+                                                                            tint = Color(0xFFFFD700),
+                                                                            modifier = Modifier.size(12.dp)
+                                                                        )
+                                                                        Text(
+                                                                            text = String.format("%.1f", ep.score),
+                                                                            color = MaterialTheme.colorScheme.onSurface,
+                                                                            fontSize = 11.sp,
+                                                                            fontFamily = PoppinsBold
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                            if (ep.filler == true) {
+                                                                Surface(
+                                                                    shape = RoundedCornerShape(6.dp),
+                                                                    color = Color(0xFFFF9800).copy(alpha = 0.15f)
+                                                                ) {
+                                                                    Text(
+                                                                        text = "Filler",
+                                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                                        color = Color(0xFFFF9800),
+                                                                        fontSize = 11.sp,
+                                                                        fontFamily = PoppinsBold
+                                                                    )
+                                                                }
+                                                            }
+                                                            if (ep.recap == true) {
+                                                                Surface(
+                                                                    shape = RoundedCornerShape(6.dp),
+                                                                    color = Color(0xFF9C27B0).copy(alpha = 0.15f)
+                                                                ) {
+                                                                    Text(
+                                                                        text = "Recap",
+                                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                                        color = Color(0xFF9C27B0),
+                                                                        fontSize = 11.sp,
+                                                                        fontFamily = PoppinsBold
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Ver más detalles button
+                                                        Row(
+                                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                        ) {
+                                                            ep.malId?.let { epId ->
+                                                                Surface(
+                                                                    onClick = {
+                                                                        animeDetail?.let { anime ->
+                                                                            animeDetailViewModel.loadEpisodeDetail(anime.malId, epId)
+                                                                        }
+                                                                    },
+                                                                    shape = RoundedCornerShape(8.dp),
+                                                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                                                ) {
+                                                                    Text(
+                                                                        text = "Ver sinopsis",
+                                                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                                        color = MaterialTheme.colorScheme.primary,
+                                                                        fontSize = 12.sp,
+                                                                        fontFamily = PoppinsBold
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Botón para cargar más
+                                if (hasMoreEpisodes) {
+                                    item {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(200.dp)
-                                                .padding(horizontal = 16.dp),
+                                                .padding(16.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            LoadingScreen()
+                                            if (isEpisodesLoading) {
+                                                CircularProgressIndicator(
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    strokeWidth = 2.dp,
+                                                    modifier = Modifier.size(28.dp)
+                                                )
+                                            } else {
+                                                OutlinedButton(
+                                                    onClick = {
+                                                        animeDetail?.let {
+                                                            animeDetailViewModel.loadAnimeEpisodes(it.malId, loadMore = true)
+                                                        }
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.ExpandMore,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(
+                                                        text = "Cargar más episodios",
+                                                        fontFamily = PoppinsMedium
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                        if (selectedTabIndex == 3) {
+
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = "Estudios",
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontFamily = PoppinsBold,
+                                        fontSize = 20.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            text = "${animeDetail?.studios?.size ?: 0}",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontFamily = PoppinsBold,
+                                            fontSize = 13.sp
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
+
+                            items(animeDetail?.studios?.filterNotNull() ?: emptyList()) { studio ->
+                                    val studioId = studio.idStudio
+                                    val isExpanded = expandedStudioId == studioId
+
+                                    Column(
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
+                                    ) {
+                                        StudioCompactCard(
+                                            studioName = studio.nameStudio ?: "Sin nombre",
+                                            isExpanded = isExpanded,
+                                            onClick = {
+                                                expandedStudioId = if (isExpanded) null else studioId
+                                            }
+                                        )
+
+                                        // AnimatedContent para mostrar información detallada
+                                        AnimatedVisibility(
+                                            visible = isExpanded,
+                                            enter = expandVertically(
+                                                animationSpec = tween(300),
+                                                expandFrom = Alignment.Top
+                                            ) + fadeIn(animationSpec = tween(300)),
+                                            exit = shrinkVertically(
+                                                animationSpec = tween(300),
+                                                shrinkTowards = Alignment.Top
+                                            ) + fadeOut(animationSpec = tween(300))
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(top = 12.dp)
+                                            ) {
+                                                when {
+                                                    producerIsLoading || showProducerLoading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(120.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    strokeWidth = 2.dp,
+                                                    modifier = Modifier.size(28.dp)
+                                                )
+                                                Text(
+                                                    text = "Cargando estudio...",
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                    fontFamily = PoppinsRegular,
+                                                    fontSize = 13.sp
+                                                )
+                                            }
                                         }
                                     }
 
                                     producerErrorMessage != null -> {
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 16.dp),
-                                            shape = RoundedCornerShape(16.dp),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.errorContainer
-                                            )
+                                        Surface(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
+                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
                                         ) {
-                                            Column(
-                                                modifier = Modifier.padding(20.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            Row(
+                                                modifier = Modifier.padding(14.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Icon(
                                                     Icons.Default.Close,
                                                     contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                                                    modifier = Modifier.size(48.dp)
+                                                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                                    modifier = Modifier.size(20.dp)
                                                 )
-                                                Spacer(modifier = Modifier.height(12.dp))
                                                 Text(
-                                                    text = "Error al cargar información del estudio",
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                Text(
-                                                    text = producerErrorMessage!!,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
-                                                    textAlign = TextAlign.Center
+                                                    text = "No se pudo cargar la información del estudio",
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                    fontFamily = PoppinsRegular,
+                                                    fontSize = 13.sp
                                                 )
                                             }
                                         }
@@ -1397,190 +2160,152 @@ fun AnimeDetailScreen(
                                     producerDetail != null -> {
                                         showProducerLoading = false
 
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 16.dp),
-                                            shape = RoundedCornerShape(20.dp),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
-                                            Column(
-                                                modifier = Modifier.padding(24.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                                            // Logo y nombre del estudio
+                                            Surface(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = RoundedCornerShape(16.dp),
+                                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                                border = BorderStroke(
+                                                    1.dp,
+                                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                                )
                                             ) {
-                                                // Logo del estudio
-                                                Card(
-                                                    shape = RoundedCornerShape(16.dp),
-                                                    colors = CardDefaults.cardColors(
-                                                        containerColor = MaterialTheme.colorScheme.surface
-                                                    ),
-                                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                                Row(
+                                                    modifier = Modifier.padding(16.dp),
+                                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
                                                 ) {
-                                                    AsyncImage(
-                                                        model = producerDetail?.images,
-                                                        contentDescription = "Logo del estudio",
-                                                        modifier = Modifier
-                                                            .height(120.dp)
-                                                            .padding(16.dp),
-                                                        contentScale = ContentScale.Fit
-                                                    )
-                                                }
-
-                                                // Nombre del estudio
-                                                producerDetail?.titles?.firstOrNull()?.title?.let { title ->
-                                                    Text(
-                                                        text = title,
-                                                        style = MaterialTheme.typography.headlineMedium,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.onSurface,
-                                                        textAlign = TextAlign.Center
-                                                    )
-                                                }
-
-                                                HorizontalDivider()
-
-                                                // Fecha de fundación
-                                                producerDetail?.established?.let { established ->
-                                                    val date = established.split("T").firstOrNull()
-                                                    Row(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .background(
-                                                                MaterialTheme.colorScheme.primaryContainer,
-                                                                RoundedCornerShape(12.dp)
-                                                            )
-                                                            .padding(16.dp),
-                                                        horizontalArrangement = Arrangement.Center,
-                                                        verticalAlignment = Alignment.CenterVertically
+                                                    Surface(
+                                                        shape = RoundedCornerShape(14.dp),
+                                                        color = MaterialTheme.colorScheme.surface,
+                                                        border = BorderStroke(
+                                                            1.dp,
+                                                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                                        )
                                                     ) {
-                                                        Icon(
-                                                            Icons.Default.CalendarMonth,
-                                                            contentDescription = null,
-                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                            modifier = Modifier.size(20.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.width(8.dp))
-                                                        Text(
-                                                            text = "Fundado: ",
-                                                            style = MaterialTheme.typography.bodyLarge,
-                                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
-                                                        Text(
-                                                            text = date ?: "N/A",
-                                                            style = MaterialTheme.typography.bodyLarge,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(80.dp),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            AsyncImage(
+                                                                model = producerDetail?.images,
+                                                                contentDescription = "Logo del estudio",
+                                                                modifier = Modifier.fillMaxSize(),
+                                                                contentScale = ContentScale.Crop
+                                                            )
+                                                        }
                                                     }
-                                                }
 
-                                                // Descripción del estudio
-                                                producerDetail?.about?.let { about ->
-                                                    var expandedProducerAbout by remember {
-                                                        mutableStateOf(false)
-                                                    }
-                                                    Column {
-                                                        Text(
-                                                            text = "Acerca del estudio",
-                                                            style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = MaterialTheme.colorScheme.primary,
-                                                            modifier = Modifier.padding(bottom = 8.dp)
-                                                        )
-                                                        Text(
-                                                            text = about,
-                                                            style = MaterialTheme.typography.bodyMedium,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                            textAlign = TextAlign.Justify,
-                                                            lineHeight = 20.sp,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            maxLines = if (expandedProducerAbout) Int.MAX_VALUE else 5
-                                                        )
-                                                        if (about.length > 200) {
-                                                            TextButton(
-                                                                onClick = {
-                                                                    expandedProducerAbout = !expandedProducerAbout
-                                                                },
-                                                                modifier = Modifier.align(Alignment.End)
-                                                            ) {
+                                                    Column(
+                                                        modifier = Modifier.weight(1f),
+                                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                                    ) {
+                                                        producerDetail?.titles?.firstOrNull()?.title?.let { title ->
+                                                            Text(
+                                                                text = title,
+                                                                fontFamily = PoppinsBold,
+                                                                color = MaterialTheme.colorScheme.onSurface,
+                                                                fontSize = 18.sp,
+                                                                lineHeight = 22.sp,
+                                                                maxLines = 2,
+                                                                overflow = TextOverflow.Ellipsis
+                                                            )
+                                                        }
+
+                                                        Row(
+                                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
+                                                            producerDetail?.established?.let { established ->
+                                                                val date = established.split("T").firstOrNull()
                                                                 Text(
-                                                                    if (expandedProducerAbout) "Ver menos" else "Ver más",
-                                                                    fontWeight = FontWeight.SemiBold
-                                                                )
-                                                                Spacer(modifier = Modifier.width(4.dp))
-                                                                Icon(
-                                                                    imageVector = if (expandedProducerAbout) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                                                    contentDescription = null,
-                                                                    modifier = Modifier.size(20.dp)
+                                                                    text = date ?: "",
+                                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                                                    fontFamily = PoppinsRegular,
+                                                                    fontSize = 12.sp
                                                                 )
                                                             }
                                                         }
                                                     }
                                                 }
+                                            }
 
-                                                // Enlaces externos
-                                                val externalLinks = producerDetail?.external
-                                                if (!externalLinks.isNullOrEmpty()) {
-                                                    HorizontalDivider()
-
+                                            // Descripción del estudio
+                                            producerDetail?.about?.let { about ->
+                                                var expandedProducerAbout by remember {
+                                                    mutableStateOf(false)
+                                                }
+                                                Column(
+                                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                                ) {
                                                     Text(
-                                                        text = "Enlaces Externos",
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .padding(bottom = 8.dp)
+                                                        text = about,
+                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                                        fontFamily = PoppinsRegular,
+                                                        textAlign = TextAlign.Justify,
+                                                        lineHeight = 22.sp,
+                                                        fontSize = 13.sp,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                        maxLines = if (expandedProducerAbout) Int.MAX_VALUE else 4
                                                     )
 
-                                                    LazyRow(
-                                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                                    ) {
-                                                        items(externalLinks) { external ->
-                                                            Card(
-                                                                onClick = {
-                                                                    external.url?.let {
-                                                                        uriHandler.openUri(it)
-                                                                    }
-                                                                },
-                                                                shape = RoundedCornerShape(16.dp),
-                                                                colors = CardDefaults.cardColors(
-                                                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                                                                ),
-                                                                elevation = CardDefaults.cardElevation(
-                                                                    defaultElevation = 2.dp,
-                                                                    pressedElevation = 6.dp
-                                                                )
-                                                            ) {
-                                                                Column(
-                                                                    modifier = Modifier
-                                                                        .width(100.dp)
-                                                                        .padding(16.dp),
-                                                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                                                    verticalArrangement = Arrangement.Center
-                                                                ) {
-                                                                    AsyncImage(
-                                                                        model = producerDetail?.images,
-                                                                        contentDescription = "Imagen del estudio",
-                                                                        modifier = Modifier
-                                                                            .size(60.dp)
-                                                                            .clip(RoundedCornerShape(50))
-                                                                    )
-                                                                    Spacer(modifier = Modifier.height(8.dp))
-                                                                    Text(
-                                                                        text = external.name ?: "Enlace",
-                                                                        style = MaterialTheme.typography.labelMedium,
-                                                                        textAlign = TextAlign.Center,
-                                                                        maxLines = 2,
-                                                                        overflow = TextOverflow.Ellipsis,
-                                                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                                        fontWeight = FontWeight.SemiBold
-                                                                    )
+                                                    if (about.length > 150) {
+                                                        Text(
+                                                            text = if (expandedProducerAbout) "Ver menos" else "Ver más",
+                                                            fontFamily = PoppinsBold,
+                                                            fontSize = 13.sp,
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.clickable {
+                                                                expandedProducerAbout = !expandedProducerAbout
+                                                            }
+                                                        )
+                                                    }
+                                                }
+                                            }
+
+                                            // Enlaces externos
+                                            val externalLinks = producerDetail?.external
+                                            if (!externalLinks.isNullOrEmpty()) {
+                                                LazyRow(
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                ) {
+                                                    items(externalLinks) { external ->
+                                                        Surface(
+                                                            onClick = {
+                                                                external.url?.let {
+                                                                    uriHandler.openUri(it)
                                                                 }
+                                                            },
+                                                            shape = RoundedCornerShape(20.dp),
+                                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                            border = BorderStroke(
+                                                                1.dp,
+                                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                                            )
+                                                        ) {
+                                                            Row(
+                                                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.AutoMirrored.Filled.ArrowRight,
+                                                                    contentDescription = null,
+                                                                    tint = MaterialTheme.colorScheme.primary,
+                                                                    modifier = Modifier.size(16.dp)
+                                                                )
+                                                                Text(
+                                                                    text = external.name ?: "Enlace",
+                                                                    maxLines = 1,
+                                                                    overflow = TextOverflow.Ellipsis,
+                                                                    color = MaterialTheme.colorScheme.primary,
+                                                                    fontFamily = PoppinsMedium,
+                                                                    fontSize = 13.sp
+                                                                )
                                                             }
                                                         }
                                                     }
@@ -1588,26 +2313,81 @@ fun AnimeDetailScreen(
                                             }
                                         }
                                     }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                Spacer(modifier = Modifier.height(24.dp))
-                            }
                         }
                         if (selectedTabIndex == 4) {
                             item {
                                 var selectedStatus by remember { mutableStateOf<String?>(null) }
                                 var userRating by remember { mutableStateOf(0.0f) }
+                                var startDate by remember { mutableStateOf<Long?>(null) }
+                                var endDate by remember { mutableStateOf<Long?>(null) }
+                                val dateFormat = SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+
+                                var showStartDatePicker by remember { mutableStateOf(false) }
+                                var showEndDatePicker by remember { mutableStateOf(false) }
 
                                 val isFormValid = selectedStatus != null
 
+                                // Date pickers
+                                if (showStartDatePicker) {
+                                    DatePickerDialog(
+                                        onDismissRequest = { showStartDatePicker = false },
+                                        confirmButton = {
+                                            Button(onClick = { showStartDatePicker = false }) {
+                                                Text("OK")
+                                            }
+                                        },
+                                        dismissButton = {
+                                            Button(onClick = { showStartDatePicker = false }) {
+                                                Text("Cancelar")
+                                            }
+                                        }
+                                    ) {
+                                        val datePickerState = rememberDatePickerState(
+                                            initialSelectedDateMillis = startDate
+                                        )
+                                        DatePicker(state = datePickerState)
+                                        startDate = datePickerState.selectedDateMillis
+                                    }
+                                }
+
+                                if (showEndDatePicker) {
+                                    DatePickerDialog(
+                                        onDismissRequest = { showEndDatePicker = false },
+                                        confirmButton = {
+                                            Button(onClick = { showEndDatePicker = false }) {
+                                                Text("OK")
+                                            }
+                                        },
+                                        dismissButton = {
+                                            Button(onClick = { showEndDatePicker = false }) {
+                                                Text("Cancelar")
+                                            }
+                                        }
+                                    ) {
+                                        val datePickerState = rememberDatePickerState(
+                                            initialSelectedDateMillis = endDate
+                                        )
+                                        DatePicker(state = datePickerState)
+                                        endDate = datePickerState.selectedDateMillis
+                                    }
+                                }
+
                                 Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
-                                    // Header mejorado
+                                    // Header compacto
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                                            .padding(vertical = 8.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Center
                                     ) {
@@ -1615,178 +2395,90 @@ fun AnimeDetailScreen(
                                             imageVector = Icons.Default.Favorite,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(28.dp)
+                                            modifier = Modifier.size(24.dp)
                                         )
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text(
                                             text = "Añadir a mi lista",
                                             color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 26.sp,
-                                            fontFamily = RobotoBold
+                                            fontSize = 20.sp,
+                                            fontFamily = PoppinsBold
                                         )
                                     }
 
-                                    // Card: Estado
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp)
-                                            .animateContentSize(),
-                                        colors = CardDefaults.elevatedCardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                        ),
-                                        elevation = CardDefaults.elevatedCardElevation(
-                                            defaultElevation = 4.dp,
-                                            pressedElevation = 2.dp
-                                        ),
-                                        shape = RoundedCornerShape(16.dp)
+                                    // Selección de estado con chips
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(20.dp)
+                                        Text(
+                                            text = "Estado",
+                                            fontSize = 16.sp,
+                                            fontFamily = PoppinsBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+
+                                        // Verificar qué estados están permitidos según el estado de emisión
+                                        val animeAiringStatus = animeDetail?.status ?: ""
+                                        val isNotYetAired = animeAiringStatus == "Not yet aired"
+                                        val isCurrentlyAiring = animeAiringStatus == "Currently Airing"
+                                        val isFinishedAiring = animeAiringStatus == "Finished Airing"
+
+                                        LazyVerticalGrid(
+                                            columns = GridCells.Fixed(2),
+                                            modifier = Modifier.height(180.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.padding(bottom = 12.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.CheckCircle,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(12.dp))
-                                                Text(
-                                                    text = "Estado",
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    fontSize = 20.sp,
-                                                    fontFamily = RobotoBold
-                                                )
-                                                Spacer(modifier = Modifier.weight(1f))
-                                                if (selectedStatus != null) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .background(
-                                                                statusColors[selectedStatus]!!,
-                                                                RoundedCornerShape(8.dp)
-                                                            )
-                                                            .padding(horizontal = 12.dp, vertical = 4.dp)
-                                                    ) {
-                                                        Text(
-                                                            text = "✓",
-                                                            color = Color.Black,
-                                                            fontWeight = FontWeight.Bold,
-                                                            fontSize = 14.sp
-                                                        )
-                                                    }
+                                            items(statusAnime) { status ->
+                                                val isSelected = selectedStatus == status
+                                                // Si no ha salido aún, solo permitir "Planeado"
+                                                // Si está en emisión, no permitir "Completado"
+                                                val isDisabled = when {
+                                                    isNotYetAired -> status != "Planeado"
+                                                    isCurrentlyAiring -> status == "Completado"
+                                                    else -> false
                                                 }
-                                            }
 
-                                            Button(
-                                                onClick = { expandedStatus = !expandedStatus },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(56.dp),
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = if (selectedStatus != null) statusColors[selectedStatus]!! else MaterialTheme.colorScheme.surface,
-                                                    contentColor = if (selectedStatus != null) Color.Black else MaterialTheme.colorScheme.onSurface
-                                                ),
-                                                shape = RoundedCornerShape(12.dp),
-                                                elevation = ButtonDefaults.buttonElevation(
-                                                    defaultElevation = 2.dp,
-                                                    pressedElevation = 6.dp
-                                                )
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.fillMaxWidth()
-                                                ) {
-                                                    Text(
-                                                        text = selectedStatus ?: "Seleccionar estado",
-                                                        modifier = Modifier.weight(1f),
-                                                        textAlign = if (selectedStatus != null) TextAlign.Center else TextAlign.Start,
-                                                        fontSize = 16.sp,
-                                                        fontWeight = FontWeight.SemiBold
-                                                    )
-                                                    val rotation: Float by animateFloatAsState(
-                                                        targetValue = if (expandedStatus) 180f else 0f,
-                                                        animationSpec = spring(
-                                                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                                                            stiffness = Spring.StiffnessLow
-                                                        ),
-                                                        label = "Arrow Rotation"
-                                                    )
-                                                    Icon(
-                                                        imageVector = Icons.Default.ArrowDropDown,
-                                                        contentDescription = null,
-                                                        modifier = Modifier
-                                                            .size(28.dp)
-                                                            .rotate(rotation)
-                                                    )
-                                                }
-                                            }
-
-                                            AnimatedVisibility(
-                                                visible = expandedStatus,
-                                                enter = fadeIn() + expandVertically(),
-                                                exit = fadeOut() + shrinkVertically()
-                                            ) {
-                                                LazyVerticalGrid(
-                                                    columns = GridCells.Fixed(2),
+                                                Surface(
+                                                    onClick = {
+                                                        if (!isDisabled) {
+                                                            selectedStatus = if (isSelected) null else status
+                                                        }
+                                                    },
                                                     modifier = Modifier
-                                                        .padding(top = 12.dp)
-                                                        .height(200.dp),
-                                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                                        .height(50.dp)
+                                                        .then(if (isDisabled) Modifier.alpha(0.4f) else Modifier),
+                                                    shape = RoundedCornerShape(12.dp),
+                                                    color = if (isSelected)
+                                                        statusColors[status] ?: MaterialTheme.colorScheme.primaryContainer
+                                                    else
+                                                        MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                    shadowElevation = if (isSelected) 4.dp else 1.dp
                                                 ) {
-                                                    items(
-                                                        items = statusAnime,
-                                                        key = { it }
-                                                    ) { status ->
-                                                        val isSelected = selectedStatus == status
-                                                        val scale by animateFloatAsState(
-                                                            targetValue = if (isSelected) 1.05f else 1f,
-                                                            animationSpec = spring(
-                                                                dampingRatio = Spring.DampingRatioMediumBouncy
-                                                            ),
-                                                            label = "Card Scale"
-                                                        )
-
-                                                        Card(
-                                                            onClick = {
-                                                                if (selectedStatus == status) {
-                                                                    selectedStatus = null
-                                                                } else {
-                                                                    selectedStatus = status
-                                                                }
-                                                                expandedStatus = false
-                                                            },
-                                                            modifier = Modifier
-                                                                .fillMaxHeight()
-                                                                .scale(scale),
-                                                            colors = CardDefaults.cardColors(
-                                                                containerColor = statusColors[status] ?: Color.Gray
-                                                            ),
-                                                            elevation = CardDefaults.cardElevation(
-                                                                defaultElevation = if (isSelected) 8.dp else 2.dp
-                                                            ),
-                                                            shape = RoundedCornerShape(12.dp)
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Row(
+                                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                            verticalAlignment = Alignment.CenterVertically
                                                         ) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .fillMaxSize()
-                                                                    .padding(12.dp),
-                                                                contentAlignment = Alignment.Center
-                                                            ) {
-                                                                Text(
-                                                                    text = status,
-                                                                    color = Color.Black,
-                                                                    fontWeight = FontWeight.Bold,
-                                                                    fontSize = 15.sp,
-                                                                    textAlign = TextAlign.Center
+                                                            if (isSelected) {
+                                                                Icon(
+                                                                    imageVector = Icons.Default.CheckCircle,
+                                                                    contentDescription = null,
+                                                                    modifier = Modifier.size(16.dp),
+                                                                    tint = Color.Black
                                                                 )
                                                             }
+                                                            Text(
+                                                                text = status,
+                                                                fontSize = 14.sp,
+                                                                fontFamily = PoppinsRegular,
+                                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                                color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
+                                                            )
                                                         }
                                                     }
                                                 }
@@ -1794,325 +2486,210 @@ fun AnimeDetailScreen(
                                         }
                                     }
 
-                                    // Card: Calificación
+                                    // Calificación
                                     AnimatedVisibility(
-                                        visible = selectedStatus != null,
+                                        visible = selectedStatus != null && selectedStatus != "Planeado",
                                         enter = fadeIn() + expandVertically(),
                                         exit = fadeOut() + shrinkVertically()
                                     ) {
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 16.dp),
-                                            colors = CardDefaults.elevatedCardColors(
-                                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                            ),
-                                            elevation = CardDefaults.elevatedCardElevation(
-                                                defaultElevation = 4.dp
-                                            ),
-                                            shape = RoundedCornerShape(16.dp)
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(20.dp)
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                modifier = Modifier.fillMaxWidth()
                                             ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(bottom = 12.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Star,
-                                                        contentDescription = null,
-                                                        tint = Color(0xFFFFD700),
-                                                        modifier = Modifier.size(24.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.width(12.dp))
-                                                    Text(
-                                                        text = "Calificación",
-                                                        color = MaterialTheme.colorScheme.onSurface,
-                                                        fontSize = 20.sp,
-                                                        fontFamily = RobotoBold
-                                                    )
+                                                Text(
+                                                    text = "Calificación",
+                                                    fontSize = 16.sp,
+                                                    fontFamily = PoppinsBold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                if (userRating > 0) {
+                                                    Surface(
+                                                        shape = RoundedCornerShape(8.dp),
+                                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                                    ) {
+                                                        Row(
+                                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Star,
+                                                                contentDescription = null,
+                                                                tint = Color(0xFFFFD700),
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                            Text(
+                                                                text = String.format("%.1f", userRating),
+                                                                fontSize = 14.sp,
+                                                                fontFamily = PoppinsBold,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
+                                                    }
                                                 }
+                                            }
 
-                                                if (selectedStatus != "Planeado") {
+                                            Surface(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = RoundedCornerShape(12.dp),
+                                                color = MaterialTheme.colorScheme.surfaceContainerHighest
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier.padding(16.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
                                                     RatingBar(
                                                         rating = userRating,
                                                         onRatingChange = { userRating = it }
                                                     )
-                                                } else {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .background(
-                                                                MaterialTheme.colorScheme.surface,
-                                                                RoundedCornerShape(12.dp)
-                                                            )
-                                                            .padding(16.dp),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Text(
-                                                            "No puedes puntuar un anime planeado",
-                                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                                            textAlign = TextAlign.Center,
-                                                            fontSize = 14.sp
-                                                        )
-                                                    }
                                                 }
                                             }
                                         }
                                     }
 
-                                    // Card: Opinión
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        colors = CardDefaults.elevatedCardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                        ),
-                                        elevation = CardDefaults.elevatedCardElevation(
-                                            defaultElevation = 4.dp
-                                        ),
-                                        shape = RoundedCornerShape(16.dp)
+                                    // Opinión
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Column(
+                                        Text(
+                                            text = "Opinión (opcional)",
+                                            fontSize = 16.sp,
+                                            fontFamily = PoppinsBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+
+                                        OutlinedTextField(
+                                            value = userOpinion,
+                                            onValueChange = { userOpinion = it },
+                                            placeholder = {
+                                                Text("Comparte tu opinión...")
+                                            },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(20.dp)
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.padding(bottom = 12.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Edit,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(12.dp))
-                                                Text(
-                                                    text = "Opinión",
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    fontSize = 20.sp,
-                                                    fontFamily = RobotoBold
-                                                )
-                                            }
-
-                                            OutlinedTextField(
-                                                value = userOpinion,
-                                                onValueChange = { userOpinion = it },
-                                                placeholder = {
-                                                    Text(text = "Comparte tu opinión sobre este anime...")
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(180.dp),
-                                                colors = OutlinedTextFieldDefaults.colors(
-                                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                                    focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                                    cursorColor = MaterialTheme.colorScheme.primary,
-                                                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                                ),
-                                                shape = RoundedCornerShape(12.dp)
-                                            )
-                                        }
+                                                .height(120.dp),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                                unfocusedBorderColor = Color.Transparent,
+                                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                                cursorColor = MaterialTheme.colorScheme.primary
+                                            ),
+                                            shape = RoundedCornerShape(12.dp),
+                                            maxLines = 5
+                                        )
                                     }
 
-                                    // Card: Fechas
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        colors = CardDefaults.elevatedCardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                        ),
-                                        elevation = CardDefaults.elevatedCardElevation(
-                                            defaultElevation = 4.dp
-                                        ),
-                                        shape = RoundedCornerShape(16.dp)
+                                    // Fechas
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(20.dp)
+                                        Text(
+                                            text = "Fechas (opcional)",
+                                            fontSize = 16.sp,
+                                            fontFamily = PoppinsBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+
+                                        val canSelectStartDate = selectedStatus != "Planeado"
+                                        val canSelectEndDate = selectedStatus == "Completado"
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.padding(bottom = 12.dp)
+                                            Surface(
+                                                onClick = { if (canSelectStartDate) showStartDatePicker = true },
+                                                modifier = Modifier.weight(1f),
+                                                shape = RoundedCornerShape(12.dp),
+                                                color = if (canSelectStartDate)
+                                                    MaterialTheme.colorScheme.surfaceContainerHighest
+                                                else
+                                                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
                                             ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.CalendarToday,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(12.dp))
-                                                Text(
-                                                    text = "Fechas",
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    fontSize = 20.sp,
-                                                    fontFamily = RobotoBold
-                                                )
-                                            }
-
-                                            var startDate by remember { mutableStateOf<Long?>(null) }
-                                            var endDate by remember { mutableStateOf<Long?>(null) }
-                                            val dateFormat = SimpleDateFormat("dd/MM/yyyy")
-
-                                            var showStartDatePicker by remember { mutableStateOf(false) }
-                                            var showEndDatePicker by remember { mutableStateOf(false) }
-
-                                            if (showStartDatePicker) {
-                                                DatePickerDialog(
-                                                    onDismissRequest = { showStartDatePicker = false },
-                                                    confirmButton = {
-                                                        Button(onClick = {
-                                                            showStartDatePicker = false
-                                                        }) {
-                                                            Text("OK")
-                                                        }
-                                                    },
-                                                    dismissButton = {
-                                                        Button(onClick = { showStartDatePicker = false }) {
-                                                            Text("Cancelar")
-                                                        }
-                                                    }
+                                                Column(
+                                                    modifier = Modifier.padding(12.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                                 ) {
-                                                    val datePickerState = rememberDatePickerState(
-                                                        initialSelectedDateMillis = startDate
+                                                    Icon(
+                                                        imageVector = Icons.Default.CalendarToday,
+                                                        contentDescription = null,
+                                                        tint = if (canSelectStartDate)
+                                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                                        else
+                                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                                        modifier = Modifier.size(18.dp)
                                                     )
-                                                    DatePicker(state = datePickerState)
-                                                    startDate = datePickerState.selectedDateMillis
+                                                    Text(
+                                                        text = startDate?.let { dateFormat.format(it) } ?: "Inicio",
+                                                        fontSize = 12.sp,
+                                                        fontFamily = PoppinsRegular,
+                                                        color = if (canSelectStartDate)
+                                                            MaterialTheme.colorScheme.onSurface
+                                                        else
+                                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                                    )
                                                 }
                                             }
 
-                                            if (showEndDatePicker) {
-                                                DatePickerDialog(
-                                                    onDismissRequest = { showEndDatePicker = false },
-                                                    confirmButton = {
-                                                        Button(onClick = {
-                                                            showEndDatePicker = false
-                                                        }) {
-                                                            Text("OK")
-                                                        }
-                                                    },
-                                                    dismissButton = {
-                                                        Button(onClick = { showEndDatePicker = false }) {
-                                                            Text("Cancelar")
-                                                        }
-                                                    }
-                                                ) {
-                                                    val datePickerState = rememberDatePickerState(
-                                                        initialSelectedDateMillis = endDate
-                                                    )
-                                                    DatePicker(state = datePickerState)
-                                                    endDate = datePickerState.selectedDateMillis
-                                                }
-                                            }
-
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                            Surface(
+                                                onClick = { if (canSelectEndDate) showEndDatePicker = true },
+                                                modifier = Modifier.weight(1f),
+                                                shape = RoundedCornerShape(12.dp),
+                                                color = if (canSelectEndDate)
+                                                    MaterialTheme.colorScheme.surfaceContainerHighest
+                                                else
+                                                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
                                             ) {
-                                                Card(
-                                                    onClick = { showStartDatePicker = true },
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .height(70.dp),
-                                                    colors = CardDefaults.cardColors(
-                                                        containerColor = MaterialTheme.colorScheme.surface
-                                                    ),
-                                                    elevation = CardDefaults.cardElevation(
-                                                        defaultElevation = 2.dp,
-                                                        pressedElevation = 6.dp
-                                                    ),
-                                                    shape = RoundedCornerShape(12.dp)
+                                                Column(
+                                                    modifier = Modifier.padding(12.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                                 ) {
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .padding(12.dp),
-                                                        verticalArrangement = Arrangement.Center,
-                                                        horizontalAlignment = Alignment.CenterHorizontally
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.CalendarToday,
-                                                            contentDescription = "Fecha de inicio",
-                                                            tint = MaterialTheme.colorScheme.primary,
-                                                            modifier = Modifier.size(20.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.height(4.dp))
-                                                        Text(
-                                                            text = startDate?.let { dateFormat.format(it) } ?: "Inicio",
-                                                            fontSize = 12.sp,
-                                                            fontWeight = FontWeight.Medium,
-                                                            color = MaterialTheme.colorScheme.onSurface
-                                                        )
-                                                    }
-                                                }
-
-                                                Card(
-                                                    onClick = { showEndDatePicker = true },
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .height(70.dp),
-                                                    colors = CardDefaults.cardColors(
-                                                        containerColor = MaterialTheme.colorScheme.surface
-                                                    ),
-                                                    elevation = CardDefaults.cardElevation(
-                                                        defaultElevation = 2.dp,
-                                                        pressedElevation = 6.dp
-                                                    ),
-                                                    shape = RoundedCornerShape(12.dp)
-                                                ) {
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .padding(12.dp),
-                                                        verticalArrangement = Arrangement.Center,
-                                                        horizontalAlignment = Alignment.CenterHorizontally
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.CalendarToday,
-                                                            contentDescription = "Fecha de finalización",
-                                                            tint = MaterialTheme.colorScheme.primary,
-                                                            modifier = Modifier.size(20.dp)
-                                                        )
-                                                        Spacer(modifier = Modifier.height(4.dp))
-                                                        Text(
-                                                            text = endDate?.let { dateFormat.format(it) } ?: "Final",
-                                                            fontSize = 12.sp,
-                                                            fontWeight = FontWeight.Medium,
-                                                            color = MaterialTheme.colorScheme.onSurface
-                                                        )
-                                                    }
+                                                    Icon(
+                                                        imageVector = Icons.Default.CalendarToday,
+                                                        contentDescription = null,
+                                                        tint = if (canSelectEndDate)
+                                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                                        else
+                                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Text(
+                                                        text = endDate?.let { dateFormat.format(it) } ?: "Final",
+                                                        fontSize = 12.sp,
+                                                        fontFamily = PoppinsRegular,
+                                                        color = if (canSelectEndDate)
+                                                            MaterialTheme.colorScheme.onSurface
+                                                        else
+                                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                                    )
                                                 }
                                             }
                                         }
                                     }
 
-                                    // Botón Guardar mejorado
+                                    // Botón guardar
                                     Button(
                                         onClick = {
                                             if (isFormValid) {
-                                                val scoreToPass = if (selectedStatus == "Planeado") {
-                                                    0.0f
-                                                } else {
-                                                    userRating
-                                                }
+                                                val scoreToPass = if (selectedStatus == "Planeado") 0.0f else userRating
 
                                                 animeDetailViewModel.addAnimeToList(
                                                     userScore = scoreToPass,
                                                     userStatus = selectedStatus!!,
-                                                    userOpinion = userOpinion
+                                                    userOpinion = userOpinion,
+                                                    startDate = startDate,
+                                                    endDate = endDate
                                                 )
                                                 scope.launch {
                                                     val result = snackbarHostState.showSnackbar(
@@ -2129,42 +2706,38 @@ fun AnimeDetailScreen(
                                         enabled = isFormValid,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                                            .height(56.dp),
+                                            .height(54.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = Color.White,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary,
                                             disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         ),
-                                        shape = RoundedCornerShape(14.dp),
+                                        shape = RoundedCornerShape(12.dp),
                                         elevation = ButtonDefaults.buttonElevation(
-                                            defaultElevation = 6.dp,
-                                            pressedElevation = 12.dp,
-                                            disabledElevation = 0.dp
+                                            defaultElevation = 4.dp,
+                                            pressedElevation = 8.dp
                                         )
                                     ) {
                                         Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Check,
                                                 contentDescription = null,
-                                                modifier = Modifier.size(22.dp)
+                                                modifier = Modifier.size(20.dp)
                                             )
-                                            Spacer(modifier = Modifier.width(8.dp))
                                             Text(
                                                 text = "Guardar en mi lista",
                                                 fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold
+                                                fontFamily = PoppinsBold
                                             )
                                         }
                                     }
 
-                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
                                 }
-
                             }
                         }
                     }
@@ -2201,6 +2774,324 @@ fun AnimeDetailScreen(
                                         contentDescription = "Cerrar",
                                         tint = Color.White
                                     )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Modal para ver imagen en grande
+    if (selectedPictureUrl != null) {
+        Dialog(
+            onDismissRequest = { selectedPictureUrl = null },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.9f))
+                    .clickable { selectedPictureUrl = null },
+                contentAlignment = Alignment.Center
+            ) {
+                // Botón de cerrar
+                IconButton(
+                    onClick = { selectedPictureUrl = null },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .background(
+                            Color.Black.copy(alpha = 0.5f),
+                            RoundedCornerShape(50)
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.White
+                    )
+                }
+
+                // Imagen
+                AsyncImage(
+                    model = selectedPictureUrl,
+                    contentDescription = "Imagen ampliada",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+            }
+        }
+    }
+
+    // Modal para ver detalle del episodio
+    if (selectedEpisodeDetail != null || isEpisodeDetailLoading) {
+        Dialog(
+            onDismissRequest = { animeDetailViewModel.clearEpisodeDetail() },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable { animeDetailViewModel.clearEpisodeDetail() },
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .clickable(enabled = false) { } // Evitar que el click cierre el modal
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    if (isEpisodeDetailLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    } else {
+                        selectedEpisodeDetail?.let { episode ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp)
+                            ) {
+                                // Header con número de episodio y botón cerrar
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(
+                                                    MaterialTheme.colorScheme.primary,
+                                                    RoundedCornerShape(8.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "${episode.malId ?: "?"}",
+                                                color = MaterialTheme.colorScheme.onPrimary,
+                                                fontSize = 18.sp,
+                                                fontFamily = PoppinsBold
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = "Episodio ${episode.malId}",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontFamily = PoppinsBold
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { animeDetailViewModel.clearEpisodeDetail() }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Cerrar",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                // Título
+                                Text(
+                                    text = episode.title ?: "Sin título",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontFamily = PoppinsBold
+                                )
+
+                                // Título japonés
+                                if (!episode.titleJapanese.isNullOrBlank()) {
+                                    Text(
+                                        text = episode.titleJapanese,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                        fontFamily = PoppinsRegular
+                                    )
+                                }
+
+                                // Título romanji
+                                if (!episode.titleRomanji.isNullOrBlank()) {
+                                    Text(
+                                        text = episode.titleRomanji,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                        fontFamily = PoppinsRegular,
+                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Info row: Duración, Fecha de emisión
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    // Duración
+                                    if (episode.duration != null && episode.duration > 0) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Timer,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = "${episode.duration} seg",
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                                fontSize = 13.sp,
+                                                fontFamily = PoppinsMedium
+                                            )
+                                        }
+                                    }
+
+                                    // Fecha de emisión
+                                    if (!episode.aired.isNullOrBlank()) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                Icons.Default.CalendarToday,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = episode.aired.substringBefore("T"),
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                                fontSize = 13.sp,
+                                                fontFamily = PoppinsMedium
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                // Badges: Filler y Recap
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    if (episode.filler == true) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    Color(0xFFFF9800),
+                                                    RoundedCornerShape(6.dp)
+                                                )
+                                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Filler",
+                                                color = Color.White,
+                                                fontSize = 12.sp,
+                                                fontFamily = PoppinsBold
+                                            )
+                                        }
+                                    }
+
+                                    if (episode.recap == true) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    Color(0xFF9C27B0),
+                                                    RoundedCornerShape(6.dp)
+                                                )
+                                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Recap",
+                                                color = Color.White,
+                                                fontSize = 12.sp,
+                                                fontFamily = PoppinsBold
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Sinopsis
+                                if (!episode.synopsis.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Text(
+                                        text = "Sinopsis",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontFamily = PoppinsBold
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    Text(
+                                        text = episode.synopsis,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                                        fontFamily = PoppinsRegular,
+                                        lineHeight = 22.sp
+                                    )
+                                }
+
+                                // Botón para ver en MAL
+                                if (!episode.url.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.height(20.dp))
+
+                                    Button(
+                                        onClick = {
+                                            try {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(episode.url))
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                // Handle error
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        Icon(
+                                            Icons.Default.OpenInNew,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Ver en MyAnimeList",
+                                            fontFamily = PoppinsMedium
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -2246,142 +3137,87 @@ fun ThemeItem(
     context: Context,
     animeThemesViewModel: AnimeThemesViewModel = hiltViewModel()
 ) {
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 12.dp)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = "$title Icon",
-                    tint = when (title) {
-                        "Openings" -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.secondary
-                    },
-                    modifier = Modifier.size(22.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontFamily = RobotoBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                if (themes.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                when (title) {
-                                    "Openings" -> MaterialTheme.colorScheme.primaryContainer
-                                    else -> MaterialTheme.colorScheme.secondaryContainer
-                                },
-                                RoundedCornerShape(8.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = "${themes.size}",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = when (title) {
-                                "Openings" -> MaterialTheme.colorScheme.onPrimaryContainer
-                                else -> MaterialTheme.colorScheme.onSecondaryContainer
-                            }
-                        )
-                    }
-                }
-            }
-
-            if (themes.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.surface,
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontFamily = PoppinsBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (themes.isNotEmpty()) {
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = if (title == "Openings")
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    else
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
                 ) {
                     Text(
-                        text = "No hay $title disponibles",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontFamily = RobotoRegular
+                        text = "${themes.size}",
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        color = if (title == "Openings")
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.secondary,
+                        fontFamily = PoppinsBold,
+                        fontSize = 11.sp
                     )
                 }
-            } else {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    themes.forEachIndexed { index, theme ->
-                        Card(
-                            onClick = {
-                                animeThemesViewModel.openYoutubeSearch(context, theme)
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 1.dp,
-                                pressedElevation = 4.dp
-                            )
+            }
+        }
+
+        if (themes.isEmpty()) {
+            Text(
+                text = "No hay $title disponibles",
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                fontFamily = PoppinsRegular,
+                fontSize = 13.sp
+            )
+        } else {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                themes.forEach { theme ->
+                    val accentColor = if (title == "Openings")
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.secondary
+
+                    Surface(
+                        onClick = {
+                            animeThemesViewModel.openYoutubeSearch(context, theme)
+                        },
+                        shape = RoundedCornerShape(20.dp),
+                        color = accentColor.copy(alpha = 0.1f),
+                        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.25f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .background(
-                                            when (title) {
-                                                "Openings" -> MaterialTheme.colorScheme.primaryContainer
-                                                else -> MaterialTheme.colorScheme.secondaryContainer
-                                            },
-                                            RoundedCornerShape(8.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "${index + 1}",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = when (title) {
-                                            "Openings" -> MaterialTheme.colorScheme.onPrimaryContainer
-                                            else -> MaterialTheme.colorScheme.onSecondaryContainer
-                                        }
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = theme,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontFamily = RobotoRegular,
-                                    modifier = Modifier.weight(1f),
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.MusicNote,
-                                    contentDescription = "Reproducir",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.MusicNote,
+                                contentDescription = null,
+                                tint = accentColor,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = theme,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontFamily = PoppinsRegular,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
                 }
@@ -2476,6 +3312,38 @@ fun InfoGridItem(
 }
 
 @Composable
+private fun CompactInfoRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontFamily = PoppinsRegular,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(0.5f)
+        )
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            fontFamily = PoppinsBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(0.5f),
+            textAlign = TextAlign.End,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
 fun RatingBar(
     modifier: Modifier = Modifier,
     rating: Float,
@@ -2540,7 +3408,7 @@ fun RatingBar(
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = RobotoBold,
+            fontFamily = PoppinsBold,
             modifier = Modifier
                 .background(
                     MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -2568,5 +3436,423 @@ private fun InfoColumn(title: String, value: String) {
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
+    }
+}
+
+@Composable
+private fun StudioCompactCard(
+    studioName: String,
+    isExpanded: Boolean = false,
+    onClick: () -> Unit = {}
+) {
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        label = "Arrow rotation"
+    )
+
+    val borderColor by animateColorAsState(
+        targetValue = if (isExpanded)
+            MaterialTheme.colorScheme.primary
+        else
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        animationSpec = tween(300),
+        label = "border_color"
+    )
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        color = if (isExpanded)
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+        else
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Business,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = studioName,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontFamily = PoppinsBold,
+                        fontSize = 15.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 20.sp
+                    )
+                    Text(
+                        text = if (isExpanded) "Toca para cerrar" else "Toca para ver detalles",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                        fontFamily = PoppinsRegular,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        RoundedCornerShape(10.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (isExpanded) "Contraer" else "Expandir",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(22.dp)
+                        .rotate(rotationAngle)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VideoCard(
+    title: String,
+    subtitle: String? = null,
+    thumbnailUrl: String?,
+    youtubeUrl: String?,
+    context: Context
+) {
+    Card(
+        modifier = Modifier
+            .width(200.dp)
+            .clickable {
+                youtubeUrl?.let { url ->
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        intent.setPackage("com.google.android.youtube")
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(webIntent)
+                        }
+                    } catch (e: Exception) {
+                        // Handle error silently
+                    }
+                }
+            },
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(112.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                if (!thumbnailUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = thumbnailUrl,
+                        contentDescription = title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                // Play icon overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayCircle,
+                        contentDescription = "Play",
+                        tint = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = title,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 13.sp,
+                    fontFamily = PoppinsMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (subtitle != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        fontSize = 11.sp,
+                        fontFamily = PoppinsRegular,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EpisodeCard(
+    title: String,
+    episode: String?,
+    imageUrl: String?,
+    url: String?,
+    context: Context
+) {
+    Card(
+        modifier = Modifier
+            .width(160.dp)
+            .clickable {
+                url?.let { link ->
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        // Handle error silently
+                    }
+                }
+            },
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                if (!imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.OndemandVideo,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+                // Episode badge
+                if (episode != null) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(6.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = episode,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 10.sp,
+                            fontFamily = PoppinsBold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EpisodeListItem(
+    episode: AnimeEpisode,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Episode number badge
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        RoundedCornerShape(8.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "${episode.malId ?: "?"}",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 16.sp,
+                    fontFamily = PoppinsBold
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Episode info
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = episode.title ?: "Episodio ${episode.malId}",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 14.sp,
+                    fontFamily = PoppinsMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                if (!episode.titleJapanese.isNullOrBlank()) {
+                    Text(
+                        text = episode.titleJapanese,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        fontSize = 12.sp,
+                        fontFamily = PoppinsRegular,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Aired date
+                    if (!episode.aired.isNullOrBlank()) {
+                        Text(
+                            text = episode.aired.substringBefore("T"),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            fontSize = 11.sp,
+                            fontFamily = PoppinsRegular
+                        )
+                    }
+
+                    // Score
+                    if (episode.score != null && episode.score > 0) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFFD700),
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = String.format("%.1f", episode.score),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                fontSize = 11.sp,
+                                fontFamily = PoppinsMedium
+                            )
+                        }
+                    }
+
+                    // Filler/Recap badges
+                    if (episode.filler == true) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    Color(0xFFFF9800).copy(alpha = 0.2f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "Filler",
+                                color = Color(0xFFFF9800),
+                                fontSize = 10.sp,
+                                fontFamily = PoppinsMedium
+                            )
+                        }
+                    }
+
+                    if (episode.recap == true) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    Color(0xFF9C27B0).copy(alpha = 0.2f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "Recap",
+                                color = Color(0xFF9C27B0),
+                                fontSize = 10.sp,
+                                fontFamily = PoppinsMedium
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }

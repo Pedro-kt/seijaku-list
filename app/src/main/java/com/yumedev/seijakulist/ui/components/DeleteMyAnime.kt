@@ -25,7 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun DeleteMyAnime(
@@ -60,7 +60,7 @@ fun DeleteMyAnime(
                 text = {
                     Text(
                         text = "Eliminar anime",
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.error
                     )
                 },

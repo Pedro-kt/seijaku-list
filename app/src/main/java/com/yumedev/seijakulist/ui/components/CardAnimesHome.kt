@@ -38,8 +38,8 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
@@ -95,7 +95,7 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                                 overflow = TextOverflow.Ellipsis,
                                 color = Color.White,
                                 fontSize = 12.sp,
-                                fontFamily = RobotoBold
+                                fontFamily = PoppinsBold
                             )
                         }
                     }
@@ -111,11 +111,80 @@ fun CardAnimesHome(animeList: List<Anime>, navController: NavController) {
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 14.sp,
                 )
             }
         }
     }
 
+}
+
+@Composable
+fun CardAnimesHomeGrid(anime: Anime, navController: NavController) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Box {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(anime.image)
+                    .size(Size.ORIGINAL)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Imagen de portada",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .clickable {
+                        navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                    }
+            )
+
+            if (anime.score > 0) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(color = Color.Black.copy(alpha = 0.7f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = "Puntuación",
+                        tint = Color(0xFFFFD700),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = String.format("%.1f", anime.score),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontFamily = PoppinsBold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = anime.title,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontFamily = PoppinsRegular,
+            fontSize = 14.sp,
+            lineHeight = 18.sp
+        )
+    }
 }

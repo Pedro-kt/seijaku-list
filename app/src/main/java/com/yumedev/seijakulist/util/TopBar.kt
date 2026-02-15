@@ -9,7 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.painterResource
+import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -57,7 +58,7 @@ fun topBarMyAnimeScreen() {
                             searchQuery = ""
                         }) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                painter = painterResource(id = R.drawable.ic_arrow_left_line),
                                 contentDescription = "Cerrar búsqueda"
                             )
                         }
@@ -104,7 +105,7 @@ fun topBarMyAnimeScreen() {
                             modifier = Modifier
                                 .padding(bottom = 8.dp)
                                 .weight(1f),
-                            fontFamily = RobotoBold
+                            fontFamily = PoppinsBold
                         )
                         FilterTopAppBar(
                             onSearchClick = {

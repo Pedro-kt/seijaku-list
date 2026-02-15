@@ -5,7 +5,11 @@ import com.yumedev.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.yumedev.seijakulist.data.remote.models.ProducerResponseDto
 import com.yumedev.seijakulist.data.remote.models.anime_random.AnimeCardResponseDto
 import com.yumedev.seijakulist.data.remote.models.SearchAnimeResponse
+import com.yumedev.seijakulist.data.remote.models.anime_pictures.AnimePicturesResponseDto
 import com.yumedev.seijakulist.data.remote.models.anime_themes.AnimeThemesDto
+import com.yumedev.seijakulist.data.remote.models.anime_videos.AnimeVideosResponseDto
+import com.yumedev.seijakulist.data.remote.models.anime_episodes.AnimeEpisodeDetailResponseDto
+import com.yumedev.seijakulist.data.remote.models.anime_episodes.AnimeEpisodesResponseDto
 import com.yumedev.seijakulist.data.remote.models.character_detail.CharacterResponseDto
 import com.yumedev.seijakulist.data.remote.models.character_pictures.CharacterPicturesResponseDto
 import com.yumedev.seijakulist.data.remote.models.genres.GenreResponse
@@ -47,19 +51,46 @@ interface  JikanApiService {
 
     @GET("seasons/now")
     suspend fun getAnimeSeasonNow(
-        @Query("sfw") sfw: Boolean = true
+        @Query("sfw") sfw: Boolean = true,
+        @Query("page") page: Int? = 1
     ): SearchAnimeResponse
 
     @GET("top/anime")
-    suspend fun getTopAnime(): SearchAnimeResponse
+    suspend fun getTopAnime(
+        @Query("page") page: Int? = 1
+    ): SearchAnimeResponse
 
     @GET("seasons/upcoming")
-    suspend fun getSeasonUpcoming(): SearchAnimeResponse
+    suspend fun getSeasonUpcoming(
+        @Query("page") page: Int? = 1
+    ): SearchAnimeResponse
 
     @GET("anime/{id}/themes")
     suspend fun getAnimeThemes(
         @Path("id") malId: Int
     ): AnimeThemesDto
+
+    @GET("anime/{id}/pictures")
+    suspend fun getAnimePictures(
+        @Path("id") malId: Int
+    ): AnimePicturesResponseDto
+
+    @GET("anime/{id}/videos")
+    suspend fun getAnimeVideos(
+        @Path("id") malId: Int
+    ): AnimeVideosResponseDto
+
+    @GET("anime/{id}/episodes")
+    suspend fun getAnimeEpisodes(
+        @Path("id") malId: Int,
+        @Query("page") page: Int? = 1
+    ): AnimeEpisodesResponseDto
+
+    @GET("anime/{id}/episodes/{episode}")
+    suspend fun getAnimeEpisodeDetail(
+        @Path("id") animeId: Int,
+        @Path("episode") episodeId: Int
+    ): AnimeEpisodeDetailResponseDto
 
     @GET("random/anime")
     suspend fun getAnimeRandom(@Query("sfw") sfw: Boolean = true): AnimeCardResponseDto
@@ -70,19 +101,22 @@ interface  JikanApiService {
     @GET("schedules")
     suspend fun getAnimeSchedule(
         @Query("filter") filter: String,
-        @Query("sfw") sfw: Boolean = true
+        @Query("sfw") sfw: Boolean = true,
+        @Query("page") page: Int? = 1
     ): SearchAnimeResponse
 
     @GET("top/anime")
     suspend fun getTopAnimeFilter(
         @Query("type") filter: String,
-        @Query("sfw") sfw: Boolean = true
+        @Query("sfw") sfw: Boolean = true,
+        @Query("page") page: Int? = 1
     ): SearchAnimeResponse
 
     @GET("seasons/upcoming")
     suspend fun getSeasonUpcomingFilter(
         @Query("filter") filter: String,
-        @Query("sfw") sfw: Boolean = true
+        @Query("sfw") sfw: Boolean = true,
+        @Query("page") page: Int? = 1
     ) : SearchAnimeResponse
 
     @GET("producers/{id}/full")

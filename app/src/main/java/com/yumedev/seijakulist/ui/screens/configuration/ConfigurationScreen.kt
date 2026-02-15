@@ -20,7 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.painterResource
+import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.BugReport
@@ -62,8 +63,8 @@ import androidx.navigation.NavController
 import com.yumedev.seijakulist.ui.components.DeveloperInfoDialog
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.auth_screen.AuthViewModel
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.ThemeMode
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -112,7 +113,7 @@ fun ConfigurationScreen(
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    painter = painterResource(id = R.drawable.ic_arrow_left_line),
                     contentDescription = "Volver",
                     tint = MaterialTheme.colorScheme.onSurface
                 )
@@ -121,7 +122,7 @@ fun ConfigurationScreen(
                 text = "Configuración",
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 20.sp,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -235,10 +236,12 @@ fun ConfigurationScreen(
                             title = "Cerrar sesión",
                             subtitle = "Salir de tu cuenta",
                             onClick = {
-                                viewModel.signOut()
-                                navController.navigate(AppDestinations.AUTH_ROUTE) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        inclusive = true
+                                if (userEmail != "No disponible") {
+                                    viewModel.signOut()
+                                    navController.navigate(AppDestinations.AUTH_ROUTE) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             },
@@ -358,7 +361,7 @@ private fun SectionTitle(text: String) {
         text = text,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
-        fontFamily = RobotoBold,
+        fontFamily = PoppinsBold,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
     )
@@ -413,7 +416,7 @@ private fun SettingItem(
                 text = title,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             if (subtitle.isNotEmpty()) {
@@ -421,7 +424,7 @@ private fun SettingItem(
                 Text(
                     text = subtitle,
                     fontSize = 13.sp,
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
@@ -430,7 +433,7 @@ private fun SettingItem(
         // Flecha (si es clickeable)
         if (showArrow && onClick != null) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                painter = painterResource(id = R.drawable.ic_arrow_left_line),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 modifier = Modifier
@@ -483,7 +486,7 @@ private fun SettingItemWithSwitch(
                 text = title,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             if (subtitle.isNotEmpty()) {
@@ -491,7 +494,7 @@ private fun SettingItemWithSwitch(
                 Text(
                     text = subtitle,
                     fontSize = 13.sp,
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
@@ -545,7 +548,7 @@ private fun ThemeOption(
                 text = title,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             if (subtitle.isNotEmpty()) {
@@ -553,7 +556,7 @@ private fun ThemeOption(
                 Text(
                     text = subtitle,
                     fontSize = 13.sp,
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }

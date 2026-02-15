@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yumedev.seijakulist.ui.theme.RobotoBold
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
 
 @Composable
 fun TitleScreen(title: String) {
@@ -22,6 +22,6 @@ fun TitleScreen(title: String) {
         fontSize = 24.sp,
         textAlign = TextAlign.Center,
         modifier = Modifier,
-        fontFamily = RobotoBold
+        fontFamily = PoppinsBold
     )
 }

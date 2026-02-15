@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun BetaTestDialog(
@@ -71,7 +71,7 @@ fun BetaTestDialog(
                 // Título
                 Text(
                     text = "Prueba Cerrada Beta",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 24.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
@@ -80,7 +80,7 @@ fun BetaTestDialog(
                 // Mensaje principal
                 Text(
                     text = "Esta aplicación se encuentra en fase de desarrollo activo.",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center,
@@ -90,7 +90,7 @@ fun BetaTestDialog(
                 // Advertencia
                 Text(
                     text = "Puede contener errores, bugs, comportamientos inesperados y componentes sin funcionalidades como botones, etc.",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
@@ -102,7 +102,7 @@ fun BetaTestDialog(
                 // Agradecimiento
                 Text(
                     text = "¡Gracias por ser parte de esta prueba cerrada!",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
@@ -111,12 +111,47 @@ fun BetaTestDialog(
 
                 Text(
                     text = "Tus comentarios y reportes de errores son fundamentales para el desarrollo y mejora de SeijakuList.",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
                     lineHeight = 20.sp
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Agradecimiento especial a testers
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "💙 Agradecimiento Especial",
+                            fontFamily = PoppinsBold,
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "Gracias a todos los testers que han dedicado su tiempo a probar la aplicación y reportar errores. Su ayuda es invaluable para hacer de SeijakuList una mejor experiencia.",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -133,7 +168,7 @@ fun BetaTestDialog(
                 ) {
                     Text(
                         text = "Continuar",
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )

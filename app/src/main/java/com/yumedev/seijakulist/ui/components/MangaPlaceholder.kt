@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun MangaPlaceholder() {
@@ -39,14 +39,14 @@ fun MangaPlaceholder() {
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Próximamente",
-            fontFamily = RobotoBold,
+            fontFamily = PoppinsBold,
             fontSize = 24.sp,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Estamos trabajando para traerte lo mejor del manga",
-            fontFamily = RobotoRegular,
+            fontFamily = PoppinsRegular,
             textAlign = TextAlign.Center,
             fontSize = 15.sp,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),

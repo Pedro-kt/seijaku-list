@@ -50,7 +50,7 @@ import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 fun FilterTopAppBar(
     onSearchClick: () -> Unit,
     onViewModeChange: () -> Unit = {},
-    isGridView: Boolean = false,
+    viewMode: ViewMode = ViewMode.LIST,
     onSortClick: () -> Unit = {},
     sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE
 ) {
@@ -168,13 +168,21 @@ fun FilterTopAppBar(
                 text = {
                     Column {
                         Text(
-                            text = if (isGridView) "Vista Lista" else "Vista Grid",
+                            text = when (viewMode) {
+                                ViewMode.LIST -> "Vista Grid"
+                                ViewMode.GRID -> "Vista Card"
+                                ViewMode.CARD -> "Vista Lista"
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (isGridView) "Cambiar a vista lista" else "Cambiar a vista cuadrícula",
+                            text = when (viewMode) {
+                                ViewMode.LIST -> "Cambiar a vista cuadrícula (3 columnas)"
+                                ViewMode.GRID -> "Cambiar a vista card (2 columnas)"
+                                ViewMode.CARD -> "Cambiar a vista lista detallada"
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 11.sp
@@ -193,8 +201,11 @@ fun FilterTopAppBar(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = if (isGridView) Icons.Default.ViewAgenda
-                                              else Icons.Default.GridView,
+                                imageVector = when (viewMode) {
+                                    ViewMode.LIST -> Icons.Default.GridView
+                                    ViewMode.GRID -> Icons.Default.ViewModule
+                                    ViewMode.CARD -> Icons.Default.ViewAgenda
+                                },
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.size(20.dp)

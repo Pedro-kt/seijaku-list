@@ -48,8 +48,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 /**
  * TextField personalizado con estilo Anime/Manga
@@ -109,7 +109,7 @@ fun AnimeTextField(
         if (label != null) {
             Text(
                 text = label,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 fontSize = 15.sp,
                 color = if (isError) {
                     MaterialTheme.colorScheme.error
@@ -195,7 +195,7 @@ fun AnimeTextField(
                         textStyle = LocalTextStyle.current.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 16.sp,
-                            fontFamily = RobotoRegular
+                            fontFamily = PoppinsRegular
                         ),
                         visualTransformation = visualTransformation,
                         keyboardOptions = keyboardOptions,
@@ -209,7 +209,7 @@ fun AnimeTextField(
                                     style = TextStyle(
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                                         fontSize = 16.sp,
-                                        fontFamily = RobotoRegular
+                                        fontFamily = PoppinsRegular
                                     )
                                 )
                             }
@@ -249,7 +249,7 @@ fun AnimeTextField(
                     text = errorMessage ?: "",
                     color = MaterialTheme.colorScheme.error,
                     fontSize = 13.sp,
-                    fontFamily = RobotoRegular
+                    fontFamily = PoppinsRegular
                 )
             }
         }

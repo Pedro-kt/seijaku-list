@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.R
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import java.nio.file.WatchEvent
 
 @Composable
@@ -45,7 +46,7 @@ fun SubTitleIcon(subTitle: String, icon: ImageVector) {
             text = subTitle,
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 20.sp,
-            fontFamily = RobotoBold,
+            fontFamily = PoppinsBold,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Start
         )

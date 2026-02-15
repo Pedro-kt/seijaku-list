@@ -1,10 +1,10 @@
 package com.yumedev.seijakulist.util.navigation_tools
 
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.annotation.DrawableRes
 
 data class BottomNavItem(
     val name: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
+    @DrawableRes val selectedIcon: Int,
+    @DrawableRes val unselectedIcon: Int,
     val route: String
 )

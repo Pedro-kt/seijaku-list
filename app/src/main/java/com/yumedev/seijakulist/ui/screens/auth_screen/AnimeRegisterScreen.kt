@@ -20,7 +20,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.res.painterResource
+import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -63,8 +64,8 @@ import com.yumedev.seijakulist.ui.components.custom.AnimeStar
 import com.yumedev.seijakulist.ui.components.custom.AnimeTextField
 import com.yumedev.seijakulist.ui.components.custom.SakuraFlower
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun AnimeRegisterScreen(
@@ -167,7 +168,7 @@ fun AnimeRegisterScreen(
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        painter = painterResource(id = R.drawable.ic_arrow_left_line),
                         contentDescription = "Volver",
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(28.dp)
@@ -187,7 +188,7 @@ fun AnimeRegisterScreen(
                 Text(
                     text = "SeijakuList",
                     fontSize = 48.sp,
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.displayLarge.copy(
                         brush = Brush.linearGradient(
@@ -215,7 +216,7 @@ fun AnimeRegisterScreen(
                     Text(
                         text = "アニメリスト",
                         fontSize = 14.sp,
-                        fontFamily = RobotoRegular,
+                        fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         letterSpacing = 2.sp
                     )
@@ -237,7 +238,7 @@ fun AnimeRegisterScreen(
             ) {
                 Text(
                     text = "¡Únete a la comunidad!",
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 26.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -246,7 +247,7 @@ fun AnimeRegisterScreen(
 
                 Text(
                     text = "Crea tu cuenta y comienza tu aventura",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
@@ -366,7 +367,7 @@ fun AnimeRegisterScreen(
                         text = "⚠️ ${(authResult as AuthResult.Error).message}",
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp,
-                        fontFamily = RobotoRegular
+                        fontFamily = PoppinsRegular
                     )
                 }
             }
@@ -381,7 +382,7 @@ fun AnimeRegisterScreen(
             ) {
                 Text(
                     text = "¿Ya tienes cuenta?",
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     fontSize = 15.sp
                 )
@@ -391,7 +392,7 @@ fun AnimeRegisterScreen(
                 ) {
                     Text(
                         text = "Inicia sesión",
-                        fontFamily = RobotoBold,
+                        fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 15.sp
                     )

@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 /**
  * Tipos de diálogo predefinidos con iconos y colores correspondientes
@@ -134,7 +134,7 @@ fun CustomDialog(
                 // Título
                 Text(
                     text = title,
-                    fontFamily = RobotoBold,
+                    fontFamily = PoppinsBold,
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
@@ -143,7 +143,7 @@ fun CustomDialog(
                 // Mensaje
                 Text(
                     text = message,
-                    fontFamily = RobotoRegular,
+                    fontFamily = PoppinsRegular,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center,
@@ -174,7 +174,7 @@ fun CustomDialog(
                         ) {
                             Text(
                                 text = dismissButtonText,
-                                fontFamily = RobotoBold,
+                                fontFamily = PoppinsBold,
                                 fontSize = 15.sp
                             )
                         }
@@ -205,7 +205,7 @@ fun CustomDialog(
                     ) {
                         Text(
                             text = confirmButtonText,
-                            fontFamily = RobotoBold,
+                            fontFamily = PoppinsBold,
                             fontSize = 15.sp
                         )
                     }

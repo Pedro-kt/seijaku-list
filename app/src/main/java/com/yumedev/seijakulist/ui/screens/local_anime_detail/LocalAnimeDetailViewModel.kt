@@ -33,6 +33,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
+import kotlin.math.min
 
 @HiltViewModel
 class LocalAnimeDetailViewModel @Inject constructor(
@@ -117,310 +118,405 @@ class LocalAnimeDetailViewModel @Inject constructor(
     }
 
     private fun createStoryCard(animeBitmap: Bitmap, anime: AnimeEntityDomain): Bitmap {
-        // Dimensiones en ultra alta calidad
-        val width = 1440
-        val height = 3200
+        // Dimensiones más altas para aprovechar el dispositivo
+        val width = 1080
+        val height = 2400
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        // Habilitar anti-aliasing y filtrado de alta calidad
+        // Habilitar anti-aliasing
         canvas.drawFilter = android.graphics.PaintFlagsDrawFilter(
             0,
             Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG
         )
 
-        // Extraer color dominante de la imagen
-        val dominantColor = extractDominantColor(animeBitmap)
-        val darkerColor = darkenColor(dominantColor, 0.3f)
-        val darkestColor = darkenColor(dominantColor, 0.6f)
+        // Fondo negro base
+        canvas.drawColor(Color.parseColor("#0A0A0A"))
 
-        // Fondo con gradiente basado en el color de la portada
-        val backgroundPaint = Paint().apply {
-            shader = LinearGradient(
-                0f, 0f, 0f, height.toFloat(),
-                intArrayOf(
-                    darkestColor,
-                    darkerColor,
-                    darkestColor
-                ),
-                floatArrayOf(0f, 0.5f, 1f),
-                Shader.TileMode.CLAMP
-            )
-            isAntiAlias = true
-        }
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
+        // Dibujar patrón de franjas diagonales (estilo imagen morada)
+        drawDiagonalStripes(canvas, width, height)
 
-        // Patrón japonés sutil en el fondo (círculos seigaiha - olas)
-        drawJapanesePattern(canvas, width, height)
+        val margin = 60f
+        var currentY = 80f
 
-        val margin = 110f
-        var currentY = 160f
+        // Imagen del anime - rectangular y más alta
+        val imageWidth = 600
+        val imageHeight = 800  // Más alta que ancha (ratio 3:4)
+        val imageX = (width - imageWidth) / 2f
 
-        // Header centrado
-        val yearPaint = Paint().apply {
-            color = Color.parseColor("#E63946")
-            textSize = 54f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            isAntiAlias = true
-            letterSpacing = 0.15f
-            textAlign = Paint.Align.CENTER
-        }
-        canvas.drawText("MY ANIME 2025", width / 2f, currentY, yearPaint)
-
-        currentY += 120f
-
-        // Título del anime - centrado
-        val titlePaint = Paint().apply {
-            color = Color.WHITE
-            textSize = 86f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            isAntiAlias = true
-            letterSpacing = -0.02f
-            textAlign = Paint.Align.CENTER
-        }
-        currentY = drawMultilineTextCentered(canvas, anime.title, width / 2f, currentY, titlePaint, width - margin * 2, maxLines = 3)
-
-        currentY += 95f
-
-        // Imagen del anime rectangular (centrada) - proporción 2:3 típica de portadas - AUMENTADA
-        val imageWidth = 800
-        val imageHeight = 1200
-        val imageLeft = (width - imageWidth) / 2f
-
-        // Sombra de la imagen
+        // Sombra elegante para la imagen
         val shadowPaint = Paint().apply {
             color = Color.parseColor("#60000000")
             maskFilter = android.graphics.BlurMaskFilter(50f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        }
+        canvas.drawRoundRect(
+            RectF(imageX - 5f, currentY + 10f, imageX + imageWidth + 5f, currentY + imageHeight + 10f),
+            30f, 30f, shadowPaint
+        )
+
+        // Imagen del anime con crop center y esquinas redondeadas
+        val croppedBitmap = getCenterCroppedBitmap(animeBitmap, imageWidth, imageHeight)
+        val roundedBitmap = getRoundedBitmap(croppedBitmap, 30f)
+        canvas.drawBitmap(roundedBitmap, imageX, currentY, null)
+
+        currentY += imageHeight + 100f
+
+        // Título del anime - centrado y elegante
+        val titlePaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 62f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             isAntiAlias = true
-        }
-        val shadowRect = RectF(imageLeft - 7f, currentY + 20f, imageLeft + imageWidth + 7f, currentY + imageHeight + 20f)
-        canvas.drawRoundRect(shadowRect, 32f, 32f, shadowPaint)
-
-        // Escalar imagen manteniendo aspecto ratio con alta calidad
-        val scaledBitmap = Bitmap.createScaledBitmap(animeBitmap, imageWidth, imageHeight, true)
-        val roundedBitmap = getRoundedBitmap(scaledBitmap, 32f)
-        canvas.drawBitmap(roundedBitmap, imageLeft, currentY, null)
-
-        currentY += imageHeight + 80f
-
-        // Stats centrados
-        val scoreText = if (anime.userScore % 1.0 == 0.0) {
-            anime.userScore.toInt().toString()
-        } else {
-            anime.userScore.toString()
-        }
-
-        // Puntuación
-        currentY = drawWrappedStatCentered(canvas, "Tu puntuación", "$scoreText/10", width / 2f, currentY)
-        currentY += 95f
-
-        // Veces visto
-        currentY = drawWrappedStatCentered(canvas, "Veces visto", "${anime.rewatchCount}", width / 2f, currentY)
-        currentY += 95f
-
-        // Episodios
-        val episodesText = "${anime.totalEpisodes}"
-        currentY = drawWrappedStatCentered(canvas, "Cantidad de episodios", episodesText, width / 2f, currentY)
-        currentY += 95f
-
-        // Estado
-        currentY = drawWrappedStatCentered(canvas, "Estado actual", anime.userStatus, width / 2f, currentY)
-
-        // Reseña (si existe)
-        if (!anime.userOpiniun.isNullOrEmpty()) {
-            currentY += 120f
-
-            val reviewLabelPaint = Paint().apply {
-                color = Color.parseColor("#999999")
-                textSize = 43f
-                isAntiAlias = true
-                letterSpacing = 0.05f
-                textAlign = Paint.Align.CENTER
-            }
-            canvas.drawText("Tu reseña", width / 2f, currentY, reviewLabelPaint)
-
-            currentY += 67f
-            val reviewTextPaint = Paint().apply {
-                color = Color.parseColor("#DDDDDD")
-                textSize = 48f
-                isAntiAlias = true
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-                textAlign = Paint.Align.CENTER
-            }
-
-            val reviewLines = anime.userOpiniun.take(300) + if (anime.userOpiniun.length > 300) "..." else ""
-            currentY = drawMultilineTextCentered(canvas, "\" $reviewLines\"", width / 2f, currentY, reviewTextPaint, width - margin * 2, maxLines = 5)
-        }
-
-        // Footer centrado - marca
-        val footerY = height - 120f
-        val footerPaint = Paint().apply {
-            color = Color.parseColor("#666666")
-            textSize = 37f
-            isAntiAlias = true
-            letterSpacing = 0.2f
             textAlign = Paint.Align.CENTER
         }
+        currentY = drawMultilineTextCentered(
+            canvas, anime.title, width / 2f, currentY, titlePaint,
+            width - margin * 2, maxLines = 2
+        )
+
+        // Línea decorativa con gradiente de colores SeijakuList
+        val linePaint = Paint().apply {
+            shader = LinearGradient(
+                margin * 2, currentY,
+                width - margin * 2, currentY,
+                intArrayOf(
+                    Color.parseColor("#58A6FF"), // Celeste
+                    Color.parseColor("#7EE787"), // Verde
+                    Color.parseColor("#79C0FF")  // Celeste claro
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
+            strokeWidth = 4f
+            isAntiAlias = true
+        }
+        canvas.drawLine(margin * 2, currentY, width - margin * 2, currentY, linePaint)
+
+        currentY += 80f
+
+        // Estadísticas en dos columnas (Spotify Wrapped style)
+        val col1X = margin + 40f
+        val col2X = width / 2f + 60f
+
+        // Columna 1 - Score
+        drawWrappedStat(canvas, "Mi puntuación", anime.userScore.toString(), col1X, currentY)
+
+        // Columna 2 - Episodios
+        drawWrappedStat(canvas, "Episodios", anime.totalEpisodes.toString(), col2X, currentY)
+
+        currentY += 200f
+
+        // Fila 2
+        // Columna 1 - Estado
+        drawWrappedStat(canvas, "Estado", anime.userStatus, col1X, currentY)
+
+        // Columna 2 - Veces visto
+        drawWrappedStat(canvas, "Visto", if (anime.rewatchCount == 1) {anime.rewatchCount.toString() + " vez"} else {anime.rewatchCount.toString() + " veces"}, col2X, currentY)
+
+        currentY += 230f
+
+        // Fila 3 - Género y Tipo
+        val genres = anime.genres.split(",").map { it.trim() }
+        val mainGenre = genres.firstOrNull() ?: "Anime"
+        drawWrappedStat(canvas, "Genero", mainGenre, col1X, currentY)
+
+        anime.typeAnime?.let { type ->
+            drawWrappedStat(canvas, "Tipo", type, col2X, currentY)
+        }
+
+        currentY += 230f
+
+        // Fila 4 - Fechas de seguimiento (si existen)
+        if (anime.startDate != null || anime.endDate != null) {
+            val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+
+            anime.startDate?.let { date ->
+                val formattedDate = dateFormat.format(date)
+                drawWrappedStat(canvas, "Inicio", formattedDate, col1X, currentY)
+            }
+
+            anime.endDate?.let { date ->
+                val formattedDate = dateFormat.format(date)
+                drawWrappedStat(canvas, "Final", formattedDate, col2X, currentY)
+            }
+
+            currentY += 230f
+        }
+
+        anime.aired?.let { transmision ->
+            // Acortar la transmisión si es muy larga
+            val shortAired = if (transmision.length > 20) {
+                transmision.take(17) + "..."
+            } else {
+                transmision
+            }
+            drawWrappedStat(canvas, "Transmitido", shortAired, col2X, currentY)
+            currentY += 230f
+        }
+
+        // Footer - Branding con colores SeijakuList
+        val footerY = height - 110f
+        val footerPaint = Paint().apply {
+            shader = LinearGradient(
+                width / 2f - 200f, footerY,
+                width / 2f + 200f, footerY,
+                intArrayOf(
+                    Color.parseColor("#58A6FF"), // Celeste
+                    Color.parseColor("#7EE787"), // Verde
+                    Color.parseColor("#79C0FF")  // Celeste claro
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
+            textSize = 46f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+            letterSpacing = 0.15f
+        }
         canvas.drawText("SEIJAKULIST", width / 2f, footerY, footerPaint)
+
+        // Año pequeño debajo
+        val yearPaint = Paint().apply {
+            color = Color.parseColor("#79C0FF") // Celeste claro
+            textSize = 28f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+            alpha = 180
+        }
+        canvas.drawText("2026", width / 2f, footerY + 50f, yearPaint)
 
         return bitmap
     }
 
-    private fun drawJapanesePattern(canvas: Canvas, width: Int, height: Int) {
+    private fun drawDiagonalStripes(canvas: Canvas, width: Int, height: Int) {
         val paint = Paint().apply {
             isAntiAlias = true
-        }
-
-        // Sol/Luna en la esquina superior derecha
-        paint.apply {
-            color = Color.parseColor("#20FFFFFF")
             style = Paint.Style.FILL
         }
-        canvas.drawCircle(width - 180f, 200f, 120f, paint)
 
-        // Bambú izquierdo
-        drawBamboo(canvas, 80f, height - 700f, paint)
-        drawBamboo(canvas, 130f, height - 800f, paint)
+        // Configuración de las franjas
+        val stripeWidth = 140f
+        val numStripes = ((width + height) / stripeWidth * 2).toInt()
 
-        // Bambú derecho
-        drawBamboo(canvas, width - 80f, height - 700f, paint)
-        drawBamboo(canvas, width - 130f, height - 800f, paint)
+        // Colores de SeijakuList: Celeste, Verde, Celeste fuerte, Blanco
+        val stripeColors = listOf(
+            Color.parseColor("#58A6FF"), // Celeste (Primary)
+            Color.parseColor("#7EE787"), // Verde
+            Color.parseColor("#79C0FF"), // Celeste claro (Secondary)
+            Color.parseColor("#FFFFFF"), // Blanco
+            Color.parseColor("#58A6FF"), // Celeste (Primary)
+            Color.parseColor("#79C0FF")  // Celeste claro (Secondary)
+        )
 
-        // Torii grande en la parte inferior
-        drawToriiLarge(canvas, width / 2f, height - 550f, paint)
+        // Dibujar franjas diagonales con colores de SeijakuList
+        for (i in 0 until numStripes) {
+            paint.color = stripeColors[i % stripeColors.size]
+            paint.alpha = (40..70).random() // Opacidad suave para no saturar
 
-        // Nubes estilo japonés
-        drawJapaneseClouds(canvas, 150f, 300f, paint)
-        drawJapaneseClouds(canvas, width - 200f, 400f, paint)
-    }
+            val path = android.graphics.Path()
 
-    private fun drawBamboo(canvas: Canvas, x: Float, startY: Float, paint: Paint) {
-        paint.apply {
-            color = Color.parseColor("#15FFFFFF")
-            style = Paint.Style.FILL
-            strokeWidth = 3f
-        }
+            // Calcular posición de la franja diagonal
+            val startX = (i * stripeWidth) - height.toFloat()
 
-        val segments = 5
-        val segmentHeight = 80f
-        val bambooWidth = 20f
+            // Crear franja diagonal (de arriba-izquierda a abajo-derecha)
+            path.moveTo(startX, 0f)
+            path.lineTo(startX + stripeWidth, 0f)
+            path.lineTo(startX + stripeWidth + height, height.toFloat())
+            path.lineTo(startX + height, height.toFloat())
+            path.close()
 
-        for (i in 0 until segments) {
-            val y = startY + i * segmentHeight
-
-            // Segmento de bambú
-            paint.style = Paint.Style.FILL
-            canvas.drawRoundRect(
-                x - bambooWidth / 2,
-                y,
-                x + bambooWidth / 2,
-                y + segmentHeight - 5f,
-                bambooWidth / 2,
-                bambooWidth / 2,
-                paint
-            )
-
-            // Nodo del bambú
-            paint.style = Paint.Style.STROKE
-            paint.strokeWidth = 2f
-            canvas.drawLine(x - bambooWidth / 2, y, x + bambooWidth / 2, y, paint)
+            canvas.drawPath(path, paint)
         }
     }
 
-    private fun drawToriiLarge(canvas: Canvas, centerX: Float, y: Float, paint: Paint) {
-        paint.apply {
-            color = Color.parseColor("#15E63946")
-            style = Paint.Style.FILL
+    private fun drawModernShapes(canvas: Canvas, width: Int, height: Int, accentColor: Int) {
+        val paint = Paint().apply {
             isAntiAlias = true
-        }
-
-        val width = 600f
-        val height = 350f
-        val pillarWidth = 35f
-
-        // Travesaño superior curvado
-        canvas.drawRoundRect(
-            centerX - width / 2 - 40f,
-            y,
-            centerX + width / 2 + 40f,
-            y + 35f,
-            15f,
-            15f,
-            paint
-        )
-
-        // Travesaño medio
-        canvas.drawRoundRect(
-            centerX - width / 2 + 20f,
-            y + 100f,
-            centerX + width / 2 - 20f,
-            y + 125f,
-            12f,
-            12f,
-            paint
-        )
-
-        // Pilar izquierdo
-        canvas.drawRoundRect(
-            centerX - width / 2 + 40f,
-            y + 30f,
-            centerX - width / 2 + 40f + pillarWidth,
-            y + height,
-            12f,
-            12f,
-            paint
-        )
-
-        // Pilar derecho
-        canvas.drawRoundRect(
-            centerX + width / 2 - 40f - pillarWidth,
-            y + 30f,
-            centerX + width / 2 - 40f,
-            y + height,
-            12f,
-            12f,
-            paint
-        )
-    }
-
-    private fun drawJapaneseClouds(canvas: Canvas, x: Float, y: Float, paint: Paint) {
-        paint.apply {
-            color = Color.parseColor("#10FFFFFF")
             style = Paint.Style.FILL
-            isAntiAlias = true
         }
 
-        // Nube estilo japonés (círculos superpuestos)
-        canvas.drawCircle(x, y, 40f, paint)
-        canvas.drawCircle(x + 35f, y + 10f, 35f, paint)
-        canvas.drawCircle(x + 70f, y, 40f, paint)
-        canvas.drawCircle(x + 35f, y - 10f, 30f, paint)
+        // Círculos decorativos con blur
+        paint.color = Color.parseColor("#30FFFFFF")
+        paint.maskFilter = android.graphics.BlurMaskFilter(80f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        canvas.drawCircle(width * 0.15f, height * 0.25f, 150f, paint)
+        canvas.drawCircle(width * 0.85f, height * 0.75f, 200f, paint)
+
+        // Líneas diagonales sutiles
+        paint.maskFilter = null
+        paint.alpha = 30
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 3f
+
+        for (i in 0..3) {
+            val startX = width * (0.1f + i * 0.25f)
+            canvas.drawLine(startX, height * 0.1f, startX + 100f, height * 0.3f, paint)
+        }
     }
 
-    private fun drawWrappedStatCentered(canvas: Canvas, label: String, value: String, x: Float, y: Float): Float {
-        // Label pequeño arriba (centrado)
+    private fun drawModernStat(
+        canvas: Canvas,
+        value: String,
+        unit: String,
+        label: String,
+        x: Float,
+        y: Float,
+        maxWidth: Float,
+        accentColor: Int
+    ) {
+        // Valor principal - ENORME
+        val valuePaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 140f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            isAntiAlias = true
+            textAlign = Paint.Align.LEFT
+        }
+        canvas.drawText(value, x, y, valuePaint)
+
+        // Unidad pequeña al lado
+        val unitPaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 56f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+            isAntiAlias = true
+            alpha = 180
+        }
+        val valueWidth = valuePaint.measureText(value)
+        canvas.drawText(unit, x + valueWidth + 10f, y, unitPaint)
+
+        // Label debajo
         val labelPaint = Paint().apply {
-            color = Color.parseColor("#999999")
-            textSize = 32f
+            color = Color.WHITE
+            textSize = 36f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             isAntiAlias = true
-            letterSpacing = 0.05f
-            textAlign = Paint.Align.CENTER
+            alpha = 150
+            textAlign = Paint.Align.LEFT
+        }
+        canvas.drawText(label, x, y + 55f, labelPaint)
+    }
+
+    private fun drawCompactStat(
+        canvas: Canvas,
+        value: String,
+        label: String,
+        x: Float,
+        y: Float,
+        maxWidth: Float
+    ) {
+        // Card de fondo sutil
+        val cardPaint = Paint().apply {
+            color = Color.parseColor("#20FFFFFF")
+            isAntiAlias = true
+            style = Paint.Style.FILL
+        }
+        canvas.drawRoundRect(
+            RectF(x - 15f, y - 20f, x + maxWidth - 5f, y + 100f),
+            16f, 16f, cardPaint
+        )
+
+        // Valor
+        val valuePaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 48f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            isAntiAlias = true
+            textAlign = Paint.Align.LEFT
+        }
+        canvas.drawText(value, x, y + 20f, valuePaint)
+
+        // Label
+        val labelPaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 28f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+            isAntiAlias = true
+            alpha = 150
+            textAlign = Paint.Align.LEFT
+        }
+        canvas.drawText(label, x, y + 65f, labelPaint)
+    }
+
+    private fun drawWrappedFrame(canvas: Canvas, x: Float, y: Float, size: Float, accentColor: Int) {
+        val paint = Paint().apply {
+            isAntiAlias = true
+            style = Paint.Style.FILL
+        }
+
+        // Colores de SeijakuList para el marco
+        val colors = listOf(
+            Color.parseColor("#58A6FF"), // Celeste Primary
+            Color.parseColor("#7EE787"), // Verde
+            Color.parseColor("#79C0FF"), // Celeste claro
+            Color.parseColor("#FFFFFF")  // Blanco
+        )
+
+        val centerX = x + size / 2
+        val centerY = y + size / 2
+        val radius = size / 2 + 60f
+
+        // Dibujar "rayos" de sol alrededor
+        val numRays = 24
+        for (i in 0 until numRays) {
+            val angle = (i * 360f / numRays)
+            val colorIndex = i % colors.size
+
+            paint.color = colors[colorIndex]
+            paint.alpha = 200
+
+            val path = android.graphics.Path()
+            val angleRad = Math.toRadians(angle.toDouble())
+            val nextAngleRad = Math.toRadians((angle + 15f).toDouble())
+
+            // Punto interno
+            val innerX = centerX + (radius * 0.85f * Math.cos(angleRad)).toFloat()
+            val innerY = centerY + (radius * 0.85f * Math.sin(angleRad)).toFloat()
+
+            // Punto externo (punta del rayo)
+            val outerX = centerX + (radius * 1.3f * Math.cos(angleRad)).toFloat()
+            val outerY = centerY + (radius * 1.3f * Math.sin(angleRad)).toFloat()
+
+            // Punto interno siguiente
+            val innerNextX = centerX + (radius * 0.85f * Math.cos(nextAngleRad)).toFloat()
+            val innerNextY = centerY + (radius * 0.85f * Math.sin(nextAngleRad)).toFloat()
+
+            path.moveTo(innerX, innerY)
+            path.lineTo(outerX, outerY)
+            path.lineTo(innerNextX, innerNextY)
+            path.close()
+
+            canvas.drawPath(path, paint)
+        }
+
+        // Círculo interior con celeste de SeijakuList
+        paint.color = Color.parseColor("#58A6FF")
+        paint.alpha = 255
+        canvas.drawCircle(centerX, centerY, radius * 0.95f, paint)
+    }
+
+    private fun drawWrappedStat(canvas: Canvas, label: String, value: String, x: Float, y: Float) {
+        // Label en celeste de SeijakuList
+        val labelPaint = Paint().apply {
+            color = Color.parseColor("#58A6FF") // Celeste Primary
+            textSize = 36f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            isAntiAlias = true
+            textAlign = Paint.Align.LEFT
         }
         canvas.drawText(label, x, y, labelPaint)
 
-        // Valor grande abajo (centrado)
+        // Valor en blanco grande
         val valuePaint = Paint().apply {
             color = Color.WHITE
-            textSize = 56f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textSize = 64f
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             isAntiAlias = true
-            letterSpacing = -0.01f
-            textAlign = Paint.Align.CENTER
+            textAlign = Paint.Align.LEFT
         }
-        canvas.drawText(value, x, y + 65f, valuePaint)
-
-        return y + 65f
+        canvas.drawText(value, x, y + 80f, valuePaint)
     }
 
     private fun drawMultilineTextCentered(
@@ -446,7 +542,7 @@ class LocalAnimeDetailViewModel @Inject constructor(
             if (testWidth > maxWidth && line.isNotEmpty()) {
                 canvas.drawText(line, centerX, currentY, paint)
                 line = word
-                currentY += paint.textSize + 12
+                currentY += paint.textSize * 1.2f
                 lineCount++
             } else {
                 line = testLine
@@ -459,6 +555,69 @@ class LocalAnimeDetailViewModel @Inject constructor(
         }
 
         return currentY
+    }
+
+    private fun drawMultilineText(
+        canvas: Canvas,
+        text: String,
+        x: Float,
+        y: Float,
+        paint: Paint,
+        maxWidth: Float,
+        maxLines: Int = Int.MAX_VALUE
+    ): Float {
+        val words = text.split(" ")
+        var line = ""
+        var currentY = y
+        var lineCount = 0
+
+        for (word in words) {
+            if (lineCount >= maxLines) break
+
+            val testLine = if (line.isEmpty()) word else "$line $word"
+            val testWidth = paint.measureText(testLine)
+
+            if (testWidth > maxWidth && line.isNotEmpty()) {
+                canvas.drawText(line, x, currentY, paint)
+                line = word
+                currentY += paint.textSize * 1.2f
+                lineCount++
+            } else {
+                line = testLine
+            }
+        }
+
+        if (line.isNotEmpty() && lineCount < maxLines) {
+            canvas.drawText(line, x, currentY, paint)
+            currentY += paint.textSize
+        }
+
+        return currentY
+    }
+
+    private fun getCenterCroppedBitmap(source: Bitmap, targetWidth: Int, targetHeight: Int): Bitmap {
+        val sourceWidth = source.width
+        val sourceHeight = source.height
+
+        // Calcular el ratio de escalado para cubrir completamente el área objetivo
+        val scale = maxOf(
+            targetWidth.toFloat() / sourceWidth,
+            targetHeight.toFloat() / sourceHeight
+        )
+
+        // Dimensiones escaladas
+        val scaledWidth = (sourceWidth * scale).toInt()
+        val scaledHeight = (sourceHeight * scale).toInt()
+
+        // Escalar la imagen
+        val scaledBitmap = Bitmap.createScaledBitmap(source, scaledWidth, scaledHeight, true)
+
+        // Calcular offset para crop center
+        val xOffset = (scaledWidth - targetWidth) / 2
+        val yOffset = (scaledHeight - targetHeight) / 2
+
+        // Crear el bitmap final con crop center
+        return Bitmap.createBitmap(scaledBitmap, xOffset, yOffset, targetWidth, targetHeight)
     }
 
     private fun getRoundedBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap {
@@ -482,7 +641,6 @@ class LocalAnimeDetailViewModel @Inject constructor(
     }
 
     private fun extractDominantColor(bitmap: Bitmap): Int {
-        // Reducir la imagen para mejorar el rendimiento
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 50, 50, true)
 
         var redSum = 0L
@@ -490,12 +648,10 @@ class LocalAnimeDetailViewModel @Inject constructor(
         var blueSum = 0L
         var pixelCount = 0
 
-        // Calcular el color promedio
         for (x in 0 until scaledBitmap.width) {
             for (y in 0 until scaledBitmap.height) {
                 val pixel = scaledBitmap.getPixel(x, y)
 
-                // Ignorar píxeles muy oscuros o muy claros
                 val brightness = (Color.red(pixel) + Color.green(pixel) + Color.blue(pixel)) / 3
                 if (brightness in 30..220) {
                     redSum += Color.red(pixel)
@@ -513,17 +669,27 @@ class LocalAnimeDetailViewModel @Inject constructor(
                 (blueSum / pixelCount).toInt()
             )
         } else {
-            Color.parseColor("#1a1a2e") // Color por defecto
+            Color.parseColor("#58A6FF") // Celeste de SeijakuList como fallback
         }
+    }
+
+    private fun enhanceVibrance(color: Int): Int {
+        val hsv = FloatArray(3)
+        Color.colorToHSV(color, hsv)
+
+        // Aumentar saturación y brillo para hacerlo más vibrante
+        hsv[1] = min(hsv[1] * 1.4f, 1f) // Saturación
+        hsv[2] = min(hsv[2] * 1.2f, 0.9f) // Brillo
+
+        return Color.HSVToColor(hsv)
     }
 
     private fun darkenColor(color: Int, factor: Float): Int {
         val hsv = FloatArray(3)
         Color.colorToHSV(color, hsv)
 
-        // Reducir el brillo y saturación para hacerlo más oscuro
-        hsv[1] = (hsv[1] * (1 - factor * 0.3f)).coerceIn(0f, 1f) // Saturación
-        hsv[2] = (hsv[2] * (1 - factor)).coerceIn(0f, 1f) // Brillo
+        hsv[1] = (hsv[1] * (1 - factor * 0.3f)).coerceIn(0f, 1f)
+        hsv[2] = (hsv[2] * (1 - factor)).coerceIn(0f, 1f)
 
         return Color.HSVToColor(hsv)
     }

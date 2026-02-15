@@ -37,7 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yumedev.seijakulist.ui.theme.RobotoBold
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
 
 /**
  * Botón personalizado con estilo Anime/Manga
@@ -177,7 +177,7 @@ fun AnimeButton(
             Text(
                 text = text,
                 fontSize = 18.sp,
-                fontFamily = RobotoBold,
+                fontFamily = PoppinsBold,
                 color = if (enabled) textColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 letterSpacing = 0.5.sp
             )

@@ -5,61 +5,61 @@ import androidx.compose.ui.graphics.Color
 // Colores principales de la paleta
 
 
-// Colores del tema Oscuro
-val DarkPrimary = Color(0xFF26A69A) // Teal/Verde azulado
-val DarkOnPrimary = Color(0xFF000000)
-val DarkBackground = Color(0xFF0A0A0A) // Más oscuro
+// Colores del tema Oscuro (Estilo GitHub)
+val DarkPrimary = Color(0xFF58A6FF) // Azul GitHub
+val DarkOnPrimary = Color(0xFFFFFFFF)
+val DarkBackground = Color(0xFF0D1117) // Fondo GitHub
 
-val DarkSecondary = Color(0xFFc1c7cf)
-val DarkOnSecondary = Color(0xFF2b3137)
-val DarkTertiary = Color(0xFFd5c0d8)
-val DarkOnTertiary = Color(0xFF392b3e)
-val DarkError = Color(0xFFffb4ab)
-val DarkOnError = Color(0xFF690005)
-val DarkPrimaryContainer = Color(0xFF004D40) // Teal oscuro para el container
-val DarkOnPrimaryContainer = Color(0xFFA7FFEB) // Teal muy claro para el texto
-val DarkSecondaryContainer = Color(0xFF41474e)
-val DarkOnSecondaryContainer = Color(0xFFb0b6bd)
-val DarkTertiaryContainer = Color(0xFF615165)
-val DarkOnTertiaryContainer = Color(0xFFe9dde6)
-val DarkErrorContainer = Color(0xFF93000a)
-val DarkOnErrorContainer = Color(0xFFffdad6)
-val DarkSurfaceDim = Color(0xFF0A0A0A)
-val DarkSurface = Color(0xFF0F0F0F) // Más oscuro
-val DarkSurfaceBright = Color(0xFF2A2A2A)
-val DarkSurfaceContainerLowest = Color(0xFF050505) // Más oscuro
-val DarkSurfaceContainerLow = Color(0xFF121212) // Más oscuro
-val DarkSurfaceContainer = Color(0xFF161616) // Más oscuro
-val DarkSurfaceContainerHigh = Color(0xFF1E1E1E) // Más oscuro
-val DarkSurfaceContainerHighest = Color(0xFF282828) // Más oscuro
-val DarkOnSurface = Color(0xFFe4e2e3)
-val DarkOnSurfaceVariant = Color(0xFFc3c7cc)
-val DarkOutline = Color(0xFF8d9196)
-val DarkOutlineVariant = Color(0xFF43474b)
-val DarkInverseSurface = Color(0xFFe4e2e3)
-val DarkInverseOnSurface = Color(0xFF303031)
-val DarkInversePrimary = Color(0xFF00695C) // Teal oscuro para inverse
-val DarkShadow = Color(0xFF000000)
-val DarkScrim = Color(0xFF000000)
+val DarkSecondary = Color(0xFF79C0FF) // Azul claro GitHub
+val DarkOnSecondary = Color(0xFF0D1117)
+val DarkTertiary = Color(0xFF7EE787) // Verde GitHub
+val DarkOnTertiary = Color(0xFF0D1117)
+val DarkError = Color(0xFFFF7B72) // Rojo GitHub
+val DarkOnError = Color(0xFF0D1117)
+val DarkPrimaryContainer = Color(0xFF1F6FEB) // Azul container
+val DarkOnPrimaryContainer = Color(0xFFCAE8FF)
+val DarkSecondaryContainer = Color(0xFF1F3D5C) // Azul oscuro
+val DarkOnSecondaryContainer = Color(0xFFA5D6FF)
+val DarkTertiaryContainer = Color(0xFF238636) // Verde oscuro
+val DarkOnTertiaryContainer = Color(0xFFAFF5B4)
+val DarkErrorContainer = Color(0xFF8E1519)
+val DarkOnErrorContainer = Color(0xFFFFDCD7)
+val DarkSurfaceDim = Color(0xFF0D1117)
+val DarkSurface = Color(0xFF161B22) // Surface GitHub
+val DarkSurfaceBright = Color(0xFF21262D)
+val DarkSurfaceContainerLowest = Color(0xFF010409)
+val DarkSurfaceContainerLow = Color(0xFF0D1117)
+val DarkSurfaceContainer = Color(0xFF161B22)
+val DarkSurfaceContainerHigh = Color(0xFF21262D)
+val DarkSurfaceContainerHighest = Color(0xFF30363D)
+val DarkOnSurface = Color(0xFFC9D1D9) // Texto GitHub
+val DarkOnSurfaceVariant = Color(0xFF8B949E) // Texto secundario GitHub
+val DarkOutline = Color(0xFF30363D) // Bordes GitHub
+val DarkOutlineVariant = Color(0xFF21262D)
+val DarkInverseSurface = Color(0xFFC9D1D9)
+val DarkInverseOnSurface = Color(0xFF0D1117)
+val DarkInversePrimary = Color(0xFF0969DA)
+val DarkShadow = Color(0xFF010409)
+val DarkScrim = Color(0xFF010409)
 
 
 
 // Colores del tema Claro
-val LightPrimary = Color(0xFF26A69A) // Teal/Verde azulado
+val LightPrimary = Color(0xFF1E88E5) // Azul material vibrante
 val LightOnPrimary = Color(0xFFffffff)
 val LightBackground = Color(0xFFF8F5F5)
-val LightSecondary = Color(0xFF595f66)
+val LightSecondary = Color(0xFF1976D2) // Azul medio
 val LightOnSecondary = Color(0xFFffffff)
-val LightTertiary = Color(0xFF493a4d)
-val LightOnTertiary = Color(0xFFffffff)
+val LightTertiary = Color(0xFF64B5F6) // Azul claro
+val LightOnTertiary = Color(0xFF000000)
 val LightError = Color(0xFFba1b1b)
 val LightOnError = Color(0xFFffffff)
-val LightPrimaryContainer = Color(0xFFB2DFDB) // Teal claro para el container
-val LightOnPrimaryContainer = Color(0xFF004D40) // Teal oscuro para el texto
-val LightSecondaryContainer = Color(0xFFdde3eb)
-val LightOnSecondaryContainer = Color(0xFF5f656c)
-val LightTertiaryContainer = Color(0xFF615165)
-val LightOnTertiaryContainer = Color(0xFFdbc5dd)
+val LightPrimaryContainer = Color(0xFFBBDEFB) // Azul claro para el container
+val LightOnPrimaryContainer = Color(0xFF0D47A1) // Azul oscuro para el texto
+val LightSecondaryContainer = Color(0xFFBBDEFB)
+val LightOnSecondaryContainer = Color(0xFF0D47A1)
+val LightTertiaryContainer = Color(0xFFE3F2FD)
+val LightOnTertiaryContainer = Color(0xFF1565C0)
 val LightErrorContainer = Color(0xFFffdad6)
 val LightOnErrorContainer = Color(0xFF410002)
 val LightSurfaceDim = Color(0xFFdbd9db)
@@ -76,7 +76,7 @@ val LightOutline = Color(0xFF74777c)
 val LightOutlineVariant = Color(0xFFe4e2e3)
 val LightInverseSurface = Color(0xFF303031)
 val LightInverseOnSurface = Color(0xFFf2f0f1)
-val LightInversePrimary = Color(0xFF80CBC4) // Teal medio para inverse
+val LightInversePrimary = Color(0xFF64B5F6) // Azul medio para inverse
 val LightShadow = Color(0xFF000000)
 val LightScrim = Color(0xFF000000)
 

@@ -8,26 +8,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.R
 
-// Set of Material typography styles to start with
-val RobotoRegular = FontFamily(
-    Font(R.font.roboto_regular)
+// Poppins Font Family
+val PoppinsRegular = FontFamily(
+    Font(R.font.poppins_regular, FontWeight.Normal)
 )
 
-val RobotoBold = FontFamily(
-    Font(R.font.roboto_bold)
+val PoppinsMedium = FontFamily(
+    Font(R.font.poppins_medium, FontWeight.Medium)
 )
+
+val PoppinsBold = FontFamily(
+    Font(R.font.poppins_bold, FontWeight.Bold)
+)
+
+// Mantener Roboto para compatibilidad (deprecated)
+@Deprecated("Use PoppinsRegular instead", ReplaceWith("PoppinsRegular"))
+val RobotoRegular = PoppinsRegular
+
+@Deprecated("Use PoppinsBold instead", ReplaceWith("PoppinsBold"))
+val RobotoBold = PoppinsBold
 
 val Typography = Typography(
     bodyLarge = androidx.compose.ui.text.TextStyle(
-        fontFamily = RobotoRegular,
+        fontFamily = PoppinsRegular,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     titleLarge = androidx.compose.ui.text.TextStyle(
-        fontFamily = RobotoBold,
-        fontWeight = FontWeight.Normal,
+        fontFamily = PoppinsBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp

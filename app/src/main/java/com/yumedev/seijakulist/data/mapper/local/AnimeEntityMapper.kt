@@ -15,7 +15,24 @@ fun AnimeEntityDomain.toAnimeEntity(): AnimeEntity {
         totalEpisodes = totalEpisodes,
         episodesWatched = episodesWatched,
         rewatchCount = rewatchCount,
-        genres = genres
+        genres = genres,
+        synopsis = synopsis,
+        titleEnglish = titleEnglish,
+        titleJapanese = titleJapanese,
+        studios = studios,
+        score = score,
+        scoreBy = scoreBy,
+        typeAnime = typeAnime,
+        duration = duration,
+        season = season,
+        year = year,
+        status = status,
+        aired = aired,
+        rank = rank,
+        rating = rating,
+        source = source,
+        startDate = startDate,
+        endDate = endDate
     )
 }
 
@@ -30,6 +47,23 @@ fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
         totalEpisodes = totalEpisodes,
         episodesWatched = episodesWatched,
         rewatchCount = rewatchCount,
-        genres = genres
+        genres = genres,
+        synopsis = synopsis,
+        titleEnglish = titleEnglish,
+        titleJapanese = titleJapanese,
+        studios = studios,
+        score = score,
+        scoreBy = scoreBy,
+        typeAnime = typeAnime,
+        duration = duration,
+        season = season,
+        year = year,
+        status = status,
+        aired = aired,
+        rank = rank,
+        rating = rating,
+        source = source,
+        startDate = startDate,
+        endDate = endDate
     )
 }

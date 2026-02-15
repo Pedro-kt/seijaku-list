@@ -16,7 +16,9 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -40,6 +42,7 @@ import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmCompleteDialog
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmPlannedDialog
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmResetEpisodesDialog
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.util.UserAction
 
 @Composable
@@ -65,18 +68,19 @@ fun AnimeStatusChip(
         modifier = Modifier
             .clickable { expanded = true }
     ) {
-        ElevatedFilterChip(
-            label = { Text(text = status) },
-            selected = false,
+        Surface(
             onClick = { expanded = true },
-            colors = FilterChipDefaults.filterChipColors(
-                containerColor = statusColor,
-                labelColor = Color.White
-            ),
-            elevation = FilterChipDefaults.filterChipElevation(
-                elevation = 16.dp
+            shape = RoundedCornerShape(8.dp),
+            color = statusColor.copy(alpha = 0.15f),
+            border = BorderStroke(1.dp, statusColor)
+        ) {
+            Text(
+                text = status,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                color = statusColor,
+                fontFamily = PoppinsRegular
             )
-        )
+        }
 
         DropdownMenu(
             expanded = expanded,
@@ -107,7 +111,7 @@ fun AnimeStatusChip(
                     text = {
                         Text(
                             text = newStatus,
-                            fontFamily = RobotoRegular,
+                            fontFamily = PoppinsRegular,
                             color = if (isCurrentStatus) {
                                 MaterialTheme.colorScheme.primary
                             } else {

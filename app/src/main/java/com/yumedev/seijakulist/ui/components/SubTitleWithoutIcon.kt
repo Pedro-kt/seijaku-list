@@ -22,8 +22,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.R
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 @Composable
 fun SubTitleWithoutIcon(subTitle: String) {
@@ -39,7 +39,7 @@ fun SubTitleWithoutIcon(subTitle: String) {
             text = subTitle,
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 22.sp,
-            fontFamily = RobotoBold,
+            fontFamily = PoppinsBold,
             textAlign = TextAlign.Start,
         )
         TextButton(
@@ -49,7 +49,7 @@ fun SubTitleWithoutIcon(subTitle: String) {
                 text = "Ver más",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
-                fontFamily = RobotoRegular,
+                fontFamily = PoppinsRegular,
             )
         }
     }

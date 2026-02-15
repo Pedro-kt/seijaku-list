@@ -1,84 +1,40 @@
 package com.yumedev.seijakulist.ui.screens.auth_screen
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Login
-import androidx.compose.material.icons.filled.Password
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.room.util.TableInfo
-import com.yumedev.seijakulist.R
-import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.theme.RobotoBold
-import com.yumedev.seijakulist.ui.theme.RobotoRegular
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(
@@ -89,8 +45,14 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
+    var screenVisible by remember { mutableStateOf(false) }
     val authResult by viewModel.authResult.collectAsState()
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(Unit) {
+        delay(100)
+        screenVisible = true
+    }
 
     LaunchedEffect(authResult) {
         if (authResult is AuthResult.Success) {
@@ -98,228 +60,260 @@ fun LoginScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = { focusManager.clearFocus() })
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Header
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600)) + slideInVertically(
+                    initialOffsetY = { -30 },
+                    animationSpec = tween(600, easing = FastOutSlowInEasing)
+                )
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Bienvenido de nuevo",
+                        fontFamily = PoppinsBold,
+                        fontSize = 32.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Ingresa a tu cuenta",
+                        fontFamily = PoppinsRegular,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
 
-        LoginHeader()
+            Spacer(modifier = Modifier.height(48.dp))
 
-        Spacer(modifier = Modifier.height(40.dp))
+            // Formulario
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 200)) + slideInVertically(
+                    initialOffsetY = { 30 },
+                    animationSpec = tween(600, easing = FastOutSlowInEasing)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Campo de email
+                    ModernTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Correo electrónico",
+                        placeholder = "tu@email.com",
+                        leadingIcon = Icons.Outlined.Email,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        )
+                    )
 
-        LoginForm(
-            email = email,
-            password = password,
-            isPasswordVisible = isPasswordVisible,
-            onEmailChange = { email = it },
-            onPasswordChange = { password = it },
-            onPasswordVisibilityToggle = { isPasswordVisible = !isPasswordVisible },
-            onForgotPasswordClick = { /* TODO */ }
-        )
+                    // Campo de contraseña
+                    ModernTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Contraseña",
+                        placeholder = "Tu contraseña",
+                        leadingIcon = Icons.Outlined.Lock,
+                        isPassword = true,
+                        isPasswordVisible = isPasswordVisible,
+                        onPasswordVisibilityToggle = { isPasswordVisible = !isPasswordVisible },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                if (email.isNotEmpty() && password.isNotEmpty()) {
+                                    viewModel.signIn(email, password)
+                                }
+                            }
+                        )
+                    )
+                }
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            // Olvidaste tu contraseña
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 300))
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = { /* TODO: Implementar recuperación de contraseña */ }
+                    ) {
+                        Text(
+                            text = "¿Olvidaste tu contraseña?",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
 
-        LoginButton(
-            onClick = { viewModel.signIn(email, password) },
-            enabled = email.isNotEmpty() && password.isNotEmpty()
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (authResult is AuthResult.Error) {
-            Spacer(modifier = Modifier.height(12.dp))
-            ErrorMessage(message = (authResult as AuthResult.Error).message)
+            // Separador con "o"
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 400))
+            ) {
+                SocialDivider()
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Botones de redes sociales
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 500)) + scaleIn(
+                    initialScale = 0.8f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+            ) {
+                SocialLoginButtons()
+            }
+
+            // Error message
+            if (authResult is AuthResult.Error) {
+                Spacer(modifier = Modifier.height(16.dp))
+                ErrorBanner(message = (authResult as AuthResult.Error).message)
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Botón de login
+            AnimatedVisibility(
+                visible = screenVisible,
+                enter = fadeIn(tween(600, delayMillis = 400)) + scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+            ) {
+                LoginButton(
+                    onClick = { viewModel.signIn(email, password) },
+                    enabled = email.isNotEmpty() && password.isNotEmpty(),
+                    isLoading = authResult is AuthResult.Loading
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        SocialLoginSection()
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SignUpPrompt(
-            onSignUpClick = { navController.navigate(AppDestinations.REGISTER_ROUTE) }
-        )
-    }
-
-}
-
-@Composable
-private fun LoginHeader() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = "SeijakuList",
-            fontFamily = RobotoBold,
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 42.sp,
-            fontStyle = FontStyle.Italic,
-            letterSpacing = 1.sp
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "¡Bienvenido de nuevo!",
-            fontFamily = RobotoBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 24.sp
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "Ingresa para continuar",
-            fontFamily = RobotoRegular,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            fontSize = 15.sp
-        )
     }
 }
 
 @Composable
-private fun LoginForm(
-    email: String,
-    password: String,
-    isPasswordVisible: Boolean,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onPasswordVisibilityToggle: () -> Unit,
-    onForgotPasswordClick: () -> Unit
+private fun ModernTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String,
+    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    isPassword: Boolean = false,
+    isPasswordVisible: Boolean = false,
+    onPasswordVisibilityToggle: (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Email Field
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = "Email",
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(start = 4.dp)
-            )
+        Text(
+            text = label,
+            fontFamily = PoppinsBold,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 4.dp)
+        )
 
-            OutlinedTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                placeholder = {
-                    Text(
-                        "ejemplo@correo.com",
-                        fontFamily = RobotoRegular
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    fontFamily = PoppinsRegular,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
-            )
-        }
-
-        // Password Field
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = "Contraseña",
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(start = 4.dp)
-            )
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = onPasswordChange,
-                placeholder = {
-                    Text(
-                        "Ingresa tu contraseña",
-                        fontFamily = RobotoRegular
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                visualTransformation = if (isPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = onPasswordVisibilityToggle) {
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            trailingIcon = if (isPassword) {
+                {
+                    IconButton(onClick = { onPasswordVisibilityToggle?.invoke() }) {
                         Icon(
-                            imageVector = if (isPasswordVisible) {
-                                Icons.Default.VisibilityOff
-                            } else {
-                                Icons.Default.Visibility
-                            },
-                            contentDescription = if (isPasswordVisible) {
-                                "Ocultar contraseña"
-                            } else {
-                                "Mostrar contraseña"
-                            },
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (isPasswordVisible) "Ocultar" else "Mostrar",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                ),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                )
-            )
-        }
-
-        // Forgot Password
-        Text(
-            text = "¿Olvidaste tu contraseña?",
-            fontFamily = RobotoRegular,
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 14.sp,
-            modifier = Modifier
-                .align(Alignment.End)
-                .clip(RoundedCornerShape(8.dp))
-                .clickable(onClick = onForgotPasswordClick)
-                .padding(vertical = 4.dp, horizontal = 8.dp)
+                }
+            } else null,
+            visualTransformation = if (isPassword && !isPasswordVisible) {
+                PasswordVisualTransformation()
+            } else {
+                VisualTransformation.None
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = Color.Transparent,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            textStyle = LocalTextStyle.current.copy(
+                fontFamily = PoppinsRegular,
+                fontSize = 16.sp
+            ),
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions
         )
     }
 }
@@ -327,167 +321,203 @@ private fun LoginForm(
 @Composable
 private fun LoginButton(
     onClick: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
+    isLoading: Boolean
 ) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "buttonScale",
+        finishedListener = {
+            if (isPressed) isPressed = false
+        }
+    )
+
     Button(
-        onClick = onClick,
+        onClick = {
+            if (enabled && !isLoading) {
+                isPressed = true
+                onClick()
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
-        enabled = enabled,
+            .height(56.dp)
+            .scale(scale),
+        enabled = enabled && !isLoading,
         shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
         elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 2.dp,
-            pressedElevation = 6.dp,
-            disabledElevation = 0.dp
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
         )
     ) {
-        Icon(
-            imageVector = Icons.Default.Login,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Iniciar sesión",
-            fontFamily = RobotoBold,
-            fontSize = 16.sp
-        )
-    }
-}
-
-@Composable
-private fun ErrorMessage(message: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = RoundedCornerShape(12.dp)
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+                strokeWidth = 2.dp
             )
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Error,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = message,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            fontFamily = RobotoRegular,
-            fontSize = 14.sp
-        )
-    }
-}
-
-@Composable
-private fun SocialLoginSection() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            HorizontalDivider(
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-            )
+        } else {
             Text(
-                text = "O continúa con",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                fontFamily = RobotoRegular,
-                fontSize = 14.sp
-            )
-            HorizontalDivider(
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                text = "Iniciar Sesión",
+                fontFamily = PoppinsBold,
+                fontSize = 17.sp,
+                letterSpacing = 0.5.sp
             )
         }
-
-        // Google Button
-        SocialLoginButton(
-            text = "Continuar con Google",
-            icon = R.drawable.google,
-            backgroundColor = MaterialTheme.colorScheme.surface,
-            textColor = MaterialTheme.colorScheme.onSurface,
-            onClick = { /* TODO */ }
-        )
-
-        // Facebook Button
-        SocialLoginButton(
-            text = "Continuar con Facebook",
-            icon = R.drawable.facebook,
-            backgroundColor = Color(0xFF1877F2),
-            textColor = Color.White,
-            onClick = { /* TODO */ }
-        )
     }
 }
 
 @Composable
-private fun SocialLoginButton(
-    text: String,
-    icon: Int,
-    backgroundColor: Color,
-    textColor: Color,
-    onClick: () -> Unit
-) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = backgroundColor,
-            contentColor = textColor
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-        )
-    ) {
-        Image(
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = text,
-            fontFamily = RobotoBold,
-            fontSize = 15.sp
-        )
-    }
-}
-
-@Composable
-private fun SignUpPrompt(onSignUpClick: () -> Unit) {
+private fun SocialDivider() {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        )
+
+        Text(
+            text = "o",
+            fontFamily = PoppinsRegular,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        )
+    }
+}
+
+@Composable
+private fun SocialLoginButtons() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "¿No tienes cuenta?",
-            fontFamily = RobotoRegular,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            fontSize = 15.sp
+        // Botón de Google
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.google_icon_logo_svgrepo_com,
+            contentDescription = "Google",
+            onClick = { /* TODO: Implementar login con Google */ }
         )
-        TextButton(onClick = onSignUpClick) {
+
+        // Botón de Facebook
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.facebook_2_logo_svgrepo_com,
+            contentDescription = "Facebook",
+            onClick = { /* TODO: Implementar login con Facebook */ }
+        )
+
+        // Botón de Play Games
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.google_play_games_logo_4,
+            contentDescription = "Play Games",
+            onClick = { /* TODO: Implementar login con Play Games */ }
+        )
+
+        // Botón de GitHub
+        SocialButtonIcon(
+            iconRes = com.yumedev.seijakulist.R.drawable.github_142_svgrepo_com,
+            contentDescription = "GitHub",
+            onClick = { /* TODO: Implementar login con GitHub */ }
+        )
+    }
+}
+
+@Composable
+private fun SocialButtonIcon(
+    iconRes: Int,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.9f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "socialButtonScale",
+        finishedListener = {
+            if (isPressed) isPressed = false
+        }
+    )
+
+    OutlinedButton(
+        onClick = {
+            isPressed = true
+            onClick()
+        },
+        modifier = Modifier
+            .size(64.dp)
+            .scale(scale),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = Color.White.copy(alpha = 0.3f)
+        ),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun ErrorBanner(message: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(20.dp)
+            )
+
             Text(
-                text = "Regístrate",
-                fontFamily = RobotoBold,
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 15.sp
+                text = message,
+                fontFamily = PoppinsRegular,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.weight(1f)
             )
         }
     }

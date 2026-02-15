@@ -1,6 +1,7 @@
 package com.yumedev.seijakulist.ui.navigation
 
 object AppDestinations {
+    const val SPLASH = "splash"
     const val HOME = "home"
     const val SEARCH_ANIME_ROUTE = "search_anime_route"
     const val ANIME_DETAIL_ROUTE = "anime_detail_route"
@@ -29,7 +30,14 @@ object AppDestinations {
     const val PROFILE_LOADER_ROUTE = "profile_loader_route"
     const val PROFILE_SETUP_ROUTE = "profile_setup_route"
     const val PROFILE_VIEW_ROUTE = "profile_view_route"
+    const val SELECT_TOP5_ROUTE = "select_top5_route"
     const val LOGIN_ROUTE = "login_route"
     const val REGISTER_ROUTE = "register_route"
+
+    const val VIEW_MORE_ROUTE = "view_more_route"
+    const val VIEW_MORE_SECTION_KEY = "section"
+    const val VIEW_MORE_FILTER_KEY = "filter"
+
+    const val NOVEDADES_ROUTE = "novedades_route"
 
 }
