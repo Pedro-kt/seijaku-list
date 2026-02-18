@@ -15,11 +15,82 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+enum class BlobPosition { TopEnd, BottomStart }
+
+/**
+ * Decoración de blobs orgánicos para pantallas de autenticación.
+ * Imita el estilo con círculos superpuestos en las esquinas.
+ */
+@Composable
+fun AuthBlobDecoration(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    position: BlobPosition = BlobPosition.TopEnd
+) {
+    Box(modifier = modifier.fillMaxSize()) {
+        when (position) {
+            BlobPosition.TopEnd -> {
+                // Círculo grande detrás (mayormente fuera de pantalla)
+                Box(
+                    modifier = Modifier
+                        .size(240.dp)
+                        .align(Alignment.TopEnd)
+                        .offset(x = 80.dp, y = (-90).dp)
+                        .background(color.copy(alpha = 0.25f), CircleShape)
+                )
+                // Círculo mediano
+                Box(
+                    modifier = Modifier
+                        .size(185.dp)
+                        .align(Alignment.TopEnd)
+                        .offset(x = 25.dp, y = 55.dp)
+                        .background(color.copy(alpha = 0.42f), CircleShape)
+                )
+                // Círculo pequeño al frente
+                Box(
+                    modifier = Modifier
+                        .size(135.dp)
+                        .align(Alignment.TopEnd)
+                        .offset(x = 55.dp, y = (-15).dp)
+                        .background(color.copy(alpha = 0.65f), CircleShape)
+                )
+            }
+            BlobPosition.BottomStart -> {
+                // Círculo grande detrás
+                Box(
+                    modifier = Modifier
+                        .size(270.dp)
+                        .align(Alignment.BottomStart)
+                        .offset(x = (-85).dp, y = 85.dp)
+                        .background(color.copy(alpha = 0.25f), CircleShape)
+                )
+                // Círculo mediano
+                Box(
+                    modifier = Modifier
+                        .size(210.dp)
+                        .align(Alignment.BottomStart)
+                        .offset(x = 55.dp, y = 55.dp)
+                        .background(color.copy(alpha = 0.42f), CircleShape)
+                )
+                // Círculo pequeño al frente
+                Box(
+                    modifier = Modifier
+                        .size(155.dp)
+                        .align(Alignment.BottomStart)
+                        .offset(x = (-18).dp, y = 22.dp)
+                        .background(color.copy(alpha = 0.65f), CircleShape)
+                )
+            }
+        }
+    }
+}
 
 /**
  * Fondo decorativo con gradiente estilo anime

@@ -1,6 +1,7 @@
 package com.yumedev.seijakulist.di
 
 import com.yumedev.seijakulist.data.local.dao.UserProfileDao
+import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
 import com.yumedev.seijakulist.data.repository.UserProfileLocalRepository
 import dagger.Module
 import dagger.Provides
@@ -17,5 +18,11 @@ object RepositoryModule {
         userProfileDao: UserProfileDao
     ): UserProfileLocalRepository {
         return UserProfileLocalRepository(userProfileDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirestoreAnimeRepository(): FirestoreAnimeRepository {
+        return FirestoreAnimeRepository()
     }
 }

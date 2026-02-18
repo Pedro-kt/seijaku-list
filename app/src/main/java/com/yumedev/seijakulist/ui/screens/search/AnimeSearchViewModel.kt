@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
+import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.usecase.GetAnimeSearchUseCase
@@ -22,7 +23,8 @@ import kotlin.collections.distinctBy
 class AnimeSearchViewModel @Inject constructor(
     private val getAnimeSearchUseCase: GetAnimeSearchUseCase,
     private val animeRepository: AnimeRepository,
-    private val animeLocalRepository: AnimeLocalRepository
+    private val animeLocalRepository: AnimeLocalRepository,
+    private val firestoreAnimeRepository: FirestoreAnimeRepository
 ) : ViewModel() {
 
     // --- ESTADOS DE ENTRADA (Filtros) ---
@@ -188,6 +190,11 @@ class AnimeSearchViewModel @Inject constructor(
 
                 // Insertar en la base de datos local
                 animeLocalRepository.insertAnime(entity)
+                try {
+                    firestoreAnimeRepository.syncAnimeToFirestore(entity)
+                } catch (e: Exception) {
+                    Log.e("AnimeSearchVM", "Error syncing to Firestore: ${e.message}")
+                }
                 onSuccess()
 
             } catch (e: Exception) {

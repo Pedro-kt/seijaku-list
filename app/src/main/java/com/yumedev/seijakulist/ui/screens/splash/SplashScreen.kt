@@ -113,7 +113,7 @@ fun SplashScreen(
 
             // App name
             Text(
-                text = "SeijakuList",
+                text = "Seijaku List",
                 fontFamily = PoppinsBold,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,

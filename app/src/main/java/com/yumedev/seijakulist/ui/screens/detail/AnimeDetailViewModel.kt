@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
+import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
 import com.yumedev.seijakulist.domain.models.AnimeDetail
 import com.yumedev.seijakulist.domain.models.AnimeEpisode
 import com.yumedev.seijakulist.domain.models.AnimeEpisodeDetail
@@ -31,7 +32,8 @@ class AnimeDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getAnimeDetailUseCase: GetAnimeDetailUseCase,
     private val animeLocalRepository: AnimeLocalRepository,
-    private val animeRepository: AnimeRepository
+    private val animeRepository: AnimeRepository,
+    private val firestoreAnimeRepository: FirestoreAnimeRepository
 ) : ViewModel() {
 
     private val _animeDetail: MutableStateFlow<AnimeDetail?> = MutableStateFlow(null)
@@ -241,6 +243,11 @@ class AnimeDetailViewModel @Inject constructor(
                 )
                 animeLocalRepository.insertAnime(entity)
                 _isAdded.value = true
+                try {
+                    firestoreAnimeRepository.syncAnimeToFirestore(entity)
+                } catch (e: Exception) {
+                    Log.e("AnimeDetailVM", "Error syncing to Firestore: ${e.message}")
+                }
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al guardar anime: ${e.message}")
             }

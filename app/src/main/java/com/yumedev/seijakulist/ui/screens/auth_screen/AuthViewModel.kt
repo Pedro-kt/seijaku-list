@@ -1,16 +1,21 @@
 package com.yumedev.seijakulist.ui.screens.auth_screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
+import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
+import com.yumedev.seijakulist.data.repository.toAnimeEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
 sealed class AuthResult {
     object Success : AuthResult()
@@ -19,7 +24,11 @@ sealed class AuthResult {
     object Idle : AuthResult()
 }
 
-class AuthViewModel : ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val firestoreAnimeRepository: FirestoreAnimeRepository,
+    private val animeLocalRepository: AnimeLocalRepository
+) : ViewModel() {
 
     private val auth: FirebaseAuth = Firebase.auth
     private val db = Firebase.firestore
@@ -32,6 +41,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 auth.signInWithEmailAndPassword(email, password).await()
+                syncFirestoreToRoom()
                 _authResult.value = AuthResult.Success
             } catch (e: Exception) {
                 _authResult.value = AuthResult.Error(e.message ?: "Error desconocido")
@@ -50,17 +60,28 @@ class AuthViewModel : ViewModel() {
                     val profileData = hashMapOf(
                         "email" to user.email,
                         "createdAt" to System.currentTimeMillis()
-                        //añadir mas datos adelante si es necesario para el usuario
                     )
-
-                    // Guarda los datos en una colección "users" usando el UID como ID del documento
                     db.collection("users").document(user.uid).set(profileData).await()
                 }
 
+                syncFirestoreToRoom()
                 _authResult.value = AuthResult.Success
             } catch (e: Exception) {
                 _authResult.value = AuthResult.Error(e.message ?: "Error desconocido")
             }
+        }
+    }
+
+    private suspend fun syncFirestoreToRoom() {
+        try {
+            val firestoreAnimes = firestoreAnimeRepository.fetchAllAnimesFromFirestore()
+            if (firestoreAnimes.isNotEmpty()) {
+                val entities = firestoreAnimes.map { it.toAnimeEntity() }
+                animeLocalRepository.insertAllAnimes(entities)
+                Log.d("AuthViewModel", "Sync: ${entities.size} animes importados de Firestore a Room")
+            }
+        } catch (e: Exception) {
+            Log.e("AuthViewModel", "Sync fallida (auth exitoso): ${e.message}")
         }
     }
 
@@ -78,10 +99,7 @@ class AuthViewModel : ViewModel() {
         _authResult.value = AuthResult.Loading
         viewModelScope.launch {
             try {
-                // Actualiza el documento del perfil del usuario con el nombre de usuario
-                val profileData = hashMapOf(
-                    "username" to username,
-                )
+                val profileData = hashMapOf("username" to username)
                 db.collection("users").document(user.uid).update(profileData as Map<String, Any>).await()
                 _authResult.value = AuthResult.Success
             } catch (e: Exception) {
@@ -91,31 +109,16 @@ class AuthViewModel : ViewModel() {
     }
 
     fun createUserProfileInFirestore() {
-        val user = auth.currentUser
-        if (user == null) {
-            // Maneja el caso en que no haya un usuario autenticado
-            return
-        }
-
+        val user = auth.currentUser ?: return
         viewModelScope.launch {
             try {
-                // Prepara los datos básicos del perfil
                 val profileData = hashMapOf(
                     "email" to user.email,
                     "createdAt" to System.currentTimeMillis()
-                    // Si tienes un nombre de usuario de la pantalla de registro, puedes agregarlo aquí
-                    // "username" to "nombre_de_usuario"
                 )
-
-                // Guarda el documento en la colección "users" usando el UID del usuario como ID del documento
                 db.collection("users").document(user.uid).set(profileData).await()
-
-                // Si tienes que hacer más cosas, aquí podrías actualizar el estado
-                // _authResult.value = AuthResult.Success
-
             } catch (e: Exception) {
-                // Maneja los errores de Firestore
-                println("Error al crear el perfil en Firestore: ${e.message}")
+                Log.e("AuthViewModel", "Error al crear el perfil en Firestore: ${e.message}")
             }
         }
     }

@@ -71,8 +71,11 @@ fun AppScaffold(
     var viewMode by remember { mutableStateOf(ViewMode.LIST) }
     var sortOrder by remember { mutableStateOf(SortOrder.NONE) }
 
-    // Si estamos en splash, mostrar solo la navegación sin scaffold
-    if (currentRoute == AppDestinations.SPLASH) {
+    // Pantallas fullscreen que deben dibujarse detrás de la status bar (sin Scaffold)
+    if (currentRoute == AppDestinations.SPLASH ||
+        currentRoute == AppDestinations.AUTH_ROUTE ||
+        currentRoute == AppDestinations.LOGIN_ROUTE ||
+        currentRoute == AppDestinations.REGISTER_ROUTE) {
         AppNavigation(
             navController,
             isSearching = isSearching,
@@ -213,7 +216,7 @@ fun AppScaffold(
                                 )
                             ) {
                                 Text(
-                                    text = "SeijakuList",
+                                    text = "Seijaku List",
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.titleLarge,
                                     fontSize = 26.sp,
@@ -263,34 +266,9 @@ fun AppScaffold(
                     )
                 }
 
-                AppDestinations.LOGIN_ROUTE -> {
-                    TopAppBar(
-                        navigationIcon = { ArrowBackTopAppBar(navController) },
-                        title = {
-                            Text(
-                                text = "Iniciar sesión",
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
-                }
-
+                AppDestinations.LOGIN_ROUTE,
                 AppDestinations.REGISTER_ROUTE -> {
-                    TopAppBar(
-                        navigationIcon = { ArrowBackTopAppBar(navController) },
-                        title = {
-                            Text(
-                                text = "Registrarse",
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
+                    // No TopAppBar: estas pantallas son fullscreen con back button propio
                 }
 
                 AppDestinations.NOVEDADES_ROUTE -> {
