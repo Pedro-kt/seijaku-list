@@ -27,6 +27,32 @@ data class WhatsNewVersion(
 // Historial de versiones — el más reciente va PRIMERO
 val WHATS_NEW_HISTORY = listOf(
     WhatsNewVersion(
+        versionName = "1.0 (6)",
+        versionCode = 6,
+        changes = listOf(
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Barra de navegación flotante",
+                description = "Se ha mejorado el diseño de la Barra de navegación para una experiencia más fluida"
+            ),
+            WhatsNewChange(
+                type = ChangeType.NEW,
+                title = "Anime del día",
+                description = "Nueva tarjeta en el home que muestra un anime aleatorio para descubrir."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Selector de pestañas rediseñado",
+                description = "Las pestañas Anime/Manga del home usan el nuevo componente!"
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Estadisticas del Perfil",
+                description = "Se ha rediseñado el componente de las estadísticas del perfil"
+            )
+        )
+    ),
+    WhatsNewVersion(
         versionName = "1.0 (5)",
         versionCode = 5,
         changes = listOf(

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.times
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
@@ -882,6 +883,19 @@ private fun StatsChartPreview(accentColor: Color) {
         ),
         label = "number_pulse"
     )
+    val targetValue = 127
+
+    val animatedValue = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        animatedValue.animateTo(
+            targetValue.toFloat(),
+            animationSpec = tween(
+                durationMillis = 3000,
+                easing = CubicBezierEasing(0.2f, 0.8f, 0.2f, 1f)
+            )
+        )
+    }
 
     Column(
         modifier = Modifier.width(300.dp),
@@ -894,7 +908,7 @@ private fun StatsChartPreview(accentColor: Color) {
             modifier = Modifier.scale(numberPulse)
         ) {
             Text(
-                text = "127",
+                text = animatedValue.value.toInt().toString(),
                 fontFamily = PoppinsBold,
                 fontSize = 72.sp,
                 color = accentColor,
@@ -917,50 +931,49 @@ private fun StatsChartPreview(accentColor: Color) {
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             WrappedStatCard(
-                icon = Icons.Default.Timer,
-                value = "342h",
-                label = "vistas",
-                color = accentColor,
-                modifier = Modifier.weight(1f)
-            )
-            WrappedStatCard(
-                icon = Icons.Default.LocalFireDepartment,
-                value = "14",
-                label = "días racha",
-                color = Color(0xFFFF6B6B),
-                modifier = Modifier.weight(1f)
-            )
-            WrappedStatCard(
-                icon = Icons.Default.Favorite,
-                value = "Acción",
-                label = "top género",
-                color = Color(0xFFFF8E53),
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Segunda fila
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            WrappedStatCard(
-                icon = Icons.Default.PlayArrow,
-                value = "2.4k",
-                label = "episodios",
-                color = Color(0xFF06B6D4),
+                icon = Icons.Default.Tv,
+                value = "127",
+                label = "Total de animes",
+                color = Color(0xFF8B5CF6),
                 modifier = Modifier.weight(1f)
             )
             WrappedStatCard(
                 icon = Icons.Default.Check,
-                value = "89",
+                value = "54",
                 label = "completados",
                 color = Color(0xFF10B981),
                 modifier = Modifier.weight(1f)
             )
             WrappedStatCard(
+                icon = Icons.Default.PlayArrow,
+                value = "160",
+                label = "episodios",
+                color = Color(0xFF06B6D4),
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            WrappedStatCard(
+                icon = Icons.Default.Book,
+                value = "19",
+                label = "Total de mangas",
+                color = Color(0xFFFF6B6B),
+                modifier = Modifier.weight(1f)
+            )
+            WrappedStatCard(
+                icon = Icons.Default.Favorite,
+                value = "Romance",
+                label = "top género",
+                color = Color(0xFFFF8E53),
+                modifier = Modifier.weight(1f)
+            )
+            WrappedStatCard(
                 icon = Icons.Default.Star,
-                value = "8.2",
+                value = "9.3",
                 label = "promedio",
                 color = Color(0xFFFFD700),
                 modifier = Modifier.weight(1f)
@@ -970,7 +983,7 @@ private fun StatsChartPreview(accentColor: Color) {
 }
 
 @Composable
-private fun WrappedStatCard(
+fun WrappedStatCard(
     icon: ImageVector,
     value: String,
     label: String,
@@ -1002,7 +1015,9 @@ private fun WrappedStatCard(
                 fontFamily = PoppinsBold,
                 fontSize = 16.sp,
                 color = color,
-                letterSpacing = (-0.5).sp
+                letterSpacing = (-0.5).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = label,

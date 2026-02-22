@@ -1,10 +1,28 @@
 package com.yumedev.seijakulist.ui.screens.profile
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.EaseOutBack
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
@@ -12,6 +30,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +45,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Edit
@@ -58,8 +76,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -77,6 +107,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -101,6 +132,7 @@ import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.components.DonutChart
 import com.yumedev.seijakulist.ui.components.PieChartData
+import com.yumedev.seijakulist.ui.screens.auth_screen.WrappedStatCard
 
 // Datos de prueba
 val favoriteAnimes = listOf("Shingeki no Kyojin", "Steins;Gate", "Fullmetal Alchemist: Brotherhood", "Hunter x Hunter", "Vinland Saga")
@@ -308,6 +340,12 @@ fun ProfileView(
 ) {
     val uiState by profileViewModel.uiState.collectAsState()
 
+    val averageScore: Double = uiState.allSavedAnimes
+        .map { it.userScore } // Filtra los nulos y crea una lista de números
+        .filter { it > 0 }          // Opcional: Ignora los que son 0 si eso significa "sin puntaje"
+        .average()                  // Calcula el promedio automáticamente
+        .takeIf { !it.isNaN() } ?: 0.0 // Si la lista estaba vacía, devuelve 0.0 en vez de NaN
+
     // 1. Muestra una pantalla mejorada si el perfil aún es nulo.
     if (uiState.userProfile == null) {
         EmptyProfileScreen(navController)
@@ -361,6 +399,20 @@ fun ProfileView(
             animationSpec = androidx.compose.animation.core.tween(200),
             label = "textColor"
         )
+
+        val topGenre: String = uiState.stats.genreStats
+            .maxByOrNull { it.value } // Busca el que tenga el valor más alto
+            ?.key ?: "Sin género"    // Toma la llave (el nombre) o un valor por defecto
+
+        // Al inicio del Composable, junto a los otros remember
+        val statsVisible = rememberSaveable { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            statsVisible.value = true
+        }
+
+        var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+        val tabs = listOf("Anime", "Manga")
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -485,15 +537,13 @@ fun ProfileView(
 
             // Estadísticas - Diseño compacto
             item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(top = 20.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    )
+                AnimatedVisibility(
+                    visible = statsVisible.value,
+                    enter = fadeIn(animationSpec = tween(800)) +
+                            slideInVertically(
+                                initialOffsetY = { -it / 3 }, // El valor negativo hace que venga de ARRIBA
+                                animationSpec = tween(800, easing = EaseOutBack) // EaseOutBack da un pequeño rebote al final
+                            )
                 ) {
                     Column(
                         modifier = Modifier
@@ -501,92 +551,163 @@ fun ProfileView(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = "Estadísticas",
-                            fontSize = 16.sp,
-                            fontFamily = PoppinsBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
 
-                        StatChip(
-                            icon = Icons.Default.PlayArrow,
-                            value = uiState.stats.totalAnimes.toString(),
-                            label = "Animes en tu lista"
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-                        StatChip(
-                            icon = Icons.Default.Check,
-                            value = uiState.stats.completedAnimes.toString(),
-                            label = "Completados"
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-                        StatChip(
-                            icon = Icons.Default.Star,
-                            value = uiState.stats.totalEpisodesWatched.toString(),
-                            label = "Episodios vistos"
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            WrappedStatCard(
+                                icon = Icons.Default.Tv,
+                                value = uiState.stats.totalAnimes.toString(),
+                                label = "Total de animes",
+                                color = Color(0xFF8B5CF6),
+                                modifier = Modifier.weight(1f)
+                            )
+                            WrappedStatCard(
+                                icon = Icons.Default.Check,
+                                value = uiState.stats.completedAnimes.toString(),
+                                label = "completados",
+                                color = Color(0xFF10B981),
+                                modifier = Modifier.weight(1f)
+                            )
+                            WrappedStatCard(
+                                icon = Icons.Default.PlayArrow,
+                                value = uiState.stats.totalEpisodesWatched.toString(),
+                                label = "episodios",
+                                color = Color(0xFF06B6D4),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        // Segunda fila
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            WrappedStatCard(
+                                icon = Icons.Default.Book,
+                                value = "0",
+                                label = "Total de mangas",
+                                color = Color(0xFFFF6B6B),
+                                modifier = Modifier.weight(1f)
+                            )
+                            WrappedStatCard(
+                                icon = Icons.Default.Favorite,
+                                value = topGenre,
+                                label = "top género",
+                                color = Color(0xFFFF8E53),
+                                modifier = Modifier.weight(1f)
+                            )
+                            WrappedStatCard(
+                                icon = Icons.Default.Star,
+                                value = "%.1f".format(averageScore),
+                                label = "promedio",
+                                color = Color(0xFFFFD700),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
 
-            // Géneros Favoritos
             item {
-                if (uiState.stats.genreStats.isNotEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
-                            .padding(top = 20.dp)
-                    ) {
-                        // Título
-                        Text(
-                            text = "Géneros Favoritos",
-                            fontSize = 20.sp,
-                            fontFamily = PoppinsBold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                ) {
 
-                        // Tomar los top 3 géneros
-                        val topGenres = uiState.stats.genreStats
-                            .entries
-                            .sortedByDescending { it.value }
-                            .take(3)
+                    CustomSeijakuTabSelector(
+                        tabs = listOf("Anime", "Manga"),
+                        selectedTabIndex = selectedTabIndex,
+                        onTabSelected = { selectedTabIndex = it }
+                    )
 
-                        // Total de géneros contados (la suma de todos los counts)
-                        val totalGenreCounts = topGenres.sumOf { it.value }
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                        // Paleta de colores vibrante
-                        val genreColors = listOf(
-                            Color(0xFF3B82F6), // Azul
-                            Color(0xFF8B5CF6), // Púrpura
-                            Color(0xFFEC4899)  // Rosa
-                        )
+                    AnimatedContent(
+                        targetState = selectedTabIndex,
+                        label = "TabAnimation",
+                        transitionSpec = {
+                            fadeIn(tween(400)) + scaleIn(initialScale = 0.95f) togetherWith fadeOut(tween(400))
+                        }
+                    ) { targetIndex ->
+                        if (targetIndex == 0) {
+                            // --- VISTA DE ANIME (Aquí recuperamos tus stats) ---
+                            if (uiState.stats.genreStats.isNotEmpty()) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp)
+                                ) {
+                                    Text(
+                                        text = "Géneros Favoritos",
+                                        fontSize = 18.sp,
+                                        fontFamily = PoppinsBold,
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
 
-                        // Mostrar las 3 tarjetas
-                        topGenres.forEachIndexed { index, (genre, count) ->
-                            // Encontrar el primer anime de este género
-                            val animeWithGenre = uiState.allSavedAnimes.firstOrNull { anime ->
-                                anime.genres.split(",").any { it.trim().equals(genre, ignoreCase = true) }
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    // Lógica de cálculo que se había perdido
+                                    val topGenres = uiState.stats.genreStats
+                                        .entries
+                                        .sortedByDescending { it.value }
+                                        .take(3)
+
+                                    val totalGenreCounts = topGenres.sumOf { it.value }
+                                    val genreColors = listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6), Color(0xFFEC4899))
+
+                                    // Pintar las tarjetas de nuevo
+                                    topGenres.forEachIndexed { index, (genre, count) ->
+                                        val animeWithGenre = uiState.allSavedAnimes.firstOrNull { anime ->
+                                            anime.genres.split(",").any { it.trim().equals(genre, ignoreCase = true) }
+                                        }
+
+                                        GenreFavoriteCard(
+                                            genre = genre,
+                                            count = count,
+                                            totalCount = totalGenreCounts,
+                                            imageUrl = animeWithGenre?.imageUrl,
+                                            accentColor = genreColors.getOrElse(index) { Color(0xFF3B82F6) },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        if (index < topGenres.size - 1) {
+                                            Spacer(modifier = Modifier.height(10.dp))
+                                        }
+                                    }
+                                }
                             }
-
-                            GenreFavoriteCard(
-                                genre = genre,
-                                count = count,
-                                totalCount = totalGenreCounts,
-                                imageUrl = animeWithGenre?.imageUrl,
-                                accentColor = genreColors.getOrElse(index) { Color(0xFF3B82F6) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            if (index < topGenres.size - 1) {
-                                Spacer(modifier = Modifier.height(10.dp))
+                        } else {
+                            // --- VISTA DE MANGA (Coming Soon) ---
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "¡Manga en camino!",
+                                    fontSize = 20.sp,
+                                    fontFamily = PoppinsBold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Text(
+                                    text = "Estamos trabajando para que puedas trackear tus lecturas muy pronto.",
+                                    fontSize = 14.sp,
+                                    fontFamily = PoppinsRegular,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
                     }
@@ -1167,11 +1288,77 @@ private fun GenreFavoriteCard(
                         color = Color.White
                     )
                     Text(
-                        text = "$count guardados",
+                        text = if (count == 1) "$count guardado" else "$count guardados",
                         fontSize = 12.sp,
                         fontFamily = PoppinsRegular,
                         color = Color.White.copy(alpha = 0.9f)
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomSeijakuTabSelector(
+    tabs: List<String>,
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    val density = LocalDensity.current
+
+    // Contenedor principal estilo "Pastilla"
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .height(48.dp),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val tabWidth = maxWidth / tabs.size
+
+            // Indicador animado (Fondo de la pestaña seleccionada)
+            val indicatorOffset by animateDpAsState(
+                targetValue = tabWidth * selectedTabIndex,
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "indicator"
+            )
+
+            Box(
+                modifier = Modifier
+                    .offset(x = indicatorOffset)
+                    .width(tabWidth)
+                    .fillMaxHeight()
+                    .padding(4.dp)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+            )
+
+            // Textos de las pestañas
+            Row(modifier = Modifier.fillMaxSize()) {
+                tabs.forEachIndexed { index, title ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null // Quitamos el ripple feo de Android
+                            ) { onTabSelected(index) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = title,
+                            fontFamily = PoppinsBold,
+                            fontSize = 14.sp,
+                            color = if (selectedTabIndex == index)
+                                MaterialTheme.colorScheme.onPrimary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

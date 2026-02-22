@@ -68,7 +68,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import android.content.Context
 import android.os.Build
+import androidx.compose.animation.core.EaseOutBack
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -78,6 +89,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -87,10 +99,12 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.components.CardAnimesHome
@@ -101,6 +115,7 @@ import com.yumedev.seijakulist.ui.screens.home.FilterAnimesHome
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.MangaPlaceholder
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
+import com.yumedev.seijakulist.ui.screens.profile.CustomSeijakuTabSelector
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
@@ -190,6 +205,9 @@ fun HomeScreen(
         selectedUpcomingFilter?.let { seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(it) }
     }
 
+    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+    val tabs = listOf("Anime", "Manga")
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (hasError) {
             NoInternetScreen(
@@ -205,10 +223,10 @@ fun HomeScreen(
             if (animeSeasonUpcomingIsLoading) {
                 LoadingScreen()
             } else if (animeSeasonNow.isNotEmpty()) {
-                HomeTabSection(
-                    selectedTab = selectedTab.value,
-                    tabs = listTab,
-                    onTabSelected = { selectedTab.value = it }
+                CustomSeijakuTabSelector(
+                    tabs = listOf("Anime", "Manga"),
+                    selectedTabIndex = selectedTabIndex,
+                    onTabSelected = { selectedTabIndex = it }
                 )
 
                 WhatsNewBanner(
@@ -221,8 +239,8 @@ fun HomeScreen(
                     onDismiss = { showWhatsNewBanner = false }
                 )
 
-                when (selectedTab.value) {
-                    "Anime" -> {
+                when (selectedTabIndex) {
+                    0 -> {
                         AnimeContent(
                             animeSeasonNow = animeSeasonNow,
                             topAnimes = topAnimes,
@@ -250,131 +268,9 @@ fun HomeScreen(
                             navController = navController
                         )
                     }
-                    "Manga" -> {
+                    1 -> {
                         MangaPlaceholder()
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HomeTabSection(
-    selectedTab: String,
-    tabs: List<String>,
-    onTabSelected: (String) -> Unit
-) {
-    val hapticFeedback = androidx.compose.ui.platform.LocalHapticFeedback.current
-
-    // Detectar dark mode comparando la luminancia del color de surface
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val isDarkTheme = surfaceColor.luminance() < 0.5f
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        tabs.forEach { tab ->
-            val isSelected = tab == selectedTab
-
-            // InteractionSource para detectar presiones
-            val interactionSource = remember { MutableInteractionSource() }
-            val isPressed by interactionSource.collectIsPressedAsState()
-
-            // Animación de escala al presionar
-            val scale by animateFloatAsState(
-                targetValue = if (isPressed) 0.95f else 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                ),
-                label = "tab_scale_animation"
-            )
-
-            // Animación de opacidad al cambiar tabs
-            val alpha by animateFloatAsState(
-                targetValue = if (isSelected) 1f else 0.85f,
-                animationSpec = tween(durationMillis = 300),
-                label = "tab_alpha_animation"
-            )
-
-            // Animación de color de fondo
-            val backgroundColor by androidx.compose.animation.animateColorAsState(
-                targetValue = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    if (isDarkTheme) {
-                        MaterialTheme.colorScheme.surfaceContainerHigh
-                    } else {
-                        Color.White
-                    }
-                },
-                animationSpec = tween(durationMillis = 300),
-                label = "tab_background_animation"
-            )
-
-            // Animación de color de texto
-            val textColor by androidx.compose.animation.animateColorAsState(
-                targetValue = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-                },
-                animationSpec = tween(durationMillis = 300),
-                label = "tab_text_animation"
-            )
-
-            androidx.compose.material3.Surface(
-                modifier = Modifier
-                    .weight(1f)
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        this.alpha = alpha
-                    },
-                onClick = {
-                    if (!isSelected) {
-                        // Feedback háptico al cambiar de tab
-                        hapticFeedback.performHapticFeedback(
-                            androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
-                        )
-                        onTabSelected(tab)
-                    }
-                },
-                shape = RoundedCornerShape(16.dp),
-                color = backgroundColor,
-                border = if (isSelected) {
-                    androidx.compose.foundation.BorderStroke(
-                        width = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    if (!isDarkTheme) {
-                        androidx.compose.foundation.BorderStroke(
-                            width = 1.dp,
-                            color = Color.Black.copy(alpha = 0.2f)
-                        )
-                    } else {
-                        null
-                    }
-                },
-                interactionSource = interactionSource
-            ) {
-                Box(
-                    modifier = Modifier
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = tab,
-                        fontFamily = PoppinsBold,
-                        fontSize = 16.sp,
-                        color = textColor
-                    )
                 }
             }
         }
@@ -826,7 +722,8 @@ private fun HeroBanner(
 ) {
     val shouldAnimate = !HomeAnimationState.hasAnimated
     var isVisible by remember { mutableStateOf(!shouldAnimate) }
-    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val interactionSource =
+        remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by androidx.compose.animation.core.animateFloatAsState(
@@ -845,136 +742,242 @@ private fun HeroBanner(
             isVisible = true
         }
     }
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+    )
+
+    val animatedElevation by animateDpAsState(
+        targetValue = if (isPressed) 4.dp else 14.dp,
+        animationSpec = tween(250)
+    )
 
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn(animationSpec = tween(500)) +
-                scaleIn(
-                    initialScale = 0.95f,
+        enter = fadeIn(tween(500)) +
+                slideInVertically(
+                    initialOffsetY = { it / 4 },
                     animationSpec = tween(500, easing = FastOutSlowInEasing)
                 )
     ) {
-        androidx.compose.material3.Card(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .height(190.dp)
                 .padding(horizontal = 16.dp)
                 .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
+                    scaleX = animatedScale
+                    scaleY = animatedScale
                 },
-            shape = RoundedCornerShape(20.dp),
-            elevation = androidx.compose.material3.CardDefaults.cardElevation(
-                defaultElevation = 4.dp,
-                pressedElevation = 2.dp
-            ),
-            onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") },
-            interactionSource = interactionSource
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(animatedElevation),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            interactionSource = interactionSource,
+            onClick = {
+                navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+            }
         ) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                // Imagen del lado izquierdo
+
+            Row(Modifier.fillMaxSize()) {
+
+                // ─────────────────────────────────────────
+                // IMAGE BLOCK
+                // ─────────────────────────────────────────
+
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight()
                         .width(130.dp)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
                 ) {
-                    coil.compose.AsyncImage(
+
+                    AsyncImage(
                         model = anime.images,
                         contentDescription = anime.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    // Overlay elegante
+                    Box(
+                        Modifier
+                            .matchParentSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.45f)
+                                    )
+                                )
+                            )
+                    )
+
+                    ScoreBadge(
+                        score = anime.score,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .offset(y = (-10).dp)
                     )
                 }
 
-                // Contenido del lado derecho
-                Box(
+                // ─────────────────────────────────────────
+                // INFO BLOCK
+                // ─────────────────────────────────────────
+
+                Column(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
+
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Título y metadata
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = "Anime random",
-                                fontFamily = PoppinsMedium,
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                letterSpacing = 1.sp
-                            )
 
-                            Text(
-                                text = anime.title,
-                                fontFamily = PoppinsBold,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                lineHeight = 20.sp
-                            )
+                        SectionLabel()
 
-                            // Año y status
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                anime.year.takeIf { it.isNotEmpty() && it != "null" }?.let { year ->
-                                    Text(
-                                        text = year,
-                                        fontFamily = PoppinsRegular,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                    )
-                                }
+                        Text(
+                            text = anime.title,
+                            fontFamily = PoppinsBold,
+                            fontSize = 17.sp,
+                            lineHeight = 22.sp,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
 
-                                anime.status.takeIf { it.isNotEmpty() }?.let { status ->
-                                    Text(
-                                        text = "•  $status",
-                                        fontFamily = PoppinsRegular,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-
-                        // Score destacado
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(18.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFFFFD700),
-                                modifier = Modifier.size(20.dp)
+                            MetadataItemModern(
+                                text = anime.year ?: "N/A",
+                                icon = Icons.Default.CalendarToday
                             )
-                            Text(
-                                text = "${anime.score}",
-                                fontFamily = PoppinsBold,
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "/ 10",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            MetadataItemModern(
+                                text = anime.status ?: "Unknown",
+                                icon = Icons.Default.Info
                             )
                         }
                     }
+
+                    DetailsButton()
                 }
             }
         }
     }
 }
+
+@Composable
+fun ScoreBadge(
+    score: Float?,
+    modifier: Modifier = Modifier
+) {
+    if (score == null) return
+
+    val formattedScore = remember(score) {
+        String.format("%.1f", score)
+    }
+
+    val animatedAlpha by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(400)
+    )
+
+    Surface(
+        modifier = modifier
+            .graphicsLayer { alpha = animatedAlpha },
+        shape = RoundedCornerShape(50),
+        color = Color.Black.copy(alpha = 0.65f),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = Color(0xFFFFC107), // Dorado más elegante
+                modifier = Modifier.size(13.dp)
+            )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Text(
+                text = formattedScore,
+                fontFamily = PoppinsMedium,
+                fontSize = 12.sp,
+                color = Color.White
+            )
+        }
+    }
+}
+
+
+
+@Composable
+fun SectionLabel() {
+    Text(
+        text = "Anime Random",
+        fontFamily = PoppinsBold,
+        fontSize = 10.sp,
+        letterSpacing = 1.4.sp,
+        color = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
+fun DetailsButton() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(vertical = 10.dp, horizontal = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Ver detalles",
+                fontFamily = PoppinsMedium,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun MetadataItemModern(text: String, icon: ImageVector) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = text,
+            fontFamily = PoppinsRegular,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
 
 // Skeleton del Banner Hero (diseño horizontal)
 @Composable
@@ -1176,7 +1179,7 @@ private fun QuickStats(
                     animationSpec = tween(600, easing = androidx.compose.animation.core.FastOutSlowInEasing)
                 )
     ) {
-        androidx.compose.material3.Card(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
@@ -1191,7 +1194,7 @@ private fun QuickStats(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Header mejorado
