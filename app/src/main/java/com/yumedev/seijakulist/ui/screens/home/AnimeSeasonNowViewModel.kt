@@ -3,9 +3,7 @@ package com.yumedev.seijakulist.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.domain.models.Anime
-import com.yumedev.seijakulist.domain.models.AnimeDetailSeasonNow
 import com.yumedev.seijakulist.domain.usecase.GetAnimeDetailSeasonNowUseCase
-import com.yumedev.seijakulist.domain.usecase.GetAnimeSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AnimeSeasonNowViewModel @Inject constructor(
 
-    private val getAnimeDetailSeasonNowUseCase: GetAnimeDetailSeasonNowUseCase
+    private val getAnimeDetailSeasonNowUseCase: GetAnimeDetailSeasonNowUseCase,
+    private val cache: AnimeSeasonNowCache
 
 ) : ViewModel() {
 
@@ -38,10 +37,11 @@ class AnimeSeasonNowViewModel @Inject constructor(
         initialValue = false
     )
 
-    private var isDataLoaded = false
-
     init {
-        if (!isDataLoaded) {
+        val cached = cache.animeList
+        if (cached != null) {
+            _animeList.value = cached
+        } else {
             AnimesSeasonNow()
         }
     }
@@ -57,8 +57,8 @@ class AnimeSeasonNowViewModel @Inject constructor(
 
                 val results = getAnimeDetailSeasonNowUseCase()
                 val filtered = results.distinctBy { it.malId }
+                cache.animeList = filtered
                 _animeList.value = filtered
-                isDataLoaded = true
 
             } catch (e: Exception) {
 

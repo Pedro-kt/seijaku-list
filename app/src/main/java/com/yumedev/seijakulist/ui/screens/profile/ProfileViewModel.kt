@@ -99,45 +99,25 @@ class ProfileViewModel @Inject constructor(
             }
         }
 
-        // Cargar todos los animes guardados
+        // Cargar todos los animes y calcular estadísticas en una sola emisión
         viewModelScope.launch {
             animeLocalRepository.getAllAnimes().collect { animes ->
-                _uiState.update { it.copy(allSavedAnimes = animes) }
-            }
-        }
-
-        // Cargar estadísticas
-        viewModelScope.launch {
-            animeLocalRepository.getTotalAnimesCount().collect { total ->
-                _uiState.update { it.copy(stats = it.stats.copy(totalAnimes = total)) }
-            }
-        }
-
-        viewModelScope.launch {
-            animeLocalRepository.getCompletedAnimesCount().collect { completed ->
-                _uiState.update { it.copy(stats = it.stats.copy(completedAnimes = completed)) }
-            }
-        }
-
-        viewModelScope.launch {
-            animeLocalRepository.getTotalEpisodesWatched().collect { episodes ->
-                _uiState.update { it.copy(stats = it.stats.copy(totalEpisodesWatched = episodes)) }
-            }
-        }
-
-        viewModelScope.launch {
-            animeLocalRepository.getAllGenres().collect { genresList ->
-                // Procesar los géneros (separados por comas) y contar cada uno
                 val genreMap = mutableMapOf<String, Int>()
-                genresList.forEach { genresString ->
-                    genresString.split(",").forEach { genre ->
+                animes.forEach { anime ->
+                    anime.genres.split(",").forEach { genre ->
                         val trimmedGenre = genre.trim()
                         if (trimmedGenre.isNotEmpty()) {
                             genreMap[trimmedGenre] = genreMap.getOrDefault(trimmedGenre, 0) + 1
                         }
                     }
                 }
-                _uiState.update { it.copy(stats = it.stats.copy(genreStats = genreMap)) }
+                val stats = AnimeStats(
+                    totalAnimes = animes.size,
+                    completedAnimes = animes.count { it.statusUser == "Completado" },
+                    totalEpisodesWatched = animes.sumOf { it.episodesWatched },
+                    genreStats = genreMap
+                )
+                _uiState.update { it.copy(allSavedAnimes = animes, stats = stats) }
             }
         }
     }

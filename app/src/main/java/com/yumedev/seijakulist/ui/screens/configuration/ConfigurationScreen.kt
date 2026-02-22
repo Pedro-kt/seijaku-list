@@ -68,6 +68,7 @@ import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.ThemeMode
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmSignOutDialog
 
 @RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,7 +94,21 @@ fun ConfigurationScreen(
     // Obtener email del usuario desde Firebase Auth
     val userEmail = remember { Firebase.auth.currentUser?.email ?: "No disponible" }
 
-    // Estado para el diálogo del desarrollador
+    var showSignOutDialog by remember { mutableStateOf(false) }
+
+    if (showSignOutDialog) {
+        ConfirmSignOutDialog(
+            onConfirm = {
+                viewModel.signOut()
+                navController.navigate(AppDestinations.AUTH_ROUTE) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                }
+            },
+            onDismiss = { showSignOutDialog = false }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -236,12 +251,7 @@ fun ConfigurationScreen(
                             subtitle = "Salir de tu cuenta",
                             onClick = {
                                 if (userEmail != "No disponible") {
-                                    viewModel.signOut()
-                                    navController.navigate(AppDestinations.AUTH_ROUTE) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            inclusive = true
-                                        }
-                                    }
+                                    showSignOutDialog = true
                                 }
                             },
                             showArrow = false

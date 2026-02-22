@@ -17,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AnimeSeasonUpcomingViewModel @Inject constructor(
 
-    private val getAnimeSeasonUpcomingUseCase: GetAnimeSeasonUpcomingUseCase
+    private val getAnimeSeasonUpcomingUseCase: GetAnimeSeasonUpcomingUseCase,
+    private val cache: AnimeSeasonUpcomingCache
 
 ) : ViewModel() {
 
@@ -30,8 +31,6 @@ class AnimeSeasonUpcomingViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private var isDataLoaded = false
-
     val isError: StateFlow<Boolean> = _errorMessage.map { it != null }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -39,7 +38,10 @@ class AnimeSeasonUpcomingViewModel @Inject constructor(
     )
 
     init {
-        if (!isDataLoaded) {
+        val cached = cache.animeList
+        if (cached != null) {
+            _animeList.value = cached
+        } else {
             AnimesSeasonUpcoming()
         }
     }
@@ -55,8 +57,8 @@ class AnimeSeasonUpcomingViewModel @Inject constructor(
 
                 val results = getAnimeSeasonUpcomingUseCase()
                 val filtered = results.distinctBy { it.malId }
+                cache.animeList = filtered
                 _animeList.value = filtered
-                isDataLoaded = true
 
             } catch (e: Exception) {
 

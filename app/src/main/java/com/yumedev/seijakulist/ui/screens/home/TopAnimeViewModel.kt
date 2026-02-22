@@ -19,6 +19,7 @@ import javax.inject.Inject
 class TopAnimeViewModel @Inject constructor(
 
     private val getTopAnimeUseCase: GetTopAnimeUseCase,
+    private val cache: TopAnimeCache
 
 ) : ViewModel() {
 
@@ -37,10 +38,11 @@ class TopAnimeViewModel @Inject constructor(
         initialValue = false
     )
 
-    private var isDataLoaded = false
-
     init {
-        if (!isDataLoaded) {
+        val cached = cache.animeList
+        if (cached != null) {
+            _animeList.value = cached
+        } else {
             topAnime()
         }
     }
@@ -56,8 +58,8 @@ class TopAnimeViewModel @Inject constructor(
 
                 val results = getTopAnimeUseCase()
                 val filtered = results.distinctBy { it.malId }
+                cache.animeList = filtered
                 _animeList.value = filtered
-                isDataLoaded = true
 
             } catch (e: Exception) {
 

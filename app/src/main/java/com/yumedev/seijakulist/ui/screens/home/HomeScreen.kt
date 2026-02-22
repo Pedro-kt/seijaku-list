@@ -66,6 +66,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import android.content.Context
+import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,6 +85,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,6 +95,8 @@ import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.components.CardAnimesHome
 import com.yumedev.seijakulist.ui.components.CardAnimesHomeLoading
+import com.yumedev.seijakulist.ui.components.CURRENT_WHATS_NEW
+import com.yumedev.seijakulist.ui.components.WhatsNewBanner
 import com.yumedev.seijakulist.ui.screens.home.FilterAnimesHome
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.MangaPlaceholder
@@ -116,6 +121,20 @@ fun HomeScreen(
     seasonUpcomingFilterViewModel: AnimeSeasonUpcomingFilterViewModel = hiltViewModel(),
     profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel()
 ) {
+    // ── Banner "¿Qué hay de nuevo?" — una sola vez por versionCode ──────────
+    val context = LocalContext.current
+    var showWhatsNewBanner by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val prefs = context.getSharedPreferences("seijaku_prefs", Context.MODE_PRIVATE)
+        val currentVersionCode = currentVersionCode(context)
+        val lastShownVersion = prefs.getInt("whats_new_last_version", 0)
+        if (currentVersionCode > lastShownVersion) {
+            prefs.edit().putInt("whats_new_last_version", currentVersionCode).apply()
+            showWhatsNewBanner = true
+        }
+    }
+
     // Estados
     val animeSeasonNow by seasonNowViewModel.animeList.collectAsState()
     val animeSeasonNowIsLoading by seasonNowViewModel.isLoading.collectAsState()
@@ -190,6 +209,16 @@ fun HomeScreen(
                     selectedTab = selectedTab.value,
                     tabs = listTab,
                     onTabSelected = { selectedTab.value = it }
+                )
+
+                WhatsNewBanner(
+                    versionName = CURRENT_WHATS_NEW.versionName,
+                    visible = showWhatsNewBanner,
+                    onTap = {
+                        showWhatsNewBanner = false
+                        navController.navigate(AppDestinations.NOVEDADES_ROUTE)
+                    },
+                    onDismiss = { showWhatsNewBanner = false }
                 )
 
                 when (selectedTab.value) {
@@ -1541,3 +1570,23 @@ private fun ContinueWatchingCard(
     navController: NavController,
     modifier: Modifier = Modifier
 ) = EnhancedContinueWatchingCard(anime, navController, modifier)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Utilidad: obtiene el versionCode actual de la app
+// ─────────────────────────────────────────────────────────────────────────────
+private fun currentVersionCode(context: android.content.Context): Int {
+    return try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            context.packageManager
+                .getPackageInfo(context.packageName, 0)
+                .longVersionCode.toInt()
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager
+                .getPackageInfo(context.packageName, 0)
+                .versionCode
+        }
+    } catch (e: Exception) {
+        0
+    }
+}
