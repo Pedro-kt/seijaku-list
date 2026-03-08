@@ -31,5 +31,9 @@ data class AnimeEntityDomain(
 
     // Fechas de seguimiento del usuario
     val startDate: Long? = null,
-    val endDate: Long? = null
+    val endDate: Long? = null,
+
+    // Prioridad del plan (solo aplica cuando userStatus == "Planeado")
+    val plannedPriority: String? = null, // "Alta", "Media", "Baja"
+    val plannedNote: String? = null      // nota/razón del plan
 )

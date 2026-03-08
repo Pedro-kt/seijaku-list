@@ -14,10 +14,13 @@ import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
 import com.yumedev.seijakulist.domain.models.AnimeDetail
+import com.yumedev.seijakulist.domain.models.AnimeEntityDomain
 import com.yumedev.seijakulist.domain.models.AnimeEpisode
 import com.yumedev.seijakulist.domain.models.AnimeEpisodeDetail
 import com.yumedev.seijakulist.domain.models.AnimePicture
+import com.yumedev.seijakulist.domain.models.AnimeRecommendation
 import com.yumedev.seijakulist.domain.models.AnimeVideos
+import com.yumedev.seijakulist.domain.models.ForumTopic
 import com.yumedev.seijakulist.domain.usecase.GetAnimeDetailUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +51,9 @@ class AnimeDetailViewModel @Inject constructor(
     private val _isAdded = MutableStateFlow(false)
     val isAdded: StateFlow<Boolean> = _isAdded.asStateFlow()
 
+    private val _existingAnime = MutableStateFlow<AnimeEntityDomain?>(null)
+    val existingAnime: StateFlow<AnimeEntityDomain?> = _existingAnime.asStateFlow()
+
     private val _animePictures = MutableStateFlow<List<AnimePicture>>(emptyList())
     val animePictures: StateFlow<List<AnimePicture>> = _animePictures.asStateFlow()
 
@@ -75,6 +81,16 @@ class AnimeDetailViewModel @Inject constructor(
     private val _isEpisodeDetailLoading = MutableStateFlow(false)
     val isEpisodeDetailLoading: StateFlow<Boolean> = _isEpisodeDetailLoading.asStateFlow()
 
+    private val _recommendations = MutableStateFlow<List<AnimeRecommendation>>(emptyList())
+    val recommendations: StateFlow<List<AnimeRecommendation>> = _recommendations.asStateFlow()
+    private val _isRecommendationsLoading = MutableStateFlow(false)
+    val isRecommendationsLoading: StateFlow<Boolean> = _isRecommendationsLoading.asStateFlow()
+
+    private val _forumTopics = MutableStateFlow<List<ForumTopic>>(emptyList())
+    val forumTopics: StateFlow<List<ForumTopic>> = _forumTopics.asStateFlow()
+    private val _isForumLoading = MutableStateFlow(false)
+    val isForumLoading: StateFlow<Boolean> = _isForumLoading.asStateFlow()
+
     private var currentEpisodesPage = 1
 
     private var isDataLoaded = false
@@ -83,7 +99,19 @@ class AnimeDetailViewModel @Inject constructor(
     init {
         if (!isDataLoaded) {
             loadAnimeDetail(animeId)
+            loadExistingAnime(animeId)
             isDataLoaded = true
+        }
+    }
+
+    private fun loadExistingAnime(id: Int) {
+        viewModelScope.launch {
+            try {
+                _existingAnime.value = animeLocalRepository.getAnimeById(id)
+            } catch (e: Exception) {
+                // El anime no está en la lista del usuario
+                _existingAnime.value = null
+            }
         }
     }
 
@@ -97,7 +125,7 @@ class AnimeDetailViewModel @Inject constructor(
                 _animeDetail.value = detail
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar detalles del anime: ${e.localizedMessage ?: "Error desconocido"}")
-                _errorMessage.value = "Ups! Algo salió mal al cargar los detalles del anime, por favor inténtalo de nuevo, gracias por tu paciencia."
+                _errorMessage.value = "Algo salió mal al cargar los detalles del anime, por favor inténtalo de nuevo."
                 _animeDetail.value = null
             } finally {
                 _isLoading.value = false
@@ -189,12 +217,44 @@ class AnimeDetailViewModel @Inject constructor(
         _selectedEpisodeDetail.value = null
     }
 
+    fun loadRecommendations(animeId: Int) {
+        if (_recommendations.value.isNotEmpty()) return
+        _isRecommendationsLoading.value = true
+        viewModelScope.launch {
+            try {
+                _recommendations.value = animeRepository.getAnimeRecommendations(animeId)
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al cargar recomendaciones: ${e.localizedMessage}")
+                _recommendations.value = emptyList()
+            } finally {
+                _isRecommendationsLoading.value = false
+            }
+        }
+    }
+
+    fun loadForumTopics(animeId: Int) {
+        if (_forumTopics.value.isNotEmpty()) return
+        _isForumLoading.value = true
+        viewModelScope.launch {
+            try {
+                _forumTopics.value = animeRepository.getAnimeForumTopics(animeId)
+            } catch (e: Exception) {
+                Log.e("AnimeDetailVM", "Error al cargar foro: ${e.localizedMessage}")
+                _forumTopics.value = emptyList()
+            } finally {
+                _isForumLoading.value = false
+            }
+        }
+    }
+
     fun addAnimeToList(
         userScore: Float,
         userStatus: String,
         userOpinion: String,
         startDate: Long? = null,
-        endDate: Long? = null
+        endDate: Long? = null,
+        plannedPriority: String? = null,
+        plannedNote: String? = null
     ) {
         val current = _animeDetail.value ?: return
 
@@ -239,7 +299,10 @@ class AnimeDetailViewModel @Inject constructor(
                     source = current.source,
                     // Fechas de seguimiento
                     startDate = startDate,
-                    endDate = endDate
+                    endDate = endDate,
+                    // Prioridad del plan (solo si el estado es Planeado)
+                    plannedPriority = if (userStatus == "Planeado") plannedPriority else null,
+                    plannedNote = if (userStatus == "Planeado") plannedNote else null
                 )
                 animeLocalRepository.insertAnime(entity)
                 _isAdded.value = true

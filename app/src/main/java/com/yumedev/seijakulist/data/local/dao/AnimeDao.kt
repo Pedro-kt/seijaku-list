@@ -22,6 +22,9 @@ interface AnimeDao {
     @Query("DELETE FROM animes WHERE malId = :animeId")
     suspend fun deleteAnimeById(animeId: Int)
 
+    @Query("DELETE FROM animes")
+    suspend fun deleteAllAnimes()
+
     @Query("SELECT EXISTS(SELECT 1 FROM animes WHERE malId = :animeId LIMIT 1)")
     fun isAnimeInList(animeId: Int): Flow<Boolean>
 

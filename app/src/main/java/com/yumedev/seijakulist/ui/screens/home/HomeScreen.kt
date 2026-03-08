@@ -68,6 +68,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import android.content.Context
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
@@ -94,10 +95,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -134,7 +137,8 @@ fun HomeScreen(
     animeScheduleViewModel: AnimeScheduleViewModel = hiltViewModel(),
     animeFilterViewModel: TopAnimeFilterViewModel = hiltViewModel(),
     seasonUpcomingFilterViewModel: AnimeSeasonUpcomingFilterViewModel = hiltViewModel(),
-    profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel()
+    profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel(),
+    localAnimeIdsViewModel: LocalAnimeIdsViewModel = hiltViewModel()
 ) {
     // ── Banner "¿Qué hay de nuevo?" — una sola vez por versionCode ──────────
     val context = LocalContext.current
@@ -174,17 +178,22 @@ fun HomeScreen(
     // Estados de anime random y perfil
     val animeRandomState by animeRandomViewModel.uiState.collectAsState()
     val profileUiState by profileViewModel.uiState.collectAsState()
+    val localAnimeStatuses by localAnimeIdsViewModel.localAnimeStatuses.collectAsState()
 
     val hasError = animeSeasonNowError || topAnimeError || animeSeasonUpcomingError
 
     val listTab = listOf("Anime", "Manga")
     val selectedTab = remember { mutableStateOf(listTab[0]) }
 
-    val listDays = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-    val listDaysFilter = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+    val listDays =
+        listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+    val listDaysFilter =
+        listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
-    val listTypeAnime = listOf("tv", "movie", "ova", "special", "ona", "music", "cm", "pv", "tv_special")
-    val listTypeAnimeFilter = listOf("TV", "Película", "OVA", "Especial", "ONA", "Música", "CM", "PV", "TV Especial")
+    val listTypeAnime =
+        listOf("tv", "movie", "ova", "special", "ona", "music", "cm", "pv", "tv_special")
+    val listTypeAnimeFilter =
+        listOf("TV", "Película", "OVA", "Especial", "ONA", "Música", "CM", "PV", "TV Especial")
 
     val listTypeSeasonUpcoming = listOf("tv", "movie", "ova", "special", "ona", "music")
     val listTypeSeasonUpcomingFilter = listOf("TV", "Película", "OVA", "Especial", "ONA", "Música")
@@ -217,8 +226,7 @@ fun HomeScreen(
                     seasonUpcomingViewModel.AnimesSeasonUpcoming()
                     animeRandomViewModel.loadRandomAnime()
                     characterRandomViewModel.loadCharacterRandom()
-                }
-            )
+                })
         } else {
             if (animeSeasonUpcomingIsLoading) {
                 LoadingScreen()
@@ -226,8 +234,7 @@ fun HomeScreen(
                 CustomSeijakuTabSelector(
                     tabs = listOf("Anime", "Manga"),
                     selectedTabIndex = selectedTabIndex,
-                    onTabSelected = { selectedTabIndex = it }
-                )
+                    onTabSelected = { selectedTabIndex = it })
 
                 WhatsNewBanner(
                     versionName = CURRENT_WHATS_NEW.versionName,
@@ -236,8 +243,7 @@ fun HomeScreen(
                         showWhatsNewBanner = false
                         navController.navigate(AppDestinations.NOVEDADES_ROUTE)
                     },
-                    onDismiss = { showWhatsNewBanner = false }
-                )
+                    onDismiss = { showWhatsNewBanner = false })
 
                 when (selectedTabIndex) {
                     0 -> {
@@ -265,9 +271,11 @@ fun HomeScreen(
                             onUpcomingFilterSelected = { selectedUpcomingFilter = it },
                             animeRandomState = animeRandomState,
                             profileUiState = profileUiState,
-                            navController = navController
+                            navController = navController,
+                            localAnimeStatuses = localAnimeStatuses
                         )
                     }
+
                     1 -> {
                         MangaPlaceholder()
                     }
@@ -302,10 +310,11 @@ private fun AnimeContent(
     onUpcomingFilterSelected: (String?) -> Unit,
     animeRandomState: AnimeRandomUiState,
     profileUiState: com.yumedev.seijakulist.ui.screens.profile.ProfileUiState,
-    navController: NavController
+    navController: NavController,
+    localAnimeStatuses: Map<Int, String> = emptyMap()
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(vertical = 16.dp),
+        contentPadding = PaddingValues(top = 2.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // Quick Stats PRIMERO (solo si tiene animes guardados)
@@ -326,8 +335,7 @@ private fun AnimeContent(
             } else {
                 animeRandomState.anime?.let { randomAnime ->
                     HeroBanner(
-                        anime = randomAnime,
-                        navController = navController
+                        anime = randomAnime, navController = navController
                     )
                 }
             }
@@ -346,10 +354,10 @@ private fun AnimeContent(
                 animeList = if (selectedDayFilter != null) animeSchedule else animeSeasonNow,
                 emptyMessage = "No hay animes programados para este día.",
                 navController = navController,
+                localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_now")
-                }
-            )
+                })
         }
 
         // Sección Top Puntuación
@@ -365,10 +373,10 @@ private fun AnimeContent(
                 animeList = if (selectedTypeFilter != null) topAnimeFilter else topAnimes,
                 emptyMessage = "No se encontraron animes para el filtro seleccionado.",
                 navController = navController,
+                localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/top_anime")
-                }
-            )
+                })
         }
 
         // Sección Próxima Temporada
@@ -384,10 +392,10 @@ private fun AnimeContent(
                 animeList = if (selectedUpcomingFilter != null) animeSeasonUpcomingFilter else animeSeasonUpcoming,
                 emptyMessage = "No se encontraron animes para el filtro seleccionado.",
                 navController = navController,
+                localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_upcoming")
-                }
-            )
+                })
         }
         item {
             Spacer(Modifier.height(80.dp))
@@ -407,17 +415,15 @@ private fun AnimeSectionWithFilter(
     animeList: List<Any>,
     emptyMessage: String,
     navController: NavController,
-    onViewMoreClick: () -> Unit
+    onViewMoreClick: () -> Unit,
+    localAnimeStatuses: Map<Int, String> = emptyMap()
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // Header con diseño mejorado
         AnimeSectionHeader(
-            title = title,
-            icon = icon,
-            onViewMoreClick = onViewMoreClick
+            title = title, icon = icon, onViewMoreClick = onViewMoreClick
         )
 
         // Filtros con animación
@@ -440,15 +446,13 @@ private fun AnimeSectionWithFilter(
                 isLoading -> ContentState.Loading
                 animeList.isNotEmpty() -> ContentState.Content
                 else -> ContentState.Empty
-            },
-            transitionSpec = {
+            }, transitionSpec = {
                 androidx.compose.animation.fadeIn(
                     animationSpec = androidx.compose.animation.core.tween(300)
                 ) togetherWith androidx.compose.animation.fadeOut(
                     animationSpec = androidx.compose.animation.core.tween(300)
                 )
-            },
-            label = "anime_content_transition"
+            }, label = "anime_content_transition"
         ) { state ->
             when (state) {
                 ContentState.Loading -> {
@@ -456,11 +460,17 @@ private fun AnimeSectionWithFilter(
                         CardAnimesHomeLoading()
                     }
                 }
+
                 ContentState.Content -> {
                     Box(modifier = Modifier.fillMaxWidth()) {
-                        CardAnimesHome(animeList as List<Anime>, navController)
+                        CardAnimesHome(
+                            animeList = animeList as List<Anime>,
+                            navController = navController,
+                            localAnimeStatuses = localAnimeStatuses
+                        )
                     }
                 }
+
                 ContentState.Empty -> {
                     Box(
                         modifier = Modifier
@@ -483,15 +493,12 @@ private enum class ContentState {
 // Header mejorado con diseño profesional
 @Composable
 private fun AnimeSectionHeader(
-    title: String,
-    icon: ImageVector,
-    onViewMoreClick: () -> Unit
+    title: String, icon: ImageVector, onViewMoreClick: () -> Unit
 ) {
     androidx.compose.material3.Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        color = Color.Transparent
+            .padding(horizontal = 16.dp), color = Color.Transparent
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -515,8 +522,7 @@ private fun AnimeSectionHeader(
                                     MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
                                 )
                             )
-                        ),
-                    contentAlignment = Alignment.Center
+                        ), contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = icon,
@@ -537,25 +543,51 @@ private fun AnimeSectionHeader(
             }
 
             // Botón "Ver más" mejorado
+            val btnInteraction = remember { MutableInteractionSource() }
+            val btnPressed by btnInteraction.collectIsPressedAsState()
+            val btnScale by animateFloatAsState(
+                targetValue = if (btnPressed) 0.92f else 1f,
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                label = "btn_scale"
+            )
+            val iconOffset by animateDpAsState(
+                targetValue = if (btnPressed) 4.dp else 0.dp,
+                animationSpec = tween(durationMillis = 150),
+                label = "icon_offset"
+            )
             androidx.compose.material3.FilledTonalButton(
                 onClick = onViewMoreClick,
+                interactionSource = btnInteraction,
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        )
+                    )
+                ),
                 colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                     contentColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                modifier = Modifier.graphicsLayer {
+                    scaleX = btnScale
+                    scaleY = btnScale
+                }
             ) {
                 Text(
-                    text = "Ver más",
-                    fontSize = 13.sp,
-                    fontFamily = PoppinsMedium
+                    text = "Ver más", fontSize = 13.sp, fontFamily = PoppinsMedium
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier
+                        .size(15.dp)
+                        .offset(x = iconOffset)
                 )
             }
         }
@@ -565,9 +597,7 @@ private fun AnimeSectionHeader(
 // Header legacy (mantener para compatibilidad)
 @Composable
 private fun SectionHeader(
-    title: String,
-    icon: ImageVector,
-    onViewMoreClick: () -> Unit
+    title: String, icon: ImageVector, onViewMoreClick: () -> Unit
 ) = AnimeSectionHeader(title, icon, onViewMoreClick)
 
 @Composable
@@ -578,30 +608,41 @@ fun FilterAnimesHome(
     onFilterSelected: (String?) -> Unit
 ) {
     val scrollState = rememberScrollState()
-    // Detectar dark mode comparando la luminancia del color de surface
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val isDarkTheme = surfaceColor.luminance() < 0.5f
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(scrollState)
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         list.forEachIndexed { index, filter ->
             val isSelected = selectedFilter == filter
 
+            // Animación suave para los colores del contenedor y el contenido
+            val containerColor by animateColorAsState(
+                targetValue = if (isSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceContainer,
+                animationSpec = tween(durationMillis = 300),
+                label = "color_anim"
+            )
+
+            val contentColor by animateColorAsState(
+                targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                animationSpec = tween(durationMillis = 300),
+                label = "text_anim"
+            )
+
             FilterChip(
                 selected = isSelected,
-                onClick = {
-                    onFilterSelected(if (isSelected) null else filter)
-                },
+                onClick = { onFilterSelected(if (isSelected) null else filter) },
                 label = {
                     Text(
-                        text = listLabel[index],
-                        fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
-                        fontSize = 14.sp
+                        text = listLabel[index], style = TextStyle(
+                            fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
+                            fontSize = 14.sp,
+                            color = contentColor // Aplicamos la animación al texto
+                        )
                     )
                 },
                 leadingIcon = if (isSelected) {
@@ -609,37 +650,27 @@ fun FilterAnimesHome(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(16.dp),
+                            tint = contentColor // Aplicamos la animación al icono
                         )
                     }
                 } else null,
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = if (isDarkTheme) {
-                        MaterialTheme.colorScheme.surfaceContainerHigh
-                    } else {
-                        Color.White
-                    },
-                    labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    iconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = containerColor,
+                    labelColor = contentColor,
+                    selectedContainerColor = containerColor, // Forzamos el uso de nuestra animación
+                    selectedLabelColor = contentColor,
+                    selectedLeadingIconColor = contentColor
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = if (isSelected) {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    } else {
-                        if (isDarkTheme) {
-                            Color.Transparent
-                        } else {
-                            Color.Black.copy(alpha = 0.2f)
-                        }
-                    },
-                    selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                    borderWidth = if (!isSelected && !isDarkTheme) 1.dp else 1.dp,
-                    selectedBorderWidth = 1.dp
+                    borderColor = if (isSelected) Color.Transparent
+                    else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    borderWidth = 1.dp,
+                    selectedBorderWidth = 0.dp // Al estar seleccionado, el color sólido manda
                 ),
+                // Mantenemos el redondeado sutil de 12.dp como pediste
                 shape = RoundedCornerShape(12.dp)
             )
         }
@@ -680,8 +711,7 @@ private fun EnhancedEmptyState(message: String) {
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
                             )
                         )
-                    ),
-                contentAlignment = Alignment.Center
+                    ), contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Info,
@@ -717,8 +747,7 @@ private object HomeAnimationState {
 // Banner Hero Mejorado - Anime del día (diseño compacto)
 @Composable
 private fun HeroBanner(
-    anime: com.yumedev.seijakulist.domain.models.AnimeCard,
-    navController: NavController
+    anime: com.yumedev.seijakulist.domain.models.AnimeCard, navController: NavController
 ) {
     val shouldAnimate = !HomeAnimationState.hasAnimated
     var isVisible by remember { mutableStateOf(!shouldAnimate) }
@@ -748,17 +777,13 @@ private fun HeroBanner(
     )
 
     val animatedElevation by animateDpAsState(
-        targetValue = if (isPressed) 4.dp else 14.dp,
-        animationSpec = tween(250)
+        targetValue = if (isPressed) 4.dp else 14.dp, animationSpec = tween(250)
     )
 
     AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(tween(500)) +
-                slideInVertically(
-                    initialOffsetY = { it / 4 },
-                    animationSpec = tween(500, easing = FastOutSlowInEasing)
-                )
+        visible = isVisible, enter = fadeIn(tween(500)) + slideInVertically(
+            initialOffsetY = { it / 4 }, animationSpec = tween(500, easing = FastOutSlowInEasing)
+        )
     ) {
         Card(
             modifier = Modifier
@@ -775,8 +800,7 @@ private fun HeroBanner(
             interactionSource = interactionSource,
             onClick = {
                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-            }
-        ) {
+            }) {
 
             Row(Modifier.fillMaxSize()) {
 
@@ -805,8 +829,7 @@ private fun HeroBanner(
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.45f)
+                                        Color.Transparent, Color.Black.copy(alpha = 0.45f)
                                     )
                                 )
                             )
@@ -851,12 +874,10 @@ private fun HeroBanner(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             MetadataItemModern(
-                                text = anime.year ?: "N/A",
-                                icon = Icons.Default.CalendarToday
+                                text = anime.year ?: "N/A", icon = Icons.Default.CalendarToday
                             )
                             MetadataItemModern(
-                                text = anime.status ?: "Unknown",
-                                icon = Icons.Default.Info
+                                text = anime.status ?: "Unknown", icon = Icons.Default.Info
                             )
                         }
                     }
@@ -870,8 +891,7 @@ private fun HeroBanner(
 
 @Composable
 fun ScoreBadge(
-    score: Float?,
-    modifier: Modifier = Modifier
+    score: Float?, modifier: Modifier = Modifier
 ) {
     if (score == null) return
 
@@ -880,21 +900,18 @@ fun ScoreBadge(
     }
 
     val animatedAlpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(400)
+        targetValue = 1f, animationSpec = tween(400)
     )
 
     Surface(
-        modifier = modifier
-            .graphicsLayer { alpha = animatedAlpha },
+        modifier = modifier.graphicsLayer { alpha = animatedAlpha },
         shape = RoundedCornerShape(50),
-        color = Color.Black.copy(alpha = 0.65f),
+        color = Color.Black.copy(alpha = 0.75f),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -917,7 +934,6 @@ fun ScoreBadge(
 }
 
 
-
 @Composable
 fun SectionLabel() {
     Text(
@@ -937,8 +953,7 @@ fun DetailsButton() {
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
     ) {
         Row(
-            modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 14.dp),
+            modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1000,8 +1015,7 @@ private fun HeroBannerSkeleton() {
                     .width(130.dp)
                     .background(
                         shimmerBrush(
-                            targetValue = 1000f,
-                            showShimmer = true
+                            targetValue = 1000f, showShimmer = true
                         )
                     )
             )
@@ -1029,8 +1043,7 @@ private fun HeroBannerSkeleton() {
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
                                     shimmerBrush(
-                                        targetValue = 1000f,
-                                        showShimmer = true
+                                        targetValue = 1000f, showShimmer = true
                                     )
                                 )
                         )
@@ -1043,8 +1056,7 @@ private fun HeroBannerSkeleton() {
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
                                     shimmerBrush(
-                                        targetValue = 1000f,
-                                        showShimmer = true
+                                        targetValue = 1000f, showShimmer = true
                                     )
                                 )
                         )
@@ -1056,8 +1068,7 @@ private fun HeroBannerSkeleton() {
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
                                     shimmerBrush(
-                                        targetValue = 1000f,
-                                        showShimmer = true
+                                        targetValue = 1000f, showShimmer = true
                                     )
                                 )
                         )
@@ -1071,8 +1082,7 @@ private fun HeroBannerSkeleton() {
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(
                                         shimmerBrush(
-                                            targetValue = 1000f,
-                                            showShimmer = true
+                                            targetValue = 1000f, showShimmer = true
                                         )
                                     )
                             )
@@ -1083,8 +1093,7 @@ private fun HeroBannerSkeleton() {
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(
                                         shimmerBrush(
-                                            targetValue = 1000f,
-                                            showShimmer = true
+                                            targetValue = 1000f, showShimmer = true
                                         )
                                     )
                             )
@@ -1099,8 +1108,7 @@ private fun HeroBannerSkeleton() {
                             .clip(RoundedCornerShape(6.dp))
                             .background(
                                 shimmerBrush(
-                                    targetValue = 1000f,
-                                    showShimmer = true
+                                    targetValue = 1000f, showShimmer = true
                                 )
                             )
                     )
@@ -1119,7 +1127,8 @@ private fun shimmerBrush(targetValue: Float = 1000f, showShimmer: Boolean = true
             MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f)
         )
 
-        val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "shimmer")
+        val transition =
+            androidx.compose.animation.core.rememberInfiniteTransition(label = "shimmer")
         val translateAnimation = transition.animateFloat(
             initialValue = 0f,
             targetValue = targetValue,
@@ -1127,8 +1136,7 @@ private fun shimmerBrush(targetValue: Float = 1000f, showShimmer: Boolean = true
                 animation = androidx.compose.animation.core.tween(
                     durationMillis = 1200,
                     easing = androidx.compose.animation.core.FastOutSlowInEasing
-                ),
-                repeatMode = androidx.compose.animation.core.RepeatMode.Restart
+                ), repeatMode = androidx.compose.animation.core.RepeatMode.Restart
             ),
             label = "shimmerTranslate"
         )
@@ -1136,7 +1144,9 @@ private fun shimmerBrush(targetValue: Float = 1000f, showShimmer: Boolean = true
         Brush.linearGradient(
             colors = shimmerColors,
             start = androidx.compose.ui.geometry.Offset.Zero,
-            end = androidx.compose.ui.geometry.Offset(x = translateAnimation.value, y = translateAnimation.value)
+            end = androidx.compose.ui.geometry.Offset(
+                x = translateAnimation.value, y = translateAnimation.value
+            )
         )
     } else {
         Brush.linearGradient(
@@ -1165,172 +1175,121 @@ private fun QuickStats(
         }
     }
 
-    val rotationAngle by androidx.compose.animation.core.animateFloatAsState(
+    val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = tween(300),
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "Arrow rotation"
     )
 
     AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(animationSpec = tween(600)) +
-                androidx.compose.animation.slideInVertically(
-                    initialOffsetY = { 30 },
-                    animationSpec = tween(600, easing = androidx.compose.animation.core.FastOutSlowInEasing)
-                )
+        visible = isVisible, enter = fadeIn(tween(600)) + slideInVertically(initialOffsetY = { 40 })
     ) {
-        Card(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            ),
-            elevation = androidx.compose.material3.CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            )
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center
             ) {
-                // Header mejorado
+                // --- CABECERA (Siempre visible) ---
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Icono con fondo
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-                                        )
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.TrendingUp,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(26.dp)
-                            )
-                        }
-
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = "Tu progreso",
-                                fontFamily = PoppinsBold,
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                letterSpacing = 0.3.sp
-                            )
-                            Text(
-                                text = "Resumen de actividad",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.TrendingUp,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Tu Progreso",
+                            fontFamily = PoppinsBold,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
 
-                    // Botón de expandir/contraer
-                    androidx.compose.material3.IconButton(
-                        onClick = { isExpanded = !isExpanded },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
-                    ) {
+                    // Botón circular para expandir
+                    Surface(
+                        modifier = Modifier.size(32.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        onClick = { isExpanded = !isExpanded }) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (isExpanded) "Contraer" else "Expandir",
-                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = null,
                             modifier = Modifier
-                                .size(24.dp)
                                 .rotate(rotationAngle)
+                                .padding(4.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                // Contenido desplegable
+                // --- CONTENIDO DESPLEGABLE ---
                 AnimatedVisibility(
                     visible = isExpanded,
-                    enter = expandVertically(animationSpec = tween(300)) + fadeIn(animationSpec = tween(300)),
-                    exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
+                    enter = expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)) + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        // Stats Cards con animación escalonada
+                    Column {
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Fila de los 3 Stats Requeridos
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            EnhancedStatCard(
+                            CompactStatItem(
                                 modifier = Modifier.weight(1f),
                                 value = "${stats.totalAnimes}",
-                                label = "Total",
-                                delay = 100
+                                label = "Total"
                             )
-                            EnhancedStatCard(
+                            CompactStatItem(
                                 modifier = Modifier.weight(1f),
                                 value = "${stats.completedAnimes}",
-                                label = "Completos",
-                                delay = 200
+                                label = "Completos"
                             )
-                            EnhancedStatCard(
+                            CompactStatItem(
                                 modifier = Modifier.weight(1f),
                                 value = "${stats.totalEpisodesWatched}",
-                                label = "Episodios",
-                                delay = 300
+                                label = "Episodios"
                             )
                         }
 
-                        // Continúa viendo con diseño mejorado
+                        // Sección de Animes Recientes (dentro del mismo despliegue)
                         if (recentAnimes.isNotEmpty()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Continúa viendo",
-                                        fontFamily = PoppinsBold,
-                                        fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "${recentAnimes.size} animes",
-                                        fontFamily = PoppinsRegular,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                    )
-                                }
+                            Spacer(modifier = Modifier.height(24.dp))
 
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    recentAnimes.take(3).forEach { anime ->
-                                        EnhancedContinueWatchingCard(
-                                            anime = anime,
-                                            navController = navController,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
+                            Text(
+                                text = "Continuar viendo",
+                                fontFamily = PoppinsBold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                recentAnimes.take(3).forEach { anime ->
+                                    EnhancedContinueWatchingCard(
+                                        anime = anime,
+                                        navController = navController,
+                                        modifier = Modifier.weight(1f)
+                                    )
                                 }
                             }
                         }
@@ -1341,13 +1300,61 @@ private fun QuickStats(
     }
 }
 
+@Composable
+fun CompactStatItem(
+    modifier: Modifier, value: String, label: String
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
+        border = BorderStroke(
+            width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent, MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                        )
+                    )
+                )
+                .padding(vertical = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = value,
+                // Aplicamos el estilo correctamente aquí
+                style = TextStyle(
+                    fontFamily = PoppinsBold,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    letterSpacing = (-0.5).sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = label.uppercase(), style = TextStyle(
+                    fontFamily = PoppinsBold,
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                    letterSpacing = 0.8.sp
+                )
+            )
+        }
+    }
+}
+
 // Card de estadística mejorada con animación
 @Composable
 private fun EnhancedStatCard(
-    modifier: Modifier = Modifier,
-    value: String,
-    label: String,
-    delay: Int = 0
+    modifier: Modifier = Modifier, value: String, label: String, delay: Int = 0
 ) {
     val shouldAnimate = !HomeAnimationState.hasAnimated
     var isVisible by remember { mutableStateOf(!shouldAnimate) }
@@ -1360,13 +1367,9 @@ private fun EnhancedStatCard(
     }
 
     AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(animationSpec = tween(400)) +
-                scaleIn(
-                    initialScale = 0.9f,
-                    animationSpec = tween(400, easing = FastOutSlowInEasing)
-                ),
-        modifier = modifier
+        visible = isVisible, enter = fadeIn(animationSpec = tween(400)) + scaleIn(
+            initialScale = 0.9f, animationSpec = tween(400, easing = FastOutSlowInEasing)
+        ), modifier = modifier
     ) {
         androidx.compose.material3.Card(
             modifier = Modifier.height(70.dp),
@@ -1408,9 +1411,7 @@ private fun EnhancedStatCard(
 // Card legacy (mantener compatibilidad)
 @Composable
 private fun QuickStatCard(
-    modifier: Modifier = Modifier,
-    value: String,
-    label: String
+    modifier: Modifier = Modifier, value: String, label: String
 ) = EnhancedStatCard(modifier, value, label, 0)
 
 // Card mejorada de "Continúa viendo"
@@ -1420,42 +1421,42 @@ private fun EnhancedContinueWatchingCard(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val scale by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = androidx.compose.animation.core.spring(
-            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-            stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
-        ),
-        label = "continue_watching_scale"
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f, animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
+        ), label = "scale"
     )
 
-    androidx.compose.material3.Card(
+    val progress = remember(anime.episodesWatched, anime.totalEpisodes) {
+        if (anime.totalEpisodes > 0) anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat() else 0f
+    }
+
+    Card(
         modifier = modifier
-            .height(140.dp)
+            .height(150.dp) // Un poco más de altura para que respire
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             },
-        shape = RoundedCornerShape(16.dp),
-        elevation = androidx.compose.material3.CardDefaults.cardElevation(
-            defaultElevation = 3.dp
-        ),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat design con borde es más moderno
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
         onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}") },
         interactionSource = interactionSource
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Imagen con overlay
-            coil.compose.AsyncImage(
+            // IMAGEN DE FONDO
+            AsyncImage(
                 model = anime.imageUrl,
                 contentDescription = anime.title,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
 
-            // Gradiente mejorado
+            // OVERLAY GRADIENTE CINEMÁTICO
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1463,79 +1464,52 @@ private fun EnhancedContinueWatchingCard(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                Color.Black.copy(alpha = 0.4f),
-                                Color.Black.copy(alpha = 0.9f)
-                            ),
-                            startY = 0f,
-                            endY = Float.POSITIVE_INFINITY
+                                Color.Black.copy(alpha = 0.2f),
+                                Color.Black.copy(alpha = 0.85f)
+                            )
                         )
                     )
             )
 
-            // Indicador de progreso circular en la esquina
-            val progress = if (anime.totalEpisodes > 0) {
-                anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()
-            } else 0f
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-            ) {
-                androidx.compose.material3.CircularProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.size(28.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 3.dp,
-                    trackColor = Color.White.copy(alpha = 0.3f)
-                )
-            }
-
-            // Información
+            // CONTENIDO
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(10.dp),
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.Bottom
             ) {
+                // TÍTULO CON SOMBRA
                 Text(
-                    text = anime.title,
-                    fontFamily = PoppinsBold,
-                    fontSize = 12.sp,
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    lineHeight = 16.sp,
-                    style = androidx.compose.ui.text.TextStyle(
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            offset = Offset(0f, 1f),
-                            blurRadius = 3f
-                        )
-                    )
+                    text = anime.title, style = TextStyle(
+                        fontFamily = PoppinsBold,
+                        fontSize = 12.sp,
+                        color = Color.White,
+                        shadow = Shadow(Color.Black, Offset(0f, 2f), 4f)
+                    ), maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Barra de progreso lineal
+                // SECCIÓN DE PROGRESO
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    // BARRA DE PROGRESO ESTILIZADA
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
+                            .height(4.dp)
+                            .clip(CircleShape)
                             .background(Color.White.copy(alpha = 0.2f))
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .fillMaxWidth(progress)
-                                .clip(RoundedCornerShape(3.dp))
+                                .clip(CircleShape)
                                 .background(
                                     Brush.horizontalGradient(
                                         colors = listOf(
                                             MaterialTheme.colorScheme.primary,
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                                         )
                                     )
                                 )
@@ -1547,17 +1521,27 @@ private fun EnhancedContinueWatchingCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Badge pequeño de episodios
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.4f), shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "EP. ${anime.episodesWatched}",
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                style = TextStyle(
+                                    fontFamily = PoppinsMedium,
+                                    fontSize = 9.sp,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                            )
+                        }
+
                         Text(
-                            text = "Ep. ${anime.episodesWatched}/${anime.totalEpisodes}",
-                            fontFamily = PoppinsMedium,
-                            fontSize = 10.sp,
-                            color = Color.White.copy(alpha = 0.95f)
-                        )
-                        Text(
-                            text = "${(progress * 100).toInt()}%",
-                            fontFamily = PoppinsBold,
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.primary
+                            text = "${(progress * 100).toInt()}%", style = TextStyle(
+                                fontFamily = PoppinsBold,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
                 }
@@ -1580,14 +1564,12 @@ private fun ContinueWatchingCard(
 private fun currentVersionCode(context: android.content.Context): Int {
     return try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            context.packageManager
-                .getPackageInfo(context.packageName, 0)
-                .longVersionCode.toInt()
+            context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode.toInt()
         } else {
-            @Suppress("DEPRECATION")
-            context.packageManager
-                .getPackageInfo(context.packageName, 0)
-                .versionCode
+            @Suppress("DEPRECATION") context.packageManager.getPackageInfo(
+                context.packageName,
+                0
+            ).versionCode
         }
     } catch (e: Exception) {
         0

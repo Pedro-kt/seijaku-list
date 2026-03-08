@@ -75,7 +75,8 @@ fun AppScaffold(
     if (currentRoute == AppDestinations.SPLASH ||
         currentRoute == AppDestinations.AUTH_ROUTE ||
         currentRoute == AppDestinations.LOGIN_ROUTE ||
-        currentRoute == AppDestinations.REGISTER_ROUTE) {
+        currentRoute == AppDestinations.REGISTER_ROUTE ||
+        currentRoute == AppDestinations.SELECT_TOP5_ROUTE) {
         AppNavigation(
             navController,
             isSearching = isSearching,
@@ -134,36 +135,12 @@ fun AppScaffold(
                         hiltViewModel(backStackEntry!!)
                     val profileUiState by profileViewModel.uiState.collectAsState()
 
-                    // Si no hay perfil, siempre usar background
-                    val hasProfile = profileUiState.userProfile != null
-
-                    // Animar el color del TopAppBar basado en el scroll
-                    val topAppBarColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (hasProfile && profileUiState.isAtTop) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.background
-                        },
-                        animationSpec = androidx.compose.animation.core.tween(200),
-                        label = "topAppBarColor"
-                    )
-
-                    val topAppBarContentColor by androidx.compose.animation.animateColorAsState(
-                        targetValue = if (hasProfile && profileUiState.isAtTop) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onBackground
-                        },
-                        animationSpec = androidx.compose.animation.core.tween(200),
-                        label = "topAppBarContentColor"
-                    )
-
                     TopAppBar(
-                        navigationIcon = { ArrowBackTopAppBar(navController, tint = topAppBarContentColor) },
+                        navigationIcon = { ArrowBackTopAppBar(navController, tint = MaterialTheme.colorScheme.onSurface) },
                         title = {
                             Text(
                                 text = "Mi perfil",
-                                color = topAppBarContentColor
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         actions = {
@@ -171,12 +148,12 @@ fun AppScaffold(
                                 Icon(
                                     imageVector = Icons.Default.Settings,
                                     contentDescription = "Configuración",
-                                    tint = topAppBarContentColor
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = topAppBarColor
+                            containerColor = MaterialTheme.colorScheme.background
                         )
                     )
                 }
@@ -257,6 +234,21 @@ fun AppScaffold(
                         title = {
                             Text(
                                 text = "Mis mangas",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.background
+                        )
+                    )
+                }
+
+                AppDestinations.POLICY_PRIVACY_ROUTE -> {
+                    TopAppBar(
+                        navigationIcon = { ArrowBackTopAppBar(navController) },
+                        title = {
+                            Text(
+                                text = "Política de privacidad",
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         },

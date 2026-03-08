@@ -53,7 +53,7 @@ class AnimeRandomViewModel @Inject constructor(
                 delay(1500)
                 var result = getAnimeRandomUseCase()
                 var attempts = 0
-                val maxAttempts = 20
+                val maxAttempts = 30
 
                 while (result.score < 6.0f && attempts < maxAttempts) {
                     delay(1500)

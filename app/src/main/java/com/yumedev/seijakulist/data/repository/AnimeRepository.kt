@@ -27,6 +27,8 @@ import com.yumedev.seijakulist.domain.models.AnimeThemes
 import com.yumedev.seijakulist.domain.models.AnimeVideos
 import com.yumedev.seijakulist.domain.models.CharacterDetail
 import com.yumedev.seijakulist.domain.models.CharacterPictures
+import com.yumedev.seijakulist.domain.models.AnimeRecommendation
+import com.yumedev.seijakulist.domain.models.ForumTopic
 import com.yumedev.seijakulist.domain.models.Genre
 import com.yumedev.seijakulist.domain.models.ProducerDetail
 import javax.inject.Inject
@@ -324,6 +326,35 @@ class AnimeRepository @Inject constructor(
                 filler = dto.filler,
                 recap = dto.recap,
                 synopsis = dto.synopsis
+            )
+        }
+    }
+
+    suspend fun getAnimeRecommendations(animeId: Int): List<AnimeRecommendation> {
+        val response = ApiService.getAnimeRecommendations(animeId)
+        return response.data.map { entry ->
+            AnimeRecommendation(
+                malId = entry.entry.malId,
+                title = entry.entry.title ?: "Título desconocido",
+                image = entry.entry.images?.webp?.largeImageUrl
+                    ?: entry.entry.images?.jpg?.largeImageUrl ?: "",
+                votes = entry.votes
+            )
+        }
+    }
+
+    suspend fun getAnimeForumTopics(animeId: Int): List<ForumTopic> {
+        val response = ApiService.getAnimeForum(animeId)
+        return response.data.map { dto ->
+            ForumTopic(
+                malId = dto.malId,
+                url = dto.url ?: "",
+                title = dto.title ?: "Sin título",
+                date = dto.date ?: "",
+                authorUsername = dto.authorUsername ?: "Anónimo",
+                comments = dto.comments,
+                lastCommentAuthor = dto.lastComment?.authorUsername,
+                lastCommentDate = dto.lastComment?.date
             )
         }
     }

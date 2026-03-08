@@ -100,6 +100,7 @@ import com.yumedev.seijakulist.ui.screens.splash.SplashScreen
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.google.firebase.auth.FirebaseAuth
+import com.yumedev.seijakulist.ui.screens.policy_privacy.PolicyPrivacyScreen
 import kotlinx.coroutines.delay
 import javax.inject.Inject
 
@@ -333,14 +334,19 @@ fun AppNavigation(
                 navArgument("tab") {
                     type = NavType.IntType
                     defaultValue = 0
+                },
+                navArgument("openSheet") {
+                    type = NavType.BoolType
+                    defaultValue = false
                 }
             ),
-            route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}?tab={tab}"
+            route = "${AppDestinations.ANIME_DETAIL_ROUTE}/{${AppDestinations.ANIME_ID_KEY}}?tab={tab}&openSheet={openSheet}"
         ) { backStackEntry ->
             val animeId = backStackEntry.arguments?.getInt(AppDestinations.ANIME_ID_KEY)
             val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
+            val openSheet = backStackEntry.arguments?.getBoolean("openSheet") ?: false
             if (animeId != null) {
-                AnimeDetailScreen(navController, animeId = animeId, initialTab = initialTab)
+                AnimeDetailScreen(navController, animeId = animeId, initialTab = initialTab, openSheet = openSheet)
             } else {
                 Text("Error: anime no encontrado")
             }
@@ -381,6 +387,11 @@ fun AppNavigation(
             } else {
                 Text("Error: sección no encontrada")
             }
+        }
+        composable(
+            route = AppDestinations.POLICY_PRIVACY_ROUTE
+        ) {
+            PolicyPrivacyScreen(navController)
         }
     }
 }

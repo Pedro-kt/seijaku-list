@@ -296,11 +296,7 @@ fun ConfigurationScreen(
                             title = "Política de Privacidad",
                             subtitle = "Lee nuestra política de privacidad",
                             onClick = {
-                                val intent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("https://pedro-kt.github.io/seijaku-list/privacy-policy.html")
-                                )
-                                context.startActivity(intent)
+                                navController.navigate(AppDestinations.POLICY_PRIVACY_ROUTE)
                             },
                             showArrow = true
                         )

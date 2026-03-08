@@ -35,5 +35,9 @@ data class AnimeEntity(
 
     // Fechas de seguimiento del usuario (v9)
     val startDate: Long? = null, // fecha de inicio en milisegundos
-    val endDate: Long? = null // fecha de finalización en milisegundos
+    val endDate: Long? = null, // fecha de finalización en milisegundos
+
+    // Prioridad del plan (v13) - solo aplica cuando statusUser == "Planeado"
+    val plannedPriority: String? = null, // "Alta", "Media", "Baja"
+    val plannedNote: String? = null      // nota/razón del plan
 )

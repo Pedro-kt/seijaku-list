@@ -565,6 +565,7 @@ fun MyAnimeListScreen(
                                                 }
                                             }
                                         }
+
                                     }
 
                                     // Contenido
@@ -682,7 +683,11 @@ fun MyAnimeListScreen(
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            // Status chip con funcionalidad
+                                            // Status chip + priority badge
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
                                             AnimeStatusChip(
                                                 status = anime.statusUser,
                                                 statusColor = statusColors[anime.statusUser] ?: Color.Gray,
@@ -693,6 +698,36 @@ fun MyAnimeListScreen(
                                                 totalEpisodes = anime.totalEpisodes,
                                                 animeTitle = anime.title
                                             )
+                                            if (anime.statusUser == "Planeado" && anime.plannedPriority != null) {
+                                                val priorityColor = when (anime.plannedPriority) {
+                                                    "Alta" -> Color(0xFFEF5350)
+                                                    "Media" -> Color(0xFFFFCA28)
+                                                    else -> Color(0xFF66BB6A)
+                                                }
+                                                Surface(
+                                                    shape = RoundedCornerShape(20.dp),
+                                                    color = Color.Black.copy(alpha = 0.55f)
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(6.dp)
+                                                                .background(priorityColor, CircleShape)
+                                                        )
+                                                        Text(
+                                                            text = anime.plannedPriority ?: "",
+                                                            fontFamily = PoppinsBold,
+                                                            fontSize = 10.sp,
+                                                            color = Color.White
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            }
 
                                             // Botón +1
                                             if (anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes) {
@@ -1037,20 +1072,26 @@ fun OnboardingStyleAnimeCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Badge de tipo
-                    if (!anime.typeAnime.isNullOrBlank()) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                        ) {
-                            Text(
-                                text = anime.typeAnime ?: "",
-                                fontFamily = PoppinsBold,
-                                fontSize = 9.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                            )
+                    // Badges izquierda: tipo y prioridad
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (!anime.typeAnime.isNullOrBlank()) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                            ) {
+                                Text(
+                                    text = anime.typeAnime ?: "",
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                )
+                            }
                         }
+
                     }
 
                     // Badge de rating
@@ -1108,7 +1149,7 @@ fun OnboardingStyleAnimeCard(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Estado
@@ -1132,6 +1173,37 @@ fun OnboardingStyleAnimeCard(
                                     fontSize = 11.sp,
                                     color = Color.White
                                 )
+                            }
+                        }
+
+                        // Badge de prioridad (solo Planeado)
+                        if (anime.statusUser == "Planeado" && anime.plannedPriority != null) {
+                            val priorityColor = when (anime.plannedPriority) {
+                                "Alta" -> Color(0xFFEF5350)
+                                "Media" -> Color(0xFFFFCA28)
+                                else -> Color(0xFF66BB6A)
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = Color.Black.copy(alpha = 0.55f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(6.dp)
+                                            .background(priorityColor, CircleShape)
+                                    )
+                                    Text(
+                                        text = anime.plannedPriority ?: "",
+                                        fontFamily = PoppinsBold,
+                                        fontSize = 10.sp,
+                                        color = Color.White
+                                    )
+                                }
                             }
                         }
 

@@ -10,19 +10,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EventAvailable
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -35,13 +33,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.yumedev.seijakulist.R
+import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmCompleteDialog
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmPlannedDialog
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmResetEpisodesDialog
+import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.util.UserAction
 
@@ -60,34 +57,57 @@ fun AnimeStatusChip(
     var showConfirmCompleteDialog by remember { mutableStateOf(false) }
     var pendingAction: UserAction? by remember { mutableStateOf(null) }
 
-    val RobotoRegular = FontFamily(Font(R.font.roboto_regular))
     val statusAnime = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clickable { expanded = true }
+        modifier = Modifier.clickable { expanded = true }
     ) {
         Surface(
             onClick = { expanded = true },
-            shape = RoundedCornerShape(8.dp),
-            color = statusColor.copy(alpha = 0.15f),
-            border = BorderStroke(1.dp, statusColor)
+            shape = RoundedCornerShape(20.dp),
+            color = statusColor.copy(alpha = 0.18f)
         ) {
-            Text(
-                text = status,
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                color = statusColor,
-                fontFamily = PoppinsRegular
-            )
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(statusColor, CircleShape)
+                )
+                Text(
+                    text = status,
+                    color = Color.White,
+                    fontFamily = PoppinsBold,
+                    fontSize = 11.sp
+                )
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.size(14.dp)
+                )
+            }
         }
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ) {
+            Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 4.dp)) {
+                Text(
+                    text = "Cambiar estado",
+                    fontFamily = PoppinsBold,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             statusAnime.forEach { newStatus ->
                 val isCurrentStatus = status == newStatus
                 val statusIcon = when (newStatus) {
@@ -111,12 +131,9 @@ fun AnimeStatusChip(
                     text = {
                         Text(
                             text = newStatus,
-                            fontFamily = PoppinsRegular,
-                            color = if (isCurrentStatus) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurface
-                            }
+                            fontFamily = PoppinsBold,
+                            fontSize = 13.sp,
+                            color = itemColor
                         )
                     },
                     onClick = {
@@ -160,23 +177,33 @@ fun AnimeStatusChip(
                             Icon(
                                 imageVector = statusIcon,
                                 contentDescription = newStatus,
-                                tint = if (isCurrentStatus) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    itemColor
-                                },
+                                tint = itemColor,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
                     },
-                    colors = MenuDefaults.itemColors(
-                        textColor = if (isCurrentStatus) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
+                    trailingIcon = {
+                        if (isCurrentStatus) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = itemColor,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = itemColor,
+                        leadingIconColor = itemColor,
+                        trailingIconColor = itemColor
                     ),
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            if (isCurrentStatus) itemColor.copy(alpha = 0.12f)
+                            else Color.Transparent
+                        )
                 )
             }
         }

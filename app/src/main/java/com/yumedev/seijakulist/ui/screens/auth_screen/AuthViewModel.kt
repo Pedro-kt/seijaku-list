@@ -86,7 +86,15 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
-        auth.signOut()
+        viewModelScope.launch {
+            try {
+                animeLocalRepository.deleteAllAnimes()
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error al limpiar Room en signOut: ${e.message}")
+            } finally {
+                auth.signOut()
+            }
+        }
     }
 
     fun updateUserProfile(username: String) {

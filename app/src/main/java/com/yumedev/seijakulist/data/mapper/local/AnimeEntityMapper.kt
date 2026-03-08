@@ -32,7 +32,9 @@ fun AnimeEntityDomain.toAnimeEntity(): AnimeEntity {
         rating = rating,
         source = source,
         startDate = startDate,
-        endDate = endDate
+        endDate = endDate,
+        plannedPriority = plannedPriority,
+        plannedNote = plannedNote
     )
 }
 
@@ -64,6 +66,8 @@ fun AnimeEntity.toAnimeEntityDomain(): AnimeEntityDomain {
         rating = rating,
         source = source,
         startDate = startDate,
-        endDate = endDate
+        endDate = endDate,
+        plannedPriority = plannedPriority,
+        plannedNote = plannedNote
     )
 }

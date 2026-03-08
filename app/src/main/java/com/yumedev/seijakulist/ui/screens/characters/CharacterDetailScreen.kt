@@ -26,9 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
@@ -74,6 +71,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.TitleScreen
+import com.yumedev.seijakulist.ui.screens.detail.SectionHeader
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.util.CharacterDescriptionParser
@@ -253,30 +251,15 @@ fun CharacterDetailScreen(
                 // Información del personaje (pares clave:valor)
                 if (parsedDescription.keyValuePairs.isNotEmpty()) {
                     item {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Info,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                                Text(
-                                    text = "Información",
-                                    fontSize = 20.sp,
-                                    fontFamily = PoppinsBold,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            }
-
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            SectionHeader(
+                                title = "Información",
+                                subtitle = "${parsedDescription.keyValuePairs.size} datos"
+                            )
                             FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
@@ -291,30 +274,13 @@ fun CharacterDetailScreen(
                 // Descripción
                 if (parsedDescription.cleanDescription.isNotEmpty()) {
                     item {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Description,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                                Text(
-                                    text = "Descripción",
-                                    fontSize = 20.sp,
-                                    fontFamily = PoppinsBold,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            }
-
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            SectionHeader(
+                                title = "Descripción",
+                                subtitle = "Sobre el personaje"
+                            )
                             Card(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -363,33 +329,20 @@ fun CharacterDetailScreen(
                         Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(horizontal = 16.dp)
+                            SectionHeader(
+                                title = "Galería",
+                                subtitle = "${characterPictures.size} imagen${if (characterPictures.size != 1) "es" else ""}"
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                                Text(
-                                    text = "Galería",
-                                    fontSize = 20.sp,
-                                    fontFamily = PoppinsBold,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                                 ) {
                                     Text(
                                         text = "${characterPictures.size}",
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                        fontSize = 11.sp,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontFamily = PoppinsBold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        fontSize = 13.sp
                                     )
                                 }
                             }

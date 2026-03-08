@@ -25,6 +25,10 @@ class AnimeLocalRepository @Inject constructor(
         animeDao.deleteAnimeById(animeId)
     }
 
+    suspend fun deleteAllAnimes() {
+        animeDao.deleteAllAnimes()
+    }
+
     fun getAllAnimes(): Flow<List<AnimeEntity>> {
         return animeDao.getAllAnimes()
     }

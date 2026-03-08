@@ -39,5 +39,5 @@ object AppDestinations {
     const val VIEW_MORE_FILTER_KEY = "filter"
 
     const val NOVEDADES_ROUTE = "novedades_route"
-
+    const val POLICY_PRIVACY_ROUTE = "policy_privacy_route"
 }

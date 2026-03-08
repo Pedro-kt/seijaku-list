@@ -27,6 +27,92 @@ data class WhatsNewVersion(
 // Historial de versiones — el más reciente va PRIMERO
 val WHATS_NEW_HISTORY = listOf(
     WhatsNewVersion(
+        versionName = "1.0 (7)",
+        versionCode = 7,
+        changes = listOf(
+            WhatsNewChange(
+                type = ChangeType.NEW,
+                title = "Prioridad para animes Planeados",
+                description = "Ahora podés asignar prioridad Alta, Media o Baja a los animes que tenés planeados ver, y agregar notas personales a cada uno."
+            ),
+            WhatsNewChange(
+                type = ChangeType.NEW,
+                title = "Recomendaciones en el detalle",
+                description = "Nueva sección \"Si te gustó este anime...\" en la pantalla de detalle con animes relacionados para que sigas descubriendo."
+            ),
+            WhatsNewChange(
+                type = ChangeType.NEW,
+                title = "Foro del anime",
+                description = "Nueva pestaña en el detalle de cada anime con los temas del foro de MyAnimeList."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Estado del anime en español",
+                description = "\"En emisión\", \"Finalizado\" y \"Próximamente\" reemplazan los textos en inglés en la ficha de cada anime."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Búsqueda de personajes animada",
+                description = "El botón de búsqueda en la pestaña de personajes ahora se transforma en una barra de búsqueda con una animación deslizante."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Banner de novedades rediseñado",
+                description = "El banner que aparece al actualizar tiene un nuevo diseño con gradiente de color e ícono animado."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Estados de animes",
+                description = "La pantalla \"Mis Animes\" tiene un nuevo layout para los estados, mas moderno, con colores mas intensos y badge de prioridad en caso de tenerlo."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Perfil rediseñado",
+                description = "La pantalla de perfil fue completamente renovada con un layout más limpio y estadísticas mejor presentadas. (Sujeto a posibles cambios en versiones posteriores)"
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Fecha de inicio y finalizacion de animes",
+                description = "Ahora puedes modificar la fecha de inicio y finalización en la que viste un anime desde la pantalla de Detalle del anime en mi lista"
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Detalle del anime",
+                description = "Se ha renovado la sección del Header del detalle del anime para que sea mas limpio, organizado y con mas detalles!."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Subtitulos en el detalle del anime",
+                description = "Hemos renovado los subtitulos del detalle del anime para que sean mas claros y con un mejor diseño"
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Layout de Logros mejorado",
+                description = "Se renovaron los iconos de los Logros, ahora mas claros y con un mejor diseño"
+            ),
+            WhatsNewChange(
+                type = ChangeType.FIX,
+                title = "Cierre de sesión limpia la lista local",
+                description = "Al desloguearte, la base de datos local queda vacía. Así tu lista no queda visible si otra persona usa la app en tu dispositivo."
+            ),
+            WhatsNewChange(
+                type = ChangeType.FIX,
+                title = "Top 5 Animes",
+                description = "Se realizaron algunas correcciones de UI en la pantalla de Selección de Top 5 Animes."
+            ),
+            WhatsNewChange(
+                type = ChangeType.FIX,
+                title = "Aviso al cambiar estado desde Planeado",
+                description = "Si un anime tiene prioridad o notas asignadas y cambiás su estado, la app te avisa antes de proceder para que no pierdas esos datos."
+            ),
+            WhatsNewChange(
+                type = ChangeType.FIX,
+                title = "Pantalla de error con reintento",
+                description = "Cuando falla la carga de un anime por conexión, ahora aparece un botón \"Reintentar\" para no tener que salir y volver a entrar."
+            )
+        )
+    ),
+    WhatsNewVersion(
         versionName = "1.0 (6)",
         versionCode = 6,
         changes = listOf(

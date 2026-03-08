@@ -12,6 +12,7 @@ import com.yumedev.seijakulist.data.local.migration.MIGRATION_5_6
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_6_7
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_7_8
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_9_10
+import com.yumedev.seijakulist.data.local.migration.MIGRATION_12_13
 import com.yumedev.seijakulist.data.repository.UserProfileLocalRepository
 import dagger.Module
 import dagger.Provides
@@ -32,7 +33,7 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_database"
         )
-            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_9_10)
+            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_9_10, MIGRATION_12_13)
             .fallbackToDestructiveMigration()
             .build()
     }

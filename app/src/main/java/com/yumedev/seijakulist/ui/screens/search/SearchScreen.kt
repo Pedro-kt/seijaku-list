@@ -688,7 +688,7 @@ fun AnimeCardItem(
                     // Botón de añadir
                     Surface(
                         onClick = {
-                            navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}?tab=4")
+                            navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}?openSheet=true")
                         },
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),

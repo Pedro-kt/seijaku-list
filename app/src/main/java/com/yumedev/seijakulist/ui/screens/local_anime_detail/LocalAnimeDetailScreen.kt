@@ -24,26 +24,42 @@ import androidx.compose.ui.res.painterResource
 import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -82,6 +98,24 @@ fun AnimeDetailScreenLocal(
     val context = LocalContext.current
     val focusManager: FocusManager = LocalFocusManager.current
 
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
+
+    // Estado para editar prioridad y nota del plan
+    var showEditPlannedDialog by remember { mutableStateOf(false) }
+    var editPlannedPriority by remember { mutableStateOf<String?>(null) }
+    var editPlannedNote by remember { mutableStateOf("") }
+
+    val startDatePickerState = rememberDatePickerState()
+    val endDatePickerState = rememberDatePickerState()
+
+    LaunchedEffect(anime?.startDate) {
+        startDatePickerState.selectedDateMillis = anime?.startDate
+    }
+    LaunchedEffect(anime?.endDate) {
+        endDatePickerState.selectedDateMillis = anime?.endDate
+    }
+
     when (val currentAnime = anime) {
         null -> {
             Box(
@@ -93,6 +127,42 @@ fun AnimeDetailScreenLocal(
         }
 
         else -> {
+            if (showStartDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showStartDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.updateDates(
+                                startDate = startDatePickerState.selectedDateMillis,
+                                endDate = currentAnime.endDate
+                            )
+                            showStartDatePicker = false
+                        }) { Text("OK") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showStartDatePicker = false }) { Text("Cancelar") }
+                    }
+                ) { DatePicker(state = startDatePickerState) }
+            }
+
+            if (showEndDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showEndDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.updateDates(
+                                startDate = currentAnime.startDate,
+                                endDate = endDatePickerState.selectedDateMillis
+                            )
+                            showEndDatePicker = false
+                        }) { Text("OK") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showEndDatePicker = false }) { Text("Cancelar") }
+                    }
+                ) { DatePicker(state = endDatePickerState) }
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -420,6 +490,235 @@ fun AnimeDetailScreenLocal(
                         Spacer(modifier = Modifier.height(20.dp))
                     }
 
+                    // Sección de prioridad del plan (solo si está Planeado)
+                    if (currentAnime.userStatus == "Planeado") {
+                        item {
+                            // Dialog para editar prioridad y nota
+                            if (showEditPlannedDialog) {
+                                AlertDialog(
+                                    onDismissRequest = { showEditPlannedDialog = false },
+                                    title = {
+                                        Text(
+                                            text = "Editar prioridad del plan",
+                                            fontFamily = PoppinsBold
+                                        )
+                                    },
+                                    text = {
+                                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            Text(
+                                                text = "Prioridad",
+                                                fontFamily = PoppinsBold,
+                                                fontSize = 14.sp,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+
+                                            val priorities = listOf("Alta", "Media", "Baja")
+                                            val priorityColors = mapOf(
+                                                "Alta" to Color(0xFFEF5350),
+                                                "Media" to Color(0xFFFFCA28),
+                                                "Baja" to Color(0xFF66BB6A)
+                                            )
+
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                priorities.forEach { priority ->
+                                                    val isSelected = editPlannedPriority == priority
+                                                    Surface(
+                                                        onClick = {
+                                                            editPlannedPriority = if (isSelected) null else priority
+                                                        },
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .height(40.dp),
+                                                        shape = RoundedCornerShape(10.dp),
+                                                        color = if (isSelected)
+                                                            priorityColors[priority] ?: MaterialTheme.colorScheme.primaryContainer
+                                                        else
+                                                            MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                        shadowElevation = if (isSelected) 4.dp else 1.dp
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Text(
+                                                                text = priority,
+                                                                fontSize = 13.sp,
+                                                                fontFamily = PoppinsRegular,
+                                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                                color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Text(
+                                                text = "Nota del plan",
+                                                fontFamily = PoppinsBold,
+                                                fontSize = 14.sp,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+
+                                            OutlinedTextField(
+                                                value = editPlannedNote,
+                                                onValueChange = { editPlannedNote = it },
+                                                placeholder = { Text("¿Por qué lo tenés planeado?") },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(100.dp),
+                                                colors = OutlinedTextFieldDefaults.colors(
+                                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                                    cursorColor = MaterialTheme.colorScheme.primary
+                                                ),
+                                                shape = RoundedCornerShape(10.dp),
+                                                maxLines = 4
+                                            )
+                                        }
+                                    },
+                                    confirmButton = {
+                                        Button(
+                                            onClick = {
+                                                viewModel.updatePlannedPriorityAndNote(
+                                                    priority = editPlannedPriority,
+                                                    note = editPlannedNote.ifBlank { null }
+                                                )
+                                                showEditPlannedDialog = false
+                                            }
+                                        ) {
+                                            Text("Guardar")
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showEditPlannedDialog = false }) {
+                                            Text("Cancelar")
+                                        }
+                                    }
+                                )
+                            }
+
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    // Header
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Flag,
+                                                contentDescription = "Prioridad",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Text(
+                                                text = "Prioridad del plan",
+                                                fontSize = 16.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                        IconButton(
+                                            onClick = {
+                                                editPlannedPriority = currentAnime.plannedPriority
+                                                editPlannedNote = currentAnime.plannedNote ?: ""
+                                                showEditPlannedDialog = true
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Editar prioridad",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+
+                                    androidx.compose.material3.HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                    )
+
+                                    // Prioridad actual
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Prioridad",
+                                            fontSize = 14.sp,
+                                            fontFamily = PoppinsRegular,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        val priorityColor = when (currentAnime.plannedPriority) {
+                                            "Alta" -> Color(0xFFEF5350)
+                                            "Media" -> Color(0xFFFFCA28)
+                                            "Baja" -> Color(0xFF66BB6A)
+                                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = if (currentAnime.plannedPriority != null)
+                                                priorityColor.copy(alpha = 0.15f)
+                                            else
+                                                MaterialTheme.colorScheme.surfaceContainerHighest
+                                        ) {
+                                            Text(
+                                                text = currentAnime.plannedPriority ?: "Sin definir",
+                                                fontSize = 14.sp,
+                                                fontFamily = PoppinsBold,
+                                                color = if (currentAnime.plannedPriority != null) priorityColor
+                                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    }
+
+                                    // Nota del plan
+                                    if (!currentAnime.plannedNote.isNullOrBlank()) {
+                                        androidx.compose.material3.HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                        )
+                                        Text(
+                                            text = "Nota",
+                                            fontSize = 14.sp,
+                                            fontFamily = PoppinsRegular,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = currentAnime.plannedNote,
+                                            fontSize = 14.sp,
+                                            fontFamily = PoppinsRegular,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
+
                     // Géneros - Diseño moderno
                     if (!currentAnime.genres.isNullOrEmpty()) {
                         item {
@@ -707,105 +1006,167 @@ fun AnimeDetailScreenLocal(
                         Spacer(modifier = Modifier.height(20.dp))
                     }
 
-                    // Fechas de seguimiento - Diseño compacto
+                    // Fechas de seguimiento - Siempre visible y editable
                     item {
-                        if (currentAnime.startDate != null || currentAnime.endDate != null) {
-                            Card(
+                        val sdf = remember {
+                            java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                                .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                        }
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 20.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    Text(
-                                        text = "Seguimiento",
-                                        fontSize = 16.sp,
-                                        fontFamily = PoppinsBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                Text(
+                                    text = "Seguimiento",
+                                    fontSize = 16.sp,
+                                    fontFamily = PoppinsBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
 
-                                    currentAnime.startDate?.let { date ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Row(
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.CalendarToday,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                                Text(
-                                                    text = "Fecha de inicio",
-                                                    fontSize = 14.sp,
-                                                    fontFamily = PoppinsRegular,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
+                                // Fecha de inicio
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.CalendarToday,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text(
-                                                text = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(date),
+                                                text = "Inicio",
+                                                fontSize = 12.sp,
+                                                fontFamily = PoppinsRegular,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = currentAnime.startDate?.let { sdf.format(it) } ?: "Sin fecha",
                                                 fontSize = 14.sp,
                                                 fontFamily = PoppinsBold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                        if (currentAnime.endDate != null) {
-                                            androidx.compose.material3.HorizontalDivider(
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                                color = if (currentAnime.startDate != null)
+                                                    MaterialTheme.colorScheme.onSurface
+                                                else
+                                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                             )
                                         }
                                     }
-
-                                    currentAnime.endDate?.let { date ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Row(
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                verticalAlignment = Alignment.CenterVertically
+                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        if (currentAnime.startDate != null) {
+                                            IconButton(
+                                                onClick = { viewModel.updateDates(null, currentAnime.endDate) },
+                                                modifier = Modifier.size(32.dp)
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Default.CalendarToday,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                                Text(
-                                                    text = "Fecha de finalización",
-                                                    fontSize = 14.sp,
-                                                    fontFamily = PoppinsRegular,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    imageVector = Icons.Default.Clear,
+                                                    contentDescription = "Borrar fecha de inicio",
+                                                    tint = MaterialTheme.colorScheme.error,
+                                                    modifier = Modifier.size(16.dp)
                                                 )
                                             }
+                                        }
+                                        IconButton(
+                                            onClick = { showStartDatePicker = true },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Editar fecha de inicio",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                androidx.compose.material3.HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                )
+
+                                // Fecha de finalización
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.CalendarToday,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text(
-                                                text = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(date),
+                                                text = "Finalización",
+                                                fontSize = 12.sp,
+                                                fontFamily = PoppinsRegular,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = currentAnime.endDate?.let { sdf.format(it) } ?: "Sin fecha",
                                                 fontSize = 14.sp,
                                                 fontFamily = PoppinsBold,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                                color = if (currentAnime.endDate != null)
+                                                    MaterialTheme.colorScheme.onSurface
+                                                else
+                                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                            )
+                                        }
+                                    }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        if (currentAnime.endDate != null) {
+                                            IconButton(
+                                                onClick = { viewModel.updateDates(currentAnime.startDate, null) },
+                                                modifier = Modifier.size(32.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Clear,
+                                                    contentDescription = "Borrar fecha de finalización",
+                                                    tint = MaterialTheme.colorScheme.error,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        }
+                                        IconButton(
+                                            onClick = { showEndDatePicker = true },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Editar fecha de finalización",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(16.dp)
                                             )
                                         }
                                     }
                                 }
                             }
-
-                            Spacer(modifier = Modifier.height(20.dp))
                         }
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
 
                     // Mi Reseña - Diseño mejorado

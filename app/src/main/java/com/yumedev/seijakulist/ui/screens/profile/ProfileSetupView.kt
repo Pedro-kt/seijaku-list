@@ -124,12 +124,21 @@ fun ProfileSetupView(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "Crea tu perfil",
-                        fontSize = 28.sp,
-                        fontFamily = PoppinsBold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+
+                    if (username.isEmpty()) {
+                        Text(
+                            text = "Crea tu perfil",
+                            fontSize = 28.sp,
+                            fontFamily = PoppinsBold
+                        )
+                    } else {
+                        Text(
+                            text = "Actualiza tu perfil",
+                            fontSize = 28.sp,
+                            fontFamily = PoppinsBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
 
                     Text(
                         text = "Cuéntanos un poco sobre ti",

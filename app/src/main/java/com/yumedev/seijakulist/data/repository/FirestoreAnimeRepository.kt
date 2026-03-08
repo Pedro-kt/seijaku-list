@@ -19,7 +19,9 @@ fun FirestoreAnimeData.toAnimeEntity() = AnimeEntity(
     rewatchCount = rewatchCount,
     genres = genres,
     startDate = startDate,
-    endDate = endDate
+    endDate = endDate,
+    plannedPriority = plannedPriority,
+    plannedNote = plannedNote
 )
 
 data class FirestoreAnimeData(
@@ -34,7 +36,9 @@ data class FirestoreAnimeData(
     val startDate: Long? = null,
     val endDate: Long? = null,
     val totalEpisodes: Int = 0,
-    val genres: String = ""
+    val genres: String = "",
+    val plannedPriority: String? = null,
+    val plannedNote: String? = null
 )
 
 class FirestoreAnimeRepository @Inject constructor() {
@@ -61,7 +65,9 @@ class FirestoreAnimeRepository @Inject constructor() {
             "userOpinion" to anime.userOpiniun,
             "startDate" to anime.startDate,
             "endDate" to anime.endDate,
-            "genres" to anime.genres
+            "genres" to anime.genres,
+            "plannedPriority" to anime.plannedPriority,
+            "plannedNote" to anime.plannedNote
         )
         animesCollection(uid)
             .document(anime.malId.toString())
@@ -94,7 +100,9 @@ class FirestoreAnimeRepository @Inject constructor() {
                 userOpinion = doc.getString("userOpinion") ?: "",
                 startDate = doc.getLong("startDate"),
                 endDate = doc.getLong("endDate"),
-                genres = doc.getString("genres") ?: ""
+                genres = doc.getString("genres") ?: "",
+                plannedPriority = doc.getString("plannedPriority"),
+                plannedNote = doc.getString("plannedNote")
             )
         }
     }

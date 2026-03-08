@@ -13,6 +13,8 @@ import com.yumedev.seijakulist.data.remote.models.anime_episodes.AnimeEpisodesRe
 import com.yumedev.seijakulist.data.remote.models.character_detail.CharacterResponseDto
 import com.yumedev.seijakulist.data.remote.models.character_pictures.CharacterPicturesResponseDto
 import com.yumedev.seijakulist.data.remote.models.genres.GenreResponse
+import com.yumedev.seijakulist.data.remote.models.anime_recommendations.AnimeRecommendationsResponseDto
+import com.yumedev.seijakulist.data.remote.models.anime_forum.AnimeForumResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 import retrofit2.http.Path
@@ -131,4 +133,10 @@ interface  JikanApiService {
     suspend fun getAnimeByGenre(
         @Query("genres") genre: String
     ) : SearchAnimeResponse
+
+    @GET("anime/{id}/recommendations")
+    suspend fun getAnimeRecommendations(@Path("id") malId: Int): AnimeRecommendationsResponseDto
+
+    @GET("anime/{id}/forum")
+    suspend fun getAnimeForum(@Path("id") malId: Int): AnimeForumResponseDto
 }
