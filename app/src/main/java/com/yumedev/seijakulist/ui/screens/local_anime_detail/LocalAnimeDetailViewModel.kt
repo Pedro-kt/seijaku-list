@@ -83,6 +83,33 @@ class LocalAnimeDetailViewModel @Inject constructor(
         }
     }
 
+    fun updateAnime(
+        status: String,
+        score: Float,
+        opinion: String?,
+        startDate: Long?,
+        endDate: Long?,
+        plannedPriority: String?,
+        plannedNote: String?
+    ) {
+        val currentAnime = _anime.value ?: return
+        viewModelScope.launch {
+            val updated = currentAnime.copy(
+                userStatus       = status,
+                userScore        = score,
+                userOpiniun      = opinion ?: "",
+                startDate        = startDate,
+                endDate          = endDate,
+                plannedPriority  = if (status == "Planeado") plannedPriority else null,
+                plannedNote      = if (status == "Planeado") plannedNote else null
+            )
+            val entity = updated.toAnimeEntity()
+            animeLocalRepository.updateAnime(entity)
+            _anime.value = updated
+            firestoreAnimeRepository.syncAnimeToFirestore(entity)
+        }
+    }
+
     fun shareAnime(context: Context) {
         val currentAnime = _anime.value ?: return
 

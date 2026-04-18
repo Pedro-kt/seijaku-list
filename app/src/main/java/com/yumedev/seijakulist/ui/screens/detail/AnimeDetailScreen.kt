@@ -613,8 +613,9 @@ fun AnimeDetailScreen(
                                         .fillMaxSize()
                                         .background(
                                             brush = Brush.verticalGradient(
-                                                0f to Color.Transparent,
-                                                0.6f to MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+
+                                                0f to MaterialTheme.colorScheme.background,
+                                                0.5f to Color.Transparent,
                                                 1f to MaterialTheme.colorScheme.background
                                             )
                                         )

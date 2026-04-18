@@ -1,11 +1,17 @@
 package com.yumedev.seijakulist.ui.screens.local_anime_detail
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,14 +24,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.res.painterResource
 import com.yumedev.seijakulist.R
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
@@ -45,20 +59,29 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,8 +105,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.yumedev.seijakulist.ui.components.TitleWithPadding
+import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmChangePlannedDialog
+import com.yumedev.seijakulist.ui.screens.detail.RatingBar
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,6 +133,32 @@ fun AnimeDetailScreenLocal(
     var showEditPlannedDialog by remember { mutableStateOf(false) }
     var editPlannedPriority by remember { mutableStateOf<String?>(null) }
     var editPlannedNote by remember { mutableStateOf("") }
+
+    // BottomSheet de edición
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showEditSheet by remember { mutableStateOf(false) }
+    val editSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
+    val statusList   = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
+    val statusColors = mapOf(
+        "Viendo"     to Color(0xFF66BB6A),
+        "Completado" to Color(0xFF42A5F5),
+        "Pendiente"  to Color(0xFFFFCA28),
+        "Abandonado" to Color(0xFFEF5350),
+        "Planeado"   to Color(0xFF78909C)
+    )
+    var sheetStatus           by remember { mutableStateOf<String?>(null) }
+    var sheetRating           by remember { mutableFloatStateOf(0f) }
+    var sheetOpinion          by remember { mutableStateOf("") }
+    var sheetStartDate        by remember { mutableStateOf<Long?>(null) }
+    var sheetEndDate          by remember { mutableStateOf<Long?>(null) }
+    var sheetPlannedPriority  by remember { mutableStateOf<String?>(null) }
+    var sheetPlannedNote      by remember { mutableStateOf("") }
+    var sheetShowStartPicker  by remember { mutableStateOf(false) }
+    var sheetShowEndPicker    by remember { mutableStateOf(false) }
+    var sheetShowChangePlannedDialog by remember { mutableStateOf(false) }
+    var sheetPendingNewStatus by remember { mutableStateOf<String?>(null) }
 
     val startDatePickerState = rememberDatePickerState()
     val endDatePickerState = rememberDatePickerState()
@@ -163,6 +217,7 @@ fun AnimeDetailScreenLocal(
                 ) { DatePicker(state = endDatePickerState) }
             }
 
+            Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -363,41 +418,30 @@ fun AnimeDetailScreenLocal(
                         }
                     }
 
-                    // Botones de acción
+                    // Botón de editar
                     item {
-                        Row(
+                        LaunchedEffect(showEditSheet) {
+                            if (showEditSheet) {
+                                sheetStatus          = currentAnime.userStatus
+                                sheetRating          = currentAnime.userScore
+                                sheetOpinion         = currentAnime.userOpiniun ?: ""
+                                sheetStartDate       = currentAnime.startDate
+                                sheetEndDate         = currentAnime.endDate
+                                sheetPlannedPriority = currentAnime.plannedPriority
+                                sheetPlannedNote     = currentAnime.plannedNote ?: ""
+                            }
+                        }
+                        Button(
+                            onClick = { showEditSheet = true },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                .padding(horizontal = 20.dp, vertical = 12.dp)
+                                .height(50.dp),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            FilledTonalButton(
-                                onClick = { /* TODO: Editar puntuación */ },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Star,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Puntuar")
-                            }
-
-                            OutlinedButton(
-                                onClick = { /* TODO: Editar información */ },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Edit,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Editar")
-                            }
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Editar anime", fontFamily = PoppinsBold)
                         }
                     }
 
@@ -1226,6 +1270,284 @@ fun AnimeDetailScreenLocal(
 
                             Spacer(modifier = Modifier.height(20.dp))
                         }
+                    }
+                }
+            }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
+            )
+            } // close Box
+
+            // ── BottomSheet de edición ─────────────────────────────────────────
+            if (showEditSheet) {
+                if (sheetShowChangePlannedDialog) {
+                    ConfirmChangePlannedDialog(
+                        newStatus = sheetPendingNewStatus ?: "",
+                        onConfirm = {
+                            sheetShowChangePlannedDialog = false
+                            val newSt = sheetPendingNewStatus ?: return@ConfirmChangePlannedDialog
+                            sheetPendingNewStatus = null
+                            sheetStatus = newSt
+                            viewModel.updateAnime(
+                                status          = newSt,
+                                score           = 0f,
+                                opinion         = sheetOpinion.ifBlank { null },
+                                startDate       = sheetStartDate,
+                                endDate         = sheetEndDate,
+                                plannedPriority = null,
+                                plannedNote     = null
+                            )
+                            showEditSheet = false
+                        },
+                        onDismiss = {
+                            sheetShowChangePlannedDialog = false
+                            sheetPendingNewStatus = null
+                        }
+                    )
+                }
+
+                if (sheetShowStartPicker) {
+                    DatePickerDialog(
+                        onDismissRequest = { sheetShowStartPicker = false },
+                        confirmButton = { Button(onClick = { sheetShowStartPicker = false }) { Text("OK") } },
+                        dismissButton = { Button(onClick = { sheetShowStartPicker = false }) { Text("Cancelar") } }
+                    ) {
+                        val pickerState = rememberDatePickerState(initialSelectedDateMillis = sheetStartDate)
+                        DatePicker(state = pickerState)
+                        sheetStartDate = pickerState.selectedDateMillis
+                    }
+                }
+
+                if (sheetShowEndPicker) {
+                    DatePickerDialog(
+                        onDismissRequest = { sheetShowEndPicker = false },
+                        confirmButton = { Button(onClick = { sheetShowEndPicker = false }) { Text("OK") } },
+                        dismissButton = { Button(onClick = { sheetShowEndPicker = false }) { Text("Cancelar") } }
+                    ) {
+                        val pickerState = rememberDatePickerState(initialSelectedDateMillis = sheetEndDate)
+                        DatePicker(state = pickerState)
+                        sheetEndDate = pickerState.selectedDateMillis
+                    }
+                }
+
+                ModalBottomSheet(
+                    onDismissRequest = { showEditSheet = false },
+                    sheetState = editSheetState
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .padding(bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Título
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Default.Favorite, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Editar en mi lista", fontSize = 20.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                        }
+
+                        // Estado
+                        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Estado", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                modifier = Modifier.height(180.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(statusList) { status ->
+                                    val isSelected = sheetStatus == status
+                                    Surface(
+                                        onClick = { sheetStatus = if (isSelected) null else status },
+                                        modifier = Modifier.height(50.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = if (isSelected) statusColors[status] ?: MaterialTheme.colorScheme.primaryContainer
+                                                else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        shadowElevation = if (isSelected) 4.dp else 1.dp
+                                    ) {
+                                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                if (isSelected) Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.dp), tint = Color.Black)
+                                                Text(status, fontSize = 14.sp, fontFamily = PoppinsRegular,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Prioridad + nota (solo si Planeado)
+                        AnimatedVisibility(visible = sheetStatus == "Planeado", enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
+                            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("Prioridad", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                                val priorities = listOf("Alta", "Media", "Baja")
+                                val priorityColors = mapOf("Alta" to Color(0xFFEF5350), "Media" to Color(0xFFFFCA28), "Baja" to Color(0xFF66BB6A))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    priorities.forEach { p ->
+                                        val isSel = sheetPlannedPriority == p
+                                        Surface(
+                                            onClick = { sheetPlannedPriority = if (isSel) null else p },
+                                            modifier = Modifier.weight(1f).height(44.dp),
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = if (isSel) priorityColors[p] ?: MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                            shadowElevation = if (isSel) 4.dp else 1.dp
+                                        ) {
+                                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                                Text(p, fontSize = 14.sp, fontFamily = PoppinsRegular,
+                                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isSel) Color.Black else MaterialTheme.colorScheme.onSurface)
+                                            }
+                                        }
+                                    }
+                                }
+                                Text("Nota del plan (opcional)", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                                OutlinedTextField(
+                                    value = sheetPlannedNote,
+                                    onValueChange = { sheetPlannedNote = it },
+                                    placeholder = { Text("¿Por qué lo tenés planeado?") },
+                                    modifier = Modifier.fillMaxWidth().height(100.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = Color.Transparent
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    maxLines = 4
+                                )
+                            }
+                        }
+
+                        // Calificación (solo si no es Planeado)
+                        AnimatedVisibility(visible = sheetStatus != null && sheetStatus != "Planeado", enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
+                            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                    Text("Calificación", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                                    if (sheetRating > 0) {
+                                        Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
+                                            Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(Icons.Default.Star, null, tint = Color(0xFFFFD700), modifier = Modifier.size(16.dp))
+                                                Text(String.format("%.1f", sheetRating), fontSize = 14.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.primary)
+                                            }
+                                        }
+                                    }
+                                }
+                                Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+                                    Box(modifier = Modifier.padding(16.dp), contentAlignment = Alignment.Center) {
+                                        RatingBar(rating = sheetRating, onRatingChange = { sheetRating = it })
+                                    }
+                                }
+                            }
+                        }
+
+                        // Opinión
+                        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Opinión (opcional)", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                            OutlinedTextField(
+                                value = sheetOpinion,
+                                onValueChange = { sheetOpinion = it },
+                                placeholder = { Text("Comparte tu opinión...") },
+                                modifier = Modifier.fillMaxWidth().height(120.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = Color.Transparent
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                maxLines = 5
+                            )
+                        }
+
+                        // Fechas
+                        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Fechas (opcional)", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                            val canStart = sheetStatus != "Planeado"
+                            val canEnd   = sheetStatus == "Completado"
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Surface(
+                                    onClick = { if (canStart) sheetShowStartPicker = true },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = if (canStart) 1f else 0.5f)
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (canStart) 1f else 0.4f))
+                                        Text(sheetStartDate?.let { dateFormat.format(it) } ?: "Inicio", fontSize = 12.sp, fontFamily = PoppinsRegular,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canStart) 1f else 0.4f))
+                                    }
+                                }
+                                Surface(
+                                    onClick = { if (canEnd) sheetShowEndPicker = true },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = if (canEnd) 1f else 0.5f)
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (canEnd) 1f else 0.4f))
+                                        Text(sheetEndDate?.let { dateFormat.format(it) } ?: "Final", fontSize = 12.sp, fontFamily = PoppinsRegular,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canEnd) 1f else 0.4f))
+                                    }
+                                }
+                            }
+                        }
+
+                        // Botón guardar
+                        Button(
+                            onClick = {
+                                val newStatus = sheetStatus ?: return@Button
+                                val wasPlanned = currentAnime.userStatus == "Planeado"
+                                val changingFromPlanned = wasPlanned && newStatus != "Planeado"
+                                val hadPriorityData = currentAnime.plannedPriority != null || currentAnime.plannedNote?.isNotBlank() == true
+                                if (changingFromPlanned && hadPriorityData) {
+                                    sheetPendingNewStatus = newStatus
+                                    sheetShowChangePlannedDialog = true
+                                } else {
+                                    val scoreToPass = if (newStatus == "Planeado") 0f else sheetRating
+                                    viewModel.updateAnime(
+                                        status          = newStatus,
+                                        score           = scoreToPass,
+                                        opinion         = sheetOpinion.ifBlank { null },
+                                        startDate       = sheetStartDate,
+                                        endDate         = sheetEndDate,
+                                        plannedPriority = if (newStatus == "Planeado") sheetPlannedPriority else null,
+                                        plannedNote     = if (newStatus == "Planeado" && sheetPlannedNote.isNotBlank()) sheetPlannedNote else null
+                                    )
+                                    scope.launch {
+                                        val result = snackbarHostState.showSnackbar(
+                                            message     = "Anime actualizado",
+                                            actionLabel = "OK",
+                                            duration    = SnackbarDuration.Short
+                                        )
+                                    }
+                                    showEditSheet = false
+                                }
+                            },
+                            enabled = sheetStatus != null,
+                            modifier = Modifier.fillMaxWidth().height(54.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            )
+                        ) {
+                            Icon(Icons.Default.Check, null, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Guardar cambios", fontSize = 16.sp, fontFamily = PoppinsBold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }

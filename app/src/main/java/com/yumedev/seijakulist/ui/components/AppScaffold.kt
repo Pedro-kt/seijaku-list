@@ -12,8 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
-import androidx.compose.ui.res.painterResource
-import com.yumedev.seijakulist.R
+
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
@@ -40,8 +39,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
+
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -51,6 +52,7 @@ import com.yumedev.seijakulist.ui.screens.my_animes.MyAnimeListViewModel
 import com.yumedev.seijakulist.util.navigation_tools.bottomNavRoutes
 import com.yumedev.seijakulist.util.navigation_tools.navItems
 import com.yumedev.seijakulist.AppNavigation
+import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 
 enum class SortOrder {
@@ -75,8 +77,8 @@ fun AppScaffold(
     if (currentRoute == AppDestinations.SPLASH ||
         currentRoute == AppDestinations.AUTH_ROUTE ||
         currentRoute == AppDestinations.LOGIN_ROUTE ||
-        currentRoute == AppDestinations.REGISTER_ROUTE ||
-        currentRoute == AppDestinations.SELECT_TOP5_ROUTE) {
+        currentRoute == AppDestinations.REGISTER_ROUTE || currentRoute == AppDestinations.SELECT_TOP5_ROUTE
+    ) {
         AppNavigation(
             navController,
             isSearching = isSearching,
@@ -279,7 +281,6 @@ fun AppScaffold(
                 }
 
                 else -> {
-                    // Detectar rutas con parámetros
                     when {
                         currentRoute?.startsWith("${AppDestinations.CHARACTER_DETAIL_ROUTE}/") == true -> {
                             TopAppBar(

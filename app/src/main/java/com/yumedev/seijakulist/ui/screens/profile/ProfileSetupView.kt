@@ -22,10 +22,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddAPhoto
@@ -97,287 +96,209 @@ fun ProfileSetupView(
         selectedImageUri = uri
     }
 
-    Box(
-        modifier = Modifier
+    val isEditMode = uiState.userProfile?.username != null
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val buttonScale by animateFloatAsState(
+        targetValue   = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label         = "button_scale"
+    )
+
+    LazyColumn(
+        modifier            = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding(),
+        contentPadding      = PaddingValues(horizontal = 24.dp, vertical = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Header animado
+        // ── Header ────────────────────────────────────────────────────────────
+        item {
             AnimatedVisibility(
                 visible = isVisible,
-                enter = fadeIn(animationSpec = tween(600)) +
-                        slideInVertically(
-                            initialOffsetY = { -30 },
-                            animationSpec = tween(600, easing = FastOutSlowInEasing)
-                        )
+                enter = fadeIn(tween(600)) + slideInVertically(animationSpec = tween(600, easing = FastOutSlowInEasing), initialOffsetY = { -30 })
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-
-                    if (username.isEmpty()) {
-                        Text(
-                            text = "Crea tu perfil",
-                            fontSize = 28.sp,
-                            fontFamily = PoppinsBold
-                        )
-                    } else {
-                        Text(
-                            text = "Actualiza tu perfil",
-                            fontSize = 28.sp,
-                            fontFamily = PoppinsBold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-
                     Text(
-                        text = "Cuéntanos un poco sobre ti",
-                        fontSize = 15.sp,
+                        text       = if (isEditMode) "Actualiza tu perfil" else "Crea tu perfil",
+                        fontSize   = 28.sp,
+                        fontFamily = PoppinsBold,
+                        color      = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text       = "Cuéntanos un poco sobre ti",
+                        fontSize   = 15.sp,
                         fontFamily = PoppinsRegular,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color      = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(50.dp))
+        }
 
-            // Profile Image Section con animación
+        // ── Avatar ────────────────────────────────────────────────────────────
+        item {
             AnimatedVisibility(
                 visible = isVisible,
-                enter = fadeIn(animationSpec = tween(700, delayMillis = 200)) +
-                        scaleIn(
-                            initialScale = 0.8f,
-                            animationSpec = tween(700, delayMillis = 200, easing = FastOutSlowInEasing)
-                        )
+                enter = fadeIn(tween(700, delayMillis = 200)) + scaleIn(initialScale = 0.8f, animationSpec = tween(700, delayMillis = 200, easing = FastOutSlowInEasing))
             ) {
                 ProfileImagePicker(
-                    imageUri = selectedImageUri ?: uiState.userProfile?.profilePictureUrl,
+                    imageUri    = selectedImageUri ?: uiState.userProfile?.profilePictureUrl,
                     onImagePick = { launcher.launch("image/*") }
                 )
             }
-
             Spacer(modifier = Modifier.height(40.dp))
+        }
 
-            // Username Field con animación
+        // ── Username ──────────────────────────────────────────────────────────
+        item {
             AnimatedVisibility(
                 visible = isVisible,
-                enter = fadeIn(animationSpec = tween(600, delayMillis = 400)) +
-                        slideInVertically(
-                            initialOffsetY = { 30 },
-                            animationSpec = tween(600, delayMillis = 400)
-                        )
+                enter = fadeIn(tween(600, delayMillis = 400)) + slideInVertically(animationSpec = tween(600, delayMillis = 400), initialOffsetY = { 30 })
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier            = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Nombre de usuario",
-                        fontSize = 13.sp,
+                        text       = "Nombre de usuario",
+                        fontSize   = 13.sp,
                         fontFamily = PoppinsMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(start = 4.dp)
+                        color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier   = Modifier.padding(start = 4.dp)
                     )
-
                     OutlinedTextField(
-                        value = username,
+                        value         = username,
                         onValueChange = { username = it },
-                        placeholder = {
-                            Text(
-                                "Tu nombre",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 15.sp
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        placeholder   = { Text("Tu nombre", fontFamily = PoppinsRegular, fontSize = 15.sp) },
+                        leadingIcon   = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.primary) },
+                        modifier      = Modifier.fillMaxWidth(),
+                        shape         = RoundedCornerShape(16.dp),
+                        colors        = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor   = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
+                            focusedContainerColor   = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
                         singleLine = true,
-                        textStyle = LocalTextStyle.current.copy(
-                            fontFamily = PoppinsMedium,
-                            fontSize = 15.sp
-                        )
+                        textStyle  = LocalTextStyle.current.copy(fontFamily = PoppinsMedium, fontSize = 15.sp)
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(20.dp))
+        }
 
-            // Bio Field con animación
+        // ── Bio ───────────────────────────────────────────────────────────────
+        item {
             AnimatedVisibility(
                 visible = isVisible,
-                enter = fadeIn(animationSpec = tween(600, delayMillis = 500)) +
-                        slideInVertically(
-                            initialOffsetY = { 30 },
-                            animationSpec = tween(600, delayMillis = 500)
-                        )
+                enter = fadeIn(tween(600, delayMillis = 500)) + slideInVertically(animationSpec = tween(600, delayMillis = 500), initialOffsetY = { 30 })
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier            = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Biografía (opcional)",
-                            fontSize = 13.sp,
+                            text       = "Biografía (opcional)",
+                            fontSize   = 13.sp,
                             fontFamily = PoppinsMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(start = 4.dp)
+                            color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            modifier   = Modifier.padding(start = 4.dp)
                         )
                         Text(
-                            text = "${bio.length}/150",
-                            fontSize = 12.sp,
+                            text       = "${bio.length}/150",
+                            fontSize   = 12.sp,
                             fontFamily = PoppinsRegular,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
                     }
-
                     OutlinedTextField(
-                        value = bio,
+                        value         = bio,
                         onValueChange = { if (it.length <= 150) bio = it },
-                        placeholder = {
-                            Text(
-                                "¿Qué animes te gustan?",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 15.sp
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        placeholder   = { Text("¿Qué animes te gustan?", fontFamily = PoppinsRegular, fontSize = 15.sp) },
+                        modifier      = Modifier.fillMaxWidth(),
+                        shape         = RoundedCornerShape(16.dp),
+                        colors        = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor   = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
+                            focusedContainerColor   = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
-                        maxLines = 3,
-                        minLines = 3,
-                        textStyle = LocalTextStyle.current.copy(
-                            fontFamily = PoppinsRegular,
-                            fontSize = 14.sp
-                        )
+                        maxLines  = 3,
+                        minLines  = 3,
+                        textStyle = LocalTextStyle.current.copy(fontFamily = PoppinsRegular, fontSize = 14.sp)
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(40.dp))
+        }
 
-            // Save Button con animación
+        // ── Botón guardar ─────────────────────────────────────────────────────
+        item {
             AnimatedVisibility(
                 visible = isVisible,
-                enter = fadeIn(animationSpec = tween(600, delayMillis = 600)) +
-                        scaleIn(
-                            initialScale = 0.9f,
-                            animationSpec = tween(600, delayMillis = 600)
-                        )
+                enter = fadeIn(tween(600, delayMillis = 600)) + scaleIn(initialScale = 0.9f, animationSpec = tween(600, delayMillis = 600))
             ) {
-                val isEditMode = uiState.userProfile?.username != null
-                val buttonText = if (isEditMode) "Actualizar" else "Continuar"
-
-                val interactionSource = remember { MutableInteractionSource() }
-                val isPressed by interactionSource.collectIsPressedAsState()
-
-                val scale by animateFloatAsState(
-                    targetValue = if (isPressed) 0.96f else 1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    ),
-                    label = "button_scale"
-                )
-
                 Button(
-                    onClick = {
-                        profileViewModel.updateUserProfile(username, bio, selectedImageUri)
-                    },
+                    onClick = { profileViewModel.updateUserProfile(username, bio, selectedImageUri) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp)
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        },
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = username.isNotBlank() && !uiState.isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
+                        .graphicsLayer { scaleX = buttonScale; scaleY = buttonScale },
+                    shape    = RoundedCornerShape(16.dp),
+                    enabled  = username.isNotBlank() && !uiState.isLoading,
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor         = MaterialTheme.colorScheme.primary,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     interactionSource = interactionSource
                 ) {
                     if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(22.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.5.dp
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(22.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.5.dp)
                     } else {
-                        Text(
-                            text = buttonText,
-                            fontSize = 16.sp,
-                            fontFamily = PoppinsBold
-                        )
+                        Text(if (isEditMode) "Actualizar" else "Continuar", fontSize = 16.sp, fontFamily = PoppinsBold)
                     }
                 }
             }
+        }
 
-            // Loading message
+        // ── Mensajes de estado ────────────────────────────────────────────────
+        item {
             AnimatedVisibility(visible = uiState.isLoading) {
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = if (uiState.isUploadingImage) "Subiendo imagen..." else "Guardando...",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    fontFamily = PoppinsRegular
+                    text       = if (uiState.isUploadingImage) "Subiendo imagen..." else "Guardando...",
+                    fontSize   = 13.sp,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    fontFamily = PoppinsRegular,
+                    modifier   = Modifier.padding(top = 16.dp)
                 )
             }
-
-            // Error message
             AnimatedVisibility(visible = uiState.error != null) {
-                Spacer(modifier = Modifier.height(16.dp))
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(12.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    color    = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                    shape    = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = uiState.error ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center,
+                        text       = uiState.error ?: "",
+                        color      = MaterialTheme.colorScheme.error,
+                        fontSize   = 13.sp,
+                        modifier   = Modifier.padding(16.dp),
+                        textAlign  = TextAlign.Center,
                         fontFamily = PoppinsRegular
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

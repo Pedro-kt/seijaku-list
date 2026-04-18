@@ -1305,47 +1305,30 @@ fun CompactStatItem(
     modifier: Modifier, value: String, label: String
 ) {
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
-        border = BorderStroke(
-            width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-        )
+        modifier = modifier
+            .height(70.dp),
+        shape    = RoundedCornerShape(12.dp),
+        color    = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent, MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
-                        )
-                    )
-                )
-                .padding(vertical = 14.dp),
+            modifier            = Modifier.fillMaxWidth().padding(vertical = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = value,
-                // Aplicamos el estilo correctamente aquí
-                style = TextStyle(
-                    fontFamily = PoppinsBold,
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    letterSpacing = (-0.5).sp
-                )
+                text          = value,
+                fontFamily    = PoppinsBold,
+                fontSize      = 22.sp,
+                color         = MaterialTheme.colorScheme.onBackground,
+                letterSpacing = (-0.5).sp,
+                maxLines      = 1
             )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
             Text(
-                text = label.uppercase(), style = TextStyle(
-                    fontFamily = PoppinsBold,
-                    fontSize = 9.sp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    letterSpacing = 0.8.sp
-                )
+                text       = label,
+                fontFamily = PoppinsRegular,
+                fontSize   = 11.sp,
+                color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines   = 1
             )
         }
     }

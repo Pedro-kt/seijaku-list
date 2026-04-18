@@ -331,7 +331,7 @@ fun MyAnimeListScreen(
                     val filter = statusAnime[index]
                     val isSelected = selectedFilter == filter
 
-                    val filterIcon = when(filter) {
+                    val filterIcon = when (filter) {
                         "Viendo" -> Icons.Default.RemoveRedEye
                         "Completado" -> Icons.Default.CheckCircle
                         "Pendiente" -> Icons.Default.Schedule
@@ -415,7 +415,12 @@ fun MyAnimeListScreen(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 116.dp)
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            bottom = 116.dp
+                        )
                     ) {
                         items(displayedAnimes) { anime ->
                             CompactAnimeCard(
@@ -433,13 +438,19 @@ fun MyAnimeListScreen(
                         }
                     }
                 }
+
                 ViewMode.CARD -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 116.dp)
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            bottom = 116.dp
+                        )
                     ) {
                         items(displayedAnimes) { anime ->
                             OnboardingStyleAnimeCard(
@@ -452,354 +463,399 @@ fun MyAnimeListScreen(
                         }
                     }
                 }
+
                 ViewMode.LIST -> {
                     LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
-            ) {
-                items(displayedAnimes) { anime ->
-                    var visible by rememberSaveable { mutableStateOf(false) }
-                    var isPressed by remember { mutableStateOf(false) }
-
-                    LaunchedEffect(Unit) {
-                        visible = true
-                    }
-
-                    val scale by animateFloatAsState(
-                        targetValue = if (isPressed) 0.97f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium
-                        ),
-                        label = "card_scale"
-                    )
-
-                    AnimatedVisibility(
-                        visible = visible,
-                        enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(
-                            animationSpec = tween(500)
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            bottom = 16.dp
                         )
                     ) {
-                        ElevatedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp)
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                }
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onPress = {
-                                            isPressed = true
-                                            tryAwaitRelease()
-                                            isPressed = false
-                                        },
-                                        onTap = {
-                                            navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
-                                        }
-                                    )
-                                },
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
-                            shape = RoundedCornerShape(20.dp),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 4.dp,
-                                pressedElevation = 8.dp
-                            )
-                        ) {
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                Row(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    // Imagen
-                                    Box(
-                                        modifier = Modifier
-                                            .width(120.dp)
-                                            .fillMaxHeight()
-                                    ) {
-                                        Image(
-                                            painter = rememberAsyncImagePainter(anime.imageUrl),
-                                            contentDescription = anime.title,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)),
-                                            contentScale = ContentScale.Crop
-                                        )
+                        items(displayedAnimes) { anime ->
+                            var isPressed by remember { mutableStateOf(false) }
 
-                                        // Badges de puntuación
-                                        Column(
+                            val scale by animateFloatAsState(
+                                targetValue = if (isPressed) 0.97f else 1f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                ),
+                                label = "card_scale"
+                            )
+
+
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(160.dp)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                    }
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onPress = {
+                                                isPressed = true
+                                                tryAwaitRelease()
+                                                isPressed = false
+                                            },
+                                            onTap = {
+                                                navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
+                                            }
+                                        )
+                                    },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                ),
+                                shape = RoundedCornerShape(20.dp),
+                                elevation = CardDefaults.cardElevation(
+                                    defaultElevation = 4.dp,
+                                    pressedElevation = 8.dp
+                                )
+                            ) {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        // Imagen
+                                        Box(
                                             modifier = Modifier
-                                                .align(Alignment.TopEnd)
-                                                .padding(6.dp),
-                                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                                            horizontalAlignment = Alignment.End
+                                                .width(120.dp)
+                                                .fillMaxHeight()
                                         ) {
-                                            // Score MAL
-                                            if (anime.score != null && anime.score > 0f) {
-                                                Surface(
-                                                    shape = RoundedCornerShape(6.dp),
-                                                    color = Color.Black.copy(alpha = 0.7f)
-                                                ) {
-                                                    Row(
-                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-                                                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                                        verticalAlignment = Alignment.CenterVertically
+                                            Image(
+                                                painter = rememberAsyncImagePainter(anime.imageUrl),
+                                                contentDescription = anime.title,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(
+                                                        RoundedCornerShape(
+                                                            topStart = 20.dp,
+                                                            bottomStart = 20.dp
+                                                        )
+                                                    ),
+                                                contentScale = ContentScale.Crop
+                                            )
+
+                                            // Badges de puntuación
+                                            Column(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .padding(6.dp),
+                                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                                horizontalAlignment = Alignment.End
+                                            ) {
+                                                // Score MAL
+                                                if (anime.score != null && anime.score > 0f) {
+                                                    Surface(
+                                                        shape = RoundedCornerShape(6.dp),
+                                                        color = Color.Black.copy(alpha = 0.7f)
                                                     ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Star,
-                                                            contentDescription = null,
-                                                            tint = Color(0xFFFFD700),
-                                                            modifier = Modifier.size(11.dp)
-                                                        )
-                                                        Text(
-                                                            text = String.format("%.1f", anime.userScore),
-                                                            color = Color.White,
-                                                            fontSize = 11.sp,
-                                                            fontFamily = PoppinsBold
-                                                        )
+                                                        Row(
+                                                            modifier = Modifier.padding(
+                                                                horizontal = 6.dp,
+                                                                vertical = 4.dp
+                                                            ),
+                                                            horizontalArrangement = Arrangement.spacedBy(
+                                                                3.dp
+                                                            ),
+                                                            verticalAlignment = Alignment.CenterVertically
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Star,
+                                                                contentDescription = null,
+                                                                tint = Color(0xFFFFD700),
+                                                                modifier = Modifier.size(11.dp)
+                                                            )
+                                                            Text(
+                                                                text = String.format(
+                                                                    "%.1f",
+                                                                    anime.userScore
+                                                                ),
+                                                                color = Color.White,
+                                                                fontSize = 11.sp,
+                                                                fontFamily = PoppinsBold
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
+
                                         }
 
-                                    }
-
-                                    // Contenido
-                                    Column(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .fillMaxHeight()
-                                            .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 10.dp),
-                                        verticalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        // Título e información
+                                        // Contenido
                                         Column(
-                                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxHeight()
+                                                .padding(
+                                                    start = 14.dp,
+                                                    top = 10.dp,
+                                                    bottom = 10.dp,
+                                                    end = 10.dp
+                                                ),
+                                            verticalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Text(
-                                                text = anime.title,
-                                                fontFamily = PoppinsBold,
-                                                fontSize = 15.sp,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis,
-                                                lineHeight = 17.sp
-                                            )
+                                            // Título e información
+                                            Column(
+                                                verticalArrangement = Arrangement.spacedBy(5.dp)
+                                            ) {
+                                                Text(
+                                                    text = anime.title,
+                                                    fontFamily = PoppinsBold,
+                                                    fontSize = 15.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    lineHeight = 17.sp
+                                                )
 
-                                            // Información adicional (tipo y año si existen)
-                                            if (!anime.typeAnime.isNullOrBlank() || !anime.year.isNullOrBlank()) {
+                                                // Información adicional (tipo y año si existen)
+                                                if (!anime.typeAnime.isNullOrBlank() || !anime.year.isNullOrBlank()) {
+                                                    Row(
+                                                        horizontalArrangement = Arrangement.spacedBy(
+                                                            6.dp
+                                                        ),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        if (!anime.typeAnime.isNullOrBlank()) {
+                                                            Text(
+                                                                text = anime.typeAnime ?: "",
+                                                                fontFamily = PoppinsRegular,
+                                                                fontSize = 11.sp,
+                                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                                    alpha = 0.6f
+                                                                )
+                                                            )
+                                                        }
+                                                        if (!anime.typeAnime.isNullOrBlank() && !anime.year.isNullOrBlank()) {
+                                                            Text(
+                                                                text = "•",
+                                                                fontFamily = PoppinsRegular,
+                                                                fontSize = 11.sp,
+                                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                                    alpha = 0.4f
+                                                                )
+                                                            )
+                                                        }
+                                                        if (!anime.year.isNullOrBlank()) {
+                                                            Text(
+                                                                text = anime.year ?: "",
+                                                                fontFamily = PoppinsRegular,
+                                                                fontSize = 11.sp,
+                                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                                    alpha = 0.6f
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                }
+
+                                                // Progreso de episodios
                                                 Row(
                                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                                     verticalAlignment = Alignment.CenterVertically
                                                 ) {
-                                                    if (!anime.typeAnime.isNullOrBlank()) {
-                                                        Text(
-                                                            text = anime.typeAnime ?: "",
-                                                            fontFamily = PoppinsRegular,
-                                                            fontSize = 11.sp,
-                                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                    Icon(
+                                                        imageVector = Icons.Default.PlayArrow,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(14.dp),
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                    Text(
+                                                        text = "${anime.episodesWatched}/${anime.totalEpisodes}",
+                                                        fontFamily = PoppinsBold,
+                                                        fontSize = 12.sp,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                    Text(
+                                                        text = "eps",
+                                                        fontFamily = PoppinsRegular,
+                                                        fontSize = 11.sp,
+                                                        color = MaterialTheme.colorScheme.onSurface.copy(
+                                                            alpha = 0.6f
                                                         )
-                                                    }
-                                                    if (!anime.typeAnime.isNullOrBlank() && !anime.year.isNullOrBlank()) {
-                                                        Text(
-                                                            text = "•",
-                                                            fontFamily = PoppinsRegular,
-                                                            fontSize = 11.sp,
-                                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                                        )
-                                                    }
-                                                    if (!anime.year.isNullOrBlank()) {
-                                                        Text(
-                                                            text = anime.year ?: "",
-                                                            fontFamily = PoppinsRegular,
-                                                            fontSize = 11.sp,
-                                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                                        )
-                                                    }
+                                                    )
                                                 }
-                                            }
 
-                                            // Progreso de episodios
-                                            Row(
-                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.PlayArrow,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(14.dp),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                                Text(
-                                                    text = "${anime.episodesWatched}/${anime.totalEpisodes}",
-                                                    fontFamily = PoppinsBold,
-                                                    fontSize = 12.sp,
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
-                                                Text(
-                                                    text = "eps",
-                                                    fontFamily = PoppinsRegular,
-                                                    fontSize = 11.sp,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                                )
-                                            }
-
-                                            // Progress bar
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(6.dp)
-                                                    .clip(RoundedCornerShape(3.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                                            ) {
+                                                // Progress bar
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxHeight()
-                                                        .fillMaxWidth(
-                                                            if (anime.totalEpisodes > 0) {
-                                                                (anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()).coerceIn(0f, 1f)
-                                                            } else 0f
-                                                        )
+                                                        .fillMaxWidth()
+                                                        .height(6.dp)
                                                         .clip(RoundedCornerShape(3.dp))
-                                                        .background(
-                                                            Brush.horizontalGradient(
-                                                                colors = listOf(
-                                                                    MaterialTheme.colorScheme.primary,
-                                                                    MaterialTheme.colorScheme.tertiary
-                                                                )
-                                                            )
-                                                        )
-                                                )
-                                            }
-                                        }
-
-                                        // Status chip y botón +1
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            // Status chip + priority badge
-                                            Row(
-                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                            AnimeStatusChip(
-                                                status = anime.statusUser,
-                                                statusColor = statusColors[anime.statusUser] ?: Color.Gray,
-                                                onStatusSelected = { action ->
-                                                    viewModel.handleUserAction(anime.malId, action)
-                                                },
-                                                episodesWatched = anime.episodesWatched,
-                                                totalEpisodes = anime.totalEpisodes,
-                                                animeTitle = anime.title
-                                            )
-                                            if (anime.statusUser == "Planeado" && anime.plannedPriority != null) {
-                                                val priorityColor = when (anime.plannedPriority) {
-                                                    "Alta" -> Color(0xFFEF5350)
-                                                    "Media" -> Color(0xFFFFCA28)
-                                                    else -> Color(0xFF66BB6A)
-                                                }
-                                                Surface(
-                                                    shape = RoundedCornerShape(20.dp),
-                                                    color = Color.Black.copy(alpha = 0.55f)
-                                                ) {
-                                                    Row(
-                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                    ) {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .size(6.dp)
-                                                                .background(priorityColor, CircleShape)
-                                                        )
-                                                        Text(
-                                                            text = anime.plannedPriority ?: "",
-                                                            fontFamily = PoppinsBold,
-                                                            fontSize = 10.sp,
-                                                            color = Color.White
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            }
-
-                                            // Botón +1
-                                            if (anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes) {
-                                                Surface(
-                                                    onClick = {
-                                                        val newEpisodesWatched = anime.episodesWatched + 1
-                                                        viewModel.updateEpisodesWatched(anime.malId, newEpisodesWatched)
-                                                    },
-                                                    shape = RoundedCornerShape(10.dp),
-                                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                                    modifier = Modifier.size(32.dp)
+                                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                                                 ) {
                                                     Box(
-                                                        modifier = Modifier.fillMaxSize(),
-                                                        contentAlignment = Alignment.Center
+                                                        modifier = Modifier
+                                                            .fillMaxHeight()
+                                                            .fillMaxWidth(
+                                                                if (anime.totalEpisodes > 0) {
+                                                                    (anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat()).coerceIn(
+                                                                        0f,
+                                                                        1f
+                                                                    )
+                                                                } else 0f
+                                                            )
+                                                            .clip(RoundedCornerShape(3.dp))
+                                                            .background(
+                                                                Brush.horizontalGradient(
+                                                                    colors = listOf(
+                                                                        MaterialTheme.colorScheme.primary,
+                                                                        MaterialTheme.colorScheme.tertiary
+                                                                    )
+                                                                )
+                                                            )
+                                                    )
+                                                }
+                                            }
+
+                                            // Status chip y botón +1
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                // Status chip + priority badge
+                                                Row(
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    AnimeStatusChip(
+                                                        status = anime.statusUser,
+                                                        statusColor = statusColors[anime.statusUser]
+                                                            ?: Color.Gray,
+                                                        onStatusSelected = { action ->
+                                                            viewModel.handleUserAction(
+                                                                anime.malId,
+                                                                action
+                                                            )
+                                                        },
+                                                        episodesWatched = anime.episodesWatched,
+                                                        totalEpisodes = anime.totalEpisodes,
+                                                        animeTitle = anime.title
+                                                    )
+                                                    if (anime.statusUser == "Planeado" && anime.plannedPriority != null) {
+                                                        val priorityColor =
+                                                            when (anime.plannedPriority) {
+                                                                "Alta" -> Color(0xFFEF5350)
+                                                                "Media" -> Color(0xFFFFCA28)
+                                                                else -> Color(0xFF66BB6A)
+                                                            }
+                                                        Surface(
+                                                            shape = RoundedCornerShape(20.dp),
+                                                            color = Color.Black.copy(alpha = 0.55f)
+                                                        ) {
+                                                            Row(
+                                                                modifier = Modifier.padding(
+                                                                    horizontal = 8.dp,
+                                                                    vertical = 4.dp
+                                                                ),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.spacedBy(
+                                                                    4.dp
+                                                                )
+                                                            ) {
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .size(6.dp)
+                                                                        .background(
+                                                                            priorityColor,
+                                                                            CircleShape
+                                                                        )
+                                                                )
+                                                                Text(
+                                                                    text = anime.plannedPriority
+                                                                        ?: "",
+                                                                    fontFamily = PoppinsBold,
+                                                                    fontSize = 10.sp,
+                                                                    color = Color.White
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Botón +1
+                                                if (anime.statusUser == "Viendo" && anime.totalEpisodes > 0 && anime.episodesWatched < anime.totalEpisodes) {
+                                                    Surface(
+                                                        onClick = {
+                                                            val newEpisodesWatched =
+                                                                anime.episodesWatched + 1
+                                                            viewModel.updateEpisodesWatched(
+                                                                anime.malId,
+                                                                newEpisodesWatched
+                                                            )
+                                                        },
+                                                        shape = RoundedCornerShape(10.dp),
+                                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                                        modifier = Modifier.size(32.dp)
                                                     ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.PlusOne,
-                                                            contentDescription = "Marcar episodio",
-                                                            modifier = Modifier.size(18.dp),
-                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
+                                                        Box(
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.PlusOne,
+                                                                contentDescription = "Marcar episodio",
+                                                                modifier = Modifier.size(18.dp),
+                                                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                DeleteMyAnime(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(10.dp),
-                                    onDeleteConfirmed = {
-                                        showDialog = true
-                                        animeIdToDelete = anime.malId
-                                    }
-                                )
-
-                                if (showDialog) {
-                                    CustomDialog(
-                                        onDismissRequest = {
-                                            showDialog = false
-                                        },
-                                        onConfirm = {
-                                            viewModel.deleteAnimeToList(animeIdToDelete)
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = "Anime eliminado de tu lista",
-                                                    actionLabel = "Deshacer",
-                                                    duration = SnackbarDuration.Long
-                                                )
-                                            }
-                                        },
-                                        onDismiss = {
-                                            // Solo cierra el diálogo
-                                        },
-                                        title = "Confirmar eliminación",
-                                        message = "¿Estás seguro de que quieres eliminar este anime de tu lista?\n\nUna vez eliminado tendrás que volver a agregarlo de nuevo a tu lista.",
-                                        confirmButtonText = "Eliminar",
-                                        dismissButtonText = "Cancelar",
-                                        type = DialogType.DELETE
+                                    DeleteMyAnime(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(10.dp),
+                                        onDeleteConfirmed = {
+                                            showDialog = true
+                                            animeIdToDelete = anime.malId
+                                        }
                                     )
+
+                                    if (showDialog) {
+                                        CustomDialog(
+                                            onDismissRequest = {
+                                                showDialog = false
+                                            },
+                                            onConfirm = {
+                                                viewModel.deleteAnimeToList(animeIdToDelete)
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "Anime eliminado de tu lista",
+                                                        actionLabel = "Deshacer",
+                                                        duration = SnackbarDuration.Long
+                                                    )
+                                                }
+                                            },
+                                            onDismiss = {
+                                                // Solo cierra el diálogo
+                                            },
+                                            title = "Confirmar eliminación",
+                                            message = "¿Estás seguro de que quieres eliminar este anime de tu lista?\n\nUna vez eliminado tendrás que volver a agregarlo de nuevo a tu lista.",
+                                            confirmButtonText = "Eliminar",
+                                            dismissButtonText = "Cancelar",
+                                            type = DialogType.DELETE
+                                        )
+                                    }
                                 }
                             }
                         }
+
+                        item {
+                            Spacer(Modifier.height(100.dp))
+                        }
                     }
-                }
-                    item {
-                        Spacer(Modifier.height(100.dp))
-                    }
-                }
                 }
             }
         }
