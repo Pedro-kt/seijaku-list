@@ -1,7 +1,7 @@
 # SeijakuList
 
 <p align="center">
-  <img src="./app/src/main/res/drawable/seijaku_logo_design.png" alt="SeijakuList Logo" width="140" style="border-radius: 20px;"/>
+  <img src="./app/src/main/res/drawable/logo.png" alt="SeijakuList Logo" width="140" style="border-radius: 20px;"/>
 </p>
 
 <p align="center">
@@ -594,25 +594,3 @@ Consume la **Jikan REST API v4** — wrapper no oficial y gratuito de MyAnimeLis
 | Generos | `GET /genres/anime` |
 | Anime aleatorio | `GET /random/anime` |
 | Personaje aleatorio | `GET /random/characters` |
-
----
-
-## Capturas de pantalla
-
-<p align="center">
-  <img src="./images/mockup-1767399718326.png" width="220" alt="Home"/>
-  <img src="./images/mockup-1767399794807.png" width="220" alt="Detalle"/>
-  <img src="./images/mockup-1767399921249.png" width="220" alt="Mi lista"/>
-</p>
-
-<p align="center">
-  <img src="./images/mockup-1767399975901.png" width="220" alt="Perfil"/>
-  <img src="./images/mockup-1767400033600.png" width="220" alt="Configuracion"/>
-</p>
-
----
-
-<p align="center">
-  Desarrollado por <strong>Pedro Bustamante</strong> &nbsp;·&nbsp;
-  <a href="https://github.com/Pedro-kt/seijaku-list">GitHub</a>
-</p>
