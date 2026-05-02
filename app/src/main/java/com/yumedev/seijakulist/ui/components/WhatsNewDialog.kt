@@ -27,6 +27,53 @@ data class WhatsNewVersion(
 // Historial de versiones — el más reciente va PRIMERO
 val WHATS_NEW_HISTORY = listOf(
     WhatsNewVersion(
+        versionName = "1.0 (9)",
+        versionCode = 9,
+        changes = listOf(
+            WhatsNewChange(
+                type = ChangeType.NEW,
+                title = "Detalle local del anime",
+                description = "Ahora puedes editar todos los datos del anime desde la pantalla de detalle del anime en mi lista"
+            ),
+            WhatsNewChange(
+                type = ChangeType.NEW,
+                title = "Detalle del personaje",
+                description = "Se ha rediseñado completamente el detalle del personaje, con un diseño mas moderno y limpio, y con mas datos para ti! agregando ahora animes donde aparece dicho personaje, mangas donde aparece y sus actores de vos en los diferentes idiomas que se traducio!"
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Pantalla Perfil",
+                description = "Se ha refactorizado la seccion de stats en la pantalla perfil, con un diseño mas limpio y moderno"
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Top 5 animes",
+                description = "Se ha mejorado la UI de la seccion de Top 5 Animes, con un mejor diseño"
+            ),
+            WhatsNewChange(
+                type = ChangeType.FIX,
+                title = "Actualizar Perfil",
+                description = "Se ha corregido un bug que impedia ver en los campos de texto lo que se escribia por superposicion del teclado"
+            ),
+            WhatsNewChange(
+                type = ChangeType.FIX,
+                title = "Ajustes menores",
+                description = "Se han correjido pequeñas inconsistencias visuales"
+            )
+        )
+    ),
+    WhatsNewVersion(
+        versionName = "1.0 (8)",
+        versionCode = 8,
+        changes = listOf(
+            WhatsNewChange(
+                type = ChangeType.FIX,
+                title = "Ajustes menores",
+                description = "Se han correjido bugs varios"
+            )
+        )
+    ),
+    WhatsNewVersion(
         versionName = "1.0 (7)",
         versionCode = 7,
         changes = listOf(
