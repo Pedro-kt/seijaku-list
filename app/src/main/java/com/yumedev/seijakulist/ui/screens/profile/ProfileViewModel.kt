@@ -41,6 +41,7 @@ data class AnimeStats(
     val totalAnimes: Int = 0,
     val completedAnimes: Int = 0,
     val totalEpisodesWatched: Int = 0,
+    val watchingAnimes: Int = 0,
     val genreStats: Map<String, Int> = emptyMap()
 )
 
@@ -115,6 +116,7 @@ class ProfileViewModel @Inject constructor(
                     totalAnimes = animes.size,
                     completedAnimes = animes.count { it.statusUser == "Completado" },
                     totalEpisodesWatched = animes.sumOf { it.episodesWatched },
+                    watchingAnimes = animes.count { it.statusUser == "Viendo" },
                     genreStats = genreMap
                 )
                 _uiState.update { it.copy(allSavedAnimes = animes, stats = stats) }

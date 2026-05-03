@@ -59,7 +59,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.FilterChip
@@ -75,6 +74,7 @@ import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.ui.draw.shadow
@@ -104,8 +104,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -1332,15 +1337,14 @@ private fun QuickStats(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            shadowElevation = 6.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center
+                    .padding(20.dp)
             ) {
                 // --- CABECERA (Siempre visible) ---
                 Row(
@@ -1348,36 +1352,62 @@ private fun QuickStats(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.TrendingUp,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Tu Progreso",
-                            fontFamily = PoppinsBold,
-                            fontSize = 18.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    RoundedCornerShape(12.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = "Tu Progreso",
+                                fontFamily = PoppinsBold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = 18.sp
+                            )
+                            Text(
+                                text = "${stats.totalAnimes} animes en tu lista",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 15.sp
+                            )
+                        }
                     }
 
-                    // Botón circular para expandir
+                    // Botón expandir — estilo outlined
                     Surface(
                         modifier = Modifier.size(32.dp),
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        onClick = { isExpanded = !isExpanded }) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .rotate(rotationAngle)
-                                .padding(4.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        color = Color.Transparent,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        onClick = { isExpanded = !isExpanded }
+                    ) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .rotate(rotationAngle),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
@@ -1388,27 +1418,69 @@ private fun QuickStats(
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     Column {
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        // Fila de los 3 Stats Requeridos
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            CompactStatItem(
-                                modifier = Modifier.weight(1f),
-                                value = "${stats.totalAnimes}",
-                                label = "Total"
+                        val primaryColor   = MaterialTheme.colorScheme.primary
+                        val secondaryColor = MaterialTheme.colorScheme.secondary
+                        val tertiaryColor  = MaterialTheme.colorScheme.tertiary
+                        val greenColor     = Color(0xFF4CAF50)
+                        val hours          = stats.totalEpisodesWatched * 24 / 60
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            NarrativeStatCard(
+                                icon     = Icons.AutoMirrored.Filled.List,
+                                iconTint = primaryColor,
+                                text     = buildAnnotatedString {
+                                    append("Tu lista tiene ")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = primaryColor)) {
+                                        append("${stats.totalAnimes}")
+                                    }
+                                    append(" animes guardados")
+                                }
                             )
-                            CompactStatItem(
-                                modifier = Modifier.weight(1f),
-                                value = "${stats.completedAnimes}",
-                                label = "Completos"
+                            NarrativeStatCard(
+                                icon     = Icons.Default.Check,
+                                iconTint = greenColor,
+                                text     = buildAnnotatedString {
+                                    append("¡Ya terminaste ")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = greenColor)) {
+                                        append("${stats.completedAnimes}")
+                                    }
+                                    append(" series completas!")
+                                }
                             )
-                            CompactStatItem(
-                                modifier = Modifier.weight(1f),
-                                value = "${stats.totalEpisodesWatched}",
-                                label = "Episodios"
+                            NarrativeStatCard(
+                                icon     = Icons.Default.PlayArrow,
+                                iconTint = secondaryColor,
+                                text     = buildAnnotatedString {
+                                    append("Acumulaste ")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = secondaryColor)) {
+                                        append("${stats.totalEpisodesWatched} eps,")
+                                    }
+                                    append(" son ")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = secondaryColor)) {
+                                        append("$hours hs")
+                                    }
+                                    append(" de anime!")
+                                }
+                            )
+                            NarrativeStatCard(
+                                icon     = Icons.Default.Tv,
+                                iconTint = tertiaryColor,
+                                text     = buildAnnotatedString {
+                                    append("Ahora mismo estás viendo ")
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = tertiaryColor)) {
+                                        append("${stats.watchingAnimes}")
+                                    }
+                                    append(" animes")
+                                }
                             )
                         }
 
@@ -1445,36 +1517,40 @@ private fun QuickStats(
 }
 
 @Composable
-fun CompactStatItem(
-    modifier: Modifier, value: String, label: String
+private fun NarrativeStatCard(
+    icon: ImageVector,
+    iconTint: Color,
+    text: AnnotatedString
 ) {
-    Surface(
-        modifier = modifier
-            .height(70.dp),
-        shape    = RoundedCornerShape(12.dp),
-        color    = MaterialTheme.colorScheme.surfaceContainerHigh
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(iconTint.copy(alpha = 0.08f))
+            .padding(horizontal = 12.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
-            modifier            = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(iconTint.copy(alpha = 0.20f), CircleShape),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text          = value,
-                fontFamily    = PoppinsBold,
-                fontSize      = 22.sp,
-                color         = MaterialTheme.colorScheme.onBackground,
-                letterSpacing = (-0.5).sp,
-                maxLines      = 1
-            )
-            Text(
-                text       = label,
-                fontFamily = PoppinsRegular,
-                fontSize   = 11.sp,
-                color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines   = 1
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(18.dp)
             )
         }
+        Text(
+            text       = text,
+            fontFamily = PoppinsRegular,
+            fontSize   = 13.sp,
+            color      = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 19.sp
+        )
     }
 }
 
