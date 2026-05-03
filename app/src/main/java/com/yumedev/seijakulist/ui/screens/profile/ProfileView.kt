@@ -719,7 +719,7 @@ fun CustomSeijakuTabSelector(tabs: List<String>, selectedTabIndex: Int, onTabSel
             .padding(horizontal = 20.dp, vertical = 8.dp)
             .height(48.dp),
         shape  = CircleShape,
-        color  = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+        color  = MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
