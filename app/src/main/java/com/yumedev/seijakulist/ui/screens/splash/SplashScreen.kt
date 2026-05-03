@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,11 +39,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Composable
 fun SplashScreen(
-    onSplashFinished: () -> Unit
+    onSplashFinished: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
     var startAnimation by remember { mutableStateOf(false) }
 
@@ -76,7 +81,16 @@ fun SplashScreen(
 
     LaunchedEffect(Unit) {
         startAnimation = true
-        delay(2000)
+
+        // Corre en paralelo: animación mínima y espera de las peticiones
+        val minDisplay = async { delay(1800) }
+
+        // Espera a que las 5 peticiones terminen (máx 10s por si hay error de red)
+        withTimeoutOrNull(10_000) {
+            viewModel.isReady.first { it }
+        }
+
+        minDisplay.await() // si las peticiones terminaron antes, esperamos la animación
         onSplashFinished()
     }
 
