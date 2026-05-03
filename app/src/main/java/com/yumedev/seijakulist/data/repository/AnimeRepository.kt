@@ -30,6 +30,7 @@ import com.yumedev.seijakulist.domain.models.CharacterPictures
 import com.yumedev.seijakulist.domain.models.AnimeRecommendation
 import com.yumedev.seijakulist.domain.models.ForumTopic
 import com.yumedev.seijakulist.domain.models.Genre
+import com.yumedev.seijakulist.domain.models.HeroAnimeItem
 import com.yumedev.seijakulist.domain.models.ProducerDetail
 import javax.inject.Inject
 
@@ -357,5 +358,68 @@ class AnimeRepository @Inject constructor(
                 lastCommentDate = dto.lastComment?.date
             )
         }
+    }
+
+    suspend fun getWatchRecentEpisodes(): HeroAnimeItem? {
+        val entry = ApiService.getWatchRecentEpisodes().data.randomOrNull()?.entry ?: return null
+        return HeroAnimeItem(
+            malId = entry.malId,
+            title = entry.title ?: return null,
+            imageUrl = entry.images?.webp?.largeImageUrl ?: entry.images?.jpg?.largeImageUrl ?: return null,
+            label = "NUEVOS EPISODIOS"
+        )
+    }
+
+    suspend fun getWatchRecentPromos(): HeroAnimeItem? {
+        val promoEntry = ApiService.getWatchRecentPromos().data.randomOrNull() ?: return null
+        val entry = promoEntry.entry
+        val imageUrl = promoEntry.trailer?.images?.maximumImageUrl
+            ?: promoEntry.trailer?.images?.largeImageUrl
+            ?: entry.images?.webp?.largeImageUrl
+            ?: entry.images?.jpg?.largeImageUrl
+            ?: return null
+        return HeroAnimeItem(
+            malId = entry.malId,
+            title = entry.title ?: return null,
+            imageUrl = imageUrl,
+            label = "PROMO"
+        )
+    }
+
+    suspend fun getTopClassicAnime(): HeroAnimeItem? {
+        val randomPage = (1..4).random()
+        val dto = ApiService.getTopAnime(page = randomPage).data?.randomOrNull() ?: return null
+        return HeroAnimeItem(
+            malId = dto.malId,
+            title = dto.title ?: return null,
+            imageUrl = dto.images?.webp?.largeImageUrl ?: dto.images?.jpg?.largeImageUrl ?: return null,
+            label = "CLÁSICO",
+            score = dto.score,
+            year = dto.year?.toString(),
+            status = dto.status
+        )
+    }
+
+    suspend fun getRecommendationForAnime(animeId: Int): HeroAnimeItem? {
+        val entry = ApiService.getAnimeRecommendations(animeId).data.randomOrNull()?.entry ?: return null
+        return HeroAnimeItem(
+            malId = entry.malId,
+            title = entry.title ?: return null,
+            imageUrl = entry.images?.webp?.largeImageUrl ?: entry.images?.jpg?.largeImageUrl ?: return null,
+            label = "PARA VOS"
+        )
+    }
+
+    suspend fun getUpcomingHeroItem(): HeroAnimeItem? {
+        val dto = ApiService.getSeasonUpcoming().data?.randomOrNull() ?: return null
+        return HeroAnimeItem(
+            malId = dto.malId,
+            title = dto.title ?: return null,
+            imageUrl = dto.images?.webp?.largeImageUrl ?: dto.images?.jpg?.largeImageUrl ?: return null,
+            label = "PRÓXIMAMENTE",
+            score = dto.score,
+            year = dto.year?.toString(),
+            status = dto.status
+        )
     }
 }
