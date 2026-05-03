@@ -27,6 +27,32 @@ data class WhatsNewVersion(
 // Historial de versiones — el más reciente va PRIMERO
 val WHATS_NEW_HISTORY = listOf(
     WhatsNewVersion(
+        versionName = "1.0 (10)",
+        versionCode = 10,
+        changes = listOf(
+            WhatsNewChange(
+                type = ChangeType.NEW,
+                title = "Carrusel de destacados en el inicio",
+                description = "El home ahora tiene un carrusel animado con 5 tarjetas de animes destacados que se desplazan automáticamente, cada una con un badge visual según su etiqueta (Top, Temporada, Próximos)."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Tu Progreso — estadísticas narrativas",
+                description = "Las 3 chips de stats se reemplazaron por 4 tarjetas descriptivas: cuántos animes tenés en tu lista, cuántas series completaste, cuántos episodios acumulaste (y cuántas horas equivale), y cuántos estás viendo ahora mismo."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Tu Progreso — nuevo diseño",
+                description = "El card de Tu Progreso tiene ahora elevación con sombra, el header muestra el total de animes incluso sin expandir, el ícono tiene un contenedor con color, y el botón de expandir pasó a estilo outlined."
+            ),
+            WhatsNewChange(
+                type = ChangeType.IMPROVED,
+                title = "Banner de novedades simplificado",
+                description = "El banner que aparece al actualizar la app tiene un nuevo diseño minimalista: más compacto, fondo primaryContainer y un botón 'Ver' directo para ir a esta pantalla."
+            )
+        )
+    ),
+    WhatsNewVersion(
         versionName = "1.0 (9)",
         versionCode = 9,
         changes = listOf(
