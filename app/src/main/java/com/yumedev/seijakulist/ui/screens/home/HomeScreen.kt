@@ -25,6 +25,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -328,17 +330,9 @@ private fun AnimeContent(
             }
         }
 
-        // Banner Hero con anime aleatorio DESPUÉS
+        // Hero Carousel — 5 cards deslizables
         item {
-            if (animeRandomState.isLoading) {
-                HeroBannerSkeleton()
-            } else {
-                animeRandomState.anime?.let { randomAnime ->
-                    HeroBanner(
-                        anime = randomAnime, navController = navController
-                    )
-                }
-            }
+            HeroCarousel(navController = navController)
         }
 
         // Sección En Emisión
@@ -744,147 +738,105 @@ private object HomeAnimationState {
     var hasAnimated = false
 }
 
-// Banner Hero Mejorado - Anime del día (diseño compacto)
+// Hero Carousel — 5 cards deslizables (placeholder con colores)
 @Composable
-private fun HeroBanner(
-    anime: com.yumedev.seijakulist.domain.models.AnimeCard, navController: NavController
-) {
+private fun HeroCarousel(navController: NavController) {
+    val placeholderColors = listOf(
+        Color(0xFF6200EA),
+        Color(0xFF00897B),
+        Color(0xFFE64A19),
+        Color(0xFF1565C0),
+        Color(0xFF558B2F),
+    )
+
+    val pagerState = rememberPagerState(pageCount = { placeholderColors.size })
+
+    LaunchedEffect(pagerState) {
+        while (true) {
+            delay(5000)
+            val next = (pagerState.currentPage + 1) % placeholderColors.size
+            pagerState.animateScrollToPage(next)
+        }
+    }
+
     val shouldAnimate = !HomeAnimationState.hasAnimated
     var isVisible by remember { mutableStateOf(!shouldAnimate) }
-    val interactionSource =
-        remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = androidx.compose.animation.core.spring(
-            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-            stiffness = androidx.compose.animation.core.Spring.StiffnessLow
-        ),
-        label = "hero_banner_scale"
-    )
 
     LaunchedEffect(shouldAnimate) {
         if (shouldAnimate) {
             HomeAnimationState.hasAnimated = true
-            kotlinx.coroutines.delay(100)
+            delay(100)
             isVisible = true
         }
     }
-    val animatedScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-    )
-
-    val animatedElevation by animateDpAsState(
-        targetValue = if (isPressed) 4.dp else 14.dp, animationSpec = tween(250)
-    )
 
     AnimatedVisibility(
-        visible = isVisible, enter = fadeIn(tween(500)) + slideInVertically(
-            initialOffsetY = { it / 4 }, animationSpec = tween(500, easing = FastOutSlowInEasing)
+        visible = isVisible,
+        enter = fadeIn(tween(500)) + slideInVertically(
+            initialOffsetY = { it / 4 },
+            animationSpec = tween(500, easing = FastOutSlowInEasing)
         )
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(190.dp)
-                .padding(horizontal = 16.dp)
-                .graphicsLayer {
-                    scaleX = animatedScale
-                    scaleY = animatedScale
-                },
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(animatedElevation),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            interactionSource = interactionSource,
-            onClick = {
-                navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-            }) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            HorizontalPager(
+                state = pagerState,
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                pageSpacing = 12.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) { page ->
+                HeroPageCard(color = placeholderColors[page], pageNumber = page + 1)
+            }
 
-            Row(Modifier.fillMaxSize()) {
-
-                // ─────────────────────────────────────────
-                // IMAGE BLOCK
-                // ─────────────────────────────────────────
-
-                Box(
-                    modifier = Modifier
-                        .width(130.dp)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
-                ) {
-
-                    AsyncImage(
-                        model = anime.images,
-                        contentDescription = anime.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+            // Indicador de puntos
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(placeholderColors.size) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    val dotWidth by animateDpAsState(
+                        targetValue = if (isSelected) 20.dp else 6.dp,
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                        label = "dot_width_$index"
                     )
-
-                    // Overlay elegante
                     Box(
-                        Modifier
-                            .matchParentSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent, Color.Black.copy(alpha = 0.45f)
-                                    )
-                                )
-                            )
-                    )
-
-                    ScoreBadge(
-                        score = anime.score,
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .offset(y = (-10).dp)
+                            .padding(horizontal = 3.dp)
+                            .height(6.dp)
+                            .width(dotWidth)
+                            .clip(RoundedCornerShape(50))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                            )
                     )
-                }
-
-                // ─────────────────────────────────────────
-                // INFO BLOCK
-                // ─────────────────────────────────────────
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-
-                        SectionLabel()
-
-                        Text(
-                            text = anime.title,
-                            fontFamily = PoppinsBold,
-                            fontSize = 17.sp,
-                            lineHeight = 22.sp,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(18.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            MetadataItemModern(
-                                text = anime.year ?: "N/A", icon = Icons.Default.CalendarToday
-                            )
-                            MetadataItemModern(
-                                text = anime.status ?: "Unknown", icon = Icons.Default.Info
-                            )
-                        }
-                    }
-
-                    DetailsButton()
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HeroPageCard(color: Color, pageNumber: Int) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(190.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(containerColor = color)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Card $pageNumber",
+                fontFamily = PoppinsBold,
+                fontSize = 22.sp,
+                color = Color.White
+            )
         }
     }
 }
@@ -1128,15 +1080,15 @@ private fun shimmerBrush(targetValue: Float = 1000f, showShimmer: Boolean = true
         )
 
         val transition =
-            androidx.compose.animation.core.rememberInfiniteTransition(label = "shimmer")
+            rememberInfiniteTransition(label = "shimmer")
         val translateAnimation = transition.animateFloat(
             initialValue = 0f,
             targetValue = targetValue,
-            animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-                animation = androidx.compose.animation.core.tween(
+            animationSpec = infiniteRepeatable(
+                animation = tween(
                     durationMillis = 1200,
-                    easing = androidx.compose.animation.core.FastOutSlowInEasing
-                ), repeatMode = androidx.compose.animation.core.RepeatMode.Restart
+                    easing = FastOutSlowInEasing
+                ), repeatMode = RepeatMode.Restart
             ),
             label = "shimmerTranslate"
         )

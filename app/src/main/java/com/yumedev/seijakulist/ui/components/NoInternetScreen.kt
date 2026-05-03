@@ -42,18 +42,6 @@ import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 fun NoInternetScreen(
     onRetryClick: () -> Unit
 ) {
-    // Animación infinita para el icono
-    val infiniteTransition = rememberInfiniteTransition(label = "icon_animation")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,34 +49,6 @@ fun NoInternetScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Icono con fondo circular y animación
-        Box(
-            modifier = Modifier
-                .size(140.dp)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    ),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.CloudOff,
-                contentDescription = "Sin conexión",
-                modifier = Modifier
-                    .size(80.dp)
-                    .rotate(rotation),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
         // Título principal
         Text(
             text = "¡Oops!",
