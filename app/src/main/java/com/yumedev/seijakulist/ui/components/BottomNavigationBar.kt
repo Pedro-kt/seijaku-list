@@ -23,6 +23,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -81,7 +82,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -121,18 +122,34 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                         label = "content_color"
                     )
 
+                    // 5. PESO DINÁMICO: el item seleccionado toma más espacio para mostrar el label
+                    val itemWeight by animateFloatAsState(
+                        targetValue = if (isSelected) 2.5f else 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "item_weight"
+                    )
+
+                    val itemPaddingHorizontal by animateDpAsState(
+                        targetValue = if (isSelected) 12.dp else 0.dp,
+                        animationSpec = tween(300),
+                        label = "item_padding"
+                    )
+
                     Box(
                         modifier = Modifier
-                            .graphicsLayer(scaleX = scale, scaleY = scale) // Aplicamos escala por GPU
+                            .weight(itemWeight)
+                            .graphicsLayer(scaleX = scale, scaleY = scale)
                             .height(48.dp)
                             .clip(RoundedCornerShape(24.dp))
                             .background(backgroundColor)
                             .clickable(
                                 interactionSource = interactionSource,
-                                indication = null, // Quitamos el ripple estándar para no ensuciar el diseño
+                                indication = null,
                                 onClick = {
                                     if (!isSelected) {
-                                        // Feedback háptico estilo iOS
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         navController.navigate(item.route) {
                                             popUpTo(navController.graph.findStartDestination().id) {
@@ -144,7 +161,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                                     }
                                 }
                             )
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = itemPaddingHorizontal),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
@@ -181,7 +198,9 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                                         fontSize = 14.sp
                                     ),
                                     color = contentColor,
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
