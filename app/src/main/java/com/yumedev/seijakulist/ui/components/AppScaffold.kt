@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.yumedev.seijakulist.ui.theme.asp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
@@ -198,7 +199,7 @@ fun AppScaffold(
                                     text = "Seijaku List",
                                     color = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontSize = 26.sp,
+                                    fontSize = 26.asp(),
                                     fontStyle = FontStyle.Italic,
                                 )
                             }
@@ -288,7 +289,7 @@ fun AppScaffold(
                                     Text(
                                         text = "Detalle del Personaje",
                                         fontFamily = PoppinsBold,
-                                        fontSize = 20.sp,
+                                        fontSize = 20.asp(),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )

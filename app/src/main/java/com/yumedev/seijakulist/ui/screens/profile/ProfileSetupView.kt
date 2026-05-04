@@ -52,6 +52,8 @@ import com.yumedev.seijakulist.ui.screens.auth_screen.AuthResult
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun ProfileSetupView(
@@ -126,19 +128,19 @@ fun ProfileSetupView(
                 ) {
                     Text(
                         text       = if (isEditMode) "Actualiza tu perfil" else "Crea tu perfil",
-                        fontSize   = 28.sp,
+                        fontSize = 28.asp(),
                         fontFamily = PoppinsBold,
                         color      = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text       = "Cuéntanos un poco sobre ti",
-                        fontSize   = 15.sp,
+                        fontSize = 15.asp(),
                         fontFamily = PoppinsRegular,
                         color      = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(50.adp()))
         }
 
         // ── Avatar ────────────────────────────────────────────────────────────
@@ -152,7 +154,7 @@ fun ProfileSetupView(
                     onImagePick = { launcher.launch("image/*") }
                 )
             }
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
         }
 
         // ── Username ──────────────────────────────────────────────────────────
@@ -167,7 +169,7 @@ fun ProfileSetupView(
                 ) {
                     Text(
                         text       = "Nombre de usuario",
-                        fontSize   = 13.sp,
+                        fontSize = 13.asp(),
                         fontFamily = PoppinsMedium,
                         color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier   = Modifier.padding(start = 4.dp)
@@ -175,7 +177,7 @@ fun ProfileSetupView(
                     OutlinedTextField(
                         value         = username,
                         onValueChange = { username = it },
-                        placeholder   = { Text("Tu nombre", fontFamily = PoppinsRegular, fontSize = 15.sp) },
+                        placeholder   = { Text("Tu nombre", fontFamily = PoppinsRegular, fontSize = 15.asp()) },
                         leadingIcon   = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.primary) },
                         modifier      = Modifier.fillMaxWidth(),
                         shape         = RoundedCornerShape(16.dp),
@@ -186,7 +188,7 @@ fun ProfileSetupView(
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
                         singleLine = true,
-                        textStyle  = LocalTextStyle.current.copy(fontFamily = PoppinsMedium, fontSize = 15.sp)
+                        textStyle  = LocalTextStyle.current.copy(fontFamily = PoppinsMedium, fontSize = 15.asp())
                     )
                 }
             }
@@ -210,14 +212,14 @@ fun ProfileSetupView(
                     ) {
                         Text(
                             text       = "Biografía (opcional)",
-                            fontSize   = 13.sp,
+                            fontSize = 13.asp(),
                             fontFamily = PoppinsMedium,
                             color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier   = Modifier.padding(start = 4.dp)
                         )
                         Text(
                             text       = "${bio.length}/150",
-                            fontSize   = 12.sp,
+                            fontSize = 12.asp(),
                             fontFamily = PoppinsRegular,
                             color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         )
@@ -225,7 +227,7 @@ fun ProfileSetupView(
                     OutlinedTextField(
                         value         = bio,
                         onValueChange = { if (it.length <= 150) bio = it },
-                        placeholder   = { Text("¿Qué animes te gustan?", fontFamily = PoppinsRegular, fontSize = 15.sp) },
+                        placeholder   = { Text("¿Qué animes te gustan?", fontFamily = PoppinsRegular, fontSize = 15.asp()) },
                         modifier      = Modifier.fillMaxWidth(),
                         shape         = RoundedCornerShape(16.dp),
                         colors        = OutlinedTextFieldDefaults.colors(
@@ -236,11 +238,11 @@ fun ProfileSetupView(
                         ),
                         maxLines  = 3,
                         minLines  = 3,
-                        textStyle = LocalTextStyle.current.copy(fontFamily = PoppinsRegular, fontSize = 14.sp)
+                        textStyle = LocalTextStyle.current.copy(fontFamily = PoppinsRegular, fontSize = 14.asp())
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
         }
 
         // ── Botón guardar ─────────────────────────────────────────────────────
@@ -253,7 +255,7 @@ fun ProfileSetupView(
                     onClick = { profileViewModel.updateUserProfile(username, bio, selectedImageUri) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .height(54.adp())
                         .graphicsLayer { scaleX = buttonScale; scaleY = buttonScale },
                     shape    = RoundedCornerShape(16.dp),
                     enabled  = username.isNotBlank() && !uiState.isLoading,
@@ -264,9 +266,9 @@ fun ProfileSetupView(
                     interactionSource = interactionSource
                 ) {
                     if (uiState.isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(22.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.5.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(22.adp()), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.5.dp)
                     } else {
-                        Text(if (isEditMode) "Actualizar" else "Continuar", fontSize = 16.sp, fontFamily = PoppinsBold)
+                        Text(if (isEditMode) "Actualizar" else "Continuar", fontSize = 16.asp(), fontFamily = PoppinsBold)
                     }
                 }
             }
@@ -277,7 +279,7 @@ fun ProfileSetupView(
             AnimatedVisibility(visible = uiState.isLoading) {
                 Text(
                     text       = if (uiState.isUploadingImage) "Subiendo imagen..." else "Guardando...",
-                    fontSize   = 13.sp,
+                    fontSize = 13.asp(),
                     color      = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     fontFamily = PoppinsRegular,
                     modifier   = Modifier.padding(top = 16.dp)
@@ -292,7 +294,7 @@ fun ProfileSetupView(
                     Text(
                         text       = uiState.error ?: "",
                         color      = MaterialTheme.colorScheme.error,
-                        fontSize   = 13.sp,
+                        fontSize = 13.asp(),
                         modifier   = Modifier.padding(16.dp),
                         textAlign  = TextAlign.Center,
                         fontFamily = PoppinsRegular
@@ -322,12 +324,12 @@ private fun ProfileImagePicker(
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.size(140.dp)
+        modifier = Modifier.size(140.adp())
     ) {
         // Círculo decorativo de fondo
         Box(
             modifier = Modifier
-                .size(150.dp)
+                .size(150.adp())
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
@@ -342,7 +344,7 @@ private fun ProfileImagePicker(
         // Imagen principal
         Surface(
             modifier = Modifier
-                .size(140.dp)
+                .size(140.adp())
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
@@ -374,7 +376,7 @@ private fun ProfileImagePicker(
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Agregar foto",
-                        modifier = Modifier.size(80.dp),
+                        modifier = Modifier.size(80.adp()),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                     )
                 }
@@ -384,7 +386,7 @@ private fun ProfileImagePicker(
         // Botón de editar
         Surface(
             modifier = Modifier
-                .size(42.dp)
+                .size(42.adp())
                 .align(Alignment.BottomEnd)
                 .offset(x = (-4).dp, y = (-4).dp)
                 .clickable(onClick = onImagePick),
@@ -400,7 +402,7 @@ private fun ProfileImagePicker(
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Cambiar foto",
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.adp())
                 )
             }
         }

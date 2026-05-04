@@ -34,6 +34,8 @@ import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun RegisterScreen(
@@ -132,7 +134,7 @@ private fun RegisterHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(260.dp)
+            .height(260.adp())
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
@@ -147,14 +149,14 @@ private fun RegisterHeader(
         // Círculos decorativos
         Box(
             modifier = Modifier
-                .size(180.dp)
+                .size(180.adp())
                 .align(Alignment.TopEnd)
                 .offset(x = 50.dp, y = (-30).dp)
                 .background(Color.White.copy(alpha = 0.07f), CircleShape)
         )
         Box(
             modifier = Modifier
-                .size(120.dp)
+                .size(120.adp())
                 .align(Alignment.BottomStart)
                 .offset(x = (-20).dp, y = 20.dp)
                 .background(Color.White.copy(alpha = 0.06f), CircleShape)
@@ -177,7 +179,7 @@ private fun RegisterHeader(
                         contentDescription = "Volver",
                         tint = Color.White,
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(40.adp())
                             .padding(8.dp)
                     )
                 }
@@ -200,7 +202,7 @@ private fun RegisterHeader(
                 modifier = Modifier.graphicsLayer { translationY = logoFloat }
             ) {
                 Surface(
-                    modifier = Modifier.size(72.dp),
+                    modifier = Modifier.size(72.adp()),
                     shape = RoundedCornerShape(18.dp),
                     color = Color.White.copy(alpha = 0.22f)
                 ) {
@@ -212,7 +214,7 @@ private fun RegisterHeader(
                             imageVector = Icons.Outlined.PersonAdd,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(36.adp())
                         )
                     }
                 }
@@ -220,14 +222,14 @@ private fun RegisterHeader(
                 Text(
                     text = "Crear cuenta",
                     fontFamily = PoppinsBold,
-                    fontSize = 24.sp,
+                    fontSize = 24.asp(),
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
                 Text(
                     text = "¡Únete a la comunidad!",
                     fontFamily = PoppinsRegular,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     color = Color.White.copy(alpha = 0.80f),
                     textAlign = TextAlign.Center
                 )
@@ -352,7 +354,7 @@ private fun RegisterForm(
                         Text(
                             text = "Las contraseñas no coinciden",
                             fontFamily = PoppinsRegular,
-                            fontSize = 13.sp,
+                            fontSize = 13.asp(),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -392,13 +394,13 @@ private fun RegisterForm(
                             Text(
                                 text = "Acepto los términos y condiciones",
                                 fontFamily = PoppinsBold,
-                                fontSize = 13.sp,
+                                fontSize = 13.asp(),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Política de privacidad de Seijaku List",
                                 fontFamily = PoppinsRegular,
-                                fontSize = 11.sp,
+                                fontSize = 11.asp(),
                                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                             )
                         }
@@ -437,7 +439,7 @@ private fun RegisterForm(
                     Text(
                         text = "¿Ya tienes cuenta? ",
                         fontFamily = PoppinsRegular,
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     TextButton(
@@ -451,7 +453,7 @@ private fun RegisterForm(
                         Text(
                             text = "Inicia sesión",
                             fontFamily = PoppinsBold,
-                            fontSize = 14.sp,
+                            fontSize = 14.asp(),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }

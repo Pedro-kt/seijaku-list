@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun FilterTopAppBarMangas(onSearchClick: () -> Unit) {
@@ -33,7 +34,7 @@ fun FilterTopAppBarMangas(onSearchClick: () -> Unit) {
             onClick = {
                 expanded = !expanded
             },
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.adp())
         ) {
             Icon(
                 imageVector = Icons.Default.Dehaze,

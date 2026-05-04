@@ -11,6 +11,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.yumedev.seijakulist.R
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun ArrowBackTopAppBar(
@@ -19,7 +20,7 @@ fun ArrowBackTopAppBar(
 ) {
     IconButton(
         onClick = { navController.popBackStack() },
-        modifier = Modifier.size(48.dp)
+        modifier = Modifier.size(48.adp())
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_arrow_left_line),

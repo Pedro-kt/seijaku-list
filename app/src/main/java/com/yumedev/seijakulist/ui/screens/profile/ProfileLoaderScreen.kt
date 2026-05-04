@@ -24,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun ProfileLoaderScreen(navController: NavController, profileViewModel: ProfileViewModel = hiltViewModel()) {
@@ -69,7 +70,7 @@ fun ProfileLoaderScreen(navController: NavController, profileViewModel: ProfileV
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(48.adp())
                     .scale(scale)
                     .background(
                         color = MaterialTheme.colorScheme.primary,

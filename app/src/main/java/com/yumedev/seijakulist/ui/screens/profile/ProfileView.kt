@@ -59,6 +59,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Datos de logros
@@ -94,10 +96,10 @@ private fun EmptyProfileScreen(navController: NavController) {
                 visible = screenVisible,
                 enter = fadeIn(tween(600)) + scaleIn(initialScale = 0.9f, animationSpec = tween(600))
             ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(120.dp)) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(120.adp())) {
                     Box(
                         modifier = Modifier
-                            .size(130.dp)
+                            .size(130.adp())
                             .background(
                                 brush = Brush.radialGradient(
                                     colors = listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), Color.Transparent)
@@ -108,7 +110,7 @@ private fun EmptyProfileScreen(navController: NavController) {
                     Icon(
                         Icons.Default.AccountCircle,
                         contentDescription = null,
-                        modifier = Modifier.size(100.dp),
+                        modifier = Modifier.size(100.adp()),
                         tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                     )
                 }
@@ -121,7 +123,7 @@ private fun EmptyProfileScreen(navController: NavController) {
                 ) {
                     Text(
                         "Crea tu cuenta",
-                        fontSize = 26.sp,
+                        fontSize = 26.asp(),
                         fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -131,18 +133,18 @@ private fun EmptyProfileScreen(navController: NavController) {
                     ) {
                         Text(
                             "Sincroniza tus animes en la nube",
-                            fontSize = 14.sp,
+                            fontSize = 14.asp(),
                             fontFamily = PoppinsRegular,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                             textAlign = TextAlign.Center
                         )
                         Text(
                             "Cambia de celular sin perder nada, desbloquea logros y accede a todas las características de Seijaku List",
-                            fontSize = 13.sp,
+                            fontSize = 13.asp(),
                             fontFamily = PoppinsRegular,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             textAlign = TextAlign.Center,
-                            lineHeight = 18.sp,
+                            lineHeight = 18.asp(),
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
                     }
@@ -158,14 +160,14 @@ private fun EmptyProfileScreen(navController: NavController) {
             ) {
                 Button(
                     onClick = { navController.navigate(AppDestinations.AUTH_ROUTE) },
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    modifier = Modifier.fillMaxWidth().height(54.adp()),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Comenzar", fontSize = 16.sp, fontFamily = PoppinsBold)
+                    Text("Comenzar", fontSize = 16.asp(), fontFamily = PoppinsBold)
                 }
             }
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(100.adp()))
         }
     }
 }
@@ -294,13 +296,13 @@ fun ProfileView(
                             ) {
                                 IconButton(
                                     onClick   = { navController.navigate(AppDestinations.SELECT_TOP5_ROUTE) },
-                                    modifier  = Modifier.size(36.dp)
+                                    modifier  = Modifier.size(36.adp())
                                 ) {
                                     Icon(
                                         Icons.Default.Edit,
                                         contentDescription = "Editar Top 5",
                                         tint     = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(20.adp())
                                     )
                                 }
                             }
@@ -322,19 +324,19 @@ fun ProfileView(
                                         Icon(
                                             Icons.Default.Star,
                                             contentDescription = null,
-                                            modifier = Modifier.size(48.dp),
+                                            modifier = Modifier.size(48.adp()),
                                             tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                                         )
                                         Text(
                                             "Seleccioná tus 5 animes favoritos",
-                                            fontSize   = 16.sp,
+                                            fontSize = 16.asp(),
                                             fontFamily = PoppinsRegular,
                                             color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                         )
                                         FilledTonalButton(
                                             onClick = { navController.navigate(AppDestinations.SELECT_TOP5_ROUTE) }
                                         ) {
-                                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.adp()))
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text("Elegir Top 5", fontFamily = PoppinsBold)
                                         }
@@ -351,18 +353,18 @@ fun ProfileView(
                             Icon(
                                 Icons.AutoMirrored.Filled.MenuBook,
                                 contentDescription = null,
-                                modifier = Modifier.size(64.dp),
+                                modifier = Modifier.size(64.adp()),
                                 tint     = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                             )
                             Text(
                                 "¡Manga en camino!",
-                                fontSize   = 20.sp,
+                                fontSize = 20.asp(),
                                 fontFamily = PoppinsBold,
                                 color      = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 "Estamos trabajando para que puedas trackear tus lecturas muy pronto.",
-                                fontSize   = 14.sp,
+                                fontSize = 14.asp(),
                                 fontFamily = PoppinsRegular,
                                 color      = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign  = TextAlign.Center
@@ -373,7 +375,7 @@ fun ProfileView(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(90.dp)) }
+        item { Spacer(modifier = Modifier.height(90.adp())) }
     }
 }
 
@@ -400,7 +402,7 @@ private fun ProfileHeader(
         ) {
             // Avatar
             Surface(
-                modifier        = Modifier.size(68.dp),
+                modifier        = Modifier.size(68.adp()),
                 shape           = CircleShape,
                 border          = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
                 shadowElevation = 4.dp
@@ -420,7 +422,7 @@ private fun ProfileHeader(
                         Icon(
                             Icons.Default.Person,
                             contentDescription = null,
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(36.adp()),
                             tint     = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -434,7 +436,7 @@ private fun ProfileHeader(
             ) {
                 Text(
                     text          = username,
-                    fontSize      = 18.sp,
+                    fontSize = 18.asp(),
                     fontFamily    = PoppinsBold,
                     letterSpacing = (-0.3).sp,
                     color         = MaterialTheme.colorScheme.onBackground,
@@ -444,12 +446,12 @@ private fun ProfileHeader(
                 if (userBio.isNotBlank()) {
                     Text(
                         text       = userBio,
-                        fontSize   = 12.sp,
+                        fontSize = 12.asp(),
                         fontFamily = PoppinsRegular,
                         color      = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines   = 2,
                         overflow   = TextOverflow.Ellipsis,
-                        lineHeight = 16.sp
+                        lineHeight = 16.asp()
                     )
                 }
             }
@@ -462,7 +464,7 @@ private fun ProfileHeader(
                 shape          = RoundedCornerShape(10.dp),
                 border         = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
-                Text("Editar", fontSize = 12.sp, fontFamily = PoppinsMedium)
+                Text("Editar", fontSize = 12.asp(), fontFamily = PoppinsMedium)
             }
         }
 
@@ -549,13 +551,13 @@ private fun ProfileStatsSection(
                 ) {
                     Text(
                         "$completedAnimes de $totalAnimes completados",
-                        fontSize   = 11.sp,
+                        fontSize = 11.asp(),
                         fontFamily = PoppinsMedium,
                         color      = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         "$completionPct%",
-                        fontSize   = 11.sp,
+                        fontSize = 11.asp(),
                         fontFamily = PoppinsBold,
                         color      = MaterialTheme.colorScheme.primary
                     )
@@ -602,7 +604,7 @@ private fun StatCard(
         ) {
             Text(
                 text          = value,
-                fontSize      = 20.sp,
+                fontSize = 20.asp(),
                 fontFamily    = PoppinsBold,
                 color         = MaterialTheme.colorScheme.onBackground,
                 letterSpacing = (-0.5).sp,
@@ -610,7 +612,7 @@ private fun StatCard(
             )
             Text(
                 text       = label,
-                fontSize   = 11.sp,
+                fontSize = 11.asp(),
                 fontFamily = PoppinsRegular,
                 color      = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines   = 1
@@ -637,14 +639,14 @@ private fun StatusCard(label: String, count: Int, color: Color, modifier: Modifi
         ) {
             Text(
                 text       = label,
-                fontSize   = 13.sp,
+                fontSize = 13.asp(),
                 fontFamily = PoppinsMedium,
                 color      = MaterialTheme.colorScheme.onSurface,
                 maxLines   = 1
             )
             Text(
                 text       = "$count",
-                fontSize   = 22.sp,
+                fontSize = 22.asp(),
                 fontFamily = PoppinsBold,
                 color      = color,
                 maxLines   = 1
@@ -682,7 +684,7 @@ fun MinimalTabRow(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(40.dp)
+                    .height(40.adp())
                     .background(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f * bgAlpha),
                         shape = RoundedCornerShape(10.dp)
@@ -695,7 +697,7 @@ fun MinimalTabRow(
             ) {
                 Text(
                     text       = title,
-                    fontSize   = 14.sp,
+                    fontSize = 14.asp(),
                     fontFamily = if (isSelected) PoppinsBold else PoppinsMedium,
                     color      = if (isSelected)
                         MaterialTheme.colorScheme.primary
@@ -717,7 +719,7 @@ fun CustomSeijakuTabSelector(tabs: List<String>, selectedTabIndex: Int, onTabSel
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
-            .height(48.dp),
+            .height(48.adp()),
         shape  = CircleShape,
         color  = MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
@@ -752,7 +754,7 @@ fun CustomSeijakuTabSelector(tabs: List<String>, selectedTabIndex: Int, onTabSel
                         Text(
                             title,
                             fontFamily = PoppinsBold,
-                            fontSize   = 14.sp,
+                            fontSize = 14.asp(),
                             color      = if (selectedTabIndex == index)
                                 MaterialTheme.colorScheme.onPrimary
                             else
@@ -779,7 +781,7 @@ private fun GenreFavoriteCard(
 ) {
     val percentage = if (totalCount > 0) ((count.toFloat() / totalCount) * 100).toInt() else 0
     ElevatedCard(
-        modifier  = modifier.height(110.dp),
+        modifier  = modifier.height(110.adp()),
         shape     = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
@@ -804,7 +806,7 @@ private fun GenreFavoriteCard(
             )
             Text(
                 text     = "$percentage%",
-                fontSize = 11.sp,
+                fontSize = 11.asp(),
                 fontFamily = PoppinsBold,
                 color    = Color.White,
                 modifier = Modifier
@@ -819,7 +821,7 @@ private fun GenreFavoriteCard(
             ) {
                 Text(
                     genre,
-                    fontSize   = 12.sp,
+                    fontSize = 12.asp(),
                     fontFamily = PoppinsBold,
                     color      = Color.White,
                     maxLines   = 1,
@@ -827,7 +829,7 @@ private fun GenreFavoriteCard(
                 )
                 Text(
                     if (count == 1) "$count anime" else "$count animes",
-                    fontSize   = 10.sp,
+                    fontSize = 10.asp(),
                     fontFamily = PoppinsRegular,
                     color      = Color.White.copy(alpha = 0.8f)
                 )
@@ -863,7 +865,7 @@ private fun AnimeTop5Showcase(animes: List<AnimeEntity>, navController: NavContr
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
-                modifier              = Modifier.fillMaxWidth().height(260.dp),
+                modifier              = Modifier.fillMaxWidth().height(260.adp()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Column(
@@ -918,7 +920,7 @@ private fun AnimeTop5Showcase(animes: List<AnimeEntity>, navController: NavContr
                             ShowcaseCell(
                                 anime         = anime,
                                 position      = 4,
-                                modifier      = Modifier.fillMaxWidth().height(100.dp),
+                                modifier      = Modifier.fillMaxWidth().height(100.adp()),
                                 navController = navController
                             )
                         }
@@ -933,7 +935,7 @@ private fun AnimeTop5Showcase(animes: List<AnimeEntity>, navController: NavContr
                                 ShowcaseCell(
                                     anime         = anime,
                                     position      = 5,
-                                    modifier      = Modifier.fillMaxWidth().height(100.dp),
+                                    modifier      = Modifier.fillMaxWidth().height(100.adp()),
                                     navController = navController
                                 )
                             }
@@ -957,7 +959,7 @@ private fun AnimeTop5Showcase(animes: List<AnimeEntity>, navController: NavContr
                 Spacer(modifier = Modifier.width(3.dp))
                 Text(
                     "SeijakuList",
-                    fontSize      = 9.sp,
+                    fontSize = 9.asp(),
                     fontFamily    = PoppinsBold,
                     color         = MaterialTheme.colorScheme.onSurface.copy(0.22f),
                     letterSpacing = 0.5.sp
@@ -989,7 +991,7 @@ private fun Top5RankLabel(position: Int) {
         }
         Text(
             text          = rankText,
-            fontSize      = 11.sp,
+            fontSize = 11.asp(),
             fontFamily    = PoppinsBold,
             color         = rankColor,
             letterSpacing = if (position == 1) 0.6.sp else 0.sp
@@ -1071,7 +1073,7 @@ private fun ShowcaseCell(
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(10.dp))
-                        Text("${anime.userScore}", fontSize = 10.sp, fontFamily = PoppinsBold, color = Color.White)
+                        Text("${anime.userScore}", fontSize = 10.asp(), fontFamily = PoppinsBold, color = Color.White)
                     }
                 }
             }
@@ -1114,10 +1116,10 @@ private fun AllAchievementsDialog(achievements: List<Achievement>, onDismiss: ()
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFFFF9800), modifier = Modifier.size(22.dp))
-                        Text("Todos los logros", fontSize = 18.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFFFF9800), modifier = Modifier.size(22.adp()))
+                        Text("Todos los logros", fontSize = 18.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.adp())) {
                         Icon(Icons.Default.Close, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -1170,13 +1172,13 @@ private fun AchievementCard(achievement: Achievement, onClick: () -> Unit = {}) 
         ) {
             Box(
                 modifier         = Modifier
-                    .size(44.dp)
+                    .size(44.adp())
                     .clip(CircleShape)
                     .background(color.copy(alpha = 0.15f))
                     .border(width = 1.5.dp, color = color, shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = achievement.icon, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
+                Icon(imageVector = achievement.icon, contentDescription = null, tint = color, modifier = Modifier.size(22.adp()))
             }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(
@@ -1185,7 +1187,7 @@ private fun AchievementCard(achievement: Achievement, onClick: () -> Unit = {}) 
                 ) {
                     Text(
                         achievement.name,
-                        fontSize   = 14.sp,
+                        fontSize = 14.asp(),
                         fontFamily = PoppinsBold,
                         color      = MaterialTheme.colorScheme.onSurface,
                         maxLines   = 1,
@@ -1199,7 +1201,7 @@ private fun AchievementCard(achievement: Achievement, onClick: () -> Unit = {}) 
                     ) {
                         Text(
                             achievement.typeAchievement,
-                            fontSize   = 10.sp,
+                            fontSize = 10.asp(),
                             fontFamily = PoppinsBold,
                             color      = color,
                             modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -1208,12 +1210,12 @@ private fun AchievementCard(achievement: Achievement, onClick: () -> Unit = {}) 
                 }
                 Text(
                     achievement.description,
-                    fontSize   = 12.sp,
+                    fontSize = 12.asp(),
                     fontFamily = PoppinsRegular,
                     color      = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines   = 2,
                     overflow   = TextOverflow.Ellipsis,
-                    lineHeight = 16.sp
+                    lineHeight = 16.asp()
                 )
             }
         }
@@ -1241,29 +1243,29 @@ private fun AchievementDetailDialog(achievement: Achievement, onDismiss: () -> U
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.adp())) {
                         Icon(Icons.Default.Close, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(120.adp())
                         .clip(CircleShape)
                         .background(Brush.radialGradient(colors = listOf(color.copy(alpha = 0.8f), color.copy(alpha = 0.4f))))
                         .border(width = 4.dp, color = color, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = achievement.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(56.dp))
+                    Icon(imageVector = achievement.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(56.adp()))
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Surface(shape = RoundedCornerShape(12.dp), color = color.copy(alpha = 0.2f)) {
-                    Text(achievement.typeAchievement, fontSize = 14.sp, fontFamily = PoppinsBold, color = color, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+                    Text(achievement.typeAchievement, fontSize = 14.asp(), fontFamily = PoppinsBold, color = color, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(achievement.name, fontSize = 24.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
+                Text(achievement.name, fontSize = 24.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(achievement.description, fontSize = 16.sp, fontFamily = PoppinsRegular, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, lineHeight = 22.sp)
+                Text(achievement.description, fontSize = 16.asp(), fontFamily = PoppinsRegular, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, lineHeight = 22.asp())
                 Spacer(modifier = Modifier.height(24.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(16.dp))
@@ -1274,10 +1276,10 @@ private fun AchievementDetailDialog(achievement: Achievement, onDismiss: () -> U
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                            Text("Desbloqueado", fontSize = 14.sp, fontFamily = PoppinsRegular, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.adp()))
+                            Text("Desbloqueado", fontSize = 14.asp(), fontFamily = PoppinsRegular, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Text(achievement.unlockDate, fontSize = 14.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(achievement.unlockDate, fontSize = 14.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                     }
                     Row(
                         modifier              = Modifier.fillMaxWidth(),
@@ -1285,15 +1287,15 @@ private fun AchievementDetailDialog(achievement: Achievement, onDismiss: () -> U
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                            Text("Recompensa", fontSize = 14.sp, fontFamily = PoppinsRegular, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.adp()))
+                            Text("Recompensa", fontSize = 14.asp(), fontFamily = PoppinsRegular, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Text(achievement.reward, fontSize = 14.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(achievement.reward, fontSize = 14.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
-                    Text("Cerrar", fontFamily = PoppinsBold, fontSize = 16.sp)
+                    Text("Cerrar", fontFamily = PoppinsBold, fontSize = 16.asp())
                 }
             }
         }

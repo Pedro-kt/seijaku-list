@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun FilterTopAppBar(
@@ -63,7 +65,7 @@ fun FilterTopAppBar(
             shape = RoundedCornerShape(12.dp),
             color = if (expanded) MaterialTheme.colorScheme.primaryContainer
                    else MaterialTheme.colorScheme.surface,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.adp())
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
@@ -71,7 +73,7 @@ fun FilterTopAppBar(
                     contentDescription = "Opciones",
                     tint = if (expanded) MaterialTheme.colorScheme.onPrimaryContainer
                            else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.adp())
                 )
             }
         }
@@ -83,7 +85,7 @@ fun FilterTopAppBar(
             offset = DpOffset(x = (-8).dp, y = 8.dp),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
-                .width(240.dp)
+                .width(240.adp())
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     shape = RoundedCornerShape(16.dp)
@@ -106,7 +108,7 @@ fun FilterTopAppBar(
                     text = "Personaliza tu lista",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 11.sp
+                    fontSize = 11.asp()
                 )
             }
 
@@ -131,7 +133,7 @@ fun FilterTopAppBar(
                             text = "Encuentra animes rápidamente",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 11.sp
+                            fontSize = 11.asp()
                         )
                     }
                 },
@@ -143,14 +145,14 @@ fun FilterTopAppBar(
                     Surface(
                         shape = RoundedCornerShape(8.dp),
                         color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.adp())
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.adp())
                             )
                         }
                     }
@@ -185,7 +187,7 @@ fun FilterTopAppBar(
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 11.sp
+                            fontSize = 11.asp()
                         )
                     }
                 },
@@ -197,7 +199,7 @@ fun FilterTopAppBar(
                     Surface(
                         shape = RoundedCornerShape(8.dp),
                         color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.adp())
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
@@ -208,7 +210,7 @@ fun FilterTopAppBar(
                                 },
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.adp())
                             )
                         }
                     }
@@ -243,7 +245,7 @@ fun FilterTopAppBar(
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 11.sp
+                            fontSize = 11.asp()
                         )
                     }
                 },
@@ -257,14 +259,14 @@ fun FilterTopAppBar(
                         color = if (sortOrder != com.yumedev.seijakulist.ui.components.SortOrder.NONE)
                                     MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f)
                                 else MaterialTheme.colorScheme.tertiaryContainer,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.adp())
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.SortByAlpha,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.adp())
                             )
                         }
                     }

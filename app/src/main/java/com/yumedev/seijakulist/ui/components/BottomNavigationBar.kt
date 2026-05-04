@@ -31,6 +31,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.util.navigation_tools.BottomNavItem
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavItem>) {
@@ -65,7 +67,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
         Surface(
             modifier = Modifier
                 .fillMaxWidth(0.92f) // Efecto flotante (no toca los bordes laterales)
-                .height(72.dp)
+                .height(72.adp())
                 .shadow(
                     elevation = 20.dp,
                     shape = RoundedCornerShape(36.dp),
@@ -142,7 +144,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                         modifier = Modifier
                             .weight(itemWeight)
                             .graphicsLayer(scaleX = scale, scaleY = scale)
-                            .height(48.dp)
+                            .height(48.adp())
                             .clip(RoundedCornerShape(24.dp))
                             .background(backgroundColor)
                             .clickable(
@@ -173,7 +175,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                                 contentDescription = item.name,
                                 tint = contentColor,
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(24.adp())
                                     .offset(y = iconOffset) // Aplicamos el salto
                             )
 
@@ -195,7 +197,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                                     style = MaterialTheme.typography.labelLarge.copy(
                                         fontFamily = PoppinsMedium,
                                         fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
+                                        fontSize = 14.asp()
                                     ),
                                     color = contentColor,
                                     maxLines = 1,

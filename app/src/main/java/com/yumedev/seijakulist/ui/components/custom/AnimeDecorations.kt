@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.yumedev.seijakulist.ui.theme.adp
 
 enum class BlobPosition { TopEnd, BottomStart }
 
@@ -40,7 +41,7 @@ fun AuthBlobDecoration(
                 // Círculo grande detrás (mayormente fuera de pantalla)
                 Box(
                     modifier = Modifier
-                        .size(240.dp)
+                        .size(240.adp())
                         .align(Alignment.TopEnd)
                         .offset(x = 80.dp, y = (-90).dp)
                         .background(color.copy(alpha = 0.25f), CircleShape)
@@ -48,7 +49,7 @@ fun AuthBlobDecoration(
                 // Círculo mediano
                 Box(
                     modifier = Modifier
-                        .size(185.dp)
+                        .size(185.adp())
                         .align(Alignment.TopEnd)
                         .offset(x = 25.dp, y = 55.dp)
                         .background(color.copy(alpha = 0.42f), CircleShape)
@@ -56,7 +57,7 @@ fun AuthBlobDecoration(
                 // Círculo pequeño al frente
                 Box(
                     modifier = Modifier
-                        .size(135.dp)
+                        .size(135.adp())
                         .align(Alignment.TopEnd)
                         .offset(x = 55.dp, y = (-15).dp)
                         .background(color.copy(alpha = 0.65f), CircleShape)
@@ -66,7 +67,7 @@ fun AuthBlobDecoration(
                 // Círculo grande detrás
                 Box(
                     modifier = Modifier
-                        .size(270.dp)
+                        .size(270.adp())
                         .align(Alignment.BottomStart)
                         .offset(x = (-85).dp, y = 85.dp)
                         .background(color.copy(alpha = 0.25f), CircleShape)
@@ -74,7 +75,7 @@ fun AuthBlobDecoration(
                 // Círculo mediano
                 Box(
                     modifier = Modifier
-                        .size(210.dp)
+                        .size(210.adp())
                         .align(Alignment.BottomStart)
                         .offset(x = 55.dp, y = 55.dp)
                         .background(color.copy(alpha = 0.42f), CircleShape)
@@ -82,7 +83,7 @@ fun AuthBlobDecoration(
                 // Círculo pequeño al frente
                 Box(
                     modifier = Modifier
-                        .size(155.dp)
+                        .size(155.adp())
                         .align(Alignment.BottomStart)
                         .offset(x = (-18).dp, y = 22.dp)
                         .background(color.copy(alpha = 0.65f), CircleShape)
@@ -119,7 +120,7 @@ fun AnimeGradientBackground(
         Box(
             modifier = Modifier
                 .offset(x = 200.dp, y = (-50).dp)
-                .size(300.dp)
+                .size(300.adp())
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
@@ -135,7 +136,7 @@ fun AnimeGradientBackground(
         Box(
             modifier = Modifier
                 .offset(x = (-100).dp, y = 500.dp)
-                .size(250.dp)
+                .size(250.adp())
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(

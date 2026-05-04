@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun SubTitleWithoutIcon(subTitle: String) {
@@ -38,7 +39,7 @@ fun SubTitleWithoutIcon(subTitle: String) {
         Text(
             text = subTitle,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 22.sp,
+            fontSize = 22.asp(),
             fontFamily = PoppinsBold,
             textAlign = TextAlign.Start,
         )
@@ -48,7 +49,7 @@ fun SubTitleWithoutIcon(subTitle: String) {
             Text(
                 text = "Ver más",
                 color = MaterialTheme.colorScheme.primary,
-                fontSize = 14.sp,
+                fontSize = 14.asp(),
                 fontFamily = PoppinsRegular,
             )
         }

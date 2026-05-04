@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun DeveloperInfoDialog(
@@ -74,7 +76,7 @@ fun DeveloperInfoDialog(
                     Text(
                         text = "Desarrollador",
                         fontFamily = PoppinsBold,
-                        fontSize = 24.sp,
+                        fontSize = 24.asp(),
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.weight(1f)
@@ -82,7 +84,7 @@ fun DeveloperInfoDialog(
 
                     IconButton(
                         onClick = onDismiss,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.adp())
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -97,14 +99,14 @@ fun DeveloperInfoDialog(
                     imageVector = Icons.Default.Code,
                     contentDescription = "Acerca de",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier.size(64.adp())
                 )
 
                 // Nombre
                 Text(
                     text = "Bustamante Pedro",
                     fontFamily = PoppinsBold,
-                    fontSize = 20.sp,
+                    fontSize = 20.asp(),
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
@@ -113,10 +115,10 @@ fun DeveloperInfoDialog(
                 Text(
                     text = "Hola! Soy el desarrollador de Seijaku List (una app personal de registro de anime/manga en desarrollo activo).\n\nMe desenvuelvo profesionalmente como Desarrollador Android y me entusiasma combinar mis intereses: la programación, la música y el anime.\n\nDato curioso: Mi anime favorito es K-On!",
                     fontFamily = PoppinsRegular,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Justify,
-                    lineHeight = 20.sp
+                    lineHeight = 20.asp()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -125,7 +127,7 @@ fun DeveloperInfoDialog(
                 Text(
                     text = "Redes Sociales",
                     fontFamily = PoppinsBold,
-                    fontSize = 16.sp,
+                    fontSize = 16.asp(),
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
@@ -197,13 +199,13 @@ private fun SocialMediaLink(
             imageVector = icon,
             contentDescription = label,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.adp())
         )
 
         Text(
             text = label,
             fontFamily = PoppinsRegular,
-            fontSize = 16.sp,
+            fontSize = 16.asp(),
             color = MaterialTheme.colorScheme.onSurface
         )
     }

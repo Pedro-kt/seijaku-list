@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 /**
  * TextField personalizado con estilo Anime/Manga
@@ -110,7 +112,7 @@ fun AnimeTextField(
             Text(
                 text = label,
                 fontFamily = PoppinsBold,
-                fontSize = 15.sp,
+                fontSize = 15.asp(),
                 color = if (isError) {
                     MaterialTheme.colorScheme.error
                 } else {
@@ -124,7 +126,7 @@ fun AnimeTextField(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp)
+                .height(60.adp())
                 .shadow(
                     elevation = if (isFocused) 8.dp else 2.dp,
                     shape = RoundedCornerShape(12.dp),
@@ -179,7 +181,7 @@ fun AnimeTextField(
                         } else {
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         },
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.adp())
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                 }
@@ -194,7 +196,7 @@ fun AnimeTextField(
                             .onFocusChanged { isFocused = it.isFocused },
                         textStyle = LocalTextStyle.current.copy(
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 16.sp,
+                            fontSize = 16.asp(),
                             fontFamily = PoppinsRegular
                         ),
                         visualTransformation = visualTransformation,
@@ -208,7 +210,7 @@ fun AnimeTextField(
                                     text = placeholder,
                                     style = TextStyle(
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                                        fontSize = 16.sp,
+                                        fontSize = 16.asp(),
                                         fontFamily = PoppinsRegular
                                     )
                                 )
@@ -243,12 +245,12 @@ fun AnimeTextField(
             ) {
                 Text(
                     text = "⚠️",
-                    fontSize = 14.sp
+                    fontSize = 14.asp()
                 )
                 Text(
                     text = errorMessage ?: "",
                     color = MaterialTheme.colorScheme.error,
-                    fontSize = 13.sp,
+                    fontSize = 13.asp(),
                     fontFamily = PoppinsRegular
                 )
             }

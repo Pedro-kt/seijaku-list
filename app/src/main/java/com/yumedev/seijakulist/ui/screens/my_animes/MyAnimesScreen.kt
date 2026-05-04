@@ -126,6 +126,8 @@ import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.launch
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun MyAnimeListScreen(
@@ -210,7 +212,7 @@ fun MyAnimeListScreen(
                     Text(
                         text = "¡Tu lista está vacía!",
                         fontFamily = PoppinsBold,
-                        fontSize = 28.sp,
+                        fontSize = 28.asp(),
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
@@ -219,10 +221,10 @@ fun MyAnimeListScreen(
                     Text(
                         text = "Comienza a construir tu colección de animes favoritos. Busca y agrega tus primeros títulos para empezar a llevar el control de lo que ves.",
                         fontFamily = PoppinsRegular,
-                        fontSize = 16.sp,
+                        fontSize = 16.asp(),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,
-                        lineHeight = 24.sp
+                        lineHeight = 24.asp()
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -234,7 +236,7 @@ fun MyAnimeListScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth(0.7f)
-                            .height(56.dp),
+                            .height(56.adp()),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
@@ -248,13 +250,13 @@ fun MyAnimeListScreen(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.adp())
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Buscar anime",
                             fontFamily = PoppinsBold,
-                            fontSize = 18.sp
+                            fontSize = 18.asp()
                         )
                     }
 
@@ -262,7 +264,7 @@ fun MyAnimeListScreen(
                     Text(
                         text = "Explora miles de títulos disponibles",
                         fontFamily = PoppinsRegular,
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center
                     )
@@ -349,14 +351,14 @@ fun MyAnimeListScreen(
                             Text(
                                 text = filter,
                                 fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
-                                fontSize = 14.sp
+                                fontSize = 14.asp()
                             )
                         },
                         leadingIcon = {
                             Icon(
                                 imageVector = filterIcon,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.adp())
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
@@ -492,7 +494,7 @@ fun MyAnimeListScreen(
                             ElevatedCard(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(160.dp)
+                                    .height(160.adp())
                                     .graphicsLayer {
                                         scaleX = scale
                                         scaleY = scale
@@ -525,7 +527,7 @@ fun MyAnimeListScreen(
                                         // Imagen
                                         Box(
                                             modifier = Modifier
-                                                .width(120.dp)
+                                                .width(120.adp())
                                                 .fillMaxHeight()
                                         ) {
                                             Image(
@@ -578,7 +580,7 @@ fun MyAnimeListScreen(
                                                                     anime.userScore
                                                                 ),
                                                                 color = Color.White,
-                                                                fontSize = 11.sp,
+                                                                fontSize = 11.asp(),
                                                                 fontFamily = PoppinsBold
                                                             )
                                                         }
@@ -608,11 +610,11 @@ fun MyAnimeListScreen(
                                                 Text(
                                                     text = anime.title,
                                                     fontFamily = PoppinsBold,
-                                                    fontSize = 15.sp,
+                                                    fontSize = 15.asp(),
                                                     color = MaterialTheme.colorScheme.onSurface,
                                                     maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis,
-                                                    lineHeight = 17.sp
+                                                    lineHeight = 17.asp()
                                                 )
 
                                                 // Información adicional (tipo y año si existen)
@@ -627,7 +629,7 @@ fun MyAnimeListScreen(
                                                             Text(
                                                                 text = anime.typeAnime ?: "",
                                                                 fontFamily = PoppinsRegular,
-                                                                fontSize = 11.sp,
+                                                                fontSize = 11.asp(),
                                                                 color = MaterialTheme.colorScheme.onSurface.copy(
                                                                     alpha = 0.6f
                                                                 )
@@ -637,7 +639,7 @@ fun MyAnimeListScreen(
                                                             Text(
                                                                 text = "•",
                                                                 fontFamily = PoppinsRegular,
-                                                                fontSize = 11.sp,
+                                                                fontSize = 11.asp(),
                                                                 color = MaterialTheme.colorScheme.onSurface.copy(
                                                                     alpha = 0.4f
                                                                 )
@@ -647,7 +649,7 @@ fun MyAnimeListScreen(
                                                             Text(
                                                                 text = anime.year ?: "",
                                                                 fontFamily = PoppinsRegular,
-                                                                fontSize = 11.sp,
+                                                                fontSize = 11.asp(),
                                                                 color = MaterialTheme.colorScheme.onSurface.copy(
                                                                     alpha = 0.6f
                                                                 )
@@ -670,13 +672,13 @@ fun MyAnimeListScreen(
                                                     Text(
                                                         text = "${anime.episodesWatched}/${anime.totalEpisodes}",
                                                         fontFamily = PoppinsBold,
-                                                        fontSize = 12.sp,
+                                                        fontSize = 12.asp(),
                                                         color = MaterialTheme.colorScheme.onSurface
                                                     )
                                                     Text(
                                                         text = "eps",
                                                         fontFamily = PoppinsRegular,
-                                                        fontSize = 11.sp,
+                                                        fontSize = 11.asp(),
                                                         color = MaterialTheme.colorScheme.onSurface.copy(
                                                             alpha = 0.6f
                                                         )
@@ -773,7 +775,7 @@ fun MyAnimeListScreen(
                                                                     text = anime.plannedPriority
                                                                         ?: "",
                                                                     fontFamily = PoppinsBold,
-                                                                    fontSize = 10.sp,
+                                                                    fontSize = 10.asp(),
                                                                     color = Color.White
                                                                 )
                                                             }
@@ -794,7 +796,7 @@ fun MyAnimeListScreen(
                                                         },
                                                         shape = RoundedCornerShape(10.dp),
                                                         color = MaterialTheme.colorScheme.primaryContainer,
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(32.adp())
                                                     ) {
                                                         Box(
                                                             modifier = Modifier.fillMaxSize(),
@@ -803,7 +805,7 @@ fun MyAnimeListScreen(
                                                             Icon(
                                                                 imageVector = Icons.Default.PlusOne,
                                                                 contentDescription = "Marcar episodio",
-                                                                modifier = Modifier.size(18.dp),
+                                                                modifier = Modifier.size(18.adp()),
                                                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                                                             )
                                                         }
@@ -853,7 +855,7 @@ fun MyAnimeListScreen(
                         }
 
                         item {
-                            Spacer(Modifier.height(100.dp))
+                            Spacer(Modifier.height(100.adp()))
                         }
                     }
                 }
@@ -891,7 +893,7 @@ fun CompactAnimeCard(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp)
+            .height(220.adp())
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -921,7 +923,7 @@ fun CompactAnimeCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp)
+                        .height(160.adp())
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(anime.imageUrl),
@@ -954,7 +956,7 @@ fun CompactAnimeCard(
                             Text(
                                 text = String.format("%.1f", anime.userScore),
                                 color = Color.White,
-                                fontSize = 11.sp,
+                                fontSize = 11.asp(),
                                 fontFamily = PoppinsBold
                             )
                         }
@@ -972,11 +974,11 @@ fun CompactAnimeCard(
                     Text(
                         text = anime.title,
                         fontFamily = PoppinsBold,
-                        fontSize = 12.sp,
+                        fontSize = 12.asp(),
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 14.sp
+                        lineHeight = 14.asp()
                     )
 
                     // Progreso
@@ -988,7 +990,7 @@ fun CompactAnimeCard(
                         Text(
                             text = "${anime.episodesWatched}/${anime.totalEpisodes}",
                             fontFamily = PoppinsRegular,
-                            fontSize = 10.sp,
+                            fontSize = 10.asp(),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
 
@@ -1051,7 +1053,7 @@ fun OnboardingStyleAnimeCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(260.dp)
+            .height(260.adp())
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -1102,7 +1104,7 @@ fun OnboardingStyleAnimeCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
+                    .height(60.adp())
                     .align(Alignment.TopStart)
                     .graphicsLayer {
                         rotationZ = -45f
@@ -1141,7 +1143,7 @@ fun OnboardingStyleAnimeCard(
                                 Text(
                                     text = anime.typeAnime ?: "",
                                     fontFamily = PoppinsBold,
-                                    fontSize = 9.sp,
+                                    fontSize = 9.asp(),
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                                 )
@@ -1170,7 +1172,7 @@ fun OnboardingStyleAnimeCard(
                                 Text(
                                     text = String.format("%.1f", anime.userScore),
                                     fontFamily = PoppinsBold,
-                                    fontSize = 11.sp,
+                                    fontSize = 11.asp(),
                                     color = Color.White
                                 )
                             }
@@ -1185,11 +1187,11 @@ fun OnboardingStyleAnimeCard(
                     Text(
                         text = anime.title,
                         fontFamily = PoppinsBold,
-                        fontSize = 15.sp,
+                        fontSize = 15.asp(),
                         color = Color.White,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 17.sp
+                        lineHeight = 17.asp()
                     )
 
                     // Año si existe
@@ -1197,7 +1199,7 @@ fun OnboardingStyleAnimeCard(
                         Text(
                             text = anime.year ?: "",
                             fontFamily = PoppinsRegular,
-                            fontSize = 11.sp,
+                            fontSize = 11.asp(),
                             color = Color.White.copy(alpha = 0.7f)
                         )
                     }
@@ -1226,7 +1228,7 @@ fun OnboardingStyleAnimeCard(
                                 Text(
                                     text = anime.statusUser,
                                     fontFamily = PoppinsBold,
-                                    fontSize = 11.sp,
+                                    fontSize = 11.asp(),
                                     color = Color.White
                                 )
                             }
@@ -1256,7 +1258,7 @@ fun OnboardingStyleAnimeCard(
                                     Text(
                                         text = anime.plannedPriority ?: "",
                                         fontFamily = PoppinsBold,
-                                        fontSize = 10.sp,
+                                        fontSize = 10.asp(),
                                         color = Color.White
                                     )
                                 }
@@ -1267,7 +1269,7 @@ fun OnboardingStyleAnimeCard(
                         Text(
                             text = "${anime.episodesWatched}/${anime.totalEpisodes}",
                             fontFamily = PoppinsRegular,
-                            fontSize = 10.sp,
+                            fontSize = 10.asp(),
                             color = Color.White.copy(alpha = 0.7f)
                         )
                     }

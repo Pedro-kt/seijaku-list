@@ -46,6 +46,8 @@ import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 data class OnboardingPage(
     val title: String,
@@ -195,7 +197,7 @@ fun AuthScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .height(56.adp()),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = pages[pagerState.currentPage].color
@@ -208,12 +210,12 @@ fun AuthScreen(
                             Text(
                                 text = if (pagerState.currentPage == pages.size - 1) "Comenzar" else "Siguiente",
                                 fontFamily = PoppinsBold,
-                                fontSize = 16.sp
+                                fontSize = 16.asp()
                             )
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.adp())
                             )
                         }
                     }
@@ -345,7 +347,7 @@ private fun OnboardingPageContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
 
             // Título
             AnimatedVisibility(
@@ -358,10 +360,10 @@ private fun OnboardingPageContent(
                 Text(
                     text = page.title,
                     fontFamily = PoppinsBold,
-                    fontSize = 30.sp,
+                    fontSize = 30.asp(),
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
-                    lineHeight = 36.sp,
+                    lineHeight = 36.asp(),
                     letterSpacing = 0.3.sp
                 )
             }
@@ -394,10 +396,10 @@ private fun OnboardingPageContent(
                     Text(
                         text = page.description,
                         fontFamily = PoppinsRegular,
-                        fontSize = 15.sp,
+                        fontSize = 15.asp(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center,
-                        lineHeight = 22.sp,
+                        lineHeight = 22.asp(),
                         letterSpacing = 0.2.sp
                     )
                 }
@@ -412,7 +414,7 @@ private fun AnimeCardPreview(accentColor: Color) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(280.dp),
+            .height(280.adp()),
         contentAlignment = Alignment.Center
     ) {
         // Card trasera izquierda - K-On!
@@ -511,7 +513,7 @@ private fun AnimeCardPreview(accentColor: Color) {
                             Text(
                                 text = "TV",
                                 fontFamily = PoppinsBold,
-                                fontSize = 9.sp,
+                                fontSize = 9.asp(),
                                 color = Color.White,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                             )
@@ -535,7 +537,7 @@ private fun AnimeCardPreview(accentColor: Color) {
                                 Text(
                                     text = "9.3",
                                     fontFamily = PoppinsBold,
-                                    fontSize = 11.sp,
+                                    fontSize = 11.asp(),
                                     color = Color.White
                                 )
                             }
@@ -548,7 +550,7 @@ private fun AnimeCardPreview(accentColor: Color) {
                         Text(
                             text = "Sousou no Frieren",
                             fontFamily = PoppinsBold,
-                            fontSize = 13.sp,
+                            fontSize = 13.asp(),
                             color = Color.White
                         )
 
@@ -573,7 +575,7 @@ private fun AnimeCardPreview(accentColor: Color) {
                                     Text(
                                         text = "Viendo",
                                         fontFamily = PoppinsBold,
-                                        fontSize = 10.sp,
+                                        fontSize = 10.asp(),
                                         color = Color.White
                                     )
                                 }
@@ -582,7 +584,7 @@ private fun AnimeCardPreview(accentColor: Color) {
                             Text(
                                 text = "18/28",
                                 fontFamily = PoppinsRegular,
-                                fontSize = 10.sp,
+                                fontSize = 10.asp(),
                                 color = Color.White.copy(alpha = 0.8f)
                             )
                         }
@@ -611,7 +613,7 @@ private fun ProgressTrackerPreview(accentColor: Color) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp),
+            .height(300.adp()),
         contentAlignment = Alignment.Center
     ) {
         // Tarjeta trasera superior - My Dress-Up Darling
@@ -687,8 +689,8 @@ private fun OnboardingAnimeCard(
 
     ElevatedCard(
         modifier = modifier
-            .width(400.dp)
-            .height(150.dp),
+            .width(400.adp())
+            .height(150.adp()),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -699,7 +701,7 @@ private fun OnboardingAnimeCard(
             // Imagen
             Box(
                 modifier = Modifier
-                    .width(100.dp)
+                    .width(100.adp())
                     .fillMaxHeight()
             ) {
                 AsyncImage(
@@ -736,7 +738,7 @@ private fun OnboardingAnimeCard(
                         Text(
                             text = "8.5",
                             color = Color.White,
-                            fontSize = 11.sp,
+                            fontSize = 11.asp(),
                             fontFamily = PoppinsBold
                         )
                     }
@@ -755,10 +757,10 @@ private fun OnboardingAnimeCard(
                     Text(
                         text = title,
                         fontFamily = PoppinsBold,
-                        fontSize = 13.sp,
+                        fontSize = 13.asp(),
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
-                        lineHeight = 16.sp
+                        lineHeight = 16.asp()
                     )
 
                     Row(
@@ -768,19 +770,19 @@ private fun OnboardingAnimeCard(
                         Text(
                             text = type,
                             fontFamily = PoppinsRegular,
-                            fontSize = 11.sp,
+                            fontSize = 11.asp(),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                         Text(
                             text = "•",
                             fontFamily = PoppinsRegular,
-                            fontSize = 11.sp,
+                            fontSize = 11.asp(),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                         )
                         Text(
                             text = year,
                             fontFamily = PoppinsRegular,
-                            fontSize = 11.sp,
+                            fontSize = 11.asp(),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
@@ -799,13 +801,13 @@ private fun OnboardingAnimeCard(
                         Text(
                             text = "$episodesWatched/$totalEpisodes",
                             fontFamily = PoppinsBold,
-                            fontSize = 12.sp,
+                            fontSize = 12.asp(),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "eps",
                             fontFamily = PoppinsRegular,
-                            fontSize = 11.sp,
+                            fontSize = 11.asp(),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
@@ -859,7 +861,7 @@ private fun OnboardingAnimeCard(
                         Text(
                             text = status,
                             fontFamily = PoppinsBold,
-                            fontSize = 10.sp,
+                            fontSize = 10.asp(),
                             color = statusColor
                         )
                     }
@@ -898,7 +900,7 @@ private fun StatsChartPreview(accentColor: Color) {
     }
 
     Column(
-        modifier = Modifier.width(300.dp),
+        modifier = Modifier.width(300.adp()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -910,15 +912,15 @@ private fun StatsChartPreview(accentColor: Color) {
             Text(
                 text = animatedValue.value.toInt().toString(),
                 fontFamily = PoppinsBold,
-                fontSize = 72.sp,
+                fontSize = 72.asp(),
                 color = accentColor,
                 letterSpacing = (-3).sp,
-                lineHeight = 72.sp
+                lineHeight = 72.asp()
             )
             Text(
                 text = "animes registrados",
                 fontFamily = PoppinsRegular,
-                fontSize = 14.sp,
+                fontSize = 14.asp(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
         }
@@ -991,7 +993,7 @@ fun WrappedStatCard(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.height(80.dp),
+        modifier = modifier.height(80.adp()),
         shape = RoundedCornerShape(16.dp),
         color = color.copy(alpha = 0.1f),
         tonalElevation = 1.dp
@@ -1007,13 +1009,13 @@ fun WrappedStatCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.adp())
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = value,
                 fontFamily = PoppinsBold,
-                fontSize = 16.sp,
+                fontSize = 16.asp(),
                 color = color,
                 letterSpacing = (-0.5).sp,
                 maxLines = 1,
@@ -1022,7 +1024,7 @@ fun WrappedStatCard(
             Text(
                 text = label,
                 fontFamily = PoppinsRegular,
-                fontSize = 9.sp,
+                fontSize = 9.asp(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
         }
@@ -1123,7 +1125,7 @@ private fun PodiumCard(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(40.dp)
+                            .height(40.adp())
                             .align(Alignment.BottomCenter)
                             .background(
                                 brush = Brush.verticalGradient(
@@ -1168,7 +1170,7 @@ private fun PodiumCard(
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             maxLines = 2,
-            lineHeight = 13.sp
+            lineHeight = 13.asp()
         )
     }
 }
@@ -1191,7 +1193,7 @@ private fun AndMorePreview(accentColor: Color) {
 
     Column(
         modifier = Modifier
-            .width(280.dp),
+            .width(280.adp()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -1205,7 +1207,7 @@ private fun AndMorePreview(accentColor: Color) {
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .height(90.dp),
+                            .height(90.adp()),
                         shape = RoundedCornerShape(18.dp),
                         color = feature.color.copy(alpha = 0.08f),
                         tonalElevation = 1.dp
@@ -1218,7 +1220,7 @@ private fun AndMorePreview(accentColor: Color) {
                             verticalArrangement = Arrangement.Center
                         ) {
                             Surface(
-                                modifier = Modifier.size(36.dp),
+                                modifier = Modifier.size(36.adp()),
                                 shape = CircleShape,
                                 color = feature.color.copy(alpha = 0.15f)
                             ) {
@@ -1230,7 +1232,7 @@ private fun AndMorePreview(accentColor: Color) {
                                         imageVector = feature.icon,
                                         contentDescription = null,
                                         tint = feature.color,
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(20.adp())
                                     )
                                 }
                             }
@@ -1238,7 +1240,7 @@ private fun AndMorePreview(accentColor: Color) {
                             Text(
                                 text = feature.label,
                                 fontFamily = PoppinsBold,
-                                fontSize = 11.sp,
+                                fontSize = 11.asp(),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                                 textAlign = TextAlign.Center
                             )
@@ -1297,20 +1299,20 @@ private fun WelcomeHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp),
+            .height(300.adp()),
         contentAlignment = Alignment.Center
     ) {
         // Círculos decorativos (visibles sobre el gradiente exterior)
         Box(
             modifier = Modifier
-                .size(220.dp)
+                .size(220.adp())
                 .align(Alignment.TopEnd)
                 .offset(x = 70.dp, y = (-50).dp)
                 .background(Color.White.copy(alpha = 0.07f), CircleShape)
         )
         Box(
             modifier = Modifier
-                .size(150.dp)
+                .size(150.adp())
                 .align(Alignment.BottomStart)
                 .offset(x = (-40).dp, y = 30.dp)
                 .background(Color.White.copy(alpha = 0.06f), CircleShape)
@@ -1335,7 +1337,7 @@ private fun WelcomeHeader(
                 Box(contentAlignment = Alignment.Center) {
                     Box(
                         modifier = Modifier
-                            .size(110.dp)
+                            .size(110.adp())
                             .background(
                                 Brush.radialGradient(
                                     colors = listOf(
@@ -1350,7 +1352,7 @@ private fun WelcomeHeader(
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = "Seijaku List",
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(80.adp())
                             .clip(RoundedCornerShape(20.dp))
                     )
                 }
@@ -1358,7 +1360,7 @@ private fun WelcomeHeader(
                 Text(
                     text = "Seijaku List",
                     fontFamily = PoppinsBold,
-                    fontSize = 30.sp,
+                    fontSize = 30.asp(),
                     color = Color.White,
                     textAlign = TextAlign.Center,
                     letterSpacing = (-0.5).sp
@@ -1366,7 +1368,7 @@ private fun WelcomeHeader(
                 Text(
                     text = "Tu lista de anime y mangas, siempre contigo",
                     fontFamily = PoppinsRegular,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     color = Color.White.copy(alpha = 0.82f),
                     textAlign = TextAlign.Center
                 )
@@ -1407,7 +1409,7 @@ private fun WelcomeActionsCard(
                 Text(
                     text = "¡Comienza tu aventura!",
                     fontFamily = PoppinsBold,
-                    fontSize = 22.sp,
+                    fontSize = 22.asp(),
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )
@@ -1415,7 +1417,7 @@ private fun WelcomeActionsCard(
                 Text(
                     text = "Únete a miles de fans del anime",
                     fontFamily = PoppinsRegular,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
@@ -1426,7 +1428,7 @@ private fun WelcomeActionsCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .height(54.adp())
                         .clip(RoundedCornerShape(14.dp))
                         .background(color = MaterialTheme.colorScheme.primary)
                         .clickable(
@@ -1443,12 +1445,12 @@ private fun WelcomeActionsCard(
                             imageVector = Icons.Outlined.PersonAdd,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.adp())
                         )
                         Text(
                             text = "Crear cuenta",
                             fontFamily = PoppinsBold,
-                            fontSize = 16.sp,
+                            fontSize = 16.asp(),
                             color = Color.White,
                             letterSpacing = 0.3.sp
                         )
@@ -1462,7 +1464,7 @@ private fun WelcomeActionsCard(
                     onClick = { navController.navigate(AppDestinations.LOGIN_ROUTE) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
+                        .height(54.adp()),
                     shape = RoundedCornerShape(14.dp),
                     border = androidx.compose.foundation.BorderStroke(
                         1.5.dp,
@@ -1480,12 +1482,12 @@ private fun WelcomeActionsCard(
                             imageVector = Icons.AutoMirrored.Outlined.Login,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.adp())
                         )
                         Text(
                             text = "Iniciar sesión",
                             fontFamily = PoppinsBold,
-                            fontSize = 16.sp,
+                            fontSize = 16.asp(),
                             color = MaterialTheme.colorScheme.primary,
                             letterSpacing = 0.3.sp
                         )
@@ -1506,7 +1508,7 @@ private fun WelcomeActionsCard(
                     Text(
                         text = "Explorar sin cuenta",
                         fontFamily = PoppinsRegular,
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -1514,7 +1516,7 @@ private fun WelcomeActionsCard(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.adp())
                     )
                 }
 
@@ -1588,7 +1590,7 @@ private fun ThemeToggleButton(
 
     Surface(
         modifier = Modifier
-            .size(48.dp)
+            .size(48.adp())
             .scale(scale),
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.8f),
@@ -1614,7 +1616,7 @@ private fun ThemeToggleButton(
                 contentDescription = description,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(24.adp())
                     .graphicsLayer {
                         rotationZ = rotation
                     }
@@ -1649,7 +1651,7 @@ private fun ThemeChangeNotification(theme: com.yumedev.seijakulist.ui.theme.Them
                 imageVector = Icons.Outlined.Palette,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.adp())
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -1657,7 +1659,7 @@ private fun ThemeChangeNotification(theme: com.yumedev.seijakulist.ui.theme.Them
             Text(
                 text = "Tema cambiado a: $themeName",
                 fontFamily = PoppinsBold,
-                fontSize = 13.sp,
+                fontSize = 13.asp(),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 letterSpacing = 0.2.sp
             )

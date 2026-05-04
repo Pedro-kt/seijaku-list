@@ -43,6 +43,8 @@ import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun LoginScreen(
@@ -125,7 +127,7 @@ private fun LoginHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(280.dp)
+            .height(280.adp())
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
@@ -140,14 +142,14 @@ private fun LoginHeader(
         // Círculos decorativos
         Box(
             modifier = Modifier
-                .size(200.dp)
+                .size(200.adp())
                 .align(Alignment.TopEnd)
                 .offset(x = 60.dp, y = (-40).dp)
                 .background(Color.White.copy(alpha = 0.08f), CircleShape)
         )
         Box(
             modifier = Modifier
-                .size(130.dp)
+                .size(130.adp())
                 .align(Alignment.BottomStart)
                 .offset(x = (-30).dp, y = 30.dp)
                 .background(Color.White.copy(alpha = 0.06f), CircleShape)
@@ -170,7 +172,7 @@ private fun LoginHeader(
                         contentDescription = "Volver",
                         tint = Color.White,
                         modifier = Modifier
-                            .size(40.dp)
+                            .size(40.adp())
                             .padding(8.dp)
                     )
                 }
@@ -196,21 +198,21 @@ private fun LoginHeader(
                     painter = painterResource(id = R.drawable.logo),
                     contentDescription = "Seijaku List",
                     modifier = Modifier
-                        .size(72.dp)
+                        .size(72.adp())
                         .clip(RoundedCornerShape(18.dp))
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Bienvenido de vuelta",
                     fontFamily = PoppinsBold,
-                    fontSize = 24.sp,
+                    fontSize = 24.asp(),
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
                 Text(
                     text = "Inicia sesión en tu cuenta",
                     fontFamily = PoppinsRegular,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     color = Color.White.copy(alpha = 0.80f),
                     textAlign = TextAlign.Center
                 )
@@ -300,7 +302,7 @@ private fun LoginForm(
                         Text(
                             text = "¿Olvidaste tu contraseña?",
                             fontFamily = PoppinsRegular,
-                            fontSize = 13.sp,
+                            fontSize = 13.asp(),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -338,7 +340,7 @@ private fun LoginForm(
                     Text(
                         text = "¿No tienes cuenta? ",
                         fontFamily = PoppinsRegular,
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     TextButton(
@@ -352,7 +354,7 @@ private fun LoginForm(
                         Text(
                             text = "Regístrate",
                             fontFamily = PoppinsBold,
-                            fontSize = 14.sp,
+                            fontSize = 14.asp(),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -387,7 +389,7 @@ internal fun AuthTextField(
             Text(
                 text = placeholder,
                 fontFamily = PoppinsRegular,
-                fontSize = 15.sp,
+                fontSize = 15.asp(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
             )
         },
@@ -397,7 +399,7 @@ internal fun AuthTextField(
                 contentDescription = null,
                 tint = if (isError) MaterialTheme.colorScheme.error
                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(22.adp())
             )
         },
         trailingIcon = if (isPassword) {
@@ -427,7 +429,7 @@ internal fun AuthTextField(
         ),
         textStyle = LocalTextStyle.current.copy(
             fontFamily = PoppinsRegular,
-            fontSize = 15.sp
+            fontSize = 15.asp()
         ),
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions
@@ -455,7 +457,7 @@ internal fun AuthPrimaryButton(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .height(54.adp())
             .scale(scale)
             .clip(RoundedCornerShape(14.dp))
             .background(
@@ -493,7 +495,7 @@ internal fun AuthPrimaryButton(
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.adp()),
                     color = Color.White,
                     strokeWidth = 2.dp
                 )
@@ -501,7 +503,7 @@ internal fun AuthPrimaryButton(
                 Text(
                     text = text,
                     fontFamily = PoppinsBold,
-                    fontSize = 16.sp,
+                    fontSize = 16.asp(),
                     letterSpacing = 0.4.sp
                 )
             }
@@ -522,7 +524,7 @@ internal fun AuthSocialDivider() {
         Text(
             text = "  o continúa con  ",
             fontFamily = PoppinsRegular,
-            fontSize = 13.sp,
+            fontSize = 13.asp(),
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
         HorizontalDivider(
@@ -584,7 +586,7 @@ private fun AuthSocialIconButton(
             onClick()
         },
         modifier = Modifier
-            .size(60.dp)
+            .size(60.adp())
             .scale(scale),
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.outlinedButtonColors(
@@ -597,7 +599,7 @@ private fun AuthSocialIconButton(
         Image(
             painter = painterResource(id = iconRes),
             contentDescription = contentDescription,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(22.adp())
         )
     }
 }
@@ -618,12 +620,12 @@ internal fun AuthErrorBanner(message: String) {
                 imageVector = Icons.Default.Error,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(18.adp())
             )
             Text(
                 text = message,
                 fontFamily = PoppinsRegular,
-                fontSize = 13.sp,
+                fontSize = 13.asp(),
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f)
             )

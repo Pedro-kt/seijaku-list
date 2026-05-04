@@ -74,6 +74,8 @@ import com.yumedev.seijakulist.ui.components.DialogType
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 private val top5PositionColors = listOf(
     Color(0xFFFFD700), // #1 Oro
@@ -190,11 +192,11 @@ fun SelectTop5Screen(
                         Text(
                             text = "Mi Top 5",
                             fontFamily = PoppinsBold,
-                            fontSize = 20.sp
+                            fontSize = 20.asp()
                         )
                         Text(
                             text = "${orderedSelectedIds.size}/5 seleccionados",
-                            fontSize = 12.sp,
+                            fontSize = 12.asp(),
                             fontFamily = PoppinsRegular,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -218,7 +220,7 @@ fun SelectTop5Screen(
                     ) {
                         if (uiState.isSavingTop5) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(16.adp()),
                                 strokeWidth = 2.dp,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -226,7 +228,7 @@ fun SelectTop5Screen(
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.adp())
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Guardar", fontFamily = PoppinsBold)
@@ -279,7 +281,7 @@ fun SelectTop5Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 2.dp),
-                fontSize = 12.sp,
+                fontSize = 12.asp(),
                 fontFamily = PoppinsRegular,
                 textAlign = TextAlign.Center,
                 color = if (activeSlotIndex != null)
@@ -339,18 +341,18 @@ fun SelectTop5Screen(
                             Icon(
                                 imageVector = Icons.Default.Star,
                                 contentDescription = null,
-                                modifier = Modifier.size(56.dp),
+                                modifier = Modifier.size(56.adp()),
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                             )
                             Text(
                                 "No tienes animes guardados",
                                 fontFamily = PoppinsBold,
-                                fontSize = 16.sp
+                                fontSize = 16.asp()
                             )
                             Text(
                                 "Agrega animes a tu lista para poder armar tu Top 5",
                                 fontFamily = PoppinsRegular,
-                                fontSize = 14.sp,
+                                fontSize = 14.asp(),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = 32.dp)
@@ -461,7 +463,7 @@ private fun Top5SlotCard(
         Surface(
             modifier = Modifier
                 .padding(4.dp)
-                .size(18.dp)
+                .size(18.adp())
                 .align(Alignment.TopStart),
             shape = RoundedCornerShape(5.dp),
             color = positionColor
@@ -469,7 +471,7 @@ private fun Top5SlotCard(
             Box(contentAlignment = Alignment.Center) {
                 Text(
                     text = "$position",
-                    fontSize = 9.sp,
+                    fontSize = 9.asp(),
                     fontFamily = PoppinsBold,
                     color = if (position <= 2) Color.Black else Color.White
                 )
@@ -483,7 +485,7 @@ private fun Top5SlotCard(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 modifier = Modifier
-                    .size(22.dp)
+                    .size(22.adp())
                     .align(Alignment.Center)
             )
         }
@@ -494,7 +496,7 @@ private fun Top5SlotCard(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(3.dp)
-                    .size(16.dp)
+                    .size(16.adp())
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = 0.65f))
                     .clickable(onClick = onRemove),
@@ -561,7 +563,7 @@ private fun AnimePickerCard(
                 contentDescription = anime.title,
                 modifier = Modifier
                     .width(50.dp)
-                    .height(70.dp)
+                    .height(70.adp())
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -573,7 +575,7 @@ private fun AnimePickerCard(
             ) {
                 Text(
                     text = anime.title,
-                    fontSize = 15.sp,
+                    fontSize = 15.asp(),
                     fontFamily = PoppinsBold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -594,14 +596,14 @@ private fun AnimePickerCard(
                     )
                     Text(
                         text = anime.userScore.toString(),
-                        fontSize = 12.sp,
+                        fontSize = 12.asp(),
                         fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                     if (!anime.statusUser.isNullOrBlank()) {
                         Text(
                             text = "· ${anime.statusUser}",
-                            fontSize = 12.sp,
+                            fontSize = 12.asp(),
                             fontFamily = PoppinsRegular,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                         )
@@ -615,12 +617,12 @@ private fun AnimePickerCard(
                     Surface(
                         shape = RoundedCornerShape(8.dp),
                         color = positionColor,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.adp())
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = "#$slotPosition",
-                                fontSize = 11.sp,
+                                fontSize = 11.asp(),
                                 fontFamily = PoppinsBold,
                                 color = if (slotPosition!! <= 2) Color.Black else Color.White
                             )
@@ -644,7 +646,7 @@ private fun AnimePickerCard(
                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier
                                 .padding(5.dp)
-                                .size(18.dp)
+                                .size(18.adp())
                         )
                     }
                 }
@@ -664,7 +666,7 @@ private fun AnimePickerCard(
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             modifier = Modifier
                                 .padding(5.dp)
-                                .size(18.dp)
+                                .size(18.adp())
                         )
                     }
                 }

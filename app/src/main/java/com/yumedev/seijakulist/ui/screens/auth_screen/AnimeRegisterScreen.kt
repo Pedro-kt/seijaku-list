@@ -66,6 +66,8 @@ import com.yumedev.seijakulist.ui.components.custom.SakuraFlower
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun AnimeRegisterScreen(
@@ -159,7 +161,7 @@ fun AnimeRegisterScreen(
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
 
             // Botón de volver
             Row(
@@ -171,7 +173,7 @@ fun AnimeRegisterScreen(
                         painter = painterResource(id = R.drawable.ic_arrow_left_line),
                         contentDescription = "Volver",
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(28.adp())
                     )
                 }
             }
@@ -187,7 +189,7 @@ fun AnimeRegisterScreen(
             ) {
                 Text(
                     text = "SeijakuList",
-                    fontSize = 48.sp,
+                    fontSize = 48.asp(),
                     fontFamily = PoppinsBold,
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.displayLarge.copy(
@@ -215,7 +217,7 @@ fun AnimeRegisterScreen(
 
                     Text(
                         text = "アニメリスト",
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         letterSpacing = 2.sp
@@ -229,7 +231,7 @@ fun AnimeRegisterScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
 
             // Mensaje de bienvenida
             Column(
@@ -239,7 +241,7 @@ fun AnimeRegisterScreen(
                 Text(
                     text = "¡Únete a la comunidad!",
                     fontFamily = PoppinsBold,
-                    fontSize = 26.sp,
+                    fontSize = 26.asp(),
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -248,13 +250,13 @@ fun AnimeRegisterScreen(
                 Text(
                     text = "Crea tu cuenta y comienza tu aventura",
                     fontFamily = PoppinsRegular,
-                    fontSize = 15.sp,
+                    fontSize = 15.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
 
             // Formulario
             AnimeTextField(
@@ -366,13 +368,13 @@ fun AnimeRegisterScreen(
                     Text(
                         text = "⚠️ ${(authResult as AuthResult.Error).message}",
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         fontFamily = PoppinsRegular
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
 
             // Login
             Row(
@@ -384,7 +386,7 @@ fun AnimeRegisterScreen(
                     text = "¿Ya tienes cuenta?",
                     fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    fontSize = 15.sp
+                    fontSize = 15.asp()
                 )
 
                 TextButton(
@@ -394,12 +396,12 @@ fun AnimeRegisterScreen(
                         text = "Inicia sesión",
                         fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 15.sp
+                        fontSize = 15.asp()
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
         }
     }
 }

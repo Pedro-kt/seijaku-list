@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun DescriptionAnime(icon: ImageVector, title: String, description: String) {
@@ -41,7 +42,7 @@ fun DescriptionAnime(icon: ImageVector, title: String, description: String) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(20.adp()),
                 tint = MaterialTheme.colorScheme.primary
             )
             Text(

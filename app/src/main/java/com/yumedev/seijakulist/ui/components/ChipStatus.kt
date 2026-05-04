@@ -41,6 +41,8 @@ import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmResetEpisodes
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.util.UserAction
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun AnimeStatusChip(
@@ -82,7 +84,7 @@ fun AnimeStatusChip(
                     text = status,
                     color = Color.White,
                     fontFamily = PoppinsBold,
-                    fontSize = 11.sp
+                    fontSize = 11.asp()
                 )
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
@@ -103,7 +105,7 @@ fun AnimeStatusChip(
                 Text(
                     text = "Cambiar estado",
                     fontFamily = PoppinsBold,
-                    fontSize = 11.sp,
+                    fontSize = 11.asp(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -132,7 +134,7 @@ fun AnimeStatusChip(
                         Text(
                             text = newStatus,
                             fontFamily = PoppinsBold,
-                            fontSize = 13.sp,
+                            fontSize = 13.asp(),
                             color = itemColor
                         )
                     },
@@ -178,7 +180,7 @@ fun AnimeStatusChip(
                                 imageVector = statusIcon,
                                 contentDescription = newStatus,
                                 tint = itemColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.adp())
                             )
                         }
                     },
@@ -188,7 +190,7 @@ fun AnimeStatusChip(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
                                 tint = itemColor,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(16.adp())
                             )
                         }
                     },

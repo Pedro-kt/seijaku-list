@@ -132,6 +132,8 @@ import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 
 // HomeScreen con UI mejorada
@@ -410,7 +412,7 @@ private fun AnimeContent(
                 })
         }
         item {
-            Spacer(Modifier.height(80.dp))
+            Spacer(Modifier.height(80.adp()))
         }
     }
 }
@@ -525,7 +527,7 @@ private fun AnimeSectionHeader(
                 // Contenedor del icono con fondo
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(40.adp())
                         .clip(RoundedCornerShape(10.dp))
                         .background(
                             brush = Brush.linearGradient(
@@ -540,7 +542,7 @@ private fun AnimeSectionHeader(
                         imageVector = icon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.adp())
                     )
                 }
 
@@ -548,7 +550,7 @@ private fun AnimeSectionHeader(
                 Text(
                     text = title,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 21.sp,
+                    fontSize = 21.asp(),
                     fontFamily = PoppinsBold,
                     letterSpacing = 0.3.sp
                 )
@@ -591,7 +593,7 @@ private fun AnimeSectionHeader(
                 }
             ) {
                 Text(
-                    text = "Ver más", fontSize = 13.sp, fontFamily = PoppinsMedium
+                    text = "Ver más", fontSize = 13.asp(), fontFamily = PoppinsMedium
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
@@ -652,7 +654,7 @@ fun FilterAnimesHome(
                     Text(
                         text = listLabel[index], style = TextStyle(
                             fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
-                            fontSize = 14.sp,
+                            fontSize = 14.asp(),
                             color = contentColor // Aplicamos la animación al texto
                         )
                     )
@@ -662,7 +664,7 @@ fun FilterAnimesHome(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(16.adp()),
                             tint = contentColor // Aplicamos la animación al icono
                         )
                     }
@@ -714,7 +716,7 @@ private fun EnhancedEmptyState(message: String) {
             // Icono con diseño circular
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(56.adp())
                     .clip(CircleShape)
                     .background(
                         brush = Brush.radialGradient(
@@ -729,7 +731,7 @@ private fun EnhancedEmptyState(message: String) {
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(28.adp())
                 )
             }
 
@@ -737,9 +739,9 @@ private fun EnhancedEmptyState(message: String) {
             Text(
                 text = message,
                 fontFamily = PoppinsRegular,
-                fontSize = 14.sp,
+                fontSize = 14.asp(),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-                lineHeight = 20.sp,
+                lineHeight = 20.asp(),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
@@ -850,7 +852,7 @@ private fun HeroPlaceholderCard(color: Color) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(190.dp),
+            .height(190.adp()),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = color)
@@ -888,7 +890,7 @@ private fun HeroAnimeCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(190.dp)
+            .height(190.adp())
             .graphicsLayer { scaleX = scale; scaleY = scale },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(8.dp),
@@ -963,7 +965,7 @@ private fun HeroAnimeCard(
                     Text(
                         text = item.label,
                         fontFamily = PoppinsBold,
-                        fontSize = 9.sp,
+                        fontSize = 9.asp(),
                         letterSpacing = 0.8.sp,
                         color = Color.White
                     )
@@ -980,8 +982,8 @@ private fun HeroAnimeCard(
                 Text(
                     text = item.title,
                     fontFamily = PoppinsBold,
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
+                    fontSize = 16.asp(),
+                    lineHeight = 20.asp(),
                     color = Color.White,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -1011,7 +1013,7 @@ private fun HeroAnimeCard(
                             Text(
                                 text = String.format(java.util.Locale.US, "%.1f", score),
                                 fontFamily = PoppinsMedium,
-                                fontSize = 12.sp,
+                                fontSize = 12.asp(),
                                 color = Color.White
                             )
                         }
@@ -1020,7 +1022,7 @@ private fun HeroAnimeCard(
                         Text(
                             text = it,
                             fontFamily = PoppinsRegular,
-                            fontSize = 12.sp,
+                            fontSize = 12.asp(),
                             color = Color.White.copy(alpha = 0.8f)
                         )
                     }
@@ -1028,7 +1030,7 @@ private fun HeroAnimeCard(
                         Text(
                             text = it,
                             fontFamily = PoppinsRegular,
-                            fontSize = 12.sp,
+                            fontSize = 12.asp(),
                             color = Color.White.copy(alpha = 0.8f)
                         )
                     }
@@ -1075,7 +1077,7 @@ fun ScoreBadge(
             Text(
                 text = formattedScore,
                 fontFamily = PoppinsMedium,
-                fontSize = 12.sp,
+                fontSize = 12.asp(),
                 color = Color.White
             )
         }
@@ -1088,7 +1090,7 @@ fun SectionLabel() {
     Text(
         text = "Anime Random",
         fontFamily = PoppinsBold,
-        fontSize = 10.sp,
+        fontSize = 10.asp(),
         letterSpacing = 1.4.sp,
         color = MaterialTheme.colorScheme.primary
     )
@@ -1109,7 +1111,7 @@ fun DetailsButton() {
             Text(
                 "Ver detalles",
                 fontFamily = PoppinsMedium,
-                fontSize = 13.sp,
+                fontSize = 13.asp(),
                 color = MaterialTheme.colorScheme.primary
             )
 
@@ -1136,7 +1138,7 @@ fun MetadataItemModern(text: String, icon: ImageVector) {
         Text(
             text = text,
             fontFamily = PoppinsRegular,
-            fontSize = 12.sp,
+            fontSize = 12.asp(),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -1149,7 +1151,7 @@ private fun HeroBannerSkeleton() {
     androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(180.adp())
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(20.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(
@@ -1161,7 +1163,7 @@ private fun HeroBannerSkeleton() {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(130.dp)
+                    .width(130.adp())
                     .background(
                         shimmerBrush(
                             targetValue = 1000f, showShimmer = true
@@ -1187,7 +1189,7 @@ private fun HeroBannerSkeleton() {
                         // Label skeleton
                         Box(
                             modifier = Modifier
-                                .width(90.dp)
+                                .width(90.adp())
                                 .height(14.dp)
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
@@ -1237,7 +1239,7 @@ private fun HeroBannerSkeleton() {
                             )
                             Box(
                                 modifier = Modifier
-                                    .width(60.dp)
+                                    .width(60.adp())
                                     .height(14.dp)
                                     .clip(RoundedCornerShape(4.dp))
                                     .background(
@@ -1252,7 +1254,7 @@ private fun HeroBannerSkeleton() {
                     // Score skeleton (inferior)
                     Box(
                         modifier = Modifier
-                            .width(80.dp)
+                            .width(80.adp())
                             .height(24.dp)
                             .clip(RoundedCornerShape(6.dp))
                             .background(
@@ -1358,7 +1360,7 @@ private fun QuickStats(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
+                                .size(42.adp())
                                 .background(
                                     MaterialTheme.colorScheme.primaryContainer,
                                     RoundedCornerShape(12.dp)
@@ -1369,30 +1371,30 @@ private fun QuickStats(
                                 imageVector = Icons.AutoMirrored.Filled.TrendingUp,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(22.adp())
                             )
                         }
                         Column {
                             Text(
                                 text = "Tu Progreso",
                                 fontFamily = PoppinsBold,
-                                fontSize = 16.sp,
+                                fontSize = 16.asp(),
                                 color = MaterialTheme.colorScheme.onSurface,
-                                lineHeight = 18.sp
+                                lineHeight = 18.asp()
                             )
                             Text(
                                 text = "${stats.totalAnimes} animes en tu lista",
                                 fontFamily = PoppinsRegular,
-                                fontSize = 12.sp,
+                                fontSize = 12.asp(),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 15.sp
+                                lineHeight = 15.asp()
                             )
                         }
                     }
 
                     // Botón expandir — estilo outlined
                     Surface(
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(32.adp()),
                         shape = CircleShape,
                         color = Color.Transparent,
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -1403,7 +1405,7 @@ private fun QuickStats(
                                 imageVector = Icons.Default.KeyboardArrowDown,
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .size(18.dp)
+                                    .size(18.adp())
                                     .rotate(rotationAngle),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1491,7 +1493,7 @@ private fun QuickStats(
                             Text(
                                 text = "Continuar viendo",
                                 fontFamily = PoppinsBold,
-                                fontSize = 14.sp,
+                                fontSize = 14.asp(),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
@@ -1533,7 +1535,7 @@ private fun NarrativeStatCard(
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(36.adp())
                 .background(iconTint.copy(alpha = 0.20f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
@@ -1541,15 +1543,15 @@ private fun NarrativeStatCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(18.adp())
             )
         }
         Text(
             text       = text,
             fontFamily = PoppinsRegular,
-            fontSize   = 13.sp,
+            fontSize = 13.asp(),
             color      = MaterialTheme.colorScheme.onSurface,
-            lineHeight = 19.sp
+            lineHeight = 19.asp()
         )
     }
 }
@@ -1575,7 +1577,7 @@ private fun EnhancedStatCard(
         ), modifier = modifier
     ) {
         androidx.compose.material3.Card(
-            modifier = Modifier.height(70.dp),
+            modifier = Modifier.height(70.adp()),
             shape = RoundedCornerShape(14.dp),
             colors = androidx.compose.material3.CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -1593,7 +1595,7 @@ private fun EnhancedStatCard(
                 Text(
                     text = label,
                     fontFamily = PoppinsRegular,
-                    fontSize = 11.sp,
+                    fontSize = 11.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     letterSpacing = 0.3.sp
                 )
@@ -1601,10 +1603,10 @@ private fun EnhancedStatCard(
                 Text(
                     text = value,
                     fontFamily = PoppinsBold,
-                    fontSize = 26.sp,
+                    fontSize = 26.asp(),
                     color = MaterialTheme.colorScheme.primary,
                     letterSpacing = 0.sp,
-                    lineHeight = 26.sp
+                    lineHeight = 26.asp()
                 )
             }
         }
@@ -1639,7 +1641,7 @@ private fun EnhancedContinueWatchingCard(
 
     Card(
         modifier = modifier
-            .height(150.dp) // Un poco más de altura para que respire
+            .height(150.adp()) // Un poco más de altura para que respire
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -1685,7 +1687,7 @@ private fun EnhancedContinueWatchingCard(
                 Text(
                     text = anime.title, style = TextStyle(
                         fontFamily = PoppinsBold,
-                        fontSize = 12.sp,
+                        fontSize = 12.asp(),
                         color = Color.White,
                         shadow = Shadow(Color.Black, Offset(0f, 2f), 4f)
                     ), maxLines = 1, overflow = TextOverflow.Ellipsis
@@ -1733,7 +1735,7 @@ private fun EnhancedContinueWatchingCard(
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
                                 style = TextStyle(
                                     fontFamily = PoppinsMedium,
-                                    fontSize = 9.sp,
+                                    fontSize = 9.asp(),
                                     color = Color.White.copy(alpha = 0.9f)
                                 )
                             )
@@ -1742,7 +1744,7 @@ private fun EnhancedContinueWatchingCard(
                         Text(
                             text = "${(progress * 100).toInt()}%", style = TextStyle(
                                 fontFamily = PoppinsBold,
-                                fontSize = 10.sp,
+                                fontSize = 10.asp(),
                                 color = MaterialTheme.colorScheme.primary
                             )
                         )

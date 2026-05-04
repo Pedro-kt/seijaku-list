@@ -44,6 +44,8 @@ import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,7 +112,7 @@ fun ViewMoreScreen(
                             Text(
                                 text = filterLabels[index],
                                 fontFamily = PoppinsMedium,
-                                fontSize = 12.sp
+                                fontSize = 12.asp()
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
@@ -161,7 +163,7 @@ fun ViewMoreScreen(
                         ) {
                             Text(
                                 text = "No se encontraron animes",
-                                fontSize = 18.sp,
+                                fontSize = 18.asp(),
                                 fontFamily = PoppinsBold,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 textAlign = TextAlign.Center
@@ -169,7 +171,7 @@ fun ViewMoreScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Intenta con otra sección",
-                                fontSize = 14.sp,
+                                fontSize = 14.asp(),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                                 textAlign = TextAlign.Center
                             )
@@ -213,7 +215,7 @@ fun ViewMoreScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     CircularProgressIndicator(
-                                        modifier = Modifier.size(32.dp),
+                                        modifier = Modifier.size(32.adp()),
                                         color = MaterialTheme.colorScheme.primary,
                                         strokeWidth = 3.dp
                                     )
