@@ -112,6 +112,8 @@ import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,7 +238,7 @@ fun AnimeDetailScreenLocal(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .height(56.adp())
                     ) {
                         IconButton(
                             onClick = { navController.popBackStack() },
@@ -251,7 +253,7 @@ fun AnimeDetailScreenLocal(
                         Text(
                             text = "Mi Anime",
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 20.sp,
+                            fontSize = 20.asp(),
                             fontFamily = PoppinsBold,
                             modifier = Modifier.align(Alignment.Center)
                         )
@@ -262,7 +264,7 @@ fun AnimeDetailScreenLocal(
                         ) {
                             if (isSharing) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(24.adp()),
                                     strokeWidth = 2.dp,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -285,7 +287,7 @@ fun AnimeDetailScreenLocal(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(320.dp)
+                                .height(320.adp())
                         ) {
                             // Fondo borroso
                             Image(
@@ -337,8 +339,8 @@ fun AnimeDetailScreenLocal(
                                 // Imagen del anime con sombra
                                 Card(
                                     modifier = Modifier
-                                        .width(140.dp)
-                                        .height(210.dp),
+                                        .width(140.adp())
+                                        .height(210.adp()),
                                     shape = RoundedCornerShape(16.dp),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
                                 ) {
@@ -362,11 +364,11 @@ fun AnimeDetailScreenLocal(
                                     Text(
                                         text = currentAnime.title,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 20.sp,
+                                        fontSize = 20.asp(),
                                         fontFamily = PoppinsBold,
                                         maxLines = 4,
                                         overflow = TextOverflow.Ellipsis,
-                                        lineHeight = 24.sp
+                                        lineHeight = 24.asp()
                                     )
 
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -380,7 +382,7 @@ fun AnimeDetailScreenLocal(
                                             imageVector = Icons.Default.Star,
                                             contentDescription = "Tu puntuación",
                                             tint = Color(0xFFFFD700),
-                                            modifier = Modifier.size(22.dp)
+                                            modifier = Modifier.size(22.adp())
                                         )
                                         Text(
                                             text = if (currentAnime.userScore % 1.0 == 0.0) {
@@ -389,7 +391,7 @@ fun AnimeDetailScreenLocal(
                                                 "${currentAnime.userScore}/10"
                                             },
                                             color = MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 18.sp,
+                                            fontSize = 18.asp(),
                                             fontFamily = PoppinsBold
                                         )
                                     }
@@ -408,7 +410,7 @@ fun AnimeDetailScreenLocal(
                                         Text(
                                             text = currentAnime.userStatus,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            fontSize = 13.sp,
+                                            fontSize = 13.asp(),
                                             fontFamily = PoppinsBold,
                                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                         )
@@ -436,10 +438,10 @@ fun AnimeDetailScreenLocal(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 20.dp, vertical = 12.dp)
-                                .height(50.dp),
+                                .height(50.adp()),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.adp()))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Editar anime", fontFamily = PoppinsBold)
                         }
@@ -477,18 +479,18 @@ fun AnimeDetailScreenLocal(
                                             imageVector = Icons.Default.Tv,
                                             contentDescription = "Episodios",
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(20.dp)
+                                            modifier = Modifier.size(20.adp())
                                         )
                                         Text(
                                             text = "Episodios vistos",
-                                            fontSize = 14.sp,
+                                            fontSize = 14.asp(),
                                             fontFamily = PoppinsRegular,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                     Text(
                                         text = "${currentAnime.episodesWatched}/${currentAnime.totalEpisodes ?: "?"}",
-                                        fontSize = 16.sp,
+                                        fontSize = 16.asp(),
                                         fontFamily = PoppinsBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -512,18 +514,18 @@ fun AnimeDetailScreenLocal(
                                             imageVector = Icons.Default.Autorenew,
                                             contentDescription = "Veces visto",
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(20.dp)
+                                            modifier = Modifier.size(20.adp())
                                         )
                                         Text(
                                             text = "Veces visto",
-                                            fontSize = 14.sp,
+                                            fontSize = 14.asp(),
                                             fontFamily = PoppinsRegular,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                     Text(
                                         text = "${currentAnime.rewatchCount}",
-                                        fontSize = 16.sp,
+                                        fontSize = 16.asp(),
                                         fontFamily = PoppinsBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -552,7 +554,7 @@ fun AnimeDetailScreenLocal(
                                             Text(
                                                 text = "Prioridad",
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
 
@@ -574,7 +576,7 @@ fun AnimeDetailScreenLocal(
                                                         },
                                                         modifier = Modifier
                                                             .weight(1f)
-                                                            .height(40.dp),
+                                                            .height(40.adp()),
                                                         shape = RoundedCornerShape(10.dp),
                                                         color = if (isSelected)
                                                             priorityColors[priority] ?: MaterialTheme.colorScheme.primaryContainer
@@ -588,7 +590,7 @@ fun AnimeDetailScreenLocal(
                                                         ) {
                                                             Text(
                                                                 text = priority,
-                                                                fontSize = 13.sp,
+                                                                fontSize = 13.asp(),
                                                                 fontFamily = PoppinsRegular,
                                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                                                 color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
@@ -601,7 +603,7 @@ fun AnimeDetailScreenLocal(
                                             Text(
                                                 text = "Nota del plan",
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
 
@@ -611,7 +613,7 @@ fun AnimeDetailScreenLocal(
                                                 placeholder = { Text("¿Por qué lo tenés planeado?") },
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .height(100.dp),
+                                                    .height(100.adp()),
                                                 colors = OutlinedTextFieldDefaults.colors(
                                                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                                                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -674,11 +676,11 @@ fun AnimeDetailScreenLocal(
                                                 imageVector = Icons.Default.Flag,
                                                 contentDescription = "Prioridad",
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(20.dp)
+                                                modifier = Modifier.size(20.adp())
                                             )
                                             Text(
                                                 text = "Prioridad del plan",
-                                                fontSize = 16.sp,
+                                                fontSize = 16.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -694,7 +696,7 @@ fun AnimeDetailScreenLocal(
                                                 imageVector = Icons.Default.Edit,
                                                 contentDescription = "Editar prioridad",
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(20.dp)
+                                                modifier = Modifier.size(20.adp())
                                             )
                                         }
                                     }
@@ -711,7 +713,7 @@ fun AnimeDetailScreenLocal(
                                     ) {
                                         Text(
                                             text = "Prioridad",
-                                            fontSize = 14.sp,
+                                            fontSize = 14.asp(),
                                             fontFamily = PoppinsRegular,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -730,7 +732,7 @@ fun AnimeDetailScreenLocal(
                                         ) {
                                             Text(
                                                 text = currentAnime.plannedPriority ?: "Sin definir",
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = if (currentAnime.plannedPriority != null) priorityColor
                                                 else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -746,13 +748,13 @@ fun AnimeDetailScreenLocal(
                                         )
                                         Text(
                                             text = "Nota",
-                                            fontSize = 14.sp,
+                                            fontSize = 14.asp(),
                                             fontFamily = PoppinsRegular,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Text(
                                             text = currentAnime.plannedNote,
-                                            fontSize = 14.sp,
+                                            fontSize = 14.asp(),
                                             fontFamily = PoppinsRegular,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -784,7 +786,7 @@ fun AnimeDetailScreenLocal(
                                 ) {
                                     Text(
                                         text = "Géneros",
-                                        fontSize = 16.sp,
+                                        fontSize = 16.asp(),
                                         fontFamily = PoppinsBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -808,7 +810,7 @@ fun AnimeDetailScreenLocal(
                                                     text = genre,
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                     fontFamily = PoppinsRegular,
-                                                    fontSize = 13.sp,
+                                                    fontSize = 13.asp(),
                                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                                 )
                                             }
@@ -841,17 +843,17 @@ fun AnimeDetailScreenLocal(
                                 ) {
                                     Text(
                                         text = "Sinopsis",
-                                        fontSize = 16.sp,
+                                        fontSize = 16.asp(),
                                         fontFamily = PoppinsBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = currentAnime.synopsis,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 14.sp,
+                                        fontSize = 14.asp(),
                                         fontFamily = PoppinsRegular,
                                         textAlign = TextAlign.Justify,
-                                        lineHeight = 20.sp
+                                        lineHeight = 20.asp()
                                     )
                                 }
                             }
@@ -880,7 +882,7 @@ fun AnimeDetailScreenLocal(
                                 ) {
                                     Text(
                                         text = "Otros títulos",
-                                        fontSize = 16.sp,
+                                        fontSize = 16.asp(),
                                         fontFamily = PoppinsBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -889,13 +891,13 @@ fun AnimeDetailScreenLocal(
                                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                             Text(
                                                 text = "Inglés",
-                                                fontSize = 12.sp,
+                                                fontSize = 12.asp(),
                                                 fontFamily = PoppinsRegular,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                             Text(
                                                 text = currentAnime.titleEnglish,
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -911,13 +913,13 @@ fun AnimeDetailScreenLocal(
                                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                             Text(
                                                 text = "Japonés",
-                                                fontSize = 12.sp,
+                                                fontSize = 12.asp(),
                                                 fontFamily = PoppinsRegular,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                             Text(
                                                 text = currentAnime.titleJapanese,
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -950,7 +952,7 @@ fun AnimeDetailScreenLocal(
                                 ) {
                                     Text(
                                         text = "Estudio",
-                                        fontSize = 16.sp,
+                                        fontSize = 16.asp(),
                                         fontFamily = PoppinsBold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -974,7 +976,7 @@ fun AnimeDetailScreenLocal(
                                                     text = studio,
                                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                                                     fontFamily = PoppinsRegular,
-                                                    fontSize = 13.sp,
+                                                    fontSize = 13.asp(),
                                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                                 )
                                             }
@@ -1006,7 +1008,7 @@ fun AnimeDetailScreenLocal(
                             ) {
                                 Text(
                                     text = "Información",
-                                    fontSize = 16.sp,
+                                    fontSize = 16.asp(),
                                     fontFamily = PoppinsBold,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.padding(bottom = 4.dp)
@@ -1074,7 +1076,7 @@ fun AnimeDetailScreenLocal(
                             ) {
                                 Text(
                                     text = "Seguimiento",
-                                    fontSize = 16.sp,
+                                    fontSize = 16.asp(),
                                     fontFamily = PoppinsBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -1094,18 +1096,18 @@ fun AnimeDetailScreenLocal(
                                             imageVector = Icons.Default.CalendarToday,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
+                                            modifier = Modifier.size(18.adp())
                                         )
                                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text(
                                                 text = "Inicio",
-                                                fontSize = 12.sp,
+                                                fontSize = 12.asp(),
                                                 fontFamily = PoppinsRegular,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                             Text(
                                                 text = currentAnime.startDate?.let { sdf.format(it) } ?: "Sin fecha",
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = if (currentAnime.startDate != null)
                                                     MaterialTheme.colorScheme.onSurface
@@ -1118,25 +1120,25 @@ fun AnimeDetailScreenLocal(
                                         if (currentAnime.startDate != null) {
                                             IconButton(
                                                 onClick = { viewModel.updateDates(null, currentAnime.endDate) },
-                                                modifier = Modifier.size(32.dp)
+                                                modifier = Modifier.size(32.adp())
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Clear,
                                                     contentDescription = "Borrar fecha de inicio",
                                                     tint = MaterialTheme.colorScheme.error,
-                                                    modifier = Modifier.size(16.dp)
+                                                    modifier = Modifier.size(16.adp())
                                                 )
                                             }
                                         }
                                         IconButton(
                                             onClick = { showStartDatePicker = true },
-                                            modifier = Modifier.size(32.dp)
+                                            modifier = Modifier.size(32.adp())
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Edit,
                                                 contentDescription = "Editar fecha de inicio",
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(16.dp)
+                                                modifier = Modifier.size(16.adp())
                                             )
                                         }
                                     }
@@ -1161,18 +1163,18 @@ fun AnimeDetailScreenLocal(
                                             imageVector = Icons.Default.CalendarToday,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
+                                            modifier = Modifier.size(18.adp())
                                         )
                                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                             Text(
                                                 text = "Finalización",
-                                                fontSize = 12.sp,
+                                                fontSize = 12.asp(),
                                                 fontFamily = PoppinsRegular,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                             Text(
                                                 text = currentAnime.endDate?.let { sdf.format(it) } ?: "Sin fecha",
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = if (currentAnime.endDate != null)
                                                     MaterialTheme.colorScheme.onSurface
@@ -1185,25 +1187,25 @@ fun AnimeDetailScreenLocal(
                                         if (currentAnime.endDate != null) {
                                             IconButton(
                                                 onClick = { viewModel.updateDates(currentAnime.startDate, null) },
-                                                modifier = Modifier.size(32.dp)
+                                                modifier = Modifier.size(32.adp())
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Clear,
                                                     contentDescription = "Borrar fecha de finalización",
                                                     tint = MaterialTheme.colorScheme.error,
-                                                    modifier = Modifier.size(16.dp)
+                                                    modifier = Modifier.size(16.adp())
                                                 )
                                             }
                                         }
                                         IconButton(
                                             onClick = { showEndDatePicker = true },
-                                            modifier = Modifier.size(32.dp)
+                                            modifier = Modifier.size(32.adp())
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Edit,
                                                 contentDescription = "Editar fecha de finalización",
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(16.dp)
+                                                modifier = Modifier.size(16.adp())
                                             )
                                         }
                                     }
@@ -1239,20 +1241,20 @@ fun AnimeDetailScreenLocal(
                                     ) {
                                         Text(
                                             text = "Mi Reseña",
-                                            fontSize = 16.sp,
+                                            fontSize = 16.asp(),
                                             fontFamily = PoppinsBold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
 
                                         IconButton(
                                             onClick = { /* TODO: Editar reseña */ },
-                                            modifier = Modifier.size(32.dp)
+                                            modifier = Modifier.size(32.adp())
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Edit,
                                                 contentDescription = "Editar reseña",
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(18.dp)
+                                                modifier = Modifier.size(18.adp())
                                             )
                                         }
                                     }
@@ -1260,10 +1262,10 @@ fun AnimeDetailScreenLocal(
                                     Text(
                                         text = currentAnime.userOpiniun,
                                         textAlign = TextAlign.Justify,
-                                        fontSize = 14.sp,
+                                        fontSize = 14.asp(),
                                         fontFamily = PoppinsRegular,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        lineHeight = 20.sp
+                                        lineHeight = 20.asp()
                                     )
                                 }
                             }
@@ -1349,17 +1351,17 @@ fun AnimeDetailScreenLocal(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Favorite, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Favorite, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.adp()))
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Editar en mi lista", fontSize = 20.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                            Text("Editar en mi lista", fontSize = 20.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                         }
 
                         // Estado
                         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Estado", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                            Text("Estado", fontSize = 16.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                             LazyVerticalGrid(
                                 columns = GridCells.Fixed(2),
-                                modifier = Modifier.height(180.dp),
+                                modifier = Modifier.height(180.adp()),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
@@ -1367,7 +1369,7 @@ fun AnimeDetailScreenLocal(
                                     val isSelected = sheetStatus == status
                                     Surface(
                                         onClick = { sheetStatus = if (isSelected) null else status },
-                                        modifier = Modifier.height(50.dp),
+                                        modifier = Modifier.height(50.adp()),
                                         shape = RoundedCornerShape(12.dp),
                                         color = if (isSelected) statusColors[status] ?: MaterialTheme.colorScheme.primaryContainer
                                                 else MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -1375,8 +1377,8 @@ fun AnimeDetailScreenLocal(
                                     ) {
                                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                if (isSelected) Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.dp), tint = Color.Black)
-                                                Text(status, fontSize = 14.sp, fontFamily = PoppinsRegular,
+                                                if (isSelected) Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(16.adp()), tint = Color.Black)
+                                                Text(status, fontSize = 14.asp(), fontFamily = PoppinsRegular,
                                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                                     color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface)
                                             }
@@ -1389,7 +1391,7 @@ fun AnimeDetailScreenLocal(
                         // Prioridad + nota (solo si Planeado)
                         AnimatedVisibility(visible = sheetStatus == "Planeado", enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
                             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("Prioridad", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Prioridad", fontSize = 16.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                                 val priorities = listOf("Alta", "Media", "Baja")
                                 val priorityColors = mapOf("Alta" to Color(0xFFEF5350), "Media" to Color(0xFFFFCA28), "Baja" to Color(0xFF66BB6A))
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1397,25 +1399,25 @@ fun AnimeDetailScreenLocal(
                                         val isSel = sheetPlannedPriority == p
                                         Surface(
                                             onClick = { sheetPlannedPriority = if (isSel) null else p },
-                                            modifier = Modifier.weight(1f).height(44.dp),
+                                            modifier = Modifier.weight(1f).height(44.adp()),
                                             shape = RoundedCornerShape(12.dp),
                                             color = if (isSel) priorityColors[p] ?: MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
                                             shadowElevation = if (isSel) 4.dp else 1.dp
                                         ) {
                                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                                Text(p, fontSize = 14.sp, fontFamily = PoppinsRegular,
+                                                Text(p, fontSize = 14.asp(), fontFamily = PoppinsRegular,
                                                     fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
                                                     color = if (isSel) Color.Black else MaterialTheme.colorScheme.onSurface)
                                             }
                                         }
                                     }
                                 }
-                                Text("Nota del plan (opcional)", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Nota del plan (opcional)", fontSize = 16.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                                 OutlinedTextField(
                                     value = sheetPlannedNote,
                                     onValueChange = { sheetPlannedNote = it },
                                     placeholder = { Text("¿Por qué lo tenés planeado?") },
-                                    modifier = Modifier.fillMaxWidth().height(100.dp),
+                                    modifier = Modifier.fillMaxWidth().height(100.adp()),
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -1432,12 +1434,12 @@ fun AnimeDetailScreenLocal(
                         AnimatedVisibility(visible = sheetStatus != null && sheetStatus != "Planeado", enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
                             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                    Text("Calificación", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                                    Text("Calificación", fontSize = 16.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                                     if (sheetRating > 0) {
                                         Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
                                             Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(Icons.Default.Star, null, tint = Color(0xFFFFD700), modifier = Modifier.size(16.dp))
-                                                Text(String.format("%.1f", sheetRating), fontSize = 14.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.primary)
+                                                Icon(Icons.Default.Star, null, tint = Color(0xFFFFD700), modifier = Modifier.size(16.adp()))
+                                                Text(String.format("%.1f", sheetRating), fontSize = 14.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.primary)
                                             }
                                         }
                                     }
@@ -1452,12 +1454,12 @@ fun AnimeDetailScreenLocal(
 
                         // Opinión
                         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Opinión (opcional)", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                            Text("Opinión (opcional)", fontSize = 16.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                             OutlinedTextField(
                                 value = sheetOpinion,
                                 onValueChange = { sheetOpinion = it },
                                 placeholder = { Text("Comparte tu opinión...") },
-                                modifier = Modifier.fillMaxWidth().height(120.dp),
+                                modifier = Modifier.fillMaxWidth().height(120.adp()),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -1471,7 +1473,7 @@ fun AnimeDetailScreenLocal(
 
                         // Fechas
                         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Fechas (opcional)", fontSize = 16.sp, fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
+                            Text("Fechas (opcional)", fontSize = 16.asp(), fontFamily = PoppinsBold, color = MaterialTheme.colorScheme.onSurface)
                             val canStart = sheetStatus != "Planeado"
                             val canEnd   = sheetStatus == "Completado"
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1482,9 +1484,9 @@ fun AnimeDetailScreenLocal(
                                     color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = if (canStart) 1f else 0.5f)
                                 ) {
                                     Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp),
+                                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.adp()),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (canStart) 1f else 0.4f))
-                                        Text(sheetStartDate?.let { dateFormat.format(it) } ?: "Inicio", fontSize = 12.sp, fontFamily = PoppinsRegular,
+                                        Text(sheetStartDate?.let { dateFormat.format(it) } ?: "Inicio", fontSize = 12.asp(), fontFamily = PoppinsRegular,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canStart) 1f else 0.4f))
                                     }
                                 }
@@ -1495,9 +1497,9 @@ fun AnimeDetailScreenLocal(
                                     color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = if (canEnd) 1f else 0.5f)
                                 ) {
                                     Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp),
+                                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.adp()),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (canEnd) 1f else 0.4f))
-                                        Text(sheetEndDate?.let { dateFormat.format(it) } ?: "Final", fontSize = 12.sp, fontFamily = PoppinsRegular,
+                                        Text(sheetEndDate?.let { dateFormat.format(it) } ?: "Final", fontSize = 12.asp(), fontFamily = PoppinsRegular,
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (canEnd) 1f else 0.4f))
                                     }
                                 }
@@ -1536,16 +1538,16 @@ fun AnimeDetailScreenLocal(
                                 }
                             },
                             enabled = sheetStatus != null,
-                            modifier = Modifier.fillMaxWidth().height(54.dp),
+                            modifier = Modifier.fillMaxWidth().height(54.adp()),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                             )
                         ) {
-                            Icon(Icons.Default.Check, null, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.Check, null, modifier = Modifier.size(20.adp()))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Guardar cambios", fontSize = 16.sp, fontFamily = PoppinsBold)
+                            Text("Guardar cambios", fontSize = 16.asp(), fontFamily = PoppinsBold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -1569,14 +1571,14 @@ private fun CompactInfoRow(
     ) {
         Text(
             text = label,
-            fontSize = 13.sp,
+            fontSize = 13.asp(),
             fontFamily = PoppinsRegular,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.5f)
         )
         Text(
             text = value,
-            fontSize = 13.sp,
+            fontSize = 13.asp(),
             fontFamily = PoppinsBold,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(0.5f),

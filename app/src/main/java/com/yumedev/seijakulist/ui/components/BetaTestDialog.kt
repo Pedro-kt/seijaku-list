@@ -27,6 +27,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun BetaTestDialog(
@@ -64,7 +66,7 @@ fun BetaTestDialog(
                     contentDescription = "Prueba Beta",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
-                        .height(64.dp)
+                        .height(64.adp())
                         .padding(bottom = 8.dp)
                 )
 
@@ -72,7 +74,7 @@ fun BetaTestDialog(
                 Text(
                     text = "Prueba Cerrada Beta",
                     fontFamily = PoppinsBold,
-                    fontSize = 24.sp,
+                    fontSize = 24.asp(),
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
@@ -81,20 +83,20 @@ fun BetaTestDialog(
                 Text(
                     text = "Esta aplicación se encuentra en fase de desarrollo activo.",
                     fontFamily = PoppinsRegular,
-                    fontSize = 16.sp,
+                    fontSize = 16.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
+                    lineHeight = 22.asp()
                 )
 
                 // Advertencia
                 Text(
                     text = "Puede contener errores, bugs, comportamientos inesperados y componentes sin funcionalidades como botones, etc.",
                     fontFamily = PoppinsRegular,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
-                    lineHeight = 20.sp
+                    lineHeight = 20.asp()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -103,19 +105,19 @@ fun BetaTestDialog(
                 Text(
                     text = "¡Gracias por ser parte de esta prueba cerrada!",
                     fontFamily = PoppinsBold,
-                    fontSize = 16.sp,
+                    fontSize = 16.asp(),
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
+                    lineHeight = 22.asp()
                 )
 
                 Text(
                     text = "Tus comentarios y reportes de errores son fundamentales para el desarrollo y mejora de SeijakuList.",
                     fontFamily = PoppinsRegular,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
-                    lineHeight = 20.sp
+                    lineHeight = 20.asp()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -138,17 +140,17 @@ fun BetaTestDialog(
                         Text(
                             text = "💙 Agradecimiento Especial",
                             fontFamily = PoppinsBold,
-                            fontSize = 15.sp,
+                            fontSize = 15.asp(),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center
                         )
                         Text(
                             text = "Gracias a todos los testers que han dedicado su tiempo a probar la aplicación y reportar errores. Su ayuda es invaluable para hacer de SeijakuList una mejor experiencia.",
                             fontFamily = PoppinsRegular,
-                            fontSize = 13.sp,
+                            fontSize = 13.asp(),
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f),
                             textAlign = TextAlign.Center,
-                            lineHeight = 18.sp
+                            lineHeight = 18.asp()
                         )
                     }
                 }
@@ -160,7 +162,7 @@ fun BetaTestDialog(
                     onClick = onDismiss,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(50.adp()),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
@@ -169,7 +171,7 @@ fun BetaTestDialog(
                     Text(
                         text = "Continuar",
                         fontFamily = PoppinsBold,
-                        fontSize = 16.sp,
+                        fontSize = 16.asp(),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }

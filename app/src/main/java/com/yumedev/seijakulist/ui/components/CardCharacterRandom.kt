@@ -56,6 +56,8 @@ import com.yumedev.seijakulist.domain.models.CharacterDetail
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun CharacterRandomCard(
@@ -69,7 +71,7 @@ fun CharacterRandomCard(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .height(210.dp)
+            .height(210.adp())
             .clip(RoundedCornerShape(16.dp)),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 16.dp
@@ -100,8 +102,8 @@ fun CharacterRandomCard(
                     contentDescription = "Imagen de portada",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .width(140.dp)
-                        .height(210.dp)
+                        .width(140.adp())
+                        .height(210.adp())
                         .clip(RoundedCornerShape(16.dp))
                         .background(color = MaterialTheme.colorScheme.surfaceContainerHighest)
                 )
@@ -118,7 +120,7 @@ fun CharacterRandomCard(
                             .padding(start = 16.dp, top = 16.dp, end = 40.dp)
                             .fillMaxWidth(),
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.sp,
+                        fontSize = 18.asp(),
                         fontFamily = PoppinsBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -140,7 +142,7 @@ fun CharacterRandomCard(
                                 .wrapContentWidth()
                                 .padding(end = 8.dp),
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 16.sp,
+                            fontSize = 16.asp(),
                             fontFamily = PoppinsRegular
                         )
                         Text(
@@ -152,7 +154,7 @@ fun CharacterRandomCard(
                                 .wrapContentWidth()
                                 .padding(end = 16.dp),
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 12.sp,
+                            fontSize = 12.asp(),
                             fontFamily = PoppinsRegular
                         )
                     }

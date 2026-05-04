@@ -60,6 +60,8 @@ import com.yumedev.seijakulist.ui.theme.ThemeMode
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmSignOutDialog
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,7 +112,7 @@ fun ConfigurationScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(56.adp())
                 .background(MaterialTheme.colorScheme.background)
         ) {
             IconButton(
@@ -126,7 +128,7 @@ fun ConfigurationScreen(
             Text(
                 text = "Configuración",
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 20.sp,
+                fontSize = 20.asp(),
                 fontFamily = PoppinsBold,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -336,7 +338,7 @@ fun ConfigurationScreen(
 private fun SectionTitle(text: String) {
     Text(
         text = text,
-        fontSize = 14.sp,
+        fontSize = 14.asp(),
         fontWeight = FontWeight.SemiBold,
         fontFamily = PoppinsBold,
         color = MaterialTheme.colorScheme.primary,
@@ -368,7 +370,7 @@ private fun SettingItem(
         // Ícono
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(40.adp())
                 .background(
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     RoundedCornerShape(10.dp)
@@ -379,7 +381,7 @@ private fun SettingItem(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.adp())
             )
         }
 
@@ -391,7 +393,7 @@ private fun SettingItem(
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp,
+                fontSize = 16.asp(),
                 fontWeight = FontWeight.Medium,
                 fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -400,7 +402,7 @@ private fun SettingItem(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    fontSize = 13.sp,
+                    fontSize = 13.asp(),
                     fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
@@ -414,7 +416,7 @@ private fun SettingItem(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(20.adp())
             )
         }
     }
@@ -438,7 +440,7 @@ private fun SettingItemWithSwitch(
         // Ícono
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(40.adp())
                 .background(
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     RoundedCornerShape(10.dp)
@@ -449,7 +451,7 @@ private fun SettingItemWithSwitch(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.adp())
             )
         }
 
@@ -461,7 +463,7 @@ private fun SettingItemWithSwitch(
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp,
+                fontSize = 16.asp(),
                 fontWeight = FontWeight.Medium,
                 fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -470,7 +472,7 @@ private fun SettingItemWithSwitch(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    fontSize = 13.sp,
+                    fontSize = 13.asp(),
                     fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
@@ -523,7 +525,7 @@ private fun ThemeOption(
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp,
+                fontSize = 16.asp(),
                 fontWeight = FontWeight.Medium,
                 fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -532,7 +534,7 @@ private fun ThemeOption(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
-                    fontSize = 13.sp,
+                    fontSize = 13.asp(),
                     fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )

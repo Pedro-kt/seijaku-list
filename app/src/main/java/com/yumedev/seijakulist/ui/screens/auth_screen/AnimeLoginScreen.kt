@@ -64,6 +64,8 @@ import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun AnimeLoginScreen(
@@ -158,7 +160,7 @@ fun AnimeLoginScreen(
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(60.adp()))
 
             // Logo/Título con animación
             Column(
@@ -170,7 +172,7 @@ fun AnimeLoginScreen(
                 // Título principal con gradiente
                 Text(
                     text = "SeijakuList",
-                    fontSize = 52.sp,
+                    fontSize = 52.asp(),
                     fontFamily = PoppinsBold,
                     fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.displayLarge.copy(
@@ -199,7 +201,7 @@ fun AnimeLoginScreen(
 
                     Text(
                         text = "アニメリスト",
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         letterSpacing = 2.sp
@@ -213,7 +215,7 @@ fun AnimeLoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(50.adp()))
 
             // Mensaje de bienvenida
             Column(
@@ -223,7 +225,7 @@ fun AnimeLoginScreen(
                 Text(
                     text = "¡Bienvenido de nuevo!",
                     fontFamily = PoppinsBold,
-                    fontSize = 26.sp,
+                    fontSize = 26.asp(),
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -232,13 +234,13 @@ fun AnimeLoginScreen(
                 Text(
                     text = "Ingresa a tu cuenta para continuar",
                     fontFamily = PoppinsRegular,
-                    fontSize = 15.sp,
+                    fontSize = 15.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
 
             // Formulario
             AnimeTextField(
@@ -297,7 +299,7 @@ fun AnimeLoginScreen(
                         text = "¿Olvidaste tu contraseña?",
                         fontFamily = PoppinsRegular,
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp
+                        fontSize = 14.asp()
                     )
                 }
             }
@@ -333,13 +335,13 @@ fun AnimeLoginScreen(
                     Text(
                         text = "⚠️ ${(authResult as AuthResult.Error).message}",
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 14.sp,
+                        fontSize = 14.asp(),
                         fontFamily = PoppinsRegular
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
 
             // Registro
             Row(
@@ -351,7 +353,7 @@ fun AnimeLoginScreen(
                     text = "¿No tienes cuenta?",
                     fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    fontSize = 15.sp
+                    fontSize = 15.asp()
                 )
 
                 TextButton(
@@ -361,12 +363,12 @@ fun AnimeLoginScreen(
                         text = "Regístrate",
                         fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 15.sp
+                        fontSize = 15.asp()
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
         }
     }
 }

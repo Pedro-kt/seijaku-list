@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 /**
  * Botón personalizado con estilo Anime/Manga
@@ -114,7 +116,7 @@ fun AnimeButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(60.adp())
             .scale(scale.value)
             .shadow(
                 elevation = if (isPressed) 2.dp else 8.dp,
@@ -169,14 +171,14 @@ fun AnimeButton(
                     imageVector = icon,
                     contentDescription = null,
                     tint = if (enabled) textColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.adp())
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
 
             Text(
                 text = text,
-                fontSize = 18.sp,
+                fontSize = 18.asp(),
                 fontFamily = PoppinsBold,
                 color = if (enabled) textColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 letterSpacing = 0.5.sp

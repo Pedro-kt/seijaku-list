@@ -43,6 +43,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun SplashScreen(
@@ -117,7 +119,7 @@ fun SplashScreen(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "SeijakuList Logo",
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(140.adp())
                     .scale(logoScale)
                     .graphicsLayer { alpha = logoAlpha }
                     .clip(RoundedCornerShape(28.dp))
@@ -129,7 +131,7 @@ fun SplashScreen(
             Text(
                 text = "Seijaku List",
                 fontFamily = PoppinsBold,
-                fontSize = 32.sp,
+                fontSize = 32.asp(),
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 modifier = Modifier.graphicsLayer { alpha = textAlpha }
@@ -140,7 +142,7 @@ fun SplashScreen(
             // Tagline
             Text(
                 text = "Tu colección de anime y mangas",
-                fontSize = 14.sp,
+                fontSize = 14.asp(),
                 color = Color.White.copy(alpha = 0.8f),
                 modifier = Modifier.graphicsLayer { alpha = textAlpha }
             )

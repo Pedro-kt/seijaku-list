@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun WhatsNewBanner(
@@ -79,21 +81,21 @@ fun WhatsNewBanner(
                     imageVector = Icons.Default.AutoAwesome,
                     contentDescription = null,
                     tint = contentColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.adp())
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "¡Seijaku List se actualizó!",
                         fontFamily = PoppinsBold,
-                        fontSize = 13.sp,
+                        fontSize = 13.asp(),
                         color = contentColor,
-                        lineHeight = 16.sp
+                        lineHeight = 16.asp()
                     )
                     Text(
                         text = "v$versionName · Mirá las novedades",
                         fontFamily = PoppinsRegular,
-                        fontSize = 11.sp,
+                        fontSize = 11.asp(),
                         color = contentColor.copy(alpha = 0.65f)
                     )
                 }
@@ -110,7 +112,7 @@ fun WhatsNewBanner(
                     Text(
                         text = "Ver",
                         fontFamily = PoppinsBold,
-                        fontSize = 11.sp,
+                        fontSize = 11.asp(),
                         color = contentColor
                     )
                     Icon(
@@ -123,7 +125,7 @@ fun WhatsNewBanner(
 
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(28.adp())
                         .clip(CircleShape)
                         .background(contentColor.copy(alpha = 0.10f))
                         .clickable(onClick = onDismiss),

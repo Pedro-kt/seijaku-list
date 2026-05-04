@@ -27,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun CardAnimesHomeLoading() {
@@ -69,14 +70,14 @@ private fun AnimeCardSkeleton() {
     )
 
     Column(
-        modifier = Modifier.width(130.dp),
+        modifier = Modifier.width(130.adp()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Imagen skeleton
         Box(
             modifier = Modifier
-                .width(130.dp)
-                .height(200.dp)
+                .width(130.adp())
+                .height(200.adp())
                 .clip(RoundedCornerShape(8.dp))
                 .background(brush)
         )

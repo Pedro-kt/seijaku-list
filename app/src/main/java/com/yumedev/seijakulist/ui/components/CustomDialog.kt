@@ -35,6 +35,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 /**
  * Tipos de diálogo predefinidos con iconos y colores correspondientes
@@ -128,14 +130,14 @@ fun CustomDialog(
                     imageVector = icon,
                     contentDescription = title,
                     tint = iconTint,
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier.size(64.adp())
                 )
 
                 // Título
                 Text(
                     text = title,
                     fontFamily = PoppinsBold,
-                    fontSize = 22.sp,
+                    fontSize = 22.asp(),
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
@@ -144,10 +146,10 @@ fun CustomDialog(
                 Text(
                     text = message,
                     fontFamily = PoppinsRegular,
-                    fontSize = 15.sp,
+                    fontSize = 15.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center,
-                    lineHeight = 21.sp
+                    lineHeight = 21.asp()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -166,7 +168,7 @@ fun CustomDialog(
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(48.dp),
+                                .height(48.adp()),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurface
@@ -175,7 +177,7 @@ fun CustomDialog(
                             Text(
                                 text = dismissButtonText,
                                 fontFamily = PoppinsBold,
-                                fontSize = 15.sp
+                                fontSize = 15.asp()
                             )
                         }
                     }
@@ -188,7 +190,7 @@ fun CustomDialog(
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .height(48.dp),
+                            .height(48.adp()),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (type == DialogType.ERROR || type == DialogType.DELETE) {
@@ -206,7 +208,7 @@ fun CustomDialog(
                         Text(
                             text = confirmButtonText,
                             fontFamily = PoppinsBold,
-                            fontSize = 15.sp
+                            fontSize = 15.asp()
                         )
                     }
                 }

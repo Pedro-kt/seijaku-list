@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun MangaPlaceholder() {
@@ -33,14 +35,14 @@ fun MangaPlaceholder() {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.MenuBook,
             contentDescription = null,
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(80.adp()),
             tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Próximamente",
             fontFamily = PoppinsBold,
-            fontSize = 24.sp,
+            fontSize = 24.asp(),
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -48,9 +50,9 @@ fun MangaPlaceholder() {
             text = "Estamos trabajando para traerte lo mejor del manga",
             fontFamily = PoppinsRegular,
             textAlign = TextAlign.Center,
-            fontSize = 15.sp,
+            fontSize = 15.asp(),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            lineHeight = 22.sp
+            lineHeight = 22.asp()
         )
     }
 }

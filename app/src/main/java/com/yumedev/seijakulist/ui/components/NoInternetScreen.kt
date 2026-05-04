@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun NoInternetScreen(
@@ -52,7 +54,7 @@ fun NoInternetScreen(
         // Título principal
         Text(
             text = "¡Oops!",
-            fontSize = 32.sp,
+            fontSize = 32.asp(),
             fontFamily = PoppinsBold,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
@@ -63,7 +65,7 @@ fun NoInternetScreen(
         // Mensaje descriptivo
         Text(
             text = "Parece que hay un problema",
-            fontSize = 18.sp,
+            fontSize = 18.asp(),
             fontFamily = PoppinsMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             textAlign = TextAlign.Center
@@ -74,20 +76,20 @@ fun NoInternetScreen(
         // Mensaje de ayuda
         Text(
             text = "Verifica tu conexión a internet\ne intenta nuevamente",
-            fontSize = 14.sp,
+            fontSize = 14.asp(),
             fontFamily = PoppinsRegular,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
-            lineHeight = 22.sp
+            lineHeight = 22.asp()
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(40.adp()))
 
         // Botón mejorado
         Button(
             onClick = onRetryClick,
             modifier = Modifier
-                .height(56.dp)
+                .height(56.adp())
                 .padding(horizontal = 16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -102,12 +104,12 @@ fun NoInternetScreen(
             Icon(
                 imageVector = Icons.Default.Refresh,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.adp())
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = "Reintentar",
-                fontSize = 16.sp,
+                fontSize = 16.asp(),
                 fontFamily = PoppinsMedium
             )
         }

@@ -83,6 +83,8 @@ import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.util.CharacterDescriptionParser
 import com.yumedev.seijakulist.util.CharacterInfo
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  CharacterDetailScreen
@@ -221,7 +223,7 @@ fun CharacterDetailScreen(
                         }
                     }
 
-                    item { Spacer(modifier = Modifier.height(48.dp)) }
+                    item { Spacer(modifier = Modifier.height(48.adp())) }
                 }
             }
         }
@@ -245,7 +247,7 @@ private fun CharacterHeroHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp)
+            .height(250.adp())
     ) {
         Row(
             modifier = Modifier
@@ -257,7 +259,7 @@ private fun CharacterHeroHeader(
         ) {
             // Avatar circular simple
             Surface(
-                modifier        = Modifier.size(148.dp),
+                modifier        = Modifier.size(148.adp()),
                 shape           = CircleShape,
                 shadowElevation = 10.dp,
                 border          = BorderStroke(2.dp, Color.White.copy(alpha = 0.15f))
@@ -283,17 +285,17 @@ private fun CharacterHeroHeader(
             ) {
                 Text(
                     text       = character.nameCharacter,
-                    fontSize   = 24.sp,
+                    fontSize = 24.asp(),
                     fontFamily = PoppinsBold,
                     color      = Color.White,
                     textAlign  = TextAlign.Center,
-                    lineHeight = 28.sp,
+                    lineHeight = 28.asp(),
                     modifier   = Modifier.padding(horizontal = 32.dp)
                 )
                 if (character.nameKanjiCharacter.isNotEmpty() && character.nameKanjiCharacter != "N/A") {
                     Text(
                         text       = character.nameKanjiCharacter,
-                        fontSize   = 14.sp,
+                        fontSize = 14.asp(),
                         fontFamily = PoppinsRegular,
                         color      = Color.White.copy(alpha = 0.70f),
                         textAlign  = TextAlign.Center,
@@ -312,7 +314,7 @@ private fun CharacterHeroHeader(
                         Text(
                             text       = "%,d favoritos".format(character.favorites),
                             modifier   = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
-                            fontSize   = 11.sp,
+                            fontSize = 11.asp(),
                             fontFamily = PoppinsBold,
                             color      = MaterialTheme.colorScheme.primary
                         )
@@ -387,7 +389,7 @@ private fun CharacterNicknamesSection(nicknames: List<String>) {
                     Text(
                         text       = nickname,
                         modifier   = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                        fontSize   = 12.sp,
+                        fontSize = 12.asp(),
                         fontFamily = PoppinsMedium,
                         color      = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -416,8 +418,8 @@ private fun CharacterDescriptionSection(text: String, expanded: Boolean, onToggl
                     Text(
                         text       = text,
                         color      = MaterialTheme.colorScheme.onSurface,
-                        fontSize   = 14.sp,
-                        lineHeight = 22.sp,
+                        fontSize = 14.asp(),
+                        lineHeight = 22.asp(),
                         fontFamily = PoppinsRegular,
                         textAlign  = TextAlign.Justify,
                         maxLines   = if (expanded) Int.MAX_VALUE else 7,
@@ -454,7 +456,7 @@ private fun CharacterDescriptionSection(text: String, expanded: Boolean, onToggl
                         ) {
                             Text(
                                 text       = if (expanded) "Ver menos" else "Ver más",
-                                fontSize   = 12.sp,
+                                fontSize = 12.asp(),
                                 fontFamily = PoppinsBold,
                                 color      = MaterialTheme.colorScheme.primary
                             )
@@ -462,7 +464,7 @@ private fun CharacterDescriptionSection(text: String, expanded: Boolean, onToggl
                                 imageVector        = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                 contentDescription = null,
                                 tint               = MaterialTheme.colorScheme.primary,
-                                modifier           = Modifier.size(16.dp)
+                                modifier           = Modifier.size(16.adp())
                             )
                         }
                     }
@@ -549,7 +551,7 @@ private fun CharacterGallerySection(
                 Text(
                     text     = "${pictures.size}",
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                    fontSize = 12.sp,
+                    fontSize = 12.asp(),
                     fontFamily = PoppinsBold,
                     color    = MaterialTheme.colorScheme.primary
                 )
@@ -563,8 +565,8 @@ private fun CharacterGallerySection(
             items(pictures) { picture ->
                 ElevatedCard(
                     modifier  = Modifier
-                        .width(140.dp)
-                        .height(210.dp)
+                        .width(140.adp())
+                        .height(210.adp())
                         .clickable { onImageClick(picture.characterPictures) },
                     shape     = RoundedCornerShape(14.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
@@ -591,13 +593,13 @@ private fun CharacterGallerySection(
 @Composable
 private fun VoiceActorCard(voiceActor: VoiceActorDomain) {
     Column(
-        modifier              = Modifier.width(82.dp),
+        modifier              = Modifier.width(82.adp()),
         horizontalAlignment   = Alignment.CenterHorizontally,
         verticalArrangement   = Arrangement.spacedBy(6.dp)
     ) {
         // Foto circular
         Surface(
-            modifier        = Modifier.size(72.dp),
+            modifier        = Modifier.size(72.adp()),
             shape           = CircleShape,
             color           = MaterialTheme.colorScheme.surfaceContainerHigh,
             shadowElevation = 2.dp
@@ -614,13 +616,13 @@ private fun VoiceActorCard(voiceActor: VoiceActorDomain) {
         }
         Text(
             text       = voiceActor.name,
-            fontSize   = 10.sp,
+            fontSize = 10.asp(),
             fontFamily = PoppinsBold,
             color      = MaterialTheme.colorScheme.onSurface,
             textAlign  = TextAlign.Center,
             maxLines   = 2,
             overflow   = TextOverflow.Ellipsis,
-            lineHeight = 13.sp
+            lineHeight = 13.asp()
         )
         if (voiceActor.language.isNotEmpty()) {
             Surface(
@@ -630,7 +632,7 @@ private fun VoiceActorCard(voiceActor: VoiceActorDomain) {
                 Text(
                     text       = voiceActor.language,
                     modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    fontSize   = 9.sp,
+                    fontSize = 9.asp(),
                     fontFamily = PoppinsMedium,
                     color      = MaterialTheme.colorScheme.onSecondaryContainer,
                     maxLines   = 1,
@@ -648,7 +650,7 @@ private fun VoiceActorCard(voiceActor: VoiceActorDomain) {
 private fun CharacterAppearanceCard(item: AppearanceItem, navController: NavController) {
     ElevatedCard(
         modifier  = Modifier
-            .width(110.dp)
+            .width(110.adp())
             .clickable(enabled = item.malId > 0) {
                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${item.malId}")
             },
@@ -657,7 +659,7 @@ private fun CharacterAppearanceCard(item: AppearanceItem, navController: NavCont
     ) {
         Box(modifier = Modifier
             .fillMaxWidth()
-            .height(155.dp)
+            .height(155.adp())
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -684,7 +686,7 @@ private fun CharacterAppearanceCard(item: AppearanceItem, navController: NavCont
                     Text(
                         text       = item.tag,
                         modifier   = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-                        fontSize   = 8.sp,
+                        fontSize = 8.asp(),
                         fontFamily = PoppinsBold,
                         color      = Color.White,
                         maxLines   = 1
@@ -694,12 +696,12 @@ private fun CharacterAppearanceCard(item: AppearanceItem, navController: NavCont
             // Título (bottom)
             Text(
                 text       = item.title,
-                fontSize   = 10.sp,
+                fontSize = 10.asp(),
                 fontFamily = PoppinsBold,
                 color      = Color.White,
                 maxLines   = 2,
                 overflow   = TextOverflow.Ellipsis,
-                lineHeight = 13.sp,
+                lineHeight = 13.asp(),
                 modifier   = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
@@ -726,19 +728,19 @@ private fun CharacterInfoChip(info: CharacterInfo) {
         ) {
             Text(
                 text       = info.key,
-                fontSize   = 11.sp,
+                fontSize = 11.asp(),
                 fontFamily = PoppinsRegular,
                 color      = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.75f),
                 maxLines   = 1
             )
             Text(
                 text     = "·",
-                fontSize = 12.sp,
+                fontSize = 12.asp(),
                 color    = MaterialTheme.colorScheme.outlineVariant
             )
             Text(
                 text       = info.value,
-                fontSize   = 11.sp,
+                fontSize = 11.asp(),
                 fontFamily = PoppinsBold,
                 color      = MaterialTheme.colorScheme.onSurface,
                 maxLines   = 1,
@@ -804,13 +806,13 @@ private fun CharacterLoadingState() {
             verticalArrangement   = Arrangement.spacedBy(16.dp)
         ) {
             CircularProgressIndicator(
-                modifier  = Modifier.size(48.dp),
+                modifier  = Modifier.size(48.adp()),
                 color     = MaterialTheme.colorScheme.primary,
                 strokeWidth = 3.dp
             )
             Text(
                 text       = "Cargando personaje...",
-                fontSize   = 14.sp,
+                fontSize = 14.asp(),
                 fontFamily = PoppinsRegular,
                 color      = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -828,17 +830,17 @@ private fun CharacterErrorState(message: String) {
         ) {
             Text(
                 text       = "Algo salió mal",
-                fontSize   = 20.sp,
+                fontSize = 20.asp(),
                 fontFamily = PoppinsBold,
                 color      = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text       = message,
-                fontSize   = 13.sp,
+                fontSize = 13.asp(),
                 fontFamily = PoppinsRegular,
                 color      = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign  = TextAlign.Center,
-                lineHeight = 18.sp
+                lineHeight = 18.asp()
             )
         }
     }

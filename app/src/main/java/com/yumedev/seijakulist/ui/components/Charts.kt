@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlin.math.min
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 data class PieChartData(
     val label: String,
@@ -74,14 +76,14 @@ fun DonutChart(
     ) {
         Box(
             modifier = Modifier
-                .size(260.dp)
+                .size(260.adp())
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             // Efecto de glow/brillo de fondo
             Canvas(
                 modifier = Modifier
-                    .size(220.dp)
+                    .size(220.adp())
             ) {
                 if (total > 0f) {
                     // Glow effect - múltiples círculos con opacidad decreciente
@@ -103,7 +105,7 @@ fun DonutChart(
 
             // Gráfico principal
             Canvas(
-                modifier = Modifier.size(200.dp)
+                modifier = Modifier.size(200.adp())
             ) {
                 if (total == 0f) return@Canvas
 
@@ -178,7 +180,7 @@ fun DonutChart(
             // Círculo central con gradiente para dar profundidad
             Surface(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(120.adp())
                     .shadow(4.dp, CircleShape),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surface
@@ -204,14 +206,14 @@ fun DonutChart(
                         ) {
                             Text(
                                 text = centerText,
-                                fontSize = 38.sp,
+                                fontSize = 38.asp(),
                                 fontFamily = PoppinsBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             if (centerSubtext != null) {
                                 Text(
                                     text = centerSubtext,
-                                    fontSize = 12.sp,
+                                    fontSize = 12.asp(),
                                     fontFamily = PoppinsRegular,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     letterSpacing = 0.5.sp
@@ -285,7 +287,7 @@ private fun ChartLegendItem(
                 // Cuadrado de color con gradiente
                 Box(
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(20.adp())
                         .shadow(2.dp, RoundedCornerShape(4.dp))
                         .background(
                             brush = Brush.linearGradient(
@@ -299,7 +301,7 @@ private fun ChartLegendItem(
                 )
                 Text(
                     text = label,
-                    fontSize = 16.sp,
+                    fontSize = 16.asp(),
                     fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
@@ -312,13 +314,13 @@ private fun ChartLegendItem(
             ) {
                 Text(
                     text = String.format("%.1f%%", percentage),
-                    fontSize = 16.sp,
+                    fontSize = 16.asp(),
                     fontFamily = PoppinsBold,
                     color = color
                 )
                 Text(
                     text = "$value animes",
-                    fontSize = 12.sp,
+                    fontSize = 12.asp(),
                     fontFamily = PoppinsRegular,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

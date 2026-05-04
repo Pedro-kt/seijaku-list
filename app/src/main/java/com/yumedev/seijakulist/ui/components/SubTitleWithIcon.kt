@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import java.nio.file.WatchEvent
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun SubTitleIcon(subTitle: String, icon: ImageVector) {
@@ -45,7 +46,7 @@ fun SubTitleIcon(subTitle: String, icon: ImageVector) {
         Text(
             text = subTitle,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 20.sp,
+            fontSize = 20.asp(),
             fontFamily = PoppinsBold,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Start

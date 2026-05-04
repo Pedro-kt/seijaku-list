@@ -203,6 +203,8 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -414,7 +416,7 @@ fun AnimeDetailScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(56.adp())
                         .background(MaterialTheme.colorScheme.background)
                 ) {
                     IconButton(
@@ -430,7 +432,7 @@ fun AnimeDetailScreen(
                     Text(
                         text = "Detalle del anime",
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.sp,
+                        fontSize = 18.asp(),
                         fontFamily = PoppinsBold,
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -529,7 +531,7 @@ fun AnimeDetailScreen(
                                     Surface(
                                         shape = CircleShape,
                                         color = Color(0xFF4CAF50),
-                                        modifier = Modifier.size(40.dp)
+                                        modifier = Modifier.size(40.adp())
                                     ) {
                                         Box(
                                             contentAlignment = Alignment.Center,
@@ -539,7 +541,7 @@ fun AnimeDetailScreen(
                                                 imageVector = Icons.Default.CheckCircle,
                                                 contentDescription = null,
                                                 tint = Color.White,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(24.adp())
                                             )
                                         }
                                     }
@@ -592,7 +594,7 @@ fun AnimeDetailScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(340.dp)
+                                    .height(340.adp())
                             ) {
                                 // 1. FONDO DIFUMINADO (Mantenemos el efecto premium)
                                 AsyncImage(
@@ -633,8 +635,8 @@ fun AnimeDetailScreen(
                                     // PORTADA
                                     Card(
                                         modifier = Modifier
-                                            .width(140.dp)
-                                            .height(210.dp),
+                                            .width(140.adp())
+                                            .height(210.adp()),
                                         shape = RoundedCornerShape(12.dp),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                                     ) {
@@ -654,7 +656,7 @@ fun AnimeDetailScreen(
                                     Column(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(210.dp), // Misma altura que la portada
+                                            .height(210.adp()), // Misma altura que la portada
                                         verticalArrangement = Arrangement.SpaceBetween // Empuja los datos arriba y el botón abajo
                                     ) {
                                         // SECCIÓN SUPERIOR: Títulos y Status
@@ -662,18 +664,18 @@ fun AnimeDetailScreen(
                                             Text(
                                                 text = animeDetail?.title ?: "",
                                                 color = MaterialTheme.colorScheme.onSurface,
-                                                fontSize = 18.sp,
+                                                fontSize = 18.asp(),
                                                 fontFamily = PoppinsBold,
                                                 maxLines = 2,
                                                 overflow = TextOverflow.Ellipsis,
-                                                lineHeight = 22.sp
+                                                lineHeight = 22.asp()
                                             )
 
                                             if (!animeDetail?.titleJapanese.isNullOrBlank()) {
                                                 Text(
                                                     text = animeDetail?.titleJapanese ?: "",
                                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                                    fontSize = 11.sp,
+                                                    fontSize = 11.asp(),
                                                     fontFamily = PoppinsRegular,
                                                     maxLines = 1
                                                 )
@@ -704,7 +706,7 @@ fun AnimeDetailScreen(
                                                 onClick = { showAddToListSheet = true },
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .height(42.dp), // Altura reducida
+                                                    .height(42.adp()), // Altura reducida
                                                 shape = RoundedCornerShape(10.dp),
                                                 contentPadding = PaddingValues(horizontal = 12.dp),
                                                 colors = ButtonDefaults.buttonColors(
@@ -717,12 +719,12 @@ fun AnimeDetailScreen(
                                                 Icon(
                                                     imageVector = if (isAdded) Icons.Default.Edit else Icons.Default.Favorite,
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(16.dp)
+                                                    modifier = Modifier.size(16.adp())
                                                 )
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 Text(
                                                     text = if (isAdded) "Editar lista" else "Añadir",
-                                                    fontSize = 13.sp,
+                                                    fontSize = 13.asp(),
                                                     fontFamily = PoppinsBold
                                                 )
                                             }
@@ -768,7 +770,7 @@ fun AnimeDetailScreen(
                                                 Icon(
                                                     imageVector = icon,
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(24.dp),
+                                                    modifier = Modifier.size(24.adp()),
                                                     tint = iconColor
                                                 )
                                             }
@@ -800,7 +802,7 @@ fun AnimeDetailScreen(
                                         ) {
                                             Text(
                                                 text = "Géneros",
-                                                fontSize = 16.sp,
+                                                fontSize = 16.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -823,7 +825,7 @@ fun AnimeDetailScreen(
                                                             text = genre.name ?: "N/A",
                                                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                             fontFamily = PoppinsRegular,
-                                                            fontSize = 13.sp,
+                                                            fontSize = 13.asp(),
                                                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                                         )
                                                     }
@@ -855,7 +857,7 @@ fun AnimeDetailScreen(
                                     ) {
                                         Text(
                                             text = "Sinopsis",
-                                            fontSize = 16.sp,
+                                            fontSize = 16.asp(),
                                             fontFamily = PoppinsBold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -867,10 +869,10 @@ fun AnimeDetailScreen(
                                         Text(
                                             text = animeDetail?.synopsis ?: "Sinopsis no encontrada",
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 14.sp,
+                                            fontSize = 14.asp(),
                                             fontFamily = PoppinsRegular,
                                             textAlign = TextAlign.Justify,
-                                            lineHeight = 20.sp,
+                                            lineHeight = 20.asp(),
                                             maxLines = if (expanded) Int.MAX_VALUE else 8,
                                             onTextLayout = { textLayoutResult = it }
                                         )
@@ -879,7 +881,7 @@ fun AnimeDetailScreen(
                                             Text(
                                                 text = if (expanded) "Ver menos" else "Ver más",
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 13.sp,
+                                                fontSize = 13.asp(),
                                                 color = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier.clickable { expanded = !expanded }
                                             )
@@ -910,7 +912,7 @@ fun AnimeDetailScreen(
                                         ) {
                                             Text(
                                                 text = "Otros títulos",
-                                                fontSize = 16.sp,
+                                                fontSize = 16.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -919,13 +921,13 @@ fun AnimeDetailScreen(
                                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                                     Text(
                                                         text = "Inglés",
-                                                        fontSize = 12.sp,
+                                                        fontSize = 12.asp(),
                                                         fontFamily = PoppinsRegular,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
                                                     Text(
                                                         text = animeDetail?.titleEnglish ?: "",
-                                                        fontSize = 14.sp,
+                                                        fontSize = 14.asp(),
                                                         fontFamily = PoppinsBold,
                                                         color = MaterialTheme.colorScheme.onSurface
                                                     )
@@ -941,13 +943,13 @@ fun AnimeDetailScreen(
                                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                                     Text(
                                                         text = "Japonés",
-                                                        fontSize = 12.sp,
+                                                        fontSize = 12.asp(),
                                                         fontFamily = PoppinsRegular,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
                                                     Text(
                                                         text = animeDetail?.titleJapanese ?: "",
-                                                        fontSize = 14.sp,
+                                                        fontSize = 14.asp(),
                                                         fontFamily = PoppinsBold,
                                                         color = MaterialTheme.colorScheme.onSurface
                                                     )
@@ -980,7 +982,7 @@ fun AnimeDetailScreen(
                                         ) {
                                             Text(
                                                 text = "Estudio",
-                                                fontSize = 16.sp,
+                                                fontSize = 16.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
@@ -1004,7 +1006,7 @@ fun AnimeDetailScreen(
                                                             text = studio.nameStudio ?: "N/A",
                                                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                                                             fontFamily = PoppinsRegular,
-                                                            fontSize = 13.sp,
+                                                            fontSize = 13.asp(),
                                                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                                         )
                                                     }
@@ -1036,7 +1038,7 @@ fun AnimeDetailScreen(
                                     ) {
                                         Text(
                                             text = "Información",
-                                            fontSize = 16.sp,
+                                            fontSize = 16.asp(),
                                             fontFamily = PoppinsBold,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.padding(bottom = 4.dp)
@@ -1103,7 +1105,7 @@ fun AnimeDetailScreen(
                                     ) {
                                         Text(
                                             text = "Temas Musicales",
-                                            fontSize = 16.sp,
+                                            fontSize = 16.asp(),
                                             fontFamily = PoppinsBold,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -1132,10 +1134,10 @@ fun AnimeDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(220.dp),
+                                            .height(220.adp()),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                                        CircularProgressIndicator(modifier = Modifier.size(32.adp()))
                                     }
                                 } else if (recommendations.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -1152,7 +1154,7 @@ fun AnimeDetailScreen(
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                                 color = MaterialTheme.colorScheme.primary,
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 13.sp
+                                                fontSize = 13.asp()
                                             )
                                         }
                                     }
@@ -1195,7 +1197,7 @@ fun AnimeDetailScreen(
                                                         "Buscar por nombre...",
                                                         style = TextStyle(
                                                             fontFamily = PoppinsRegular,
-                                                            fontSize = 15.sp,
+                                                            fontSize = 15.asp(),
                                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                                                         )
                                                     )
@@ -1205,7 +1207,7 @@ fun AnimeDetailScreen(
                                                         Icons.Rounded.Search,
                                                         null,
                                                         tint = MaterialTheme.colorScheme.primary,
-                                                        modifier = Modifier.size(22.dp)
+                                                        modifier = Modifier.size(22.adp())
                                                     )
                                                 },
                                                 trailingIcon = {
@@ -1217,7 +1219,7 @@ fun AnimeDetailScreen(
                                                             Icons.Rounded.Close,
                                                             null,
                                                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                                            modifier = Modifier.size(20.dp)
+                                                            modifier = Modifier.size(20.adp())
                                                         )
                                                     }
                                                 },
@@ -1231,7 +1233,7 @@ fun AnimeDetailScreen(
                                                 ),
                                                 textStyle = TextStyle(
                                                     fontFamily = PoppinsMedium,
-                                                    fontSize = 15.sp,
+                                                    fontSize = 15.asp(),
                                                     color = MaterialTheme.colorScheme.onSurface
                                                 )
                                             )
@@ -1243,13 +1245,13 @@ fun AnimeDetailScreen(
                                         ) {
                                             IconButton(
                                                 onClick = { isSearching = true },
-                                                modifier = Modifier.size(44.dp)
+                                                modifier = Modifier.size(44.adp())
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Rounded.Search,
                                                     contentDescription = "Buscar",
                                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                                                    modifier = Modifier.size(26.dp)
+                                                    modifier = Modifier.size(26.adp())
                                                 )
                                             }
                                         }
@@ -1370,7 +1372,7 @@ fun AnimeDetailScreen(
                                                                             Box(
                                                                                 modifier = Modifier
                                                                                     .fillMaxWidth()
-                                                                                    .height(160.dp)
+                                                                                    .height(160.adp())
                                                                             ) {
                                                                                 AsyncImage(
                                                                                     model = ImageRequest.Builder(
@@ -1411,7 +1413,7 @@ fun AnimeDetailScreen(
                                                                                             "Main" -> MaterialTheme.colorScheme.onPrimaryContainer
                                                                                             else -> MaterialTheme.colorScheme.onSecondaryContainer
                                                                                         },
-                                                                                        fontSize = 10.sp
+                                                                                        fontSize = 10.asp()
                                                                                     )
                                                                                 }
                                                                             }
@@ -1429,8 +1431,8 @@ fun AnimeDetailScreen(
                                                                                     vertical = 12.dp
                                                                                 ),
                                                                                 color = MaterialTheme.colorScheme.onSurface,
-                                                                                fontSize = 13.sp,
-                                                                                lineHeight = 16.sp
+                                                                                fontSize = 13.asp(),
+                                                                                lineHeight = 16.asp()
                                                                             )
                                                                         }
                                                                     }
@@ -1470,7 +1472,7 @@ fun AnimeDetailScreen(
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                                 color = MaterialTheme.colorScheme.primary,
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 13.sp
+                                                fontSize = 13.asp()
                                             )
                                         }
                                     }
@@ -1493,7 +1495,7 @@ fun AnimeDetailScreen(
                                     ) {
                                         Icon(
                                             Icons.Default.PhotoLibrary, null,
-                                            Modifier.size(40.dp),
+                                            Modifier.size(40.adp()),
                                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                                         )
                                         Text("Sin imágenes disponibles", fontFamily = PoppinsMedium,
@@ -1553,7 +1555,7 @@ fun AnimeDetailScreen(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 shape = RoundedCornerShape(12.dp)
                                             ) {
-                                                Icon(Icons.Default.ExpandMore, null, Modifier.size(18.dp))
+                                                Icon(Icons.Default.ExpandMore, null, Modifier.size(18.adp()))
                                                 Spacer(Modifier.width(6.dp))
                                                 Text("Ver ${animePictures.size - 9} fotos más", fontFamily = PoppinsMedium)
                                             }
@@ -1572,7 +1574,7 @@ fun AnimeDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(100.dp),
+                                            .height(100.adp()),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -1595,28 +1597,28 @@ fun AnimeDetailScreen(
                                                 Icons.Default.PlayCircle,
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(24.adp())
                                             )
                                             Spacer(modifier = Modifier.width(12.dp))
                                             Text(
                                                 text = "Trailers",
                                                 color = MaterialTheme.colorScheme.onSurface,
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 20.sp
+                                                fontSize = 20.asp()
                                             )
                                             Spacer(modifier = Modifier.weight(1f))
                                             Text(
                                                 text = "${validPromos.size} video${if (validPromos.size != 1) "s" else ""}",
                                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                                 fontFamily = PoppinsRegular,
-                                                fontSize = 13.sp
+                                                fontSize = 13.asp()
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(12.dp))
                                         Text(
                                             text = "Trailers y promos oficiales",
                                             fontFamily = PoppinsRegular,
-                                            fontSize = 12.sp,
+                                            fontSize = 12.asp(),
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
                                             modifier = Modifier.padding(start = 52.dp)
                                         )
@@ -1657,28 +1659,28 @@ fun AnimeDetailScreen(
                                                 Icons.Default.MusicNote,
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(24.adp())
                                             )
                                             Spacer(modifier = Modifier.width(12.dp))
                                             Text(
                                                 text = "Music Videos",
                                                 color = MaterialTheme.colorScheme.onSurface,
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 20.sp
+                                                fontSize = 20.asp()
                                             )
                                             Spacer(modifier = Modifier.weight(1f))
                                             Text(
                                                 text = "${validMusicVideos.size} video${if (validMusicVideos.size != 1) "s" else ""}",
                                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                                 fontFamily = PoppinsRegular,
-                                                fontSize = 13.sp
+                                                fontSize = 13.asp()
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(12.dp))
                                         Text(
                                             text = "Abre en YouTube",
                                             fontFamily = PoppinsRegular,
-                                            fontSize = 12.sp,
+                                            fontSize = 12.asp(),
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
                                             modifier = Modifier.padding(start = 52.dp)
                                         )
@@ -1722,7 +1724,7 @@ fun AnimeDetailScreen(
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                                 color = MaterialTheme.colorScheme.primary,
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 13.sp
+                                                fontSize = 13.asp()
                                             )
                                         }
                                     }
@@ -1735,13 +1737,13 @@ fun AnimeDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(100.dp),
+                                            .height(100.adp()),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         CircularProgressIndicator(
                                             color = MaterialTheme.colorScheme.primary,
                                             strokeWidth = 2.dp,
-                                            modifier = Modifier.size(28.dp)
+                                            modifier = Modifier.size(28.adp())
                                         )
                                     }
                                 }
@@ -1754,7 +1756,7 @@ fun AnimeDetailScreen(
                                     ) {
                                         Icon(
                                             Icons.Default.OndemandVideo, null,
-                                            Modifier.size(40.dp),
+                                            Modifier.size(40.adp()),
                                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
                                         )
                                         Text("Sin episodios disponibles", fontFamily = PoppinsMedium,
@@ -1782,8 +1784,8 @@ fun AnimeDetailScreen(
 
                                                 Card(
                                                     modifier = Modifier
-                                                        .width(170.dp)
-                                                        .height(130.dp)
+                                                        .width(170.adp())
+                                                        .height(130.adp())
                                                         .clickable {
                                                             animeDetail?.let { anime ->
                                                                 animeDetailViewModel.loadEpisodeDetail(anime.malId, episode.malId!!)
@@ -1812,7 +1814,7 @@ fun AnimeDetailScreen(
                                                             ) {
                                                                 Icon(
                                                                     Icons.Default.OndemandVideo, null,
-                                                                    Modifier.size(32.dp),
+                                                                    Modifier.size(32.adp()),
                                                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
                                                                 )
                                                             }
@@ -1821,7 +1823,7 @@ fun AnimeDetailScreen(
                                                         Box(
                                                             Modifier
                                                                 .fillMaxWidth()
-                                                                .height(90.dp)
+                                                                .height(90.adp())
                                                                 .align(Alignment.BottomCenter)
                                                                 .background(
                                                                     Brush.verticalGradient(
@@ -1850,7 +1852,7 @@ fun AnimeDetailScreen(
                                                                 Text(
                                                                     text = "Ep ${episode.malId ?: "?"}",
                                                                     color = MaterialTheme.colorScheme.onPrimary,
-                                                                    fontSize = 9.sp,
+                                                                    fontSize = 9.asp(),
                                                                     fontFamily = PoppinsBold
                                                                 )
                                                             }
@@ -1866,7 +1868,7 @@ fun AnimeDetailScreen(
                                                                     Text(
                                                                         "Filler",
                                                                         color = Color.White,
-                                                                        fontSize = 9.sp,
+                                                                        fontSize = 9.asp(),
                                                                         fontFamily = PoppinsBold
                                                                     )
                                                                 }
@@ -1882,7 +1884,7 @@ fun AnimeDetailScreen(
                                                                     Text(
                                                                         "Recap",
                                                                         color = Color.White,
-                                                                        fontSize = 9.sp,
+                                                                        fontSize = 9.asp(),
                                                                         fontFamily = PoppinsBold
                                                                     )
                                                                 }
@@ -1899,11 +1901,11 @@ fun AnimeDetailScreen(
                                                             Text(
                                                                 text = episode.title ?: "Episodio ${episode.malId}",
                                                                 color = Color.White,
-                                                                fontSize = 11.sp,
+                                                                fontSize = 11.asp(),
                                                                 fontFamily = PoppinsBold,
                                                                 maxLines = 2,
                                                                 overflow = TextOverflow.Ellipsis,
-                                                                lineHeight = 15.sp
+                                                                lineHeight = 15.asp()
                                                             )
                                                             if (episode.score != null && episode.score > 0) {
                                                                 Row(
@@ -1918,7 +1920,7 @@ fun AnimeDetailScreen(
                                                                     Text(
                                                                         text = String.format("%.1f", episode.score),
                                                                         color = Color.White.copy(alpha = 0.8f),
-                                                                        fontSize = 10.sp,
+                                                                        fontSize = 10.asp(),
                                                                         fontFamily = PoppinsMedium
                                                                     )
                                                                 }
@@ -1956,7 +1958,7 @@ fun AnimeDetailScreen(
                                                 CircularProgressIndicator(
                                                     color = MaterialTheme.colorScheme.primary,
                                                     strokeWidth = 2.dp,
-                                                    modifier = Modifier.size(28.dp)
+                                                    modifier = Modifier.size(28.adp())
                                                 )
                                             } else {
                                                 OutlinedButton(
@@ -1969,7 +1971,7 @@ fun AnimeDetailScreen(
                                                     Icon(
                                                         Icons.Default.ExpandMore,
                                                         contentDescription = null,
-                                                        modifier = Modifier.size(20.dp)
+                                                        modifier = Modifier.size(20.adp())
                                                     )
                                                     Spacer(modifier = Modifier.width(8.dp))
                                                     Text(
@@ -2000,7 +2002,7 @@ fun AnimeDetailScreen(
                                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                                 color = MaterialTheme.colorScheme.primary,
                                                 fontFamily = PoppinsBold,
-                                                fontSize = 13.sp
+                                                fontSize = 13.asp()
                                             )
                                         }
                                     }
@@ -2090,8 +2092,8 @@ fun AnimeDetailScreen(
                                                     maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis,
                                                     fontFamily = PoppinsBold,
-                                                    fontSize = 15.sp,
-                                                    lineHeight = 20.sp,
+                                                    fontSize = 15.asp(),
+                                                    lineHeight = 20.asp(),
                                                     color = MaterialTheme.colorScheme.onSurface
                                                 )
 
@@ -2113,13 +2115,13 @@ fun AnimeDetailScreen(
                                                             color = MaterialTheme.colorScheme.primaryContainer.copy(
                                                                 alpha = 0.4f
                                                             ),
-                                                            modifier = Modifier.size(24.dp)
+                                                            modifier = Modifier.size(24.adp())
                                                         ) {
                                                             Box(contentAlignment = Alignment.Center) {
                                                                 Text(
                                                                     text = topic.authorUsername.firstOrNull()
                                                                         ?.uppercase() ?: "?",
-                                                                    fontSize = 11.sp,
+                                                                    fontSize = 11.asp(),
                                                                     fontFamily = PoppinsBold,
                                                                     color = MaterialTheme.colorScheme.primary
                                                                 )
@@ -2129,7 +2131,7 @@ fun AnimeDetailScreen(
                                                         Text(
                                                             text = topic.authorUsername,
                                                             fontFamily = PoppinsMedium,
-                                                            fontSize = 12.sp,
+                                                            fontSize = 12.asp(),
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
@@ -2160,7 +2162,7 @@ fun AnimeDetailScreen(
                                                             Text(
                                                                 text = "${topic.comments}",
                                                                 fontFamily = PoppinsBold,
-                                                                fontSize = 11.sp,
+                                                                fontSize = 11.asp(),
                                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                                             )
                                                         }
@@ -2205,7 +2207,7 @@ fun AnimeDetailScreen(
                                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                             color = MaterialTheme.colorScheme.primary,
                                             fontFamily = PoppinsBold,
-                                            fontSize = 13.sp
+                                            fontSize = 13.asp()
                                         )
                                     }
                                 }
@@ -2247,7 +2249,7 @@ fun AnimeDetailScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(120.dp),
+                                                .height(120.adp()),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Column(
@@ -2257,13 +2259,13 @@ fun AnimeDetailScreen(
                                                 CircularProgressIndicator(
                                                     color = MaterialTheme.colorScheme.primary,
                                                     strokeWidth = 2.dp,
-                                                    modifier = Modifier.size(28.dp)
+                                                    modifier = Modifier.size(28.adp())
                                                 )
                                                 Text(
                                                     text = "Cargando estudio...",
                                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                                     fontFamily = PoppinsRegular,
-                                                    fontSize = 13.sp
+                                                    fontSize = 13.asp()
                                                 )
                                             }
                                         }
@@ -2285,13 +2287,13 @@ fun AnimeDetailScreen(
                                                     Icons.Default.Close,
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                                                    modifier = Modifier.size(20.dp)
+                                                    modifier = Modifier.size(20.adp())
                                                 )
                                                 Text(
                                                     text = "No se pudo cargar la información del estudio",
                                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                                     fontFamily = PoppinsRegular,
-                                                    fontSize = 13.sp
+                                                    fontSize = 13.asp()
                                                 )
                                             }
                                         }
@@ -2328,7 +2330,7 @@ fun AnimeDetailScreen(
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
-                                                                .size(80.dp),
+                                                                .size(80.adp()),
                                                             contentAlignment = Alignment.Center
                                                         ) {
                                                             AsyncImage(
@@ -2349,8 +2351,8 @@ fun AnimeDetailScreen(
                                                                 text = title,
                                                                 fontFamily = PoppinsBold,
                                                                 color = MaterialTheme.colorScheme.onSurface,
-                                                                fontSize = 18.sp,
-                                                                lineHeight = 22.sp,
+                                                                fontSize = 18.asp(),
+                                                                lineHeight = 22.asp(),
                                                                 maxLines = 2,
                                                                 overflow = TextOverflow.Ellipsis
                                                             )
@@ -2366,7 +2368,7 @@ fun AnimeDetailScreen(
                                                                     text = date ?: "",
                                                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                                                     fontFamily = PoppinsRegular,
-                                                                    fontSize = 12.sp
+                                                                    fontSize = 12.asp()
                                                                 )
                                                             }
                                                         }
@@ -2387,8 +2389,8 @@ fun AnimeDetailScreen(
                                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                                                         fontFamily = PoppinsRegular,
                                                         textAlign = TextAlign.Justify,
-                                                        lineHeight = 22.sp,
-                                                        fontSize = 13.sp,
+                                                        lineHeight = 22.asp(),
+                                                        fontSize = 13.asp(),
                                                         overflow = TextOverflow.Ellipsis,
                                                         maxLines = if (expandedProducerAbout) Int.MAX_VALUE else 4
                                                     )
@@ -2397,7 +2399,7 @@ fun AnimeDetailScreen(
                                                         Text(
                                                             text = if (expandedProducerAbout) "Ver menos" else "Ver más",
                                                             fontFamily = PoppinsBold,
-                                                            fontSize = 13.sp,
+                                                            fontSize = 13.asp(),
                                                             color = MaterialTheme.colorScheme.primary,
                                                             modifier = Modifier.clickable {
                                                                 expandedProducerAbout = !expandedProducerAbout
@@ -2436,7 +2438,7 @@ fun AnimeDetailScreen(
                                                                     imageVector = Icons.AutoMirrored.Filled.ArrowRight,
                                                                     contentDescription = null,
                                                                     tint = MaterialTheme.colorScheme.primary,
-                                                                    modifier = Modifier.size(16.dp)
+                                                                    modifier = Modifier.size(16.adp())
                                                                 )
                                                                 Text(
                                                                     text = external.name ?: "Enlace",
@@ -2444,7 +2446,7 @@ fun AnimeDetailScreen(
                                                                     overflow = TextOverflow.Ellipsis,
                                                                     color = MaterialTheme.colorScheme.primary,
                                                                     fontFamily = PoppinsMedium,
-                                                                    fontSize = 13.sp
+                                                                    fontSize = 13.asp()
                                                                 )
                                                             }
                                                         }
@@ -2519,7 +2521,7 @@ fun AnimeDetailScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(56.adp())
             ) {
                 // Degradado siempre visible para legibilidad del botón volver
                 Box(
@@ -2557,7 +2559,7 @@ fun AnimeDetailScreen(
                 Text(
                     text = "Detalle del anime",
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 18.sp,
+                    fontSize = 18.asp(),
                     fontFamily = PoppinsBold,
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -2667,13 +2669,13 @@ fun AnimeDetailScreen(
                             imageVector = Icons.Default.Favorite,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.adp())
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = if (isAdded) "Editar en mi lista" else "Añadir a mi lista",
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 20.sp,
+                            fontSize = 20.asp(),
                             fontFamily = PoppinsBold
                         )
                     }
@@ -2684,7 +2686,7 @@ fun AnimeDetailScreen(
                     ) {
                         Text(
                             text = "Estado",
-                            fontSize = 16.sp,
+                            fontSize = 16.asp(),
                             fontFamily = PoppinsBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -2695,7 +2697,7 @@ fun AnimeDetailScreen(
 
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
-                            modifier = Modifier.height(180.dp),
+                            modifier = Modifier.height(180.adp()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
@@ -2713,7 +2715,7 @@ fun AnimeDetailScreen(
                                         }
                                     },
                                     modifier = Modifier
-                                        .height(50.dp)
+                                        .height(50.adp())
                                         .then(if (isDisabled) Modifier.alpha(0.4f) else Modifier),
                                     shape = RoundedCornerShape(12.dp),
                                     color = if (isSelected)
@@ -2734,13 +2736,13 @@ fun AnimeDetailScreen(
                                                 Icon(
                                                     imageVector = Icons.Default.CheckCircle,
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(16.dp),
+                                                    modifier = Modifier.size(16.adp()),
                                                     tint = Color.Black
                                                 )
                                             }
                                             Text(
                                                 text = status,
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsRegular,
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                                 color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
@@ -2763,7 +2765,7 @@ fun AnimeDetailScreen(
                         ) {
                             Text(
                                 text = "Prioridad",
-                                fontSize = 16.sp,
+                                fontSize = 16.asp(),
                                 fontFamily = PoppinsBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -2781,7 +2783,7 @@ fun AnimeDetailScreen(
                                     val isSelected = plannedPriority == priority
                                     Surface(
                                         onClick = { plannedPriority = if (isSelected) null else priority },
-                                        modifier = Modifier.weight(1f).height(44.dp),
+                                        modifier = Modifier.weight(1f).height(44.adp()),
                                         shape = RoundedCornerShape(12.dp),
                                         color = if (isSelected)
                                             priorityColors[priority] ?: MaterialTheme.colorScheme.primaryContainer
@@ -2792,7 +2794,7 @@ fun AnimeDetailScreen(
                                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                             Text(
                                                 text = priority,
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsRegular,
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                                 color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurface
@@ -2803,7 +2805,7 @@ fun AnimeDetailScreen(
                             }
                             Text(
                                 text = "Nota del plan (opcional)",
-                                fontSize = 16.sp,
+                                fontSize = 16.asp(),
                                 fontFamily = PoppinsBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -2811,7 +2813,7 @@ fun AnimeDetailScreen(
                                 value = plannedNote,
                                 onValueChange = { plannedNote = it },
                                 placeholder = { Text("¿Por qué lo tenés planeado?") },
-                                modifier = Modifier.fillMaxWidth().height(100.dp),
+                                modifier = Modifier.fillMaxWidth().height(100.adp()),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -2843,7 +2845,7 @@ fun AnimeDetailScreen(
                             ) {
                                 Text(
                                     text = "Calificación",
-                                    fontSize = 16.sp,
+                                    fontSize = 16.asp(),
                                     fontFamily = PoppinsBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -2861,11 +2863,11 @@ fun AnimeDetailScreen(
                                                 imageVector = Icons.Default.Star,
                                                 contentDescription = null,
                                                 tint = Color(0xFFFFD700),
-                                                modifier = Modifier.size(16.dp)
+                                                modifier = Modifier.size(16.adp())
                                             )
                                             Text(
                                                 text = String.format("%.1f", userRating),
-                                                fontSize = 14.sp,
+                                                fontSize = 14.asp(),
                                                 fontFamily = PoppinsBold,
                                                 color = MaterialTheme.colorScheme.primary
                                             )
@@ -2891,7 +2893,7 @@ fun AnimeDetailScreen(
                     ) {
                         Text(
                             text = "Opinión (opcional)",
-                            fontSize = 16.sp,
+                            fontSize = 16.asp(),
                             fontFamily = PoppinsBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -2899,7 +2901,7 @@ fun AnimeDetailScreen(
                             value = userOpinion,
                             onValueChange = { userOpinion = it },
                             placeholder = { Text("Comparte tu opinión...") },
-                            modifier = Modifier.fillMaxWidth().height(120.dp),
+                            modifier = Modifier.fillMaxWidth().height(120.adp()),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -2920,7 +2922,7 @@ fun AnimeDetailScreen(
                     ) {
                         Text(
                             text = "Fechas (opcional)",
-                            fontSize = 16.sp,
+                            fontSize = 16.asp(),
                             fontFamily = PoppinsBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -2951,11 +2953,11 @@ fun AnimeDetailScreen(
                                             MaterialTheme.colorScheme.onSurfaceVariant
                                         else
                                             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(18.adp())
                                     )
                                     Text(
                                         text = startDate?.let { dateFormat.format(it) } ?: "Inicio",
-                                        fontSize = 12.sp,
+                                        fontSize = 12.asp(),
                                         fontFamily = PoppinsRegular,
                                         color = if (canSelectStartDate)
                                             MaterialTheme.colorScheme.onSurface
@@ -2985,11 +2987,11 @@ fun AnimeDetailScreen(
                                             MaterialTheme.colorScheme.onSurfaceVariant
                                         else
                                             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(18.adp())
                                     )
                                     Text(
                                         text = endDate?.let { dateFormat.format(it) } ?: "Final",
-                                        fontSize = 12.sp,
+                                        fontSize = 12.asp(),
                                         fontFamily = PoppinsRegular,
                                         color = if (canSelectEndDate)
                                             MaterialTheme.colorScheme.onSurface
@@ -3038,7 +3040,7 @@ fun AnimeDetailScreen(
                             }
                         },
                         enabled = isFormValid,
-                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        modifier = Modifier.fillMaxWidth().height(54.adp()),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -3052,8 +3054,8 @@ fun AnimeDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(20.dp))
-                            Text(text = "Guardar en mi lista", fontSize = 16.sp, fontFamily = PoppinsBold)
+                            Icon(imageVector = Icons.Default.Check, contentDescription = null, modifier = Modifier.size(20.adp()))
+                            Text(text = "Guardar en mi lista", fontSize = 16.asp(), fontFamily = PoppinsBold)
                         }
                     }
 
@@ -3132,7 +3134,7 @@ fun AnimeDetailScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(200.dp),
+                                .height(200.adp()),
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator(
@@ -3157,7 +3159,7 @@ fun AnimeDetailScreen(
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(48.dp)
+                                                .size(48.adp())
                                                 .background(
                                                     MaterialTheme.colorScheme.primary,
                                                     RoundedCornerShape(8.dp)
@@ -3167,7 +3169,7 @@ fun AnimeDetailScreen(
                                             Text(
                                                 text = "${episode.malId ?: "?"}",
                                                 color = MaterialTheme.colorScheme.onPrimary,
-                                                fontSize = 18.sp,
+                                                fontSize = 18.asp(),
                                                 fontFamily = PoppinsBold
                                             )
                                         }
@@ -3237,13 +3239,13 @@ fun AnimeDetailScreen(
                                                 Icons.Default.Timer,
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(18.dp)
+                                                modifier = Modifier.size(18.adp())
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
                                                 text = "${episode.duration} seg",
                                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                                fontSize = 13.sp,
+                                                fontSize = 13.asp(),
                                                 fontFamily = PoppinsMedium
                                             )
                                         }
@@ -3258,13 +3260,13 @@ fun AnimeDetailScreen(
                                                 Icons.Default.CalendarToday,
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(18.dp)
+                                                modifier = Modifier.size(18.adp())
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
                                                 text = episode.aired.substringBefore("T"),
                                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                                fontSize = 13.sp,
+                                                fontSize = 13.asp(),
                                                 fontFamily = PoppinsMedium
                                             )
                                         }
@@ -3289,7 +3291,7 @@ fun AnimeDetailScreen(
                                             Text(
                                                 text = "Filler",
                                                 color = Color.White,
-                                                fontSize = 12.sp,
+                                                fontSize = 12.asp(),
                                                 fontFamily = PoppinsBold
                                             )
                                         }
@@ -3307,7 +3309,7 @@ fun AnimeDetailScreen(
                                             Text(
                                                 text = "Recap",
                                                 color = Color.White,
-                                                fontSize = 12.sp,
+                                                fontSize = 12.asp(),
                                                 fontFamily = PoppinsBold
                                             )
                                         }
@@ -3332,7 +3334,7 @@ fun AnimeDetailScreen(
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                                         fontFamily = PoppinsRegular,
-                                        lineHeight = 22.sp
+                                        lineHeight = 22.asp()
                                     )
                                 }
 
@@ -3357,7 +3359,7 @@ fun AnimeDetailScreen(
                                         Icon(
                                             Icons.Default.OpenInNew,
                                             contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
+                                            modifier = Modifier.size(18.adp())
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
@@ -3391,12 +3393,12 @@ private fun InfoRow(
             imageVector = icon,
             contentDescription = null,
             tint = iconTint,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.adp())
         )
         Text(
             text = text,
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
+            fontSize = 16.asp(),
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
         )
     }
@@ -3419,7 +3421,7 @@ fun ThemeItem(
         ) {
             Text(
                 text = title,
-                fontSize = 14.sp,
+                fontSize = 14.asp(),
                 fontFamily = PoppinsBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -3439,7 +3441,7 @@ fun ThemeItem(
                         else
                             MaterialTheme.colorScheme.secondary,
                         fontFamily = PoppinsBold,
-                        fontSize = 11.sp
+                        fontSize = 11.asp()
                     )
                 }
             }
@@ -3450,7 +3452,7 @@ fun ThemeItem(
                 text = "No hay $title disponibles",
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 fontFamily = PoppinsRegular,
-                fontSize = 13.sp
+                fontSize = 13.asp()
             )
         } else {
             FlowRow(
@@ -3487,7 +3489,7 @@ fun ThemeItem(
                                 text = theme,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontFamily = PoppinsRegular,
-                                fontSize = 12.sp,
+                                fontSize = 12.asp(),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -3506,7 +3508,7 @@ fun QuickInfoItem(icon: ImageVector, text: String, iconColor: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, null, tint = iconColor, modifier = Modifier.size(14.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface, fontFamily = PoppinsBold)
+        Text(text, fontSize = 13.asp(), color = MaterialTheme.colorScheme.onSurface, fontFamily = PoppinsBold)
     }
 }
 
@@ -3523,7 +3525,7 @@ fun DetailChip(icon: ImageVector, text: String) {
         ) {
             Icon(icon, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text, fontSize = 12.sp, fontFamily = PoppinsMedium)
+            Text(text, fontSize = 12.asp(), fontFamily = PoppinsMedium)
         }
     }
 }
@@ -3540,7 +3542,7 @@ fun DetailChipSmall(icon: ImageVector, text: String) {
         ) {
             Icon(icon, null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.width(4.dp))
-            Text(text, fontSize = 10.sp, fontFamily = PoppinsMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text, fontSize = 10.asp(), fontFamily = PoppinsMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -3573,7 +3575,7 @@ fun SectionHeader(
                     text = title,
                     style = TextStyle(
                         fontFamily = PoppinsBold,
-                        fontSize = 22.sp,
+                        fontSize = 22.asp(),
                         letterSpacing = (-0.5).sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -3582,7 +3584,7 @@ fun SectionHeader(
                     text = subtitle,
                     style = TextStyle(
                         fontFamily = PoppinsRegular,
-                        fontSize = 12.sp,
+                        fontSize = 12.asp(),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 )
@@ -3622,7 +3624,7 @@ fun StatusChip(status: String) {
             Text(
                 text = statusLabel,
                 color = statusFg,
-                fontSize = 11.sp,
+                fontSize = 11.asp(),
                 fontFamily = PoppinsBold,
                 letterSpacing = 0.5.sp
             )
@@ -3648,7 +3650,7 @@ fun StateMessage(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(64.adp()),
             tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -3699,7 +3701,7 @@ fun OtherTitleItem(label: String, value: String?) {
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    fontSize = 12.asp()
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -3736,7 +3738,7 @@ fun InfoGridItem(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.adp())
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
@@ -3777,14 +3779,14 @@ private fun CompactInfoRow(
     ) {
         Text(
             text = label,
-            fontSize = 13.sp,
+            fontSize = 13.asp(),
             fontFamily = PoppinsRegular,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.5f)
         )
         Text(
             text = value,
-            fontSize = 13.sp,
+            fontSize = 13.asp(),
             fontFamily = PoppinsBold,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(0.5f),
@@ -3835,7 +3837,7 @@ fun RatingBar(
                     contentDescription = "Puntuación de $starValue estrellas",
                     modifier = Modifier
                         .scale(size)
-                        .size(32.dp)
+                        .size(32.adp())
                         .clickable {
                             val newRating = if (rating == starValue) {
                                 starValue - 0.5f
@@ -3858,7 +3860,7 @@ fun RatingBar(
                 "Tu calificación: %.1f / %d".format(rating, stars)
             },
             color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
+            fontSize = 16.asp(),
             fontWeight = FontWeight.Bold,
             fontFamily = PoppinsBold,
             modifier = Modifier
@@ -3941,7 +3943,7 @@ private fun StudioCompactCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(44.adp())
                         .background(
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                             RoundedCornerShape(12.dp)
@@ -3952,7 +3954,7 @@ private fun StudioCompactCard(
                         imageVector = Icons.Default.Business,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.adp())
                     )
                 }
 
@@ -3964,23 +3966,23 @@ private fun StudioCompactCard(
                         text = studioName,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontFamily = PoppinsBold,
-                        fontSize = 15.sp,
+                        fontSize = 15.asp(),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 20.sp
+                        lineHeight = 20.asp()
                     )
                     Text(
                         text = if (isExpanded) "Toca para cerrar" else "Toca para ver detalles",
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
                         fontFamily = PoppinsRegular,
-                        fontSize = 11.sp
+                        fontSize = 11.asp()
                     )
                 }
             }
 
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(32.adp())
                     .background(
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         RoundedCornerShape(10.dp)
@@ -3992,7 +3994,7 @@ private fun StudioCompactCard(
                     contentDescription = if (isExpanded) "Contraer" else "Expandir",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
-                        .size(22.dp)
+                        .size(22.adp())
                         .rotate(rotationAngle)
                 )
             }
@@ -4010,7 +4012,7 @@ private fun VideoCard(
 ) {
     Card(
         modifier = Modifier
-            .width(200.dp)
+            .width(200.adp())
             .clickable {
                 youtubeUrl?.let { url ->
                     try {
@@ -4034,7 +4036,7 @@ private fun VideoCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(112.dp)
+                    .height(112.adp())
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             ) {
                 if (!thumbnailUrl.isNullOrBlank()) {
@@ -4056,7 +4058,7 @@ private fun VideoCard(
                         imageVector = Icons.Default.PlayCircle,
                         contentDescription = "Play",
                         tint = Color.White,
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(48.adp())
                     )
                 }
             }
@@ -4069,7 +4071,7 @@ private fun VideoCard(
                 Text(
                     text = title,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 13.sp,
+                    fontSize = 13.asp(),
                     fontFamily = PoppinsMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -4079,7 +4081,7 @@ private fun VideoCard(
                     Text(
                         text = subtitle,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        fontSize = 11.sp,
+                        fontSize = 11.asp(),
                         fontFamily = PoppinsRegular,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -4100,7 +4102,7 @@ private fun EpisodeCard(
 ) {
     Card(
         modifier = Modifier
-            .width(160.dp)
+            .width(160.adp())
             .clickable {
                 url?.let { link ->
                     try {
@@ -4118,7 +4120,7 @@ private fun EpisodeCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(90.dp)
+                    .height(90.adp())
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             ) {
                 if (!imageUrl.isNullOrBlank()) {
@@ -4137,7 +4139,7 @@ private fun EpisodeCard(
                             imageVector = Icons.Default.OndemandVideo,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(32.adp())
                         )
                     }
                 }
@@ -4156,7 +4158,7 @@ private fun EpisodeCard(
                         Text(
                             text = episode,
                             color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 10.sp,
+                            fontSize = 10.asp(),
                             fontFamily = PoppinsBold
                         )
                     }
@@ -4191,7 +4193,7 @@ private fun EpisodeListItem(
             // Episode number badge
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(48.adp())
                     .background(
                         MaterialTheme.colorScheme.primary,
                         RoundedCornerShape(8.dp)
@@ -4201,7 +4203,7 @@ private fun EpisodeListItem(
                 Text(
                     text = "${episode.malId ?: "?"}",
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 16.sp,
+                    fontSize = 16.asp(),
                     fontFamily = PoppinsBold
                 )
             }
@@ -4215,7 +4217,7 @@ private fun EpisodeListItem(
                 Text(
                     text = episode.title ?: "Episodio ${episode.malId}",
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp,
+                    fontSize = 14.asp(),
                     fontFamily = PoppinsMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -4225,7 +4227,7 @@ private fun EpisodeListItem(
                     Text(
                         text = episode.titleJapanese,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        fontSize = 12.sp,
+                        fontSize = 12.asp(),
                         fontFamily = PoppinsRegular,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -4241,7 +4243,7 @@ private fun EpisodeListItem(
                         Text(
                             text = episode.aired.substringBefore("T"),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            fontSize = 11.sp,
+                            fontSize = 11.asp(),
                             fontFamily = PoppinsRegular
                         )
                     }
@@ -4261,7 +4263,7 @@ private fun EpisodeListItem(
                             Text(
                                 text = String.format("%.1f", episode.score),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                fontSize = 11.sp,
+                                fontSize = 11.asp(),
                                 fontFamily = PoppinsMedium
                             )
                         }
@@ -4280,7 +4282,7 @@ private fun EpisodeListItem(
                             Text(
                                 text = "Filler",
                                 color = Color(0xFFFF9800),
-                                fontSize = 10.sp,
+                                fontSize = 10.asp(),
                                 fontFamily = PoppinsMedium
                             )
                         }
@@ -4298,7 +4300,7 @@ private fun EpisodeListItem(
                             Text(
                                 text = "Recap",
                                 color = Color(0xFF9C27B0),
-                                fontSize = 10.sp,
+                                fontSize = 10.asp(),
                                 fontFamily = PoppinsMedium
                             )
                         }

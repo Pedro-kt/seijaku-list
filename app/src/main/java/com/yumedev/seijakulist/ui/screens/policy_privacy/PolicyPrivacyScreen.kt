@@ -35,6 +35,8 @@ import androidx.navigation.NavController
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun PolicyPrivacyScreen(navController: NavController) {
@@ -185,7 +187,7 @@ fun PolicyPrivacyScreen(navController: NavController) {
                         text = "seijakulist@gmail.com",
                         fontFamily = PoppinsBold,
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 16.sp,
+                        fontSize = 16.asp(),
                         modifier = Modifier.clickable {
                             val intent = Intent(Intent.ACTION_SENDTO).apply {
                                 data = Uri.parse("mailto:seijakulist@gmail.com")
@@ -203,14 +205,14 @@ fun PolicyPrivacyScreen(navController: NavController) {
             PolicyTitle("13. Consentimiento")
             PolicyBody("Al usar Seijaku List, usted consiente nuestra Política de Privacidad y acepta sus términos.")
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
             Text(
                 text = "© 2026 Seijaku List. Versión: $versionName",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(40.adp()))
         }
     }
     }
@@ -250,7 +252,7 @@ fun PolicyBody(text: String) {
         text = text,
         style = MaterialTheme.typography.bodyMedium.copy(
             fontFamily = PoppinsRegular,
-            lineHeight = 22.sp,
+            lineHeight = 22.asp(),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         modifier = Modifier.padding(bottom = 12.dp),

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.yumedev.seijakulist.ui.screens.home.AnimeRandomUiState
 import com.yumedev.seijakulist.ui.screens.home.AnimeRandomViewModel
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun CompleteAnimeCard(uiState: AnimeRandomUiState, navController: NavController, viewModel: AnimeRandomViewModel) {
@@ -32,7 +33,7 @@ fun CompleteAnimeCard(uiState: AnimeRandomUiState, navController: NavController,
         modifier = Modifier
             .padding(start = 10.dp, end = 10.dp, bottom = 16.dp)
             .fillMaxSize()
-            .height(210.dp)
+            .height(210.adp())
             .clip(RoundedCornerShape(16.dp))
             .background(color = MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center

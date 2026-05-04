@@ -55,6 +55,8 @@ import com.yumedev.seijakulist.ui.components.WhatsNewVersion
 import com.yumedev.seijakulist.ui.components.WHATS_NEW_HISTORY
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun NovedadesScreen() {
@@ -76,7 +78,7 @@ fun NovedadesScreen() {
             }
         }
 
-        item { Spacer(modifier = Modifier.height(96.dp)) }
+        item { Spacer(modifier = Modifier.height(96.adp())) }
     }
 }
 
@@ -118,7 +120,7 @@ private fun VersionSection(
                     Text(
                         text = "v${version.versionName}",
                         fontFamily = PoppinsBold,
-                        fontSize = 18.sp,
+                        fontSize = 18.asp(),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     if (isLatest) {
@@ -131,7 +133,7 @@ private fun VersionSection(
                             Text(
                                 text = "Actual",
                                 fontFamily = PoppinsBold,
-                                fontSize = 10.sp,
+                                fontSize = 10.asp(),
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
@@ -143,7 +145,7 @@ private fun VersionSection(
                     Text(
                         text = "${version.changes.size} cambios",
                         fontFamily = PoppinsRegular,
-                        fontSize = 12.sp,
+                        fontSize = 12.asp(),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                     )
                 }
@@ -155,7 +157,7 @@ private fun VersionSection(
                 contentDescription = if (expanded) "Colapsar" else "Expandir",
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 modifier = Modifier
-                    .size(22.dp)
+                    .size(22.adp())
                     .rotate(arrowRotation)
             )
         }
@@ -206,7 +208,7 @@ private fun ChangeItem(change: WhatsNewChange) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(36.adp())
                     .clip(CircleShape)
                     .background(style.color.copy(alpha = 0.13f)),
                 contentAlignment = Alignment.Center
@@ -215,7 +217,7 @@ private fun ChangeItem(change: WhatsNewChange) {
                     imageVector = style.icon,
                     contentDescription = null,
                     tint = style.color,
-                    modifier = Modifier.size(19.dp)
+                    modifier = Modifier.size(19.adp())
                 )
             }
 
@@ -226,22 +228,22 @@ private fun ChangeItem(change: WhatsNewChange) {
                 Text(
                     text = style.label,
                     fontFamily = PoppinsBold,
-                    fontSize = 10.sp,
+                    fontSize = 10.asp(),
                     color = style.color,
                     letterSpacing = 0.6.sp
                 )
                 Text(
                     text = change.title,
                     fontFamily = PoppinsBold,
-                    fontSize = 13.sp,
+                    fontSize = 13.asp(),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = change.description,
                     fontFamily = PoppinsRegular,
-                    fontSize = 12.sp,
+                    fontSize = 12.asp(),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                    lineHeight = 17.sp
+                    lineHeight = 17.asp()
                 )
             }
         }

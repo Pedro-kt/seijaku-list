@@ -44,6 +44,8 @@ import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun ReportErrorScreen(
@@ -95,7 +97,7 @@ fun ReportErrorScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(56.adp())
                 .background(MaterialTheme.colorScheme.background)
         ) {
             IconButton(
@@ -111,7 +113,7 @@ fun ReportErrorScreen(
             Text(
                 text = "Reportar Error",
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 20.sp,
+                fontSize = 20.asp(),
                 fontFamily = PoppinsBold,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -129,9 +131,9 @@ fun ReportErrorScreen(
             Text(
                 text = "Completa los campos para reportar un error. Al enviar se abrirá tu aplicación de email.\n\nReportar los errores que encuentres nos ayuda a corregirlos y mejorar nuestra aplicación y la experiencia de usuario, gracias por tu colaboracion!",
                 fontFamily = PoppinsRegular,
-                fontSize = 14.sp,
+                fontSize = 14.asp(),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                lineHeight = 20.sp
+                lineHeight = 20.asp()
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -140,7 +142,7 @@ fun ReportErrorScreen(
             Text(
                 text = "Tu Email",
                 fontFamily = PoppinsBold,
-                fontSize = 16.sp,
+                fontSize = 16.asp(),
                 color = MaterialTheme.colorScheme.onSurface
             )
 
@@ -173,7 +175,7 @@ fun ReportErrorScreen(
             Text(
                 text = "Descripción del Error",
                 fontFamily = PoppinsBold,
-                fontSize = 16.sp,
+                fontSize = 16.asp(),
                 color = MaterialTheme.colorScheme.onSurface
             )
 
@@ -182,7 +184,7 @@ fun ReportErrorScreen(
                 onValueChange = { reportText = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp),
+                    .height(300.adp()),
                 placeholder = {
                     Text(
                         placeholder,
@@ -246,7 +248,7 @@ fun ReportErrorScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.adp()),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -261,7 +263,7 @@ fun ReportErrorScreen(
                 Text(
                     text = "Enviar Reporte",
                     fontFamily = PoppinsBold,
-                    fontSize = 16.sp
+                    fontSize = 16.asp()
                 )
             }
 

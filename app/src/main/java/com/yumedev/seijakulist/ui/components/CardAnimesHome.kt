@@ -43,6 +43,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -83,12 +85,12 @@ private fun AnimeSectionCard(
 
     Column(
         modifier = Modifier
-            .width(135.dp) // Un poquito más ancha para que luzca el arte
+            .width(135.adp())
             .clip(RoundedCornerShape(16.dp))
     ) {
         Box(
             modifier = Modifier
-                .height(200.dp)
+                .height(200.adp())
                 .fillMaxWidth()
                 .clickable {
                     navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
@@ -112,7 +114,7 @@ private fun AnimeSectionCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .height(40.adp())
                     .background(
                         Brush.verticalGradient(
                             listOf(Color.Black.copy(alpha = 0.5f), Color.Transparent)
@@ -142,7 +144,7 @@ private fun AnimeSectionCard(
                     Text(
                         text = String.format("%.1f", anime.score),
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 11.sp,
+                        fontSize = 11.asp(),
                         fontFamily = PoppinsBold
                     )
                 }
@@ -176,7 +178,7 @@ private fun AnimeSectionCard(
                     Text(
                         text = userStatus,
                         color = Color.White,
-                        fontSize = 9.sp,
+                        fontSize = 9.asp(),
                         fontFamily = PoppinsBold
                     )
                 }
@@ -192,8 +194,8 @@ private fun AnimeSectionCard(
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(
                 fontFamily = PoppinsMedium, // Medium suele verse mejor que Regular en títulos
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                fontSize = 13.asp(),
+                lineHeight = 18.asp(),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
             ),
             modifier = Modifier.padding(horizontal = 4.dp)
@@ -234,7 +236,7 @@ fun CardAnimesHomeGrid(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(195.dp)
+                .height(195.adp())
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
         )
 
@@ -242,7 +244,7 @@ fun CardAnimesHomeGrid(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(80.dp)
+                .height(80.adp())
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
@@ -258,8 +260,8 @@ fun CardAnimesHomeGrid(
             overflow = TextOverflow.Ellipsis,
             color = Color.White,
             fontFamily = PoppinsMedium,
-            fontSize = 11.sp,
-            lineHeight = 15.sp,
+            fontSize = 11.asp(),
+            lineHeight = 15.asp(),
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(horizontal = 6.dp, vertical = 6.dp)
@@ -286,7 +288,7 @@ fun CardAnimesHomeGrid(
                 Text(
                     text = String.format("%.1f", anime.score),
                     color = Color.White,
-                    fontSize = 11.sp,
+                    fontSize = 11.asp(),
                     fontFamily = PoppinsBold
                 )
             }
@@ -321,7 +323,7 @@ fun CardAnimesHomeGrid(
                 Text(
                     text = userStatus,
                     color = Color.White,
-                    fontSize = 9.sp,
+                    fontSize = 9.asp(),
                     fontFamily = PoppinsBold
                 )
             }

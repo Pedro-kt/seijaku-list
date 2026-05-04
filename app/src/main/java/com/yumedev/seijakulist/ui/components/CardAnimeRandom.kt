@@ -37,6 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -56,7 +58,7 @@ fun AnimeRandomCard(
         onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") },
         modifier = Modifier
             .fillMaxWidth()
-            .height(210.dp),
+            .height(210.adp()),
         shape = RoundedCornerShape(16.dp)
     ) {
         var isLiked by remember { mutableStateOf(false) }
@@ -79,8 +81,8 @@ fun AnimeRandomCard(
                     contentDescription = anime.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .width(140.dp)
-                        .height(210.dp)
+                        .width(140.adp())
+                        .height(210.adp())
                 )
                 Column(
                     modifier = Modifier
@@ -100,7 +102,7 @@ fun AnimeRandomCard(
                                 .padding(end = 40.dp)
                                 .fillMaxWidth(),
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 18.sp,
+                            fontSize = 18.asp(),
                             fontFamily = PoppinsBold
                         )
                         Text(
@@ -109,7 +111,7 @@ fun AnimeRandomCard(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(top = 4.dp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 13.sp,
+                            fontSize = 13.asp(),
                             fontFamily = PoppinsRegular,
                         )
                     }
@@ -163,7 +165,7 @@ fun AnimeRandomCard(
 fun GenreChip(text: String) {
     Text(
         text = text,
-        fontSize = 11.sp,
+        fontSize = 11.asp(),
         color = MaterialTheme.colorScheme.onSecondaryContainer,
         modifier = Modifier
             .background(

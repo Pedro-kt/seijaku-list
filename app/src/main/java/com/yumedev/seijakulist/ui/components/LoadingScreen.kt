@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import kotlinx.coroutines.delay
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun LoadingScreen() {
@@ -39,7 +40,7 @@ fun LoadingScreen() {
         contentAlignment = Alignment.Center
     ) {
         androidx.compose.material3.CircularProgressIndicator(
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(48.adp()),
             color = MaterialTheme.colorScheme.primary,
             strokeWidth = 4.dp
         )
@@ -77,7 +78,7 @@ private fun AnimatedLoadingDots() {
         dots.forEach { animatable ->
             Box(
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(16.adp())
                     .scale(0.5f + (animatable.value * 0.5f))
                     .alpha(0.4f + (animatable.value * 0.6f))
                     .background(
@@ -108,7 +109,7 @@ fun CustomCircularLoading() {
     }
 
     Canvas(
-        modifier = Modifier.size(56.dp)
+        modifier = Modifier.size(56.adp())
     ) {
         val strokeWidth = 4.dp.toPx()
 

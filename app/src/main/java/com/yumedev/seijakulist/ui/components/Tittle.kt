@@ -13,13 +13,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun TitleScreen(title: String) {
     Text(
         text = title,
         color = MaterialTheme.colorScheme.onSurface,
-        fontSize = 24.sp,
+        fontSize = 24.asp(),
         textAlign = TextAlign.Center,
         modifier = Modifier,
         fontFamily = PoppinsBold

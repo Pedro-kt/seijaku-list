@@ -23,6 +23,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,6 +31,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.util.navigation_tools.BottomNavItem
+import com.yumedev.seijakulist.ui.theme.adp
+import com.yumedev.seijakulist.ui.theme.asp
 
 @Composable
 fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavItem>) {
@@ -64,7 +67,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
         Surface(
             modifier = Modifier
                 .fillMaxWidth(0.92f) // Efecto flotante (no toca los bordes laterales)
-                .height(72.dp)
+                .height(72.adp())
                 .shadow(
                     elevation = 20.dp,
                     shape = RoundedCornerShape(36.dp),
@@ -81,7 +84,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -121,18 +124,34 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                         label = "content_color"
                     )
 
+                    // 5. PESO DINÁMICO: el item seleccionado toma más espacio para mostrar el label
+                    val itemWeight by animateFloatAsState(
+                        targetValue = if (isSelected) 2.5f else 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "item_weight"
+                    )
+
+                    val itemPaddingHorizontal by animateDpAsState(
+                        targetValue = if (isSelected) 12.dp else 0.dp,
+                        animationSpec = tween(300),
+                        label = "item_padding"
+                    )
+
                     Box(
                         modifier = Modifier
-                            .graphicsLayer(scaleX = scale, scaleY = scale) // Aplicamos escala por GPU
-                            .height(48.dp)
+                            .weight(itemWeight)
+                            .graphicsLayer(scaleX = scale, scaleY = scale)
+                            .height(48.adp())
                             .clip(RoundedCornerShape(24.dp))
                             .background(backgroundColor)
                             .clickable(
                                 interactionSource = interactionSource,
-                                indication = null, // Quitamos el ripple estándar para no ensuciar el diseño
+                                indication = null,
                                 onClick = {
                                     if (!isSelected) {
-                                        // Feedback háptico estilo iOS
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         navController.navigate(item.route) {
                                             popUpTo(navController.graph.findStartDestination().id) {
@@ -144,7 +163,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                                     }
                                 }
                             )
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = itemPaddingHorizontal),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
@@ -156,7 +175,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                                 contentDescription = item.name,
                                 tint = contentColor,
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(24.adp())
                                     .offset(y = iconOffset) // Aplicamos el salto
                             )
 
@@ -178,10 +197,12 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
                                     style = MaterialTheme.typography.labelLarge.copy(
                                         fontFamily = PoppinsMedium,
                                         fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
+                                        fontSize = 14.asp()
                                     ),
                                     color = contentColor,
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }

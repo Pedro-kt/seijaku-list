@@ -26,6 +26,7 @@ import com.yumedev.seijakulist.ui.screens.home.AnimeRandomUiState
 import com.yumedev.seijakulist.ui.screens.home.AnimeRandomViewModel
 import com.yumedev.seijakulist.ui.screens.home.CharacterRandomUiState
 import com.yumedev.seijakulist.ui.screens.home.CharacterRandomViewModel
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun CompleteCharacterCard(uiState: CharacterRandomUiState, navController: NavController, viewModel: CharacterRandomViewModel) {
@@ -34,7 +35,7 @@ fun CompleteCharacterCard(uiState: CharacterRandomUiState, navController: NavCon
         modifier = Modifier
             .padding(start = 10.dp, end = 10.dp, bottom = 16.dp)
             .fillMaxSize()
-            .height(210.dp)
+            .height(210.adp())
             .clip(RoundedCornerShape(16.dp))
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh

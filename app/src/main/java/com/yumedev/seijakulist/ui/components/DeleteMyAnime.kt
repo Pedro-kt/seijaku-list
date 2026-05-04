@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
+import com.yumedev.seijakulist.ui.theme.adp
 
 @Composable
 fun DeleteMyAnime(
@@ -39,13 +40,13 @@ fun DeleteMyAnime(
         IconButton(
             onClick = { isMenuExpanded = true },
             modifier = Modifier
-                .size(24.dp)
+                .size(24.adp())
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = "Opciones",
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.adp())
             )
         }
 
