@@ -382,7 +382,12 @@ class AnimeRepository @Inject constructor(
             malId = entry.malId,
             title = entry.title ?: return null,
             imageUrl = imageUrl,
-            label = "PROMO"
+            label = "PROMO",
+            score = entry.score,
+            year = entry.year?.toString(),
+            status = entry.status,
+            genres = entry.genres?.mapNotNull { it?.name }?.take(2) ?: emptyList(),
+            episodes = entry.episodes
         )
     }
 
@@ -396,7 +401,9 @@ class AnimeRepository @Inject constructor(
             label = "CLÁSICO",
             score = dto.score,
             year = dto.year?.toString(),
-            status = dto.status
+            status = dto.status,
+            genres = dto.genres.mapNotNull { it?.name }.take(2),
+            episodes = dto.episodes
         )
     }
 
@@ -406,7 +413,12 @@ class AnimeRepository @Inject constructor(
             malId = entry.malId,
             title = entry.title ?: return null,
             imageUrl = entry.images?.webp?.largeImageUrl ?: entry.images?.jpg?.largeImageUrl ?: return null,
-            label = "PARA VOS"
+            label = "PARA VOS",
+            score = entry.score,
+            year = entry.year?.toString(),
+            status = entry.status,
+            genres = entry.genres?.mapNotNull { it?.name }?.take(2) ?: emptyList(),
+            episodes = entry.episodes
         )
     }
 
@@ -419,7 +431,9 @@ class AnimeRepository @Inject constructor(
             label = "PRÓXIMAMENTE",
             score = dto.score,
             year = dto.year?.toString(),
-            status = dto.status
+            status = dto.status,
+            genres = dto.genres.mapNotNull { it?.name }.take(2),
+            episodes = dto.episodes
         )
     }
 }

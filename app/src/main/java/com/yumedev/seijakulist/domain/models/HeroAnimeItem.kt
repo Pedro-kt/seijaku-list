@@ -8,4 +8,6 @@ data class HeroAnimeItem(
     val score: Float? = null,
     val year: String? = null,
     val status: String? = null,
+    val genres: List<String> = emptyList(),
+    val episodes: Int? = null,
 )
