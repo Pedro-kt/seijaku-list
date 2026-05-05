@@ -1,6 +1,7 @@
 package com.yumedev.seijakulist.data.remote.models.watch_promos
 
 import com.google.gson.annotations.SerializedName
+import com.yumedev.seijakulist.data.remote.models.GenreDto
 import com.yumedev.seijakulist.data.remote.models.ImagesDto
 
 data class WatchPromosResponseDto(
@@ -16,7 +17,12 @@ data class WatchPromoAnimeDto(
     @SerializedName("mal_id") val malId: Int,
     @SerializedName("url") val url: String?,
     @SerializedName("title") val title: String?,
-    @SerializedName("images") val images: ImagesDto?
+    @SerializedName("images") val images: ImagesDto?,
+    @SerializedName("score") val score: Float?,
+    @SerializedName("year") val year: Int?,
+    @SerializedName("status") val status: String?,
+    @SerializedName("genres") val genres: List<GenreDto?>?,
+    @SerializedName("episodes") val episodes: Int?,
 )
 
 data class WatchPromoTrailerDto(

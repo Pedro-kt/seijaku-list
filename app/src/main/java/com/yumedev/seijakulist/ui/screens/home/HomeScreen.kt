@@ -351,7 +351,8 @@ private fun AnimeContent(
             HeroCarousel(
                 navController = navController,
                 cards = heroCards,
-                isLoading = heroIsLoading
+                isLoading = heroIsLoading,
+                localAnimeStatuses = localAnimeStatuses
             )
         }
 
@@ -771,7 +772,8 @@ private val heroPlaceholderColors = listOf(
 private fun HeroCarousel(
     navController: NavController,
     cards: List<com.yumedev.seijakulist.domain.models.HeroAnimeItem>?,
-    @Suppress("UNUSED_PARAMETER") isLoading: Boolean
+    @Suppress("UNUSED_PARAMETER") isLoading: Boolean,
+    localAnimeStatuses: Map<Int, String> = emptyMap()
 ) {
     val pageCount = if (cards.isNullOrEmpty()) heroPlaceholderColors.size else cards.size
     val pagerState = rememberPagerState(pageCount = { pageCount })
@@ -800,7 +802,7 @@ private fun HeroCarousel(
             animationSpec = tween(500, easing = FastOutSlowInEasing)
         )
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             HorizontalPager(
                 state = pagerState,
                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -812,14 +814,20 @@ private fun HeroCarousel(
                 } else {
                     HeroAnimeCard(
                         item = cards[page],
+                        localAnimeStatus = localAnimeStatuses[cards[page].malId],
                         onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${cards[page].malId}") }
                     )
                 }
             }
 
-            // Indicador de puntos
+            // Dots — overlaid en el borde inferior del pager
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.Black.copy(alpha = 0.38f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -837,8 +845,8 @@ private fun HeroCarousel(
                             .width(dotWidth)
                             .clip(RoundedCornerShape(50))
                             .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                                if (isSelected) Color.White
+                                else Color.White.copy(alpha = 0.42f)
                             )
                     )
                 }
@@ -874,9 +882,56 @@ private fun HeroPlaceholderCard(color: Color) {
     }
 }
 
+private data class HeroBadgeConfig(
+    val displayLabel: String,
+    val icon: ImageVector,
+    val color: Color
+)
+
+private fun heroBadgeConfig(label: String): HeroBadgeConfig = when (label) {
+    "PARA VOS"         -> HeroBadgeConfig("Pensado para vos",  Icons.Default.Favorite,      Color(0xFF7C3AED))
+    "PROMO"            -> HeroBadgeConfig("Miralo ahora",       Icons.Default.PlayArrow,     Color(0xFFEA580C))
+    "NUEVOS EPISODIOS" -> HeroBadgeConfig("Nuevo episodio",     Icons.Default.Tv,            Color(0xFF059669))
+    "PRÓXIMAMENTE"     -> HeroBadgeConfig("Próximamente",       Icons.Default.CalendarToday, Color(0xFF2563EB))
+    "CLÁSICO"          -> HeroBadgeConfig("Un clásico",         Icons.Default.Star,          Color(0xFFD97706))
+    else               -> HeroBadgeConfig(label,                Icons.Default.Star,          Color(0xFF6200EA))
+}
+
+private fun translateAnimeStatus(status: String): String = when {
+    status.contains("Airing",   ignoreCase = true) -> "En emisión"
+    status.contains("Finished", ignoreCase = true) -> "Finalizado"
+    else                                            -> "Próximamente"
+}
+
+private val genreTranslations = mapOf(
+    "Action" to "Acción", "Adventure" to "Aventura", "Comedy" to "Comedia",
+    "Drama" to "Drama", "Fantasy" to "Fantasía", "Horror" to "Horror",
+    "Mystery" to "Misterio", "Romance" to "Romance", "Sci-Fi" to "Ciencia Ficción",
+    "Slice of Life" to "Vida Cotidiana", "Sports" to "Deportes",
+    "Supernatural" to "Sobrenatural", "Thriller" to "Thriller",
+    "Psychological" to "Psicológico", "Mecha" to "Mecha", "Music" to "Música",
+    "Historical" to "Histórico", "Military" to "Militar", "School" to "Escolar",
+    "Magic" to "Magia", "Space" to "Espacio", "Vampire" to "Vampiros",
+    "Isekai" to "Isekai", "Demons" to "Demonios", "Harem" to "Harem",
+)
+
+private fun translateGenre(genre: String): String = genreTranslations[genre] ?: genre
+
+private data class HeroStatusConfig(val icon: ImageVector, val color: Color)
+
+private fun heroStatusConfig(status: String): HeroStatusConfig? = when (status) {
+    "Viendo"     -> HeroStatusConfig(Icons.Default.PlayArrow,          Color(0xFF43A047))
+    "Completado" -> HeroStatusConfig(Icons.Default.Check,              Color(0xFF1E88E5))
+    "Pendiente"  -> HeroStatusConfig(Icons.AutoMirrored.Filled.List,   Color(0xFFFB8C00))
+    "Abandonado" -> HeroStatusConfig(Icons.Default.Info,               Color(0xFF757575))
+    "Planeado"   -> HeroStatusConfig(Icons.Default.CalendarToday,      Color(0xFF8E24AA))
+    else -> null
+}
+
 @Composable
 private fun HeroAnimeCard(
     item: com.yumedev.seijakulist.domain.models.HeroAnimeItem,
+    localAnimeStatus: String?,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -885,6 +940,17 @@ private fun HeroAnimeCard(
         targetValue = if (isPressed) 0.97f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "card_scale"
+    )
+    val badgeCfg = remember(item.label) { heroBadgeConfig(item.label) }
+    val isPara = item.label == "PARA VOS"
+
+    // Shimmer para "Pensado para vos" — siempre se computa, solo se usa cuando aplica
+    val shimmerTransition = rememberInfiniteTransition(label = "badge_shimmer")
+    val shimmerOffset by shimmerTransition.animateFloat(
+        initialValue = -120f,
+        targetValue = 260f,
+        animationSpec = infiniteRepeatable(tween(2200, easing = LinearEasing), RepeatMode.Restart),
+        label = "shimmer_offset"
     )
 
     Card(
@@ -895,6 +961,16 @@ private fun HeroAnimeCard(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Black),
+        border = BorderStroke(
+            width = 1.dp,
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    badgeCfg.color.copy(alpha = 0.55f),
+                    badgeCfg.color.copy(alpha = 0.22f),
+                    badgeCfg.color.copy(alpha = 0.04f)
+                )
+            )
+        ),
         onClick = onClick,
         interactionSource = interactionSource
     ) {
@@ -907,48 +983,43 @@ private fun HeroAnimeCard(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Gradiente oscuro de abajo a arriba
+            // Gradiente cinemático reforzado
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.3f),
-                                Color.Black.copy(alpha = 0.85f)
+                            colorStops = arrayOf(
+                                0.0f  to Color.Transparent,
+                                0.32f to Color.Black.copy(alpha = 0.12f),
+                                0.60f to Color.Black.copy(alpha = 0.60f),
+                                1.0f  to Color.Black.copy(alpha = 0.93f)
                             )
                         )
                     )
             )
+            // Vignette lateral izquierda
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color.Black.copy(alpha = 0.28f), Color.Transparent)
+                        )
+                    )
+            )
 
-            // Label badge — pill con color e ícono por categoría
-            val badgeColor = when (item.label) {
-                "PARA VOS"        -> Color(0xFF7C3AED)
-                "PROMO"           -> Color(0xFFEA580C)
-                "NUEVOS EPISODIOS"-> Color(0xFF059669)
-                "PRÓXIMAMENTE"    -> Color(0xFF2563EB)
-                "CLÁSICO"         -> Color(0xFFD97706)
-                else              -> Color(0xFF6200EA)
-            }
-            val badgeIcon = when (item.label) {
-                "PARA VOS"        -> Icons.Default.Favorite
-                "PROMO"           -> Icons.Default.PlayArrow
-                "NUEVOS EPISODIOS"-> Icons.Default.Tv
-                "PRÓXIMAMENTE"    -> Icons.Default.CalendarToday
-                "CLÁSICO"         -> Icons.Default.Star
-                else              -> Icons.Default.Star
-            }
+            // ── Badge categoría (top start) ──────────────────────────────────
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(12.dp)
-                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(50), ambientColor = badgeColor, spotColor = badgeColor)
+                    .padding(10.dp)
+                    .shadow(8.dp, RoundedCornerShape(50), ambientColor = badgeCfg.color, spotColor = badgeCfg.color)
                     .background(
-                        Brush.horizontalGradient(listOf(badgeColor, badgeColor.copy(alpha = 0.75f))),
+                        Brush.linearGradient(listOf(badgeCfg.color, badgeCfg.color.copy(alpha = 0.78f))),
                         RoundedCornerShape(50)
                     )
-                    .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(50))
+                    .border(1.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(50))
                     .clip(RoundedCornerShape(50))
             ) {
                 Row(
@@ -957,86 +1028,203 @@ private fun HeroAnimeCard(
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Icon(
-                        imageVector = badgeIcon,
+                        imageVector = badgeCfg.icon,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(11.dp)
+                        modifier = Modifier.size(11.adp())
                     )
                     Text(
-                        text = item.label,
+                        text = badgeCfg.displayLabel,
                         fontFamily = PoppinsBold,
                         fontSize = 9.asp(),
-                        letterSpacing = 0.8.sp,
+                        letterSpacing = 0.3.sp,
                         color = Color.White
+                    )
+                }
+                // Shimmer sweep exclusivo para "Pensado para vos"
+                if (isPara) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(RoundedCornerShape(50))
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.White.copy(alpha = 0.28f),
+                                        Color.Transparent
+                                    ),
+                                    start = Offset(shimmerOffset, 0f),
+                                    end = Offset(shimmerOffset + 70f, 28f)
+                                )
+                            )
                     )
                 }
             }
 
-            // Info abajo
+            // ── Indicador "en tu lista" (top end) ───────────────────────────
+            localAnimeStatus?.let { userStatus ->
+                heroStatusConfig(userStatus)?.let { cfg ->
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
+                            .shadow(4.dp, RoundedCornerShape(50), ambientColor = cfg.color, spotColor = cfg.color)
+                            .background(cfg.color.copy(alpha = 0.88f), RoundedCornerShape(50))
+                            .border(1.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(50))
+                            .clip(RoundedCornerShape(50))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = cfg.icon,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(10.adp())
+                            )
+                            Text(
+                                text = userStatus,
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.asp(),
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── Info inferior ─────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                // Géneros (disponibles en CLÁSICO y PRÓXIMAMENTE)
+                if (item.genres.isNotEmpty()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        item.genres.take(2).forEach { genre ->
+                            Text(
+                                text = translateGenre(genre),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color.White.copy(alpha = 0.14f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                                fontFamily = PoppinsRegular,
+                                fontSize = 9.asp(),
+                                color = Color.White.copy(alpha = 0.88f),
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+
+                // Título con sombra reforzada
                 Text(
                     text = item.title,
                     fontFamily = PoppinsBold,
-                    fontSize = 16.asp(),
-                    lineHeight = 20.asp(),
+                    fontSize = 17.asp(),
+                    lineHeight = 22.asp(),
                     color = Color.White,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = TextStyle(
                         shadow = Shadow(
-                            color = Color.Black,
+                            color = Color.Black.copy(alpha = 0.85f),
                             offset = Offset(0f, 2f),
-                            blurRadius = 6f
+                            blurRadius = 14f
                         )
                     )
                 )
+
+                // Meta-badges: score · año · episodios · estado
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     item.score?.let { score ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFFFFC107),
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = String.format(java.util.Locale.US, "%.1f", score),
-                                fontFamily = PoppinsMedium,
-                                fontSize = 12.asp(),
-                                color = Color.White
-                            )
-                        }
-                    }
-                    item.year?.let {
-                        Text(
-                            text = it,
-                            fontFamily = PoppinsRegular,
-                            fontSize = 12.asp(),
-                            color = Color.White.copy(alpha = 0.8f)
+                        HeroMetaBadge(
+                            icon = Icons.Default.Star,
+                            text = String.format(java.util.Locale.US, "%.1f", score),
+                            containerColor = Color(0xFFFFB300).copy(alpha = 0.22f),
+                            contentColor = Color(0xFFFFD54F),
+                            borderColor = Color(0xFFFFB300).copy(alpha = 0.45f)
                         )
                     }
-                    item.status?.let {
-                        Text(
-                            text = it,
-                            fontFamily = PoppinsRegular,
-                            fontSize = 12.asp(),
-                            color = Color.White.copy(alpha = 0.8f)
+                    item.year?.let { year ->
+                        HeroMetaBadge(
+                            icon = Icons.Default.CalendarToday,
+                            text = year,
+                            containerColor = Color.White.copy(alpha = 0.13f),
+                            contentColor = Color.White.copy(alpha = 0.92f),
+                            borderColor = Color.White.copy(alpha = 0.22f)
+                        )
+                    }
+                    item.episodes?.let { eps ->
+                        HeroMetaBadge(
+                            icon = Icons.Default.PlayArrow,
+                            text = "$eps eps",
+                            containerColor = Color.White.copy(alpha = 0.13f),
+                            contentColor = Color.White.copy(alpha = 0.92f),
+                            borderColor = Color.White.copy(alpha = 0.22f)
+                        )
+                    }
+                    item.status?.let { status ->
+                        val statusColor = when {
+                            status.contains("Airing",   ignoreCase = true) -> Color(0xFF4CAF50)
+                            status.contains("Finished", ignoreCase = true) -> Color(0xFF64B5F6)
+                            else                                            -> Color(0xFFCE93D8)
+                        }
+                        HeroMetaBadge(
+                            icon = Icons.Default.Tv,
+                            text = translateAnimeStatus(status),
+                            containerColor = statusColor.copy(alpha = 0.18f),
+                            contentColor = statusColor,
+                            borderColor = statusColor.copy(alpha = 0.38f)
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun HeroMetaBadge(
+    icon: ImageVector,
+    text: String,
+    containerColor: Color,
+    contentColor: Color,
+    borderColor: Color
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(containerColor)
+            .border(1.dp, borderColor, RoundedCornerShape(6.dp))
+            .padding(horizontal = 7.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(10.adp())
+        )
+        Text(
+            text = text,
+            fontFamily = PoppinsMedium,
+            fontSize = 10.asp(),
+            color = contentColor,
+            maxLines = 1
+        )
     }
 }
 
