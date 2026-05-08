@@ -557,35 +557,45 @@ private fun AnimeSectionHeader(
                 )
             }
 
-            // Botón "Ver más" mejorado
+            // Botón "Ver más" estilo outline moderno
             val btnInteraction = remember { MutableInteractionSource() }
             val btnPressed by btnInteraction.collectIsPressedAsState()
+
             val btnScale by animateFloatAsState(
-                targetValue = if (btnPressed) 0.92f else 1f,
-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                targetValue = if (btnPressed) 0.95f else 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
                 label = "btn_scale"
             )
+
             val iconOffset by animateDpAsState(
-                targetValue = if (btnPressed) 4.dp else 0.dp,
-                animationSpec = tween(durationMillis = 150),
+                targetValue = if (btnPressed) 3.dp else 0.dp,
+                animationSpec = spring(stiffness = Spring.StiffnessMedium),
                 label = "icon_offset"
             )
-            androidx.compose.material3.FilledTonalButton(
+
+            val backgroundColor by animateColorAsState(
+                targetValue = if (btnPressed)
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                else
+                    Color.Transparent,
+                animationSpec = tween(durationMillis = 200),
+                label = "bg_color"
+            )
+
+            androidx.compose.material3.OutlinedButton(
                 onClick = onViewMoreClick,
                 interactionSource = btnInteraction,
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(
-                    width = 1.dp,
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        )
-                    )
+                    width = 1.5.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                 ),
-                colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                    containerColor = backgroundColor,
                     contentColor = MaterialTheme.colorScheme.primary
                 ),
                 modifier = Modifier.graphicsLayer {
@@ -594,14 +604,17 @@ private fun AnimeSectionHeader(
                 }
             ) {
                 Text(
-                    text = "Ver más", fontSize = 13.asp(), fontFamily = PoppinsMedium
+                    text = "Ver más",
+                    fontSize = 13.asp(),
+                    fontFamily = PoppinsMedium,
+                    letterSpacing = 0.2.sp
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(15.dp)
+                        .size(16.dp)
                         .offset(x = iconOffset)
                 )
             }

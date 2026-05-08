@@ -73,6 +73,7 @@ fun AppScaffold(
     var isSearching by remember { mutableStateOf(false) }
     var viewMode by remember { mutableStateOf(ViewMode.LIST) }
     var sortOrder by remember { mutableStateOf(SortOrder.NONE) }
+    var isSearchExpanded by remember { mutableStateOf(false) }
 
     // Pantallas fullscreen que deben dibujarse detrás de la status bar (sin Scaffold)
     if (currentRoute == AppDestinations.SPLASH ||
@@ -86,7 +87,8 @@ fun AppScaffold(
             onDismissSearch = { isSearching = false },
             viewMode = viewMode,
             sortOrder = sortOrder,
-            settingsViewModel = settingsViewModel
+            settingsViewModel = settingsViewModel,
+            onSearchExpandedChange = { isSearchExpanded = it }
         )
         return
     }
@@ -349,12 +351,13 @@ fun AppScaffold(
                 onDismissSearch = { isSearching = false },
                 viewMode = viewMode,
                 sortOrder = sortOrder,
-                settingsViewModel = settingsViewModel
+                settingsViewModel = settingsViewModel,
+                onSearchExpandedChange = { isSearchExpanded = it }
             )
 
             // Bottom Navigation flotante
             AnimatedVisibility(
-                visible = currentRoute in bottomNavRoutes,
+                visible = currentRoute in bottomNavRoutes && !isSearchExpanded,
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it },
                 modifier = Modifier.align(Alignment.BottomCenter)

@@ -1,28 +1,39 @@
 package com.yumedev.seijakulist.ui.screens.search
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Indication
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -31,34 +42,56 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.automirrored.filled.StarHalf
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.automirrored.filled.StarHalf
-import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Tv
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Upcoming
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -69,7 +102,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -77,9 +110,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -87,11 +118,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.yumedev.seijakulist.R
-import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.models.Genre
-import com.yumedev.seijakulist.ui.components.HorizontalDividerComponent
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
@@ -99,13 +127,70 @@ import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import kotlin.collections.listOf
 
+// Altura aproximada de la barra colapsada
+private val SearchBarCollapsedHeight = 72.dp
+
+// ─── Paleta de gradientes para las tarjetas de género ───────────────────────
+private val genreCardColors = listOf(
+    Color(0xFF6C63FF) to Color(0xFF9C88FF),
+    Color(0xFFFF6B6B) to Color(0xFFFF8E53),
+    Color(0xFF0CB2AF) to Color(0xFF2EBFBC),
+    Color(0xFFFF9A00) to Color(0xFFFFBE0B),
+    Color(0xFF06C88A) to Color(0xFF2DC653),
+    Color(0xFFE91E8C) to Color(0xFFFF4B6E),
+    Color(0xFF7B2FBE) to Color(0xFFA855F7),
+    Color(0xFF2563EB) to Color(0xFF60A5FA),
+    Color(0xFFEA580C) to Color(0xFFFB923C),
+    Color(0xFF16A34A) to Color(0xFF4ADE80),
+    Color(0xFF0891B2) to Color(0xFF22D3EE),
+    Color(0xFFDC2626) to Color(0xFFF87171),
+    Color(0xFF0D9488) to Color(0xFF2DD4BF),
+    Color(0xFF7C3AED) to Color(0xFFC084FC),
+)
+
+// ─── Modelo para quick-filter chips ─────────────────────────────────────────
+data class QuickFilter(
+    val label: String,
+    val icon: ImageVector,
+    val filterKey: String            // valor que se pasa al ViewModel
+)
+
+// ─── Quick filters: atajos de un solo toque ─────────────────────────────────
+private val quickFilters = listOf(
+    QuickFilter("En emisión", Icons.Default.Tv, "airing"),
+    QuickFilter("Tendencias", Icons.Default.TrendingUp, "trending"),
+    QuickFilter("Top valorados", Icons.Default.Star, "top"),
+    QuickFilter("Próximos", Icons.Default.Upcoming, "upcoming"),
+    QuickFilter("Temporada", Icons.Default.WbSunny, "season"),
+    QuickFilter("Novedades", Icons.Default.NewReleases, "new"),
+    QuickFilter("Populares", Icons.Default.LocalFireDepartment, "popular"),
+)
+
+// ─── Tipos de contenido (filtros de categoría) ──────────────────────────────
+private val contentTypeFilters = listOf(
+    "Anime" to Icons.Default.Tv,
+    "Manga" to Icons.AutoMirrored.Filled.MenuBook,
+    "Géneros" to Icons.Default.Category,
+    "Personajes" to Icons.Default.Person,
+    "Staff" to Icons.Default.Groups,
+    "Estudios" to Icons.Default.Business,
+)
+
+// ─── Formatos de anime ───────────────────────────────────────────────────────
+private val formatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", "Música")
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PANTALLA PRINCIPAL
+// ─────────────────────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
     viewModel: AnimeSearchViewModel = hiltViewModel(),
-    listGenres: GenresViewModel = hiltViewModel()
+    listGenres: GenresViewModel = hiltViewModel(),
+    onSearchExpandedChange: (Boolean) -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val animeList by viewModel.animeList.collectAsState()
@@ -114,267 +199,480 @@ fun SearchScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val selectedGenreId by viewModel.selectedGenreId.collectAsState()
+    val selectedQuick by viewModel.selectedQuickFilter.collectAsState() // nuevo estado en VM
 
     val genres by listGenres.genres.collectAsState()
     val isLoadingGenres by listGenres.isLoading.collectAsState()
     val errorMessageGenres by listGenres.errorMessage.collectAsState()
 
+    var expanded by remember { mutableStateOf(false) }
     var openBottomSheet by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
 
+    // Notificar cambio de estado de expansión
+    LaunchedEffect(expanded) {
+        onSearchExpandedChange(expanded)
+    }
+
+    BackHandler(enabled = expanded) { expanded = false }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // ── Vista de descubrimiento (barra colapsada) ─────────────────────
+        if (!expanded) {
+            SearchDiscoveryView(
+                selectedFilter = selectedFilter,
+                selectedQuick = selectedQuick,
+                genres = genres,
+                isLoadingGenres = isLoadingGenres,
+                onFilterSelected = { filter ->
+                    if (filter == "Géneros") openBottomSheet = true
+                    else {
+                        viewModel.onFilterSelected(if (selectedFilter == filter) null else filter)
+                        expanded = true
+                    }
+                },
+                onQuickFilterTap = { qf ->
+                    // Selecciona/deselecciona el quick filter y lanza búsqueda
+                    viewModel.onQuickFilterSelected(if (selectedQuick == qf.filterKey) null else qf.filterKey)
+                    viewModel.performSearchOrFilter()
+                    expanded = true
+                },
+                onFormatSelected = { format ->
+                    viewModel.onFormatSelected(format)
+                    viewModel.performSearchOrFilter()
+                    expanded = true
+                },
+                onGenreDirectTap = { genreId ->
+                    viewModel.onGenreSelected(genreId)
+                    viewModel.onFilterSelected("Géneros")
+                    viewModel.performSearchOrFilter()
+                    expanded = true
+                }
+            )
+        }
+
+        // ── SearchBar Material 3 ──────────────────────────────────────────
+        SearchBar(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .then(
+                    if (expanded) Modifier
+                    else Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                ),
+            colors = if (expanded) {
+                SearchBarDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    dividerColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            } else {
+                SearchBarDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    dividerColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            },
+            inputField = {
+                SearchBarDefaults.InputField(
+                    query = searchQuery,
+                    onQueryChange = viewModel::onSearchQueryChanged,
+                    onSearch = {
+                        if (searchQuery.isNotBlank()) viewModel.performSearchOrFilter()
+                    },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    placeholder = {
+                        Text(
+                            text = "Anime, manga, personajes...",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.asp(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    },
+                    leadingIcon = {
+                        if (expanded) {
+                            IconButton(onClick = { expanded = false }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver",
+                                    modifier = Modifier.size(22.adp()),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.adp()),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        when {
+                            searchQuery.isNotBlank() -> IconButton(
+                                onClick = { viewModel.clearSearch() }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Limpiar búsqueda",
+                                    modifier = Modifier.size(20.adp()),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    }
+                )
+            },
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            windowInsets = WindowInsets(0.dp)
+        ) {
+            SearchContent(
+                isLoading = isLoading,
+                isLoadingMore = isLoadingMore,
+                errorMessage = errorMessage,
+                animeList = animeList,
+                searchQuery = searchQuery,
+                navController = navController,
+                selectedFilter = selectedFilter,
+                onFilterSelected = { filter ->
+                    if (filter == "Géneros") openBottomSheet = true
+                    else viewModel.onFilterSelected(if (selectedFilter == filter) null else filter)
+                },
+                onLoadMore = viewModel::loadMoreAnimes
+            )
+        }
+    }
+
+    // ── Bottom sheet de géneros ───────────────────────────────────────────
+    if (openBottomSheet) {
+        GenresBottomSheet(
+            isLoadingGenres = isLoadingGenres,
+            errorMessageGenres = errorMessageGenres,
+            genres = genres,
+            selectedGenreId = selectedGenreId,
+            onGenreSelected = viewModel::onGenreSelected,
+            onDismiss = { openBottomSheet = false },
+            onSearch = {
+                if (selectedGenreId != null) {
+                    viewModel.onFilterSelected("Géneros")
+                    viewModel.performSearchOrFilter()
+                    expanded = true
+                } else {
+                    viewModel.onFilterSelected(null)
+                }
+                openBottomSheet = false
+            }
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VISTA DE DESCUBRIMIENTO (barra colapsada)
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun SearchDiscoveryView(
+    selectedFilter: String?,
+    selectedQuick: String?,
+    genres: List<Genre>,
+    isLoadingGenres: Boolean,
+    onFilterSelected: (String) -> Unit,
+    onQuickFilterTap: (QuickFilter) -> Unit,
+    onFormatSelected: (String) -> Unit,
+    onGenreDirectTap: (genreId: String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = { focusManager.clearFocus() })
-            }
+            .padding(top = SearchBarCollapsedHeight)
+            .verticalScroll(rememberScrollState())
     ) {
-        SearchHeader(
-            searchQuery = searchQuery,
-            isLoading = isLoading,
-            onSearchQueryChanged = viewModel::onSearchQueryChanged,
-            onClearSearch = {
-                viewModel.onSearchQueryChanged("")
-                focusManager.clearFocus()
-                viewModel.performSearchOrFilter()
-            },
-            onSearch = {
-                if (searchQuery.isNotBlank()) {
-                    viewModel.performSearchOrFilter()
-                    focusManager.clearFocus()
-                }
-            },
-            focusManager = focusManager
+        // ── Título ────────────────────────────────────────────────────────
+        SectionHeader(title = "Explorar")
+
+        // ── Tipos de contenido ────────────────────────────────────────────
+        ContentTypeFilters(
+            selectedFilter = selectedFilter,
+            onFilterSelected = onFilterSelected
         )
 
-        SearchFilters(
-            selectedFilter = selectedFilter,
-            onFilterSelected = { filter ->
-                if (filter == "Generos") {
-                    openBottomSheet = true
-                } else {
-                    viewModel.onFilterSelected(
-                        if (selectedFilter == filter) null else filter
-                    )
+        // ═══════════════════════════════════════════════════════════════════
+        // SECCIÓN 1 — Quick Filters (atajos de un toque, estilo Play Store)
+        // ═══════════════════════════════════════════════════════════════════
+        SectionHeader(title = "Acceso rápido")
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+        ) {
+            items(quickFilters) { qf ->
+                val isActive = selectedQuick == qf.filterKey
+                QuickFilterChip(
+                    label = qf.label,
+                    icon = qf.icon,
+                    isActive = isActive,
+                    onClick = { onQuickFilterTap(qf) }
+                )
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // SECCIÓN 2 — Formatos de anime
+        // ═══════════════════════════════════════════════════════════════════
+        SectionHeader(title = "Formato")
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) {
+            items(formatFilters) { format ->
+                FormatChip(label = format, onClick = { onFormatSelected(format) })
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // SECCIÓN 3 — Géneros populares (grid 2 cols con gradiente)
+        // ═══════════════════════════════════════════════════════════════════
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (isLoadingGenres) {
+            GenreSkeletonGrid()
+        } else if (genres.isNotEmpty()) {
+            SectionHeader(title = "Géneros populares")
+
+            val displayGenres = genres.take(14)
+            val chunked = displayGenres.chunked(2)
+
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                chunked.forEachIndexed { rowIndex, rowGenres ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        rowGenres.forEachIndexed { colIndex, genre ->
+                            val colorIndex = (rowIndex * 2 + colIndex) % genreCardColors.size
+                            val (startColor, endColor) = genreCardColors[colorIndex]
+                            DiscoveryGenreCard(
+                                genre = genre,
+                                startColor = startColor,
+                                endColor = endColor,
+                                onClick = { onGenreDirectTap(genre.malId.toString()) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (rowGenres.size == 1) Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
-        )
+        }
 
-        SearchContent(
-            isLoading = isLoading,
-            isLoadingMore = isLoadingMore,
-            errorMessage = errorMessage,
-            animeList = animeList,
-            searchQuery = searchQuery,
-            navController = navController,
-            onLoadMore = viewModel::loadMoreAnimes
-        )
+        Spacer(modifier = Modifier.height(120.adp()))
+    }
+}
 
-        if (openBottomSheet) {
-            GenresBottomSheet(
-                isLoadingGenres = isLoadingGenres,
-                errorMessageGenres = errorMessageGenres,
-                genres = genres,
-                selectedGenreId = selectedGenreId,
-                onGenreSelected = viewModel::onGenreSelected,
-                onDismiss = { openBottomSheet = false },
-                onSearch = {
-                    if (selectedGenreId != null) {
-                        viewModel.onFilterSelected("Generos")
-                        viewModel.performSearchOrFilter()
-                    } else {
-                        viewModel.onFilterSelected(null)
-                    }
-                    openBottomSheet = false
-                }
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENTES DE CHIP
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Chip de acceso rápido — toque único lanza búsqueda preconfigurada */
+@Composable
+private fun QuickFilterChip(
+    label: String,
+    icon: ImageVector,
+    isActive: Boolean,
+    onClick: () -> Unit
+) {
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = if (isActive) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = if (isActive)
+            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+        else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.adp()),
+                tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+            Text(
+                text = label,
+                fontFamily = if (isActive) PoppinsBold else PoppinsRegular,
+                fontSize = 13.asp(),
+                color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
         }
     }
 }
 
+/** Chip de formato — TV, Movie, OVA, ONA, Especial */
 @Composable
-private fun SearchHeader(
-    searchQuery: String,
-    isLoading: Boolean,
-    onSearchQueryChanged: (String) -> Unit,
-    onClearSearch: () -> Unit,
-    onSearch: () -> Unit,
-    focusManager: FocusManager
-) {
-    // Detectar dark mode comparando la luminancia del color de surface
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val isDarkTheme = surfaceColor.luminance() < 0.5f
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+private fun FormatChip(label: String, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp)),
-            value = searchQuery,
-            onValueChange = onSearchQueryChanged,
-            placeholder = {
-                Text(
-                    text = "Anime, manga, personajes...",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    fontFamily = PoppinsRegular
-                )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedContainerColor = if (isDarkTheme) {
-                    MaterialTheme.colorScheme.surfaceContainerHigh
-                } else {
-                    Color.White
-                },
-                unfocusedContainerColor = if (isDarkTheme) {
-                    MaterialTheme.colorScheme.surfaceContainerHigh
-                } else {
-                    Color.White
-                },
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = if (isDarkTheme) {
-                    Color.Transparent
-                } else {
-                    Color.Black.copy(alpha = 0.2f)
-                },
-                cursorColor = MaterialTheme.colorScheme.primary
-            ),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.adp())
-                )
-            },
-            trailingIcon = {
-                when {
-                    isLoading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.adp()),
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 2.dp
-                        )
-                    }
-                    searchQuery.isNotBlank() -> {
-                        IconButton(
-                            onClick = onClearSearch,
-                            modifier = Modifier.size(36.adp())
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Limpiar búsqueda",
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                modifier = Modifier.size(20.adp())
-                            )
-                        }
-                    }
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = { onSearch() }
-            )
+        Text(
+            text = label,
+            fontFamily = PoppinsRegular,
+            fontSize = 13.asp(),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
         )
     }
 }
 
+/** Header reutilizable estilo Google Play */
 @Composable
-private fun SearchFilters(
+private fun SectionHeader(
+    title: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            fontFamily = PoppinsBold,
+            fontSize = 15.asp(),
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        if (actionLabel != null && onAction != null) {
+            Text(
+                text = actionLabel,
+                fontFamily = PoppinsRegular,
+                fontSize = 13.asp(),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { onAction() }
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILTROS DE TIPO DE CONTENIDO (chips horizontales)
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun ContentTypeFilters(
     selectedFilter: String?,
     onFilterSelected: (String) -> Unit
 ) {
-    val listFilterChip = listOf(
-        "Anime" to Icons.Default.Tv,
-        "Manga" to Icons.AutoMirrored.Filled.MenuBook,
-        "Generos" to Icons.Default.Category,
-        "Personajes" to Icons.Default.Person,
-        "Staff" to Icons.Default.Groups,
-        "Estudios" to Icons.Default.Business
-    )
-
-    // Detectar dark mode comparando la luminancia del color de surface
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val isDarkTheme = surfaceColor.luminance() < 0.5f
-
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
-        items(listFilterChip) { (filter, icon) ->
-            val isSelected = selectedFilter == filter
-
-            FilterChip(
-                selected = isSelected,
-                onClick = { onFilterSelected(filter) },
-                label = {
-                    Text(
-                        text = filter,
-                        fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
-                        fontSize = 14.asp()
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.adp())
-                    )
-                },
-                trailingIcon = if (filter == "Generos") {
-                    {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Ver géneros",
-                            modifier = Modifier.size(20.adp())
-                        )
-                    }
-                } else null,
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = if (isDarkTheme) {
-                        MaterialTheme.colorScheme.surfaceContainerHigh
-                    } else {
-                        Color.White
-                    },
-                    labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    borderColor = if (isSelected) {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    } else {
-                        if (isDarkTheme) {
-                            Color.Transparent
-                        } else {
-                            Color.Black.copy(alpha = 0.2f)
-                        }
-                    },
-                    selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                    borderWidth = if (!isSelected && !isDarkTheme) 1.dp else 1.dp,
-                    selectedBorderWidth = 1.dp
-                ),
-                shape = RoundedCornerShape(12.dp)
+        items(contentTypeFilters) { (filter, icon) ->
+            QuickFilterChip(
+                label = filter,
+                icon = icon,
+                isActive = selectedFilter == filter,
+                onClick = { onFilterSelected(filter) }
             )
         }
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TARJETA DE GÉNERO (grid en descubrimiento)
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun DiscoveryGenreCard(
+    genre: Genre,
+    startColor: Color,
+    endColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.height(80.adp())
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(startColor, endColor),
+                        start = Offset.Zero,
+                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                    )
+                )
+                .padding(12.dp)
+        ) {
+            Text(
+                text = genre.name,
+                color = Color.White,
+                fontFamily = PoppinsBold,
+                fontSize = 14.asp(),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+            Text(
+                text = "${genre.count}",
+                color = Color.White.copy(alpha = 0.65f),
+                fontFamily = PoppinsRegular,
+                fontSize = 11.asp(),
+                modifier = Modifier.align(Alignment.BottomEnd)
+            )
+        }
+    }
+}
+
+/** Skeleton 2x4 mientras cargan los géneros */
+@Composable
+private fun GenreSkeletonGrid() {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        repeat(4) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                repeat(2) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(80.adp())
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENIDO DE BÚSQUEDA (panel expandido)
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun SearchContent(
     isLoading: Boolean,
@@ -383,132 +681,175 @@ private fun SearchContent(
     animeList: List<AnimeCard>,
     searchQuery: String,
     navController: NavController,
+    selectedFilter: String?,
+    onFilterSelected: (String) -> Unit,
     onLoadMore: () -> Unit = {}
 ) {
     when {
-        isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                LoadingScreen()
-            }
-        }
-        errorMessage != null -> {
-            NoInternetScreen(onRetryClick = {})
-        }
-        animeList.isNotEmpty() -> {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(
-                    horizontal = 16.dp,
-                    vertical = 8.dp
+        isLoading -> Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) { LoadingScreen() }
+
+        errorMessage != null -> NoInternetScreen(onRetryClick = {})
+
+        animeList.isNotEmpty() -> LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            item {
+                ContentTypeFilters(
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = onFilterSelected
                 )
-            ) {
-                item {
-                    Text(
-                        text = "${animeList.size}+ resultados encontrados",
-                        fontFamily = PoppinsRegular,
-                        fontSize = 14.asp(),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                }
-                items(animeList, key = { it.malId }) { anime ->
-                    AnimeCardItem(
-                        navController = navController,
-                        anime = anime
-                    )
-
-                    // Detectar cuando llegamos al penúltimo item para cargar más
-                    if (anime == animeList[animeList.size - 2] && !isLoadingMore) {
-                        LaunchedEffect(key1 = anime.malId) {
-                            onLoadMore()
-                        }
-                    }
-                }
-
-                // Indicador de carga al final de la lista
-                if (isLoadingMore) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(32.adp()),
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeWidth = 3.dp
-                            )
-                        }
-                    }
-                }
-                item {
-                    Spacer(Modifier.height(100.adp()))
+            }
+            item {
+                Text(
+                    text = "${animeList.size}+ resultados encontrados",
+                    fontFamily = PoppinsRegular,
+                    fontSize = 14.asp(),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+            items(animeList, key = { it.malId }) { anime ->
+                AnimeCardItem(navController = navController, anime = anime)
+                // Carga anticipada: 2 elementos antes del final
+                if (anime == animeList.getOrNull(animeList.size - 2) && !isLoadingMore) {
+                    LaunchedEffect(key1 = anime.malId) { onLoadMore() }
                 }
             }
+            if (isLoadingMore) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.adp()),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 3.dp
+                        )
+                    }
+                }
+            }
+            item { Spacer(Modifier.height(100.adp())) }
         }
+
         else -> {
-            EmptySearchState(searchQuery = searchQuery)
+            EmptySearchState(
+                selectedFilter = selectedFilter,
+                onFilterSelected = onFilterSelected
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ESTADO VACÍO
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun EmptySearchState(
+    recentSearches: List<String> = listOf("TV", "Movie", "OVA", "ONA", "Especial"),
+    trendingSearches: List<String> = listOf("Naruto", "Jujutsu Kaisen", "One Piece"),
+    onSearchClick: (String) -> Unit = {},
+    selectedFilter: String? = null,
+    onFilterSelected: (String) -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+            ContentTypeFilters(
+                selectedFilter = selectedFilter,
+                onFilterSelected = onFilterSelected
+            )
+
+        // -------- RECENT SEARCHES --------
+        if (recentSearches.isNotEmpty()) {
+            SectionHeader(title = "Búsquedas recientes")
+
+            recentSearches.forEach { query ->
+                SearchItemRow(
+                    text = query,
+                    icon = Icons.Default.History,
+                    onClick = { onSearchClick(query) }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // -------- TRENDING --------
+        if (trendingSearches.isNotEmpty()) {
+            SectionHeader(title = "Tendencias")
+
+            trendingSearches.forEachIndexed { index, query ->
+                SearchItemRow(
+                    text = "${index + 1}. $query",
+                    icon = Icons.Default.LocalFireDepartment,
+                    highlight = true,
+                    onClick = { onSearchClick(query) }
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun EmptySearchState(searchQuery: String) {
-    Column(
+private fun SearchItemRow(
+    text: String,
+    icon: ImageVector,
+    highlight: Boolean = false,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null, // más limpio estilo Google Play
+                onClick = onClick
+            )
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.Search,
+            imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(80.adp()),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            modifier = Modifier.size(20.adp()),
+            tint = if (highlight)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
-            text = if (searchQuery.isBlank()) {
-                "Comienza tu búsqueda"
-            } else {
-                "No se encontraron resultados"
-            },
-            fontFamily = PoppinsBold,
-            fontSize = 20.asp(),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = if (searchQuery.isBlank()) {
-                "Explora anime, manga, personajes y más"
-            } else {
-                "Intenta con otros términos de búsqueda"
-            },
+            text = text,
             fontFamily = PoppinsRegular,
-            textAlign = TextAlign.Center,
             fontSize = 14.asp(),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            lineHeight = 20.asp()
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
         )
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TARJETA DE ANIME — VERSIÓN COMPLETA (resultados de búsqueda)
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun AnimeCardItem(
     navController: NavController,
     anime: AnimeCard
 ) {
     var isPressed by remember { mutableStateOf(false) }
-
-    // Detectar dark mode comparando la luminancia del color de surface
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val isDarkTheme = surfaceColor.luminance() < 0.5f
+    val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.98f else 1f,
@@ -522,65 +863,45 @@ fun AnimeCardItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        tryAwaitRelease()
-                        isPressed = false
-                    },
-                    onTap = {
-                        navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                    }
+                    onPress = { isPressed = true; tryAwaitRelease(); isPressed = false },
+                    onTap = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) {
-                MaterialTheme.colorScheme.surfaceContainer
-            } else {
-                Color.White
-            }
+            containerColor = if (isDarkTheme) MaterialTheme.colorScheme.surfaceContainer else Color.White
         ),
         shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp,
-            pressedElevation = 8.dp
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(170.adp())
         ) {
-            // Imagen con efectos profesionales
+            // ── Cover con badge de score ──────────────────────────────────
             Box(
                 modifier = Modifier
                     .width(120.adp())
                     .fillMaxHeight()
             ) {
-                // Imagen principal con placeholder
                 AsyncImage(
                     model = anime.images,
                     contentDescription = "Portada de ${anime.title}",
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)),
-                    contentScale = ContentScale.Crop,
-                    placeholder = null,
-                    error = null
+                    contentScale = ContentScale.Crop
                 )
-
-                // Gradiente sutil sobre la imagen
+                // Gradiente sobre la imagen
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(
+                                listOf(
                                     Color.Black.copy(alpha = 0.3f),
                                     Color.Transparent,
                                     Color.Black.copy(alpha = 0.5f)
@@ -588,8 +909,7 @@ fun AnimeCardItem(
                             )
                         )
                 )
-
-                // Score badge flotante con tema
+                // Badge de score
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopStart)
@@ -621,7 +941,7 @@ fun AnimeCardItem(
                 }
             }
 
-            // Contenido
+            // ── Info ──────────────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -629,10 +949,7 @@ fun AnimeCardItem(
                     .padding(12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Sección superior
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = anime.title,
                         maxLines = 2,
@@ -643,51 +960,31 @@ fun AnimeCardItem(
                         lineHeight = 19.asp(),
                         letterSpacing = 0.sp
                     )
-
-                    // Status badge adaptado al tema
-                    StatusBadgePro(status = anime.status)
-
-                    // Géneros optimizados
+                    StatusBadge(status = anime.status)
                     if (anime.genres.isNotEmpty()) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             items(anime.genres.take(2)) { genre ->
-                                genre?.name?.let {
-                                    GenreChipCompact(genreName = it)
-                                }
+                                genre?.name?.let { GenreChipCompact(genreName = it) }
                             }
                             if (anime.genres.size > 2) {
-                                item {
-                                    GenreChipCompact(genreName = "+${anime.genres.size - 2}")
-                                }
+                                item { GenreChipCompact(genreName = "+${anime.genres.size - 2}") }
                             }
                         }
                     }
                 }
 
-                // Sección inferior
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Info compacta
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        InfoChip(
-                            icon = Icons.Default.CalendarToday,
-                            text = anime.year
-                        )
-                        InfoChip(
-                            icon = Icons.Default.PlayCircleOutline,
-                            text = "${anime.episodes}"
-                        )
+                        InfoChip(icon = Icons.Default.CalendarToday, text = anime.year)
+                        InfoChip(icon = Icons.Default.PlayCircleOutline, text = "${anime.episodes}")
                     }
-
-                    // Botón de añadir
                     Surface(
                         onClick = {
                             navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}?openSheet=true")
@@ -714,51 +1011,147 @@ fun AnimeCardItem(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TARJETA MINIMAL (variante compacta para otras pantallas)
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun StatusBadgePro(status: String) {
-    val (statusColor, statusText, emoji) = when (status) {
-        "Currently Airing" -> Triple(
-            Color(0xFF10B981),
-            "En emisión",
-            "●"
-        )
-        "Finished Airing" -> Triple(
-            MaterialTheme.colorScheme.primary,
-            "Finalizado",
-            "✓"
-        )
-        "Not yet aired" -> Triple(
-            Color(0xFFFF9800),
-            "Próximamente",
-            "◐"
-        )
-        else -> Triple(
-            MaterialTheme.colorScheme.outline,
-            status,
-            "○"
-        )
-    }
+fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
+    var isPressed by remember { mutableStateOf(false) }
+    val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = statusColor.copy(alpha = 0.15f)
+    val elevation by animateDpAsState(
+        targetValue = if (isPressed) 2.dp else 6.dp,
+        label = "elevation"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { isPressed = true; tryAwaitRelease(); isPressed = false },
+                    onTap = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+                )
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = if (isDarkTheme) MaterialTheme.colorScheme.surface else Color.White
+        ),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(190.adp())
+        ) {
+            AsyncImage(
+                model = anime.images,
+                contentDescription = "Portada de ${anime.title}",
+                modifier = Modifier
+                    .width(130.adp())
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = anime.title,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 17.asp(),
+                            fontFamily = PoppinsBold,
+                            lineHeight = 20.asp()
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFBBF24),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = String.format("%.1f", anime.score),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 13.asp(),
+                                fontFamily = PoppinsBold
+                            )
+                        }
+                    }
+                    StatusBadgeMinimal(status = anime.status)
+                    if (anime.genres.isNotEmpty()) {
+                        Text(
+                            text = anime.genres.take(3).mapNotNull { it?.name }.joinToString(" • "),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            fontSize = 11.asp()
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${anime.year} • ${anime.episodes} eps",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        fontSize = 11.asp()
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.adp())
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBCOMPONENTES VISUALES
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun StatusBadge(status: String) {
+    val (color, text, dot) = when (status) {
+        "Currently Airing" -> Triple(Color(0xFF10B981), "En emisión", "●")
+        "Finished Airing" -> Triple(MaterialTheme.colorScheme.primary, "Finalizado", "✓")
+        "Not yet aired" -> Triple(Color(0xFFFF9800), "Próximamente", "◐")
+        else -> Triple(MaterialTheme.colorScheme.outline, status, "○")
+    }
+    Surface(shape = RoundedCornerShape(8.dp), color = color.copy(alpha = 0.15f)) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(text = dot, color = color, fontSize = 10.asp(), fontFamily = PoppinsBold)
             Text(
-                text = emoji,
-                color = statusColor,
-                fontSize = 10.asp(),
-                fontFamily = PoppinsBold
-            )
-
-            Text(
-                text = statusText,
+                text = text,
                 style = MaterialTheme.typography.labelSmall,
-                color = statusColor,
+                color = color,
                 fontFamily = PoppinsBold,
                 fontSize = 11.asp(),
                 letterSpacing = 0.2.sp
@@ -768,13 +1161,20 @@ private fun StatusBadgePro(status: String) {
 }
 
 @Composable
-private fun StatusBadgeModern(status: String) {
-    StatusBadgePro(status = status)
-}
-
-@Composable
-private fun GenreChip(genreName: String) {
-    GenreChipCompact(genreName = genreName)
+private fun StatusBadgeMinimal(status: String) {
+    val (color, text) = when (status) {
+        "Currently Airing" -> Color(0xFF10B981) to "En emisión"
+        "Finished Airing" -> Color(0xFF3B82F6) to "Finalizado"
+        "Not yet aired" -> Color(0xFFF59E0B) to "Próximamente"
+        else -> Color.Gray to status
+    }
+    Text(
+        text = "● $text",
+        style = MaterialTheme.typography.labelSmall,
+        color = color,
+        fontFamily = PoppinsBold,
+        fontSize = 12.asp()
+    )
 }
 
 @Composable
@@ -798,38 +1198,7 @@ private fun GenreChipCompact(genreName: String) {
 }
 
 @Composable
-private fun InfoRow(
-    icon: ImageVector,
-    text: String,
-    color: Color
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(15.dp),
-            tint = color.copy(alpha = 0.85f)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
-            fontSize = 13.asp(),
-            fontFamily = PoppinsRegular,
-            fontWeight = FontWeight.Medium,
-            letterSpacing = 0.1.sp
-        )
-    }
-}
-
-@Composable
-private fun InfoChip(
-    icon: ImageVector,
-    text: String
-) {
+private fun InfoChip(icon: ImageVector, text: String) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -851,165 +1220,9 @@ private fun InfoChip(
     }
 }
 
-// VERSIÓN ALTERNATIVA: Aún más minimalista y elegante
-@Composable
-fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
-    var isPressed by remember { mutableStateOf(false) }
-
-    // Detectar dark mode comparando la luminancia del color de surface
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val isDarkTheme = surfaceColor.luminance() < 0.5f
-
-    val elevation by animateDpAsState(
-        targetValue = if (isPressed) 2.dp else 6.dp,
-        label = "elevation"
-    )
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        tryAwaitRelease()
-                        isPressed = false
-                    },
-                    onTap = {
-                        navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                    }
-                )
-            },
-        colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) {
-                MaterialTheme.colorScheme.surface
-            } else {
-                Color.White
-            }
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(190.adp())
-        ) {
-            // Imagen limpia
-            AsyncImage(
-                model = anime.images,
-                contentDescription = "Portada de ${anime.title}",
-                modifier = Modifier
-                    .width(130.adp())
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            // Contenido espaciado
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(18.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Título con score inline
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = anime.title,
-                            modifier = Modifier.weight(1f),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 17.asp(),
-                            fontFamily = PoppinsBold,
-                            lineHeight = 20.asp()
-                        )
-
-                        // Score compacto
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(3.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFFFBBF24),
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = String.format("%.1f", anime.score),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 13.asp(),
-                                fontFamily = PoppinsBold
-                            )
-                        }
-                    }
-
-                    StatusBadgeMinimal(status = anime.status)
-
-                    // Géneros en una línea
-                    if (anime.genres.isNotEmpty()) {
-                        Text(
-                            text = anime.genres.take(3).mapNotNull { it?.name }.joinToString(" • "),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            fontSize = 11.asp()
-                        )
-                    }
-                }
-
-                // Footer compacto
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${anime.year} • ${anime.episodes} eps",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        fontSize = 11.asp()
-                    )
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.adp())
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusBadgeMinimal(status: String) {
-    val (statusColor, statusText) = when (status) {
-        "Currently Airing" -> Color(0xFF10B981) to "En emisión"
-        "Finished Airing" -> Color(0xFF3B82F6) to "Finalizado"
-        "Not yet aired" -> Color(0xFFF59E0B) to "Próximamente"
-        else -> Color.Gray to status
-    }
-
-    Text(
-        text = "● $statusText",
-        style = MaterialTheme.typography.labelSmall,
-        color = statusColor,
-        fontFamily = PoppinsBold,
-        fontSize = 12.asp()
-    )
-}
-
+// ─────────────────────────────────────────────────────────────────────────────
+// BOTTOM SHEET DE GÉNEROS
+// ─────────────────────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GenresBottomSheet(
@@ -1030,7 +1243,6 @@ private fun GenresBottomSheet(
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1045,10 +1257,7 @@ private fun GenresBottomSheet(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar"
-                    )
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar")
                 }
             }
 
@@ -1058,53 +1267,43 @@ private fun GenresBottomSheet(
             )
 
             when {
-                isLoadingGenres -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.adp()),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        LoadingScreen()
-                    }
-                }
-                errorMessageGenres != null -> {
-                    Text(
-                        text = errorMessageGenres,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-                else -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxHeight(0.7f)
-                    ) {
-                        items(genres) { genre ->
-                            GenreChip(
-                                genre = genre,
-                                isSelected = selectedGenreId == genre.malId.toString(),
-                                onClick = { onGenreSelected(genre.malId.toString()) }
-                            )
-                        }
+                isLoadingGenres -> Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.adp()),
+                    contentAlignment = Alignment.Center
+                ) { LoadingScreen() }
+
+                errorMessageGenres != null -> Text(
+                    text = errorMessageGenres,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+
+                else -> LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxHeight(0.7f)
+                ) {
+                    items(genres) { genre ->
+                        GenreGridChip(
+                            genre = genre,
+                            isSelected = selectedGenreId == genre.malId.toString(),
+                            onClick = { onGenreSelected(genre.malId.toString()) }
+                        )
                     }
                 }
             }
 
-            // Action buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
-                ) {
+                OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
                     Text("Cancelar", fontFamily = PoppinsRegular)
                 }
                 Button(
@@ -1120,7 +1319,7 @@ private fun GenresBottomSheet(
 }
 
 @Composable
-private fun GenreChip(
+private fun GenreGridChip(
     genre: Genre,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -1128,14 +1327,9 @@ private fun GenreChip(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
-        border = if (isSelected) {
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        } else null,
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -1149,16 +1343,12 @@ private fun GenreChip(
                 text = genre.name,
                 fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                 fontSize = 14.asp(),
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
@@ -1178,9 +1368,12 @@ private fun GenreChip(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// DIALOG — AÑADIR ANIME A LISTA
+// ─────────────────────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddAnimeDialog(
+fun AddAnimeDialog(
     anime: AnimeCard,
     onDismiss: () -> Unit,
     onConfirm: (userScore: Float, userStatus: String, userOpinion: String) -> Unit
@@ -1199,8 +1392,6 @@ private fun AddAnimeDialog(
         "Planeado" to Color(0xFF78909C)
     )
 
-    val isFormValid = selectedStatus != null
-
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
@@ -1212,7 +1403,7 @@ private fun AddAnimeDialog(
                 .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Header mejorado
+            // Header
             item {
                 Row(
                     modifier = Modifier
@@ -1237,7 +1428,7 @@ private fun AddAnimeDialog(
                 }
             }
 
-            // Card: Estado
+            // Estado
             item {
                 Card(
                     modifier = Modifier
@@ -1247,10 +1438,7 @@ private fun AddAnimeDialog(
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 4.dp,
-                        pressedElevation = 2.dp
-                    ),
+                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
@@ -1301,14 +1489,13 @@ private fun AddAnimeDialog(
                                 .fillMaxWidth()
                                 .height(56.adp()),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (selectedStatus != null) statusColors[selectedStatus]!! else MaterialTheme.colorScheme.surface,
-                                contentColor = if (selectedStatus != null) Color.Black else MaterialTheme.colorScheme.onSurface
+                                containerColor = if (selectedStatus != null) statusColors[selectedStatus]!!
+                                else MaterialTheme.colorScheme.surface,
+                                contentColor = if (selectedStatus != null) Color.Black
+                                else MaterialTheme.colorScheme.onSurface
                             ),
                             shape = RoundedCornerShape(12.dp),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 2.dp,
-                                pressedElevation = 6.dp
-                            )
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -1321,7 +1508,7 @@ private fun AddAnimeDialog(
                                     fontSize = 16.asp(),
                                     fontWeight = FontWeight.SemiBold
                                 )
-                                val rotation: Float by animateFloatAsState(
+                                val rotation by animateFloatAsState(
                                     targetValue = if (expandedStatus) 180f else 0f,
                                     animationSpec = spring(
                                         dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -1352,34 +1539,22 @@ private fun AddAnimeDialog(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                items(
-                                    items = statusAnime,
-                                    key = { it }
-                                ) { status ->
+                                items(items = statusAnime, key = { it }) { status ->
                                     val isSelected = selectedStatus == status
                                     val scale by animateFloatAsState(
                                         targetValue = if (isSelected) 1.05f else 1f,
-                                        animationSpec = spring(
-                                            dampingRatio = Spring.DampingRatioMediumBouncy
-                                        ),
+                                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
                                         label = "Card Scale"
                                     )
-
                                     Card(
                                         onClick = {
-                                            if (selectedStatus == status) {
-                                                selectedStatus = null
-                                            } else {
-                                                selectedStatus = status
-                                            }
+                                            selectedStatus =
+                                                if (selectedStatus == status) null else status
                                             expandedStatus = false
                                         },
                                         modifier = Modifier
                                             .fillMaxHeight()
-                                            .graphicsLayer {
-                                                scaleX = scale
-                                                scaleY = scale
-                                            },
+                                            .graphicsLayer { scaleX = scale; scaleY = scale },
                                         colors = CardDefaults.cardColors(
                                             containerColor = statusColors[status] ?: Color.Gray
                                         ),
@@ -1410,7 +1585,7 @@ private fun AddAnimeDialog(
                 }
             }
 
-            // Card: Calificación
+            // Calificación
             item {
                 AnimatedVisibility(
                     visible = selectedStatus != null,
@@ -1424,9 +1599,7 @@ private fun AddAnimeDialog(
                         colors = CardDefaults.elevatedCardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ),
-                        elevation = CardDefaults.elevatedCardElevation(
-                            defaultElevation = 4.dp
-                        ),
+                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
@@ -1452,12 +1625,8 @@ private fun AddAnimeDialog(
                                     fontFamily = PoppinsBold
                                 )
                             }
-
                             if (selectedStatus != "Planeado") {
-                                RatingBar(
-                                    rating = userRating,
-                                    onRatingChange = { userRating = it }
-                                )
+                                RatingBar(rating = userRating, onRatingChange = { userRating = it })
                             } else {
                                 Box(
                                     modifier = Modifier
@@ -1470,7 +1639,7 @@ private fun AddAnimeDialog(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        "No puedes puntuar un anime planeado",
+                                        text = "No podés puntuar un anime planeado",
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                         textAlign = TextAlign.Center,
                                         fontSize = 14.asp()
@@ -1482,7 +1651,7 @@ private fun AddAnimeDialog(
                 }
             }
 
-            // Card: Opinión
+            // Opinión
             item {
                 Card(
                     modifier = Modifier
@@ -1491,9 +1660,7 @@ private fun AddAnimeDialog(
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 4.dp
-                    ),
+                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
@@ -1519,12 +1686,11 @@ private fun AddAnimeDialog(
                                 fontFamily = PoppinsBold
                             )
                         }
-
                         OutlinedTextField(
                             value = userOpinion,
                             onValueChange = { userOpinion = it },
                             placeholder = {
-                                Text(text = "Comparte tu opinión sobre este anime...")
+                                Text(text = "Compartí tu opinión sobre este anime...")
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1533,12 +1699,12 @@ private fun AddAnimeDialog(
                                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                                 focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.2f
+                                ),
                                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                cursorColor = MaterialTheme.colorScheme.primary,
-                                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                cursorColor = MaterialTheme.colorScheme.primary
                             ),
                             shape = RoundedCornerShape(12.dp)
                         )
@@ -1546,20 +1712,16 @@ private fun AddAnimeDialog(
                 }
             }
 
-            // Botón Guardar mejorado
+            // Botón guardar
             item {
                 Button(
                     onClick = {
-                        if (isFormValid) {
-                            val scoreToPass = if (selectedStatus == "Planeado") {
-                                0.0f
-                            } else {
-                                userRating
-                            }
-                            onConfirm(scoreToPass, selectedStatus!!, userOpinion)
+                        if (selectedStatus != null) {
+                            val score = if (selectedStatus == "Planeado") 0.0f else userRating
+                            onConfirm(score, selectedStatus!!, userOpinion)
                         }
                     },
-                    enabled = isFormValid,
+                    enabled = selectedStatus != null,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -1596,13 +1758,14 @@ private fun AddAnimeDialog(
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RATING BAR
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun RatingBar(
     modifier: Modifier = Modifier,
@@ -1622,40 +1785,31 @@ private fun RatingBar(
                 val starValue = i.toFloat()
                 val isFilled = starValue <= rating
                 val isHalfFilled = (starValue - 0.5f) <= rating && !isFilled
-
                 val imageVector = when {
                     isFilled -> Icons.Default.Star
                     isHalfFilled -> Icons.AutoMirrored.Filled.StarHalf
                     else -> Icons.Default.StarBorder
                 }
-
-                val tint =
-                    if (isFilled || isHalfFilled) starColor else MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = 0.5f
-                    )
-                val size by animateFloatAsState(
+                val tint = if (isFilled || isHalfFilled) starColor
+                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                val scale by animateFloatAsState(
                     targetValue = if (isFilled || isHalfFilled) 1.2f else 1.0f,
                     label = "starSizeAnimation"
                 )
-
                 Icon(
                     imageVector = imageVector,
                     contentDescription = "Puntuación de $starValue estrellas",
                     modifier = Modifier
-                        .graphicsLayer {
-                            scaleX = size
-                            scaleY = size
-                        }
+                        .graphicsLayer { scaleX = scale; scaleY = scale }
                         .size(32.adp())
                         .clickable {
-                            val newRating = if (rating == starValue) {
-                                starValue - 0.5f
-                            } else if (rating == starValue - 0.5f) {
-                                0f
-                            } else {
-                                starValue
-                            }
-                            onRatingChange(newRating)
+                            onRatingChange(
+                                when (rating) {
+                                    starValue -> starValue - 0.5f
+                                    starValue - 0.5f -> 0f
+                                    else -> starValue
+                                }
+                            )
                         },
                     tint = tint
                 )
@@ -1663,11 +1817,10 @@ private fun RatingBar(
         }
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = if (rating % 1 == 0f) {
+            text = if (rating % 1 == 0f)
                 "Tu calificación: %d / %d".format(rating.toInt(), stars)
-            } else {
-                "Tu calificación: %.1f / %d".format(rating, stars)
-            },
+            else
+                "Tu calificación: %.1f / %d".format(rating, stars),
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.asp(),
             fontWeight = FontWeight.Bold,

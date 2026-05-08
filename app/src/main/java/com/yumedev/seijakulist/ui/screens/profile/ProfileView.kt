@@ -55,6 +55,7 @@ import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.yumedev.seijakulist.ui.screens.detail.SectionHeader
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
@@ -227,7 +228,7 @@ fun ProfileView(
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 MinimalTabRow(
-                    tabs             = listOf("Anime", "Manga"),
+                    tabs             = listOf("Anime", "Manga", "Estadisticas"),
                     selectedTabIndex = selectedTabIndex,
                     onTabSelected    = { selectedTabIndex = it }
                 )
@@ -344,7 +345,7 @@ fun ProfileView(
                                 }
                             }
                         }
-                    } else {
+                    } else if (targetIndex == 1) {
                         Column(
                             modifier            = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 48.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -364,6 +365,32 @@ fun ProfileView(
                             )
                             Text(
                                 "Estamos trabajando para que puedas trackear tus lecturas muy pronto.",
+                                fontSize = 14.asp(),
+                                fontFamily = PoppinsRegular,
+                                color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign  = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier            = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 48.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ShowChart,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.adp()),
+                                tint     = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            )
+                            Text(
+                                "¡Estadisticas en camino!",
+                                fontSize = 20.asp(),
+                                fontFamily = PoppinsBold,
+                                color      = MaterialTheme.colorScheme.onBackground
+                            )
+                            Text(
+                                "Estamos trabajando para que puedas ver todas tus estadisticas aqui!.",
                                 fontSize = 14.asp(),
                                 fontFamily = PoppinsRegular,
                                 color      = MaterialTheme.colorScheme.onSurfaceVariant,

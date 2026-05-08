@@ -151,7 +151,8 @@ fun AppNavigation(
     onDismissSearch: () -> Unit,
     viewMode: com.yumedev.seijakulist.ui.components.ViewMode = com.yumedev.seijakulist.ui.components.ViewMode.LIST,
     sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE,
-    settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
+    settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel,
+    onSearchExpandedChange: (Boolean) -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -310,7 +311,10 @@ fun AppNavigation(
         composable(
             route = AppDestinations.SEARCH_ANIME_ROUTE
         ) {
-            SearchScreen(navController)
+            SearchScreen(
+                navController = navController,
+                onSearchExpandedChange = onSearchExpandedChange
+            )
         }
         composable(
             route = AppDestinations.MY_ANIMES_ROUTE

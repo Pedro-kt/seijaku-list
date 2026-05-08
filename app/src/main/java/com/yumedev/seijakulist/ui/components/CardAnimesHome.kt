@@ -83,122 +83,132 @@ private fun AnimeSectionCard(
 ) {
     val context = LocalContext.current
 
-    Column(
+    Box(
         modifier = Modifier
             .width(135.adp())
+            .height(200.adp())
             .clip(RoundedCornerShape(16.dp))
+            .clickable {
+                navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+            }
     ) {
+        // Imagen de fondo completa
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(anime.image)
+                .crossfade(true)
+                .build(),
+            contentDescription = anime.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+        )
+
+        // Gradiente superior para Score y Estado
         Box(
             modifier = Modifier
-                .height(200.adp())
                 .fillMaxWidth()
-                .clickable {
-                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                }
-        ) {
-            // Imagen con transición suave
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(anime.image)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = anime.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            )
-
-            // Gradiente superior para proteger la legibilidad del Score
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.adp())
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color.Black.copy(alpha = 0.5f), Color.Transparent)
+                .height(70.adp())
+                .align(Alignment.TopCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Black.copy(alpha = 0.85f),
+                            0.5f to Color.Black.copy(alpha = 0.5f),
+                            1.0f to Color.Transparent
                         )
                     )
-            )
+                )
+        )
 
-            // Score con diseño de "Badge"
-            if (anime.score > 0) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .background(
-                            color = Color.Black.copy(alpha = 0.75f),
-                            shape = RoundedCornerShape(bottomStart = 6.dp)
+        // Gradiente inferior para Título
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(90.adp())
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.4f to Color.Black.copy(alpha = 0.6f),
+                            1.0f to Color.Black.copy(alpha = 0.92f)
                         )
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = null,
-                        tint = Color(0xFFFFD700),
-                        modifier = Modifier.size(12.dp)
                     )
-                    Text(
-                        text = String.format("%.1f", anime.score),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 11.asp(),
-                        fontFamily = PoppinsBold
-                    )
-                }
-            }
+                )
+        )
 
-            // Badge "en lista" con el estado del usuario
-            val userStatus = localAnimeStatuses[anime.malId]
-            if (userStatus != null) {
-                val statusColor = when (userStatus) {
-                    "Viendo" -> Color(0xFF66BB6A)
-                    "Completado" -> Color(0xFF42A5F5)
-                    "Pendiente" -> Color(0xFFFFCA28)
-                    "Abandonado" -> Color(0xFFEF5350)
-                    "Planeado" -> Color(0xFF78909C)
-                    else -> Color.Gray
-                }
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .clip(RoundedCornerShape(bottomEnd = 6.dp))
-                        .background(Color.Black.copy(alpha = 0.75f))
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(5.dp)
-                            .background(statusColor, CircleShape)
-                    )
-                    Text(
-                        text = userStatus,
-                        color = Color.White,
-                        fontSize = 9.asp(),
-                        fontFamily = PoppinsBold
-                    )
-                }
+        // Score en la parte superior derecha
+        if (anime.score > 0) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = null,
+                    tint = Color(0xFFFFD700),
+                    modifier = Modifier.size(13.dp)
+                )
+                Text(
+                    text = String.format("%.1f", anime.score),
+                    color = Color.White,
+                    fontSize = 12.asp(),
+                    fontFamily = PoppinsBold
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        // Estado del anime en la parte superior izquierda
+        val userStatus = localAnimeStatuses[anime.malId]
+        if (userStatus != null) {
+            val statusColor = when (userStatus) {
+                "Viendo" -> Color(0xFF66BB6A)
+                "Completado" -> Color(0xFF42A5F5)
+                "Pendiente" -> Color(0xFFFFCA28)
+                "Abandonado" -> Color(0xFFEF5350)
+                "Planeado" -> Color(0xFF78909C)
+                else -> Color.Gray
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(statusColor, CircleShape)
+                )
+                Text(
+                    text = userStatus,
+                    color = Color.White,
+                    fontSize = 10.asp(),
+                    fontFamily = PoppinsBold
+                )
+            }
+        }
 
-        // Título con mejor interlineado
+        // Título en la parte inferior
         Text(
             text = anime.title,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(
-                fontFamily = PoppinsMedium, // Medium suele verse mejor que Regular en títulos
+                fontFamily = PoppinsMedium,
                 fontSize = 13.asp(),
-                lineHeight = 18.asp(),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                lineHeight = 17.asp(),
+                color = Color.White
             ),
-            modifier = Modifier.padding(horizontal = 4.dp)
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(horizontal = 10.dp, vertical = 10.dp)
         )
     }
 }
