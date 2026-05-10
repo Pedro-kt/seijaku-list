@@ -403,34 +403,50 @@ private fun SearchDiscoveryView(
         // ═══════════════════════════════════════════════════════════════════
         // SECCIÓN 1 — Quick Filters (atajos de un toque, estilo Play Store)
         // ═══════════════════════════════════════════════════════════════════
-        SectionHeader(title = "Acceso rápido")
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+        AnimatedVisibility(
+            visible = selectedFilter == "Anime",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
         ) {
-            items(quickFilters) { qf ->
-                val isActive = selectedQuick == qf.filterKey
-                QuickFilterChip(
-                    label = qf.label,
-                    icon = qf.icon,
-                    isActive = isActive,
-                    onClick = { onQuickFilterTap(qf) }
-                )
+            Column {
+                SectionHeader(title = "Acceso rápido")
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    items(quickFilters) { qf ->
+                        val isActive = selectedQuick == qf.filterKey
+                        QuickFilterChip(
+                            label = qf.label,
+                            icon = qf.icon,
+                            isActive = isActive,
+                            onClick = { onQuickFilterTap(qf) }
+                        )
+                    }
+                }
             }
         }
 
         // ═══════════════════════════════════════════════════════════════════
         // SECCIÓN 2 — Formatos de anime
         // ═══════════════════════════════════════════════════════════════════
-        SectionHeader(title = "Formato")
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp)
+        AnimatedVisibility(
+            visible = selectedFilter == "Anime",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
         ) {
-            items(formatFilters) { format ->
-                FormatChip(label = format, onClick = { onFormatSelected(format) })
+            Column {
+                SectionHeader(title = "Formato")
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(formatFilters) { format ->
+                        FormatChip(label = format, onClick = { onFormatSelected(format) })
+                    }
+                }
             }
         }
 
