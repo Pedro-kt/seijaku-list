@@ -1,12 +1,12 @@
 package com.yumedev.seijakulist.ui.screens.home
 
+import com.yumedev.seijakulist.common.RequestThrottler
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.domain.models.HeroAnimeItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,12 +15,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val REQUEST_DELAY_MS = 400L // 3 req/seg de Jikan → 400ms de margen
-
 @Singleton
 class HeroCarouselCache @Inject constructor(
     private val animeRepository: AnimeRepository,
-    private val localRepository: AnimeLocalRepository
+    private val localRepository: AnimeLocalRepository,
+    private val requestThrottler: RequestThrottler
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -32,6 +31,17 @@ class HeroCarouselCache @Inject constructor(
 
     fun preload() {
         if (_cards.value != null || _isLoading.value) return
+        loadCards()
+    }
+
+    fun retry() {
+        // Resetear estado y volver a cargar
+        _cards.value = null
+        loadCards()
+    }
+
+    private fun loadCards() {
+        if (_isLoading.value) return
         scope.launch {
             _isLoading.value = true
             try {
@@ -40,24 +50,43 @@ class HeroCarouselCache @Inject constructor(
                     ?: localAnimes.firstOrNull { it.statusUser == "Completado" }?.malId
 
                 // Orden de carga: PARA VOS → PROMO → NUEVOS EPISODIOS → PRÓXIMAMENTE → CLÁSICO
-                // Secuencial con delay para respetar el rate limit de Jikan (3 req/seg)
-                fun fetch(block: suspend () -> HeroAnimeItem?) = block
-
-                val loaders = buildList {
-                    if (watchingId != null) add(fetch { animeRepository.getRecommendationForAnime(watchingId) })
-                    add(fetch { animeRepository.getWatchRecentPromos() })
-                    add(fetch { animeRepository.getWatchRecentEpisodes() })
-                    add(fetch { animeRepository.getUpcomingHeroItem() })
-                    add(fetch { animeRepository.getTopClassicAnime() })
-                }
-
+                // Usando RequestThrottler para respetar el rate limit
                 val results = mutableListOf<HeroAnimeItem>()
-                loaders.forEachIndexed { index, loader ->
-                    if (index > 0) delay(REQUEST_DELAY_MS)
-                    runCatching { loader() }.getOrNull()?.let { results.add(it) }
+
+                // Cargar cada petición de forma secuencial usando el throttler
+                if (watchingId != null) {
+                    requestThrottler.throttle {
+                        animeRepository.getRecommendationForAnime(watchingId)
+                    }?.let { results.add(it) }
                 }
 
-                if (results.isNotEmpty()) _cards.value = results
+                requestThrottler.throttle {
+                    animeRepository.getWatchRecentPromos()
+                }?.let { results.add(it) }
+
+                requestThrottler.throttle {
+                    animeRepository.getWatchRecentEpisodes()
+                }?.let { results.add(it) }
+
+                requestThrottler.throttle {
+                    animeRepository.getUpcomingHeroItem()
+                }?.let { results.add(it) }
+
+                requestThrottler.throttle {
+                    animeRepository.getTopClassicAnime()
+                }?.let { results.add(it) }
+
+                // Asegurarse de que siempre tengamos al menos una card
+                if (results.isNotEmpty()) {
+                    _cards.value = results
+                } else {
+                    // Si todas las peticiones fallaron, intentar al menos una como fallback
+                    requestThrottler.throttle {
+                        animeRepository.getTopClassicAnime()
+                    }?.let {
+                        _cards.value = listOf(it)
+                    }
+                }
             } finally {
                 _isLoading.value = false
             }

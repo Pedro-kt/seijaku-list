@@ -2,6 +2,7 @@ package com.yumedev.seijakulist.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yumedev.seijakulist.common.RequestThrottler
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.usecase.GetTopAnimeFilterUseCase
 import com.yumedev.seijakulist.domain.usecase.GetTopAnimeUseCase
@@ -17,10 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TopAnimeViewModel @Inject constructor(
-
     private val getTopAnimeUseCase: GetTopAnimeUseCase,
-    private val cache: TopAnimeCache
-
+    private val cache: TopAnimeCache,
+    private val requestThrottler: RequestThrottler
 ) : ViewModel() {
 
     private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
@@ -32,7 +32,10 @@ class TopAnimeViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    val isError: StateFlow<Boolean> = _errorMessage.map { it != null }.stateIn(
+    // Solo es error crítico si no tenemos cache Y la petición falló
+    val isError: StateFlow<Boolean> = _errorMessage.map { error ->
+        error != null && _animeList.value.isEmpty()
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = false
@@ -42,34 +45,38 @@ class TopAnimeViewModel @Inject constructor(
         val cached = cache.animeList
         if (cached != null) {
             _animeList.value = cached
+            // Si hay cache, cargar en background sin bloquear la UI
+            topAnime(silent = true)
         } else {
             topAnime()
         }
     }
 
-    fun topAnime() {
-
+    fun topAnime(silent: Boolean = false) {
         viewModelScope.launch {
+            if (!silent) {
+                _errorMessage.value = null
+                _isLoading.value = true
+            }
 
-            _errorMessage.value = null
-            _isLoading.value = true
+            val result = requestThrottler.throttle {
+                getTopAnimeUseCase()
+            }
 
-            try {
-
-                val results = getTopAnimeUseCase()
-                val filtered = results.distinctBy { it.malId }
+            if (result != null) {
+                val filtered = result.distinctBy { it.malId }
                 cache.animeList = filtered
                 _animeList.value = filtered
+                _errorMessage.value = null
+            } else {
+                // Solo marcamos error si no tenemos cache previo
+                if (_animeList.value.isEmpty()) {
+                    _errorMessage.value = "Error al buscar animes"
+                }
+            }
 
-            } catch (e: Exception) {
-
-                _errorMessage.value = "Error al buscar animes: ${e.localizedMessage ?: "Error desconocido"}"
-                _animeList.value = emptyList()
-
-            } finally {
-
+            if (!silent) {
                 _isLoading.value = false
-
             }
         }
     }

@@ -73,12 +73,14 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FiberNew
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LocalContentColor
@@ -194,7 +196,9 @@ fun HomeScreen(
     val heroCards by heroCarouselViewModel.cards.collectAsState()
     val heroIsLoading by heroCarouselViewModel.isLoading.collectAsState()
 
-    val hasError = animeSeasonNowError || topAnimeError || animeSeasonUpcomingError
+    // Solo mostrar error si TODOS los ViewModels críticos tienen error Y no hay datos
+    val hasError = animeSeasonNowError && topAnimeError && animeSeasonUpcomingError &&
+            animeSeasonNow.isEmpty() && topAnimes.isEmpty() && animeSeasonUpcoming.isEmpty()
 
     val listTab = listOf("Anime", "Manga")
     val selectedTab = remember { mutableStateOf(listTab[0]) }
@@ -238,6 +242,7 @@ fun HomeScreen(
                     topAnimesViewModel.topAnime()
                     seasonNowViewModel.AnimesSeasonNow()
                     seasonUpcomingViewModel.AnimesSeasonUpcoming()
+                    heroCarouselViewModel.retry()
                     //animeRandomViewModel.loadRandomAnime()
                     //characterRandomViewModel.loadCharacterRandom()
                 })
@@ -433,66 +438,82 @@ private fun AnimeSectionWithFilter(
     onViewMoreClick: () -> Unit,
     localAnimeStatuses: Map<Int, String> = emptyMap()
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)
+    // Envolver toda la sección en una Card con surfaceContainerHigh
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(30.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        // Header con diseño mejorado
-        AnimeSectionHeader(
-            title = title, icon = icon, onViewMoreClick = onViewMoreClick
-        )
-
-        // Filtros con animación
-        androidx.compose.animation.AnimatedVisibility(
-            visible = filters.isNotEmpty(),
-            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.expandVertically(),
-            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.shrinkVertically()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
         ) {
-            FilterAnimesHome(
-                list = filters,
-                listLabel = filterLabels,
-                selectedFilter = selectedFilter,
-                onFilterSelected = onFilterSelected
-            )
-        }
-
-        // Contenido con transiciones animadas
-        androidx.compose.animation.AnimatedContent(
-            targetState = when {
-                isLoading -> ContentState.Loading
-                animeList.isNotEmpty() -> ContentState.Content
-                else -> ContentState.Empty
-            }, transitionSpec = {
-                androidx.compose.animation.fadeIn(
-                    animationSpec = androidx.compose.animation.core.tween(300)
-                ) togetherWith androidx.compose.animation.fadeOut(
-                    animationSpec = androidx.compose.animation.core.tween(300)
+            // Header con diseño mejorado
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                AnimeSectionHeader(
+                    title = title, icon = icon, onViewMoreClick = onViewMoreClick
                 )
-            }, label = "anime_content_transition"
-        ) { state ->
-            when (state) {
-                ContentState.Loading -> {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        CardAnimesHomeLoading()
-                    }
-                }
+            }
 
-                ContentState.Content -> {
-                    Box(modifier = Modifier.fillMaxWidth()) {
-                        CardAnimesHome(
-                            animeList = animeList as List<Anime>,
-                            navController = navController,
-                            localAnimeStatuses = localAnimeStatuses
-                        )
-                    }
-                }
+            // Filtros con animación
+            androidx.compose.animation.AnimatedVisibility(
+                visible = filters.isNotEmpty(),
+                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.expandVertically(),
+                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.shrinkVertically()
+            ) {
+                FilterAnimesHome(
+                    list = filters,
+                    listLabel = filterLabels,
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = onFilterSelected
+                )
+            }
 
-                ContentState.Empty -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
-                    ) {
-                        EnhancedEmptyState(emptyMessage)
+            // Contenido con transiciones animadas
+            androidx.compose.animation.AnimatedContent(
+                targetState = when {
+                    isLoading -> ContentState.Loading
+                    animeList.isNotEmpty() -> ContentState.Content
+                    else -> ContentState.Empty
+                }, transitionSpec = {
+                    androidx.compose.animation.fadeIn(
+                        animationSpec = androidx.compose.animation.core.tween(300)
+                    ) togetherWith androidx.compose.animation.fadeOut(
+                        animationSpec = androidx.compose.animation.core.tween(300)
+                    )
+                }, label = "anime_content_transition"
+            ) { state ->
+                when (state) {
+                    ContentState.Loading -> {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            CardAnimesHomeLoading()
+                        }
+                    }
+
+                    ContentState.Content -> {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            CardAnimesHome(
+                                animeList = animeList as List<Anime>,
+                                navController = navController,
+                                localAnimeStatuses = localAnimeStatuses
+                            )
+                        }
+                    }
+
+                    ContentState.Empty -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                        ) {
+                            EnhancedEmptyState(emptyMessage)
+                        }
                     }
                 }
             }
@@ -511,9 +532,8 @@ private fun AnimeSectionHeader(
     title: String, icon: ImageVector, onViewMoreClick: () -> Unit
 ) {
     androidx.compose.material3.Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp), color = Color.Transparent
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.Transparent
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -557,66 +577,24 @@ private fun AnimeSectionHeader(
                 )
             }
 
-            // Botón "Ver más" estilo outline moderno
-            val btnInteraction = remember { MutableInteractionSource() }
-            val btnPressed by btnInteraction.collectIsPressedAsState()
-
-            val btnScale by animateFloatAsState(
-                targetValue = if (btnPressed) 0.95f else 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                ),
-                label = "btn_scale"
-            )
-
-            val iconOffset by animateDpAsState(
-                targetValue = if (btnPressed) 3.dp else 0.dp,
-                animationSpec = spring(stiffness = Spring.StiffnessMedium),
-                label = "icon_offset"
-            )
-
-            val backgroundColor by animateColorAsState(
-                targetValue = if (btnPressed)
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-                else
-                    Color.Transparent,
-                animationSpec = tween(durationMillis = 200),
-                label = "bg_color"
-            )
-
-            androidx.compose.material3.OutlinedButton(
-                onClick = onViewMoreClick,
-                interactionSource = btnInteraction,
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(
-                    width = 1.5.dp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                ),
-                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                    containerColor = backgroundColor,
-                    contentColor = MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.graphicsLayer {
-                    scaleX = btnScale
-                    scaleY = btnScale
-                }
+            // Botón "Ver más" circular
+            androidx.compose.material3.Surface(
+                modifier = Modifier.size(36.adp()),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.onBackground,
+                onClick = onViewMoreClick
             ) {
-                Text(
-                    text = "Ver más",
-                    fontSize = 13.asp(),
-                    fontFamily = PoppinsMedium,
-                    letterSpacing = 0.2.sp
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(16.dp)
-                        .offset(x = iconOffset)
-                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Ver más",
+                        tint = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.size(18.adp())
+                    )
+                }
             }
         }
     }
@@ -637,70 +615,48 @@ fun FilterAnimesHome(
 ) {
     val scrollState = rememberScrollState()
 
-    Row(
+    LazyRow(
         modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState)
-            .padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         list.forEachIndexed { index, filter ->
             val isSelected = selectedFilter == filter
 
-            // Animación suave para los colores del contenedor y el contenido
-            val containerColor by animateColorAsState(
-                targetValue = if (isSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.surfaceContainer,
-                animationSpec = tween(durationMillis = 300),
-                label = "color_anim"
-            )
-
-            val contentColor by animateColorAsState(
-                targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-                animationSpec = tween(durationMillis = 300),
-                label = "text_anim"
-            )
-
-            FilterChip(
-                selected = isSelected,
-                onClick = { onFilterSelected(if (isSelected) null else filter) },
-                label = {
-                    Text(
-                        text = listLabel[index], style = TextStyle(
+            item {
+                androidx.compose.material3.Surface(
+                    onClick = { onFilterSelected(if (isSelected) null else filter) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceContainer,
+                    border = if (isSelected)
+                        BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+                    else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.adp()),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Text(
+                            text = listLabel[index],
                             fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
-                            fontSize = 14.asp(),
-                            color = contentColor // Aplicamos la animación al texto
-                        )
-                    )
-                },
-                leadingIcon = if (isSelected) {
-                    {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.adp()),
-                            tint = contentColor // Aplicamos la animación al icono
+                            fontSize = 13.asp(),
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         )
                     }
-                } else null,
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = containerColor,
-                    labelColor = contentColor,
-                    selectedContainerColor = containerColor, // Forzamos el uso de nuestra animación
-                    selectedLabelColor = contentColor,
-                    selectedLeadingIconColor = contentColor
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    borderColor = if (isSelected) Color.Transparent
-                    else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                    borderWidth = 1.dp,
-                    selectedBorderWidth = 0.dp // Al estar seleccionado, el color sólido manda
-                ),
-                // Mantenemos el redondeado sutil de 12.dp como pediste
-                shape = RoundedCornerShape(12.dp)
-            )
+                }
+            }
         }
     }
 }
@@ -708,16 +664,16 @@ fun FilterAnimesHome(
 // Estado vacío mejorado con diseño profesional
 @Composable
 private fun EnhancedEmptyState(message: String) {
-    androidx.compose.material3.Card(
+  Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(16.dp)
+            .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         elevation = androidx.compose.material3.CardDefaults.cardElevation(
-            defaultElevation = 2.dp
+            defaultElevation = 1.dp
         )
     ) {
         Column(
@@ -727,7 +683,6 @@ private fun EnhancedEmptyState(message: String) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Icono con diseño circular
             Box(
                 modifier = Modifier
                     .size(56.adp())
@@ -748,8 +703,6 @@ private fun EnhancedEmptyState(message: String) {
                     modifier = Modifier.size(28.adp())
                 )
             }
-
-            // Mensaje
             Text(
                 text = message,
                 fontFamily = PoppinsRegular,
@@ -780,7 +733,7 @@ private val heroPlaceholderColors = listOf(
     Color(0xFF558B2F),
 )
 
-// Hero Carousel — 5 cards deslizables
+// Hero Carousel — 5 cards deslizables con diseño moderno inspirado en "My Favorites"
 @Composable
 private fun HeroCarousel(
     navController: NavController,
@@ -808,6 +761,15 @@ private fun HeroCarousel(
         }
     }
 
+    // Obtener el título dinámico basado en la página actual
+    val currentLabel = remember(pagerState.currentPage, cards) {
+        if (!cards.isNullOrEmpty() && pagerState.currentPage < cards.size) {
+            heroBadgeConfig(cards[pagerState.currentPage].label).displayLabel
+        } else {
+            "Destacados"
+        }
+    }
+
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn(tween(500)) + slideInVertically(
@@ -815,53 +777,153 @@ private fun HeroCarousel(
             animationSpec = tween(500, easing = FastOutSlowInEasing)
         )
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            HorizontalPager(
-                state = pagerState,
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                pageSpacing = 12.dp,
-                modifier = Modifier.fillMaxWidth()
-            ) { page ->
-                if (cards.isNullOrEmpty()) {
-                    HeroPlaceholderCard(color = heroPlaceholderColors[page])
-                } else {
-                    HeroAnimeCard(
-                        item = cards[page],
-                        localAnimeStatus = localAnimeStatuses[cards[page].malId],
-                        onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${cards[page].malId}") }
-                    )
-                }
-            }
-
-            // Dots — overlaid en el borde inferior del pager
-            Row(
+        // Container principal con color primario
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(30.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 10.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(Color.Black.copy(alpha = 0.38f))
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
             ) {
-                repeat(pageCount) { index ->
-                    val isSelected = pagerState.currentPage == index
-                    val dotWidth by animateDpAsState(
-                        targetValue = if (isSelected) 20.dp else 6.dp,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                        label = "dot_width_$index"
-                    )
+                // Header: Título dinámico + Botón Ver más
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Título animado que cambia con la página
+                    AnimatedContent(
+                        targetState = currentLabel,
+                        transitionSpec = {
+                            fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                        },
+                        label = "title_animation"
+                    ) { label ->
+                        Text(
+                            text = label,
+                            fontFamily = PoppinsBold,
+                            fontSize = 20.asp(),
+                            color = Color.White,
+                            letterSpacing = 0.3.sp
+                        )
+                    }
+
+                    // Botón "→" circular
+                    Surface(
+                        modifier = Modifier.size(36.adp()),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        onClick = {
+                            // Navegar a ver más (puedes ajustar la ruta)
+                            navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/hero")
+                        }
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "Ver más",
+                                tint = MaterialTheme.colorScheme.background,
+                                modifier = Modifier.size(18.adp())
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // HorizontalPager con las cards y efecto 3D carousel
+                HorizontalPager(
+                    state = pagerState,
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    pageSpacing = 12.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) { page ->
+                    // Calcular offset para efecto 3D
+                    val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                    val absOffset = kotlin.math.abs(pageOffset)
+
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 3.dp)
-                            .height(6.dp)
-                            .width(dotWidth)
-                            .clip(RoundedCornerShape(50))
-                            .background(
-                                if (isSelected) Color.White
-                                else Color.White.copy(alpha = 0.42f)
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                // Efecto de rotación 3D
+                                rotationY = pageOffset * 15f
+
+                                // Escala - las cards de los lados se ven más pequeñas
+                                val scale = 1f - (absOffset * 0.15f).coerceIn(0f, 0.15f)
+                                scaleX = scale
+                                scaleY = scale
+
+                                // Opacidad - las cards alejadas son más transparentes
+                                alpha = 1f - (absOffset * 0.3f).coerceIn(0f, 0.5f)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (cards.isNullOrEmpty()) {
+                            HeroPlaceholderCard(color = heroPlaceholderColors[page])
+                        } else {
+                            HeroAnimeCard(
+                                item = cards[page],
+                                localAnimeStatus = localAnimeStatuses[cards[page].malId],
+                                onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${cards[page].malId}") }
                             )
-                    )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Dots indicadores — debajo de las cards
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White.copy(alpha = 0.2f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(pageCount) { index ->
+                                val isSelected = pagerState.currentPage == index
+                                val dotWidth by animateDpAsState(
+                                    targetValue = if (isSelected) 20.dp else 6.dp,
+                                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                                    label = "dot_width_$index"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .padding(horizontal = 3.dp)
+                                        .height(6.dp)
+                                        .width(dotWidth)
+                                        .clip(RoundedCornerShape(50))
+                                        .background(
+                                            if (isSelected) Color.White
+                                            else Color.White.copy(alpha = 0.42f)
+                                        )
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -872,8 +934,8 @@ private fun HeroCarousel(
 private fun HeroPlaceholderCard(color: Color) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(190.adp()),
+            .width(300.adp())
+            .height(150.adp()),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = color)
@@ -904,7 +966,9 @@ private data class HeroBadgeConfig(
 private fun heroBadgeConfig(label: String): HeroBadgeConfig = when (label) {
     "PARA VOS"         -> HeroBadgeConfig("Pensado para vos",  Icons.Default.Favorite,      Color(0xFF7C3AED))
     "PROMO"            -> HeroBadgeConfig("Miralo ahora",       Icons.Default.PlayArrow,     Color(0xFFEA580C))
-    "NUEVOS EPISODIOS" -> HeroBadgeConfig("Nuevo episodio",     Icons.Default.Tv,            Color(0xFF059669))
+    "SIGUE MIRANDO"    -> HeroBadgeConfig("Sigue mirando",      Icons.Default.Tv,            Color(0xFF059669))
+    "EMPIEZA A VER"    -> HeroBadgeConfig("Empieza a ver",      Icons.Default.PlayArrow,     Color(0xFF0891B2))
+    "NUEVOS EPISODIOS" -> HeroBadgeConfig("Nuevos episodios",   Icons.Default.FiberNew,      Color(0xFFDB2777))
     "PRÓXIMAMENTE"     -> HeroBadgeConfig("Próximamente",       Icons.Default.CalendarToday, Color(0xFF2563EB))
     "CLÁSICO"          -> HeroBadgeConfig("Un clásico",         Icons.Default.Star,          Color(0xFFD97706))
     else               -> HeroBadgeConfig(label,                Icons.Default.Star,          Color(0xFF6200EA))
@@ -954,35 +1018,19 @@ private fun HeroAnimeCard(
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "card_scale"
     )
-    val badgeCfg = remember(item.label) { heroBadgeConfig(item.label) }
-    val isPara = item.label == "PARA VOS"
-
-    // Shimmer para "Pensado para vos" — siempre se computa, solo se usa cuando aplica
-    val shimmerTransition = rememberInfiniteTransition(label = "badge_shimmer")
-    val shimmerOffset by shimmerTransition.animateFloat(
-        initialValue = -120f,
-        targetValue = 260f,
-        animationSpec = infiniteRepeatable(tween(2200, easing = LinearEasing), RepeatMode.Restart),
-        label = "shimmer_offset"
-    )
 
     Card(
         modifier = Modifier
+            .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .height(190.adp())
+            .height(170.adp())
             .graphicsLayer { scaleX = scale; scaleY = scale },
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(8.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Black),
         border = BorderStroke(
             width = 1.dp,
-            brush = Brush.linearGradient(
-                colors = listOf(
-                    badgeCfg.color.copy(alpha = 0.55f),
-                    badgeCfg.color.copy(alpha = 0.22f),
-                    badgeCfg.color.copy(alpha = 0.04f)
-                )
-            )
+            color = Color.White.copy(alpha = 0.1f)
         ),
         onClick = onClick,
         interactionSource = interactionSource
@@ -1021,59 +1069,6 @@ private fun HeroAnimeCard(
                         )
                     )
             )
-
-            // ── Badge categoría (top start) ──────────────────────────────────
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(10.dp)
-                    .shadow(8.dp, RoundedCornerShape(50), ambientColor = badgeCfg.color, spotColor = badgeCfg.color)
-                    .background(
-                        Brush.linearGradient(listOf(badgeCfg.color, badgeCfg.color.copy(alpha = 0.78f))),
-                        RoundedCornerShape(50)
-                    )
-                    .border(1.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(50))
-                    .clip(RoundedCornerShape(50))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Icon(
-                        imageVector = badgeCfg.icon,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(11.adp())
-                    )
-                    Text(
-                        text = badgeCfg.displayLabel,
-                        fontFamily = PoppinsBold,
-                        fontSize = 9.asp(),
-                        letterSpacing = 0.3.sp,
-                        color = Color.White
-                    )
-                }
-                // Shimmer sweep exclusivo para "Pensado para vos"
-                if (isPara) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clip(RoundedCornerShape(50))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.White.copy(alpha = 0.28f),
-                                        Color.Transparent
-                                    ),
-                                    start = Offset(shimmerOffset, 0f),
-                                    end = Offset(shimmerOffset + 70f, 28f)
-                                )
-                            )
-                    )
-                }
-            }
 
             // ── Indicador "en tu lista" (top end) ───────────────────────────
             localAnimeStatus?.let { userStatus ->
@@ -1541,7 +1536,7 @@ private fun QuickStats(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shadowElevation = 6.dp
         ) {
             Column(
@@ -1811,6 +1806,7 @@ private fun EnhancedStatCard(
                 )
             }
         }
+        Spacer(modifier = Modifier.width(16.dp))
     }
 }
 

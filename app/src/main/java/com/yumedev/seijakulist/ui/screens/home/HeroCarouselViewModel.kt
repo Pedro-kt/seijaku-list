@@ -18,4 +18,8 @@ class HeroCarouselViewModel @Inject constructor(
         // Si el usuario llega al home sin haber pasado por el splash (edge case), disparamos el preload
         cache.preload()
     }
+
+    fun retry() {
+        cache.retry()
+    }
 }

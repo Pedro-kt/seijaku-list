@@ -9,5 +9,5 @@ data class HeroAnimeItem(
     val year: String? = null,
     val status: String? = null,
     val genres: List<String> = emptyList(),
-    val episodes: Int? = null,
+    val episodes: Int? = null
 )

@@ -6,15 +6,15 @@ import androidx.compose.ui.graphics.Color
 
 
 // Colores del tema Oscuro (Dark True Black)
-val DarkPrimary = Color(0xFF58A6FF) // Azul GitHub
+val DarkPrimary = Color(0xFF1E88E5) // Azul GitHub
 val DarkOnPrimary = Color(0xFFFFFFFF)
-val DarkBackground = Color(0xFF050505) // Fondo Negro Profundo
+val DarkBackground = Color(0xFF141218) // Fondo Negro Profundo
 
 val DarkSecondary = Color(0xFF79C0FF) // Azul claro GitHub
 val DarkOnSecondary = Color(0xFF050505)
 val DarkTertiary = Color(0xFF7EE787) // Verde GitHub
 val DarkOnTertiary = Color(0xFF050505)
-val DarkError = Color(0xFFFF7B72) // Rojo GitHub
+val DarkError = Color(0xFFFF7B72) // Rojo Gi tHub
 val DarkOnError = Color(0xFF050505)
 val DarkPrimaryContainer = Color(0xFF1F6FEB) // Azul container
 val DarkOnPrimaryContainer = Color(0xFFCAE8FF)
@@ -67,9 +67,9 @@ val LightSurface = Color(0xFFfbf9fa)
 val LightSurfaceBright = Color(0xFFfbf9fa)
 val LightSurfaceContainerLowest = Color(0xFFffffff)
 val LightSurfaceContainerLow = Color(0xFFf5f3f4)
-val LightSurfaceContainer = Color(0xFFefedee)
-val LightSurfaceContainerHigh = Color(0xFFDADCDE)
-val LightSurfaceContainerHighest = Color(0xFFCBC9CB)
+val LightSurfaceContainer = Color(0xFFf5f3f4)
+val LightSurfaceContainerHigh = Color(0xFFefedee)
+val LightSurfaceContainerHighest = Color(0xFFDADCDE)
 val LightOnSurface = Color(0xFF1b1c1d)
 val LightOnSurfaceVariant = Color(0xFF43474b)
 val LightOutline = Color(0xFF74777c)

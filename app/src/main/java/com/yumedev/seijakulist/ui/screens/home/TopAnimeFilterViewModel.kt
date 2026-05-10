@@ -2,6 +2,7 @@ package com.yumedev.seijakulist.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yumedev.seijakulist.common.RequestThrottler
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.usecase.GetTopAnimeFilterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TopAnimeFilterViewModel @Inject constructor(
-    private val getTopAnimeFilterUseCase: GetTopAnimeFilterUseCase
+    private val getTopAnimeFilterUseCase: GetTopAnimeFilterUseCase,
+    private val requestThrottler: RequestThrottler
 ) : ViewModel() {
     private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
     val animeList: StateFlow<List<Anime>> = _animeList.asStateFlow()
@@ -32,30 +34,26 @@ class TopAnimeFilterViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = false
     )
+
     fun TopAnimeFilter(filter: String) {
-
         viewModelScope.launch {
-
             _errorMessage.value = null
             _isLoading.value = true
 
-            try {
-
-                val results = getTopAnimeFilterUseCase.invoke(filter)
-                val filtered = results.distinctBy { it.malId }
-                _animeList.value = filtered
-                //isDataLoaded = true
-
-            } catch (e: Exception) {
-
-                _errorMessage.value = "Error al cargar los datos ${e.localizedMessage}"
-                _animeList.value = emptyList()
-
-            } finally {
-
-                _isLoading.value = false
-
+            val result = requestThrottler.throttle {
+                getTopAnimeFilterUseCase.invoke(filter)
             }
+
+            if (result != null) {
+                val filtered = result.distinctBy { it.malId }
+                _animeList.value = filtered
+                _errorMessage.value = null
+            } else {
+                _errorMessage.value = "Error al cargar los datos"
+                _animeList.value = emptyList()
+            }
+
+            _isLoading.value = false
         }
     }
 }
