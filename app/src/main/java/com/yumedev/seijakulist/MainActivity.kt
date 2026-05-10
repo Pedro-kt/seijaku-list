@@ -198,7 +198,7 @@ fun AppNavigation(
         ) {
             LoginScreen(
                 onSignInSuccess = {
-                    navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) {
+                    navController.navigate(AppDestinations.PROFILE_LOADER_ROUTE) {
                         popUpTo(AppDestinations.LOGIN_ROUTE) {
                             inclusive = true
                         }
