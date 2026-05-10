@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
+import com.yumedev.seijakulist.data.local.entities.SearchHistoryEntity
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
+import com.yumedev.seijakulist.data.repository.SearchHistoryRepository
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.usecase.GetAnimeSearchUseCase
@@ -26,7 +28,8 @@ class AnimeSearchViewModel @Inject constructor(
     private val getAnimeSearchUseCase: GetAnimeSearchUseCase,
     private val animeRepository: AnimeRepository,
     private val animeLocalRepository: AnimeLocalRepository,
-    private val firestoreAnimeRepository: FirestoreAnimeRepository
+    private val firestoreAnimeRepository: FirestoreAnimeRepository,
+    private val searchHistoryRepository: SearchHistoryRepository
 ) : ViewModel() {
 
     // --- ESTADOS DE ENTRADA (Filtros) ---
@@ -62,6 +65,10 @@ class AnimeSearchViewModel @Inject constructor(
     private val _selectedFormat = MutableStateFlow<String?>(null)
     val selectedFormat: StateFlow<String?> = _selectedFormat.asStateFlow()
 
+    // Estado para búsquedas recientes
+    private val _recentSearches = MutableStateFlow<List<String>>(emptyList())
+    val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
+
     fun onQuickFilterSelected(key: String?) {
         selectedQuickFilter.value = key
         _selectedFormat.value = null // Limpiar formato cuando se selecciona quick filter
@@ -79,6 +86,13 @@ class AnimeSearchViewModel @Inject constructor(
                 .debounce(400L)
                 .filter { it.isNotBlank() }
                 .collect { performSearchOrFilter() }
+        }
+
+        // Cargar búsquedas recientes
+        viewModelScope.launch {
+            searchHistoryRepository.getRecentSearches().collect { searches ->
+                _recentSearches.value = searches.map { it.query }
+            }
         }
     }
 
@@ -169,6 +183,8 @@ class AnimeSearchViewModel @Inject constructor(
                     // 3. Si es filtro de Anime con búsqueda de texto
                     _selectedFilter.value == "Anime" -> {
                         if (_searchQuery.value.isNotBlank()) {
+                            // Guardar la búsqueda en el historial
+                            saveSearchToHistory(_searchQuery.value)
                             getAnimeSearchUseCase(query = _searchQuery.value, page = 1)
                         } else {
                             emptyList()
@@ -269,6 +285,31 @@ class AnimeSearchViewModel @Inject constructor(
                 _isLoadingMore.value = false
             }
         }
+    }
+
+    // --- FUNCIÓN PARA GUARDAR BÚSQUEDA EN HISTORIAL ---
+    private fun saveSearchToHistory(query: String) {
+        viewModelScope.launch {
+            try {
+                val searchHistory = SearchHistoryEntity(
+                    query = query,
+                    timestamp = System.currentTimeMillis(),
+                    filterType = "text"
+                )
+                searchHistoryRepository.insertSearch(searchHistory)
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error al guardar búsqueda: ${e.message}")
+            }
+        }
+    }
+
+    // Función para ejecutar una búsqueda desde el historial
+    fun onRecentSearchClicked(query: String) {
+        _searchQuery.value = query
+        _selectedFilter.value = "Anime"
+        _selectedGenreId.value = null
+        selectedQuickFilter.value = null
+        _selectedFormat.value = null
     }
 
     // --- FUNCIÓN PARA AGREGAR ANIME A LA LISTA LOCAL ---
