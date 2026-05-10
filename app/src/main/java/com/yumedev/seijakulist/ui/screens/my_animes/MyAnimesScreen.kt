@@ -512,7 +512,7 @@ fun MyAnimeListScreen(
                                         )
                                     },
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                 ),
                                 shape = RoundedCornerShape(20.dp),
                                 elevation = CardDefaults.cardElevation(

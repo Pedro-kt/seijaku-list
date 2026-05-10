@@ -14,6 +14,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.emptyList
@@ -54,13 +56,43 @@ class AnimeSearchViewModel @Inject constructor(
     private val _currentPage = MutableStateFlow(1)
     private val _hasMorePages = MutableStateFlow(true)
 
+    // Estado nuevo
+    val selectedQuickFilter = MutableStateFlow<String?>(null)
+
+    fun onQuickFilterSelected(key: String?) {
+        selectedQuickFilter.value = key
+        // Mapeá el key al parámetro que Jikan necesite:
+        // "airing" → status=airing, "top" → orderBy=score, etc.
+    }
+
+    fun onFormatSelected(format: String) {
+        // Mapeá: "TV" → type=tv, "Movie" → type=movie, etc.
+    }
+
+    init {
+        // Búsqueda automática mientras el usuario escribe (debounce 400ms)
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(400L)
+                .filter { it.isNotBlank() }
+                .collect { performSearchOrFilter() }
+        }
+    }
+
     // --- ACCIONES ---
 
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
-        //forzamos el filtro a "Anime" y limpiamos el género.
         _selectedFilter.value = "Anime"
         _selectedGenreId.value = null
+    }
+
+    fun clearSearch() {
+        _searchQuery.value = ""
+        _selectedFilter.value = "Anime"
+        _selectedGenreId.value = null
+        _animeList.value = emptyList()
+        _errorMessage.value = null
     }
 
     fun onFilterSelected(filter: String?) {

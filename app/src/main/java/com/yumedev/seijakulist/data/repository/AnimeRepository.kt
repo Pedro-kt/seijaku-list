@@ -3,8 +3,8 @@ package com.yumedev.seijakulist.data.repository
 import android.util.Log
 import com.yumedev.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.yumedev.seijakulist.data.mapper.toAnimeDetails
-
 import com.yumedev.seijakulist.data.mapper.toCharacterDetail
+import kotlinx.coroutines.flow.first
 import com.yumedev.seijakulist.data.mapper.toCharacterPictures
 import com.yumedev.seijakulist.data.mapper.toProducerDetail
 import com.yumedev.seijakulist.data.remote.api.JikanApiService
@@ -37,6 +37,7 @@ import javax.inject.Inject
 class AnimeRepository @Inject constructor(
 
     private val ApiService: JikanApiService,
+    private val animeLocalRepository: AnimeLocalRepository,
 
 ) {
 
@@ -361,6 +362,43 @@ class AnimeRepository @Inject constructor(
     }
 
     suspend fun getWatchRecentEpisodes(): HeroAnimeItem? {
+        // Intentar obtener animes que el usuario está viendo
+        val watchingAnimes = animeLocalRepository.getAnimesStatusWatching().first()
+        val watchingAnime = watchingAnimes.randomOrNull()
+
+        if (watchingAnime != null) {
+            return HeroAnimeItem(
+                malId = watchingAnime.malId,
+                title = watchingAnime.title,
+                imageUrl = watchingAnime.imageUrl ?: return null,
+                label = "SIGUE MIRANDO",
+                score = watchingAnime.score,
+                year = watchingAnime.year,
+                status = watchingAnime.status,
+                genres = watchingAnime.genres.split(",").filter { it.isNotBlank() }.take(2),
+                episodes = watchingAnime.totalEpisodes
+            )
+        }
+
+        // Fallback 1: Mostrar un anime planeado si no está viendo ninguno
+        val plannedAnimes = animeLocalRepository.getAnimesStatusPlanned().first()
+        val plannedAnime = plannedAnimes.randomOrNull()
+
+        if (plannedAnime != null) {
+            return HeroAnimeItem(
+                malId = plannedAnime.malId,
+                title = plannedAnime.title,
+                imageUrl = plannedAnime.imageUrl ?: return null,
+                label = "EMPIEZA A VER",
+                score = plannedAnime.score,
+                year = plannedAnime.year,
+                status = plannedAnime.status,
+                genres = plannedAnime.genres.split(",").filter { it.isNotBlank() }.take(2),
+                episodes = plannedAnime.totalEpisodes
+            )
+        }
+
+        // Fallback 2: Si tampoco tiene animes planeados, usar episodios recientes de la API
         val entry = ApiService.getWatchRecentEpisodes().data.randomOrNull()?.entry ?: return null
         return HeroAnimeItem(
             malId = entry.malId,

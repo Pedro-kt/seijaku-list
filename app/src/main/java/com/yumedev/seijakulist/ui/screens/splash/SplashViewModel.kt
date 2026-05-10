@@ -15,13 +15,12 @@ class SplashViewModel @Inject constructor(
 ) : ViewModel() {
 
     // true cuando la carga terminó (con éxito o con error parcial)
-    val isReady = combine(
-        heroCarouselCache.cards,
-        heroCarouselCache.isLoading
-    ) { cards, loading ->
-        // Listo si terminó de cargar (isLoading false), haya o no datos
-        !loading && cards != null
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val isReady = heroCarouselCache.isLoading
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+        .combine(heroCarouselCache.cards) { loading, cards ->
+            // Listo si terminó de cargar, haya o no datos (para evitar bloqueos)
+            !loading
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
         heroCarouselCache.preload()
