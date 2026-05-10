@@ -151,4 +151,30 @@ interface  JikanApiService {
 
     @GET("recommendations/anime")
     suspend fun getRecentAnimeRecommendations(): RecentAnimeRecommendationsResponseDto
+
+    // Quick Filters endpoints
+    @GET("anime")
+    suspend fun getAnimeAiring(
+        @Query("status") status: String = "airing",
+        @Query("page") page: Int? = 1
+    ): SearchAnimeResponse
+
+    @GET("anime")
+    suspend fun getAnimePopular(
+        @Query("order_by") orderBy: String = "popularity",
+        @Query("page") page: Int? = 1
+    ): SearchAnimeResponse
+
+    @GET("anime")
+    suspend fun getAnimeNew(
+        @Query("order_by") orderBy: String = "start_date",
+        @Query("sort") sort: String = "desc",
+        @Query("page") page: Int? = 1
+    ): SearchAnimeResponse
+
+    @GET("anime")
+    suspend fun getAnimeByType(
+        @Query("type") type: String,
+        @Query("page") page: Int? = 1
+    ): SearchAnimeResponse
 }

@@ -200,6 +200,7 @@ fun SearchScreen(
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val selectedGenreId by viewModel.selectedGenreId.collectAsState()
     val selectedQuick by viewModel.selectedQuickFilter.collectAsState() // nuevo estado en VM
+    val recentSearches by viewModel.recentSearches.collectAsState() // búsquedas recientes
 
     val genres by listGenres.genres.collectAsState()
     val isLoadingGenres by listGenres.isLoading.collectAsState()
@@ -264,17 +265,12 @@ fun SearchScreen(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 ),
-            colors = if (expanded) {
-                SearchBarDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    dividerColor = MaterialTheme.colorScheme.outlineVariant
-                )
-            } else {
-                SearchBarDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    dividerColor = MaterialTheme.colorScheme.outlineVariant
-                )
-            },
+            colors = SearchBarDefaults.colors(
+                containerColor = if (expanded) MaterialTheme.colorScheme.background
+                else MaterialTheme.colorScheme.surfaceContainerHigh,
+                dividerColor = if (expanded) Color.Transparent
+                else MaterialTheme.colorScheme.outlineVariant
+            ),
             inputField = {
                 SearchBarDefaults.InputField(
                     query = searchQuery,
@@ -284,6 +280,12 @@ fun SearchScreen(
                     },
                     expanded = expanded,
                     onExpandedChange = { expanded = it },
+                    colors = SearchBarDefaults.inputFieldColors(
+                        focusedContainerColor = if (expanded) MaterialTheme.colorScheme.background
+                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = if (expanded) MaterialTheme.colorScheme.background
+                        else MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
                     placeholder = {
                         Text(
                             text = "Anime, manga, personajes...",
@@ -343,7 +345,9 @@ fun SearchScreen(
                     if (filter == "Géneros") openBottomSheet = true
                     else viewModel.onFilterSelected(if (selectedFilter == filter) null else filter)
                 },
-                onLoadMore = viewModel::loadMoreAnimes
+                onLoadMore = viewModel::loadMoreAnimes,
+                recentSearches = recentSearches,
+                onRecentSearchClick = viewModel::onRecentSearchClicked
             )
         }
     }
@@ -403,34 +407,50 @@ private fun SearchDiscoveryView(
         // ═══════════════════════════════════════════════════════════════════
         // SECCIÓN 1 — Quick Filters (atajos de un toque, estilo Play Store)
         // ═══════════════════════════════════════════════════════════════════
-        SectionHeader(title = "Acceso rápido")
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+        AnimatedVisibility(
+            visible = selectedFilter == "Anime",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
         ) {
-            items(quickFilters) { qf ->
-                val isActive = selectedQuick == qf.filterKey
-                QuickFilterChip(
-                    label = qf.label,
-                    icon = qf.icon,
-                    isActive = isActive,
-                    onClick = { onQuickFilterTap(qf) }
-                )
+            Column {
+                SectionHeader(title = "Acceso rápido")
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    items(quickFilters) { qf ->
+                        val isActive = selectedQuick == qf.filterKey
+                        QuickFilterChip(
+                            label = qf.label,
+                            icon = qf.icon,
+                            isActive = isActive,
+                            onClick = { onQuickFilterTap(qf) }
+                        )
+                    }
+                }
             }
         }
 
         // ═══════════════════════════════════════════════════════════════════
         // SECCIÓN 2 — Formatos de anime
         // ═══════════════════════════════════════════════════════════════════
-        SectionHeader(title = "Formato")
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp)
+        AnimatedVisibility(
+            visible = selectedFilter == "Anime",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
         ) {
-            items(formatFilters) { format ->
-                FormatChip(label = format, onClick = { onFormatSelected(format) })
+            Column {
+                SectionHeader(title = "Formato")
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(formatFilters) { format ->
+                        FormatChip(label = format, onClick = { onFormatSelected(format) })
+                    }
+                }
             }
         }
 
@@ -683,7 +703,9 @@ private fun SearchContent(
     navController: NavController,
     selectedFilter: String?,
     onFilterSelected: (String) -> Unit,
-    onLoadMore: () -> Unit = {}
+    onLoadMore: () -> Unit = {},
+    recentSearches: List<String> = emptyList(),
+    onRecentSearchClick: (String) -> Unit = {}
 ) {
     when {
         isLoading -> Box(
@@ -742,7 +764,9 @@ private fun SearchContent(
         else -> {
             EmptySearchState(
                 selectedFilter = selectedFilter,
-                onFilterSelected = onFilterSelected
+                onFilterSelected = onFilterSelected,
+                recentSearches = recentSearches,
+                onSearchClick = onRecentSearchClick
             )
         }
     }
@@ -871,7 +895,7 @@ fun AnimeCardItem(
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) MaterialTheme.colorScheme.surfaceContainer else Color.White
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
         shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)

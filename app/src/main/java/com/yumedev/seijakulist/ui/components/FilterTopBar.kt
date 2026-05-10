@@ -64,7 +64,7 @@ fun FilterTopAppBar(
             onClick = { expanded = true },
             shape = RoundedCornerShape(12.dp),
             color = if (expanded) MaterialTheme.colorScheme.primaryContainer
-                   else MaterialTheme.colorScheme.surface,
+                   else MaterialTheme.colorScheme.surfaceContainerHigh,
             modifier = Modifier.size(48.adp())
         ) {
             Box(contentAlignment = Alignment.Center) {

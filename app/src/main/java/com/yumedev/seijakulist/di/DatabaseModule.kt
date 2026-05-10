@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.yumedev.seijakulist.data.local.db.AnimeDatabase
 import com.yumedev.seijakulist.data.local.dao.AnimeDao
+import com.yumedev.seijakulist.data.local.dao.SearchHistoryDao
 import com.yumedev.seijakulist.data.local.dao.UserProfileDao
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_1_2
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_2_3
@@ -46,6 +47,11 @@ object DatabaseModule {
     @Provides
     fun provideUserProfileDao(db: AnimeDatabase): UserProfileDao {
         return db.userProfileDao()
+    }
+
+    @Provides
+    fun provideSearchHistoryDao(db: AnimeDatabase): SearchHistoryDao {
+        return db.searchHistoryDao()
     }
 
 }
