@@ -887,7 +887,7 @@ fun AnimeCardItem(
                 )
             },
         colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) MaterialTheme.colorScheme.surfaceContainer else Color.White
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
         shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)

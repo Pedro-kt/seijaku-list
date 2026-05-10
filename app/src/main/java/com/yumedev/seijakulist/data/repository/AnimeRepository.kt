@@ -474,4 +474,42 @@ class AnimeRepository @Inject constructor(
             episodes = dto.episodes
         )
     }
+
+    // Quick Filters methods
+    suspend fun getAnimeAiring(page: Int? = 1): List<AnimeCard> {
+        val response = ApiService.getAnimeAiring(page = page)
+        return mapAnimeResponseToCards(response)
+    }
+
+    suspend fun getAnimePopular(page: Int? = 1): List<AnimeCard> {
+        val response = ApiService.getAnimePopular(page = page)
+        return mapAnimeResponseToCards(response)
+    }
+
+    suspend fun getAnimeNew(page: Int? = 1): List<AnimeCard> {
+        val response = ApiService.getAnimeNew(page = page)
+        return mapAnimeResponseToCards(response)
+    }
+
+    suspend fun getAnimeByType(type: String, page: Int? = 1): List<AnimeCard> {
+        val response = ApiService.getAnimeByType(type = type, page = page)
+        return mapAnimeResponseToCards(response)
+    }
+
+    // Helper method to map SearchAnimeResponse to List<AnimeCard>
+    private fun mapAnimeResponseToCards(response: SearchAnimeResponse): List<AnimeCard> {
+        return response.data.mapNotNull { animeDto ->
+            if (animeDto == null) return@mapNotNull null
+            AnimeCard(
+                malId = animeDto.malId,
+                title = animeDto.title ?: "Título predeterminado",
+                images = animeDto.images?.webp?.largeImageUrl ?: "URL de imagen predeterminada",
+                score = animeDto.score ?: 0.0f,
+                status = animeDto.status ?: "Sin estado",
+                genres = animeDto.genres ?: emptyList(),
+                year = (animeDto.year ?: "N/A").toString(),
+                episodes = (animeDto.episodes ?: "N/A").toString()
+            )
+        }
+    }
 }

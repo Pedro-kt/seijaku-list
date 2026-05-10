@@ -59,14 +59,17 @@ class AnimeSearchViewModel @Inject constructor(
     // Estado nuevo
     val selectedQuickFilter = MutableStateFlow<String?>(null)
 
+    private val _selectedFormat = MutableStateFlow<String?>(null)
+    val selectedFormat: StateFlow<String?> = _selectedFormat.asStateFlow()
+
     fun onQuickFilterSelected(key: String?) {
         selectedQuickFilter.value = key
-        // Mapeá el key al parámetro que Jikan necesite:
-        // "airing" → status=airing, "top" → orderBy=score, etc.
+        _selectedFormat.value = null // Limpiar formato cuando se selecciona quick filter
     }
 
     fun onFormatSelected(format: String) {
-        // Mapeá: "TV" → type=tv, "Movie" → type=movie, etc.
+        _selectedFormat.value = format
+        selectedQuickFilter.value = null // Limpiar quick filter cuando se selecciona formato
     }
 
     init {
@@ -85,12 +88,16 @@ class AnimeSearchViewModel @Inject constructor(
         _searchQuery.value = newQuery
         _selectedFilter.value = "Anime"
         _selectedGenreId.value = null
+        selectedQuickFilter.value = null
+        _selectedFormat.value = null
     }
 
     fun clearSearch() {
         _searchQuery.value = ""
         _selectedFilter.value = "Anime"
         _selectedGenreId.value = null
+        selectedQuickFilter.value = null
+        _selectedFormat.value = null
         _animeList.value = emptyList()
         _errorMessage.value = null
     }
@@ -103,6 +110,9 @@ class AnimeSearchViewModel @Inject constructor(
         if (filter != "Generos") {
             _selectedGenreId.value = null
         }
+        // Limpiar quick filters y formato
+        selectedQuickFilter.value = null
+        _selectedFormat.value = null
     }
 
     fun onGenreSelected(genreId: String) {
@@ -110,6 +120,9 @@ class AnimeSearchViewModel @Inject constructor(
         _searchQuery.value = ""
         // Si ya está seleccionado, lo deselecciona; si no, lo selecciona.
         _selectedGenreId.value = if (_selectedGenreId.value == genreId) null else genreId
+        // Limpiar quick filters y formato
+        selectedQuickFilter.value = null
+        _selectedFormat.value = null
     }
 
     // FUNCIÓN UNIFICADA DE BÚSQUEDA (reinicia la paginación)
@@ -122,15 +135,47 @@ class AnimeSearchViewModel @Inject constructor(
 
             try {
                 // Especificamos explícitamente que 'results' será List<AnimeCard>
-                val results: List<AnimeCard> = when (_selectedFilter.value) {
-                    "Anime" -> {
+                val results: List<AnimeCard> = when {
+                    // 1. Si hay un quick filter seleccionado
+                    selectedQuickFilter.value != null -> {
+                        when (selectedQuickFilter.value) {
+                            "airing" -> animeRepository.getAnimeAiring(page = 1)
+                            "trending" -> {
+                                val response = animeRepository.searchTopAnimes(page = 1)
+                                mapSearchResponseToCards(response)
+                            }
+                            "top" -> {
+                                val response = animeRepository.searchTopAnimes(page = 1)
+                                mapSearchResponseToCards(response)
+                            }
+                            "upcoming" -> {
+                                val response = animeRepository.searchAnimeSeasonUpcoming(page = 1)
+                                mapSearchResponseToCards(response)
+                            }
+                            "season" -> {
+                                val response = animeRepository.searchAnimeSeasonNow(page = 1)
+                                mapSearchResponseToCards(response)
+                            }
+                            "new" -> animeRepository.getAnimeNew(page = 1)
+                            "popular" -> animeRepository.getAnimePopular(page = 1)
+                            else -> emptyList()
+                        }
+                    }
+                    // 2. Si hay un formato seleccionado
+                    _selectedFormat.value != null -> {
+                        val formatType = mapFormatToType(_selectedFormat.value!!)
+                        animeRepository.getAnimeByType(formatType, page = 1)
+                    }
+                    // 3. Si es filtro de Anime con búsqueda de texto
+                    _selectedFilter.value == "Anime" -> {
                         if (_searchQuery.value.isNotBlank()) {
                             getAnimeSearchUseCase(query = _searchQuery.value, page = 1)
                         } else {
                             emptyList()
                         }
                     }
-                    "Generos" -> {
+                    // 4. Si es filtro por género
+                    _selectedFilter.value == "Generos" -> {
                         val id = _selectedGenreId.value
                         if (id != null) {
                             animeRepository.getAnimeByGenre(id)
@@ -154,6 +199,36 @@ class AnimeSearchViewModel @Inject constructor(
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    // Mapea los formatos de UI a los tipos de la API
+    private fun mapFormatToType(format: String): String {
+        return when (format) {
+            "TV" -> "tv"
+            "Película" -> "movie"
+            "OVA" -> "ova"
+            "ONA" -> "ona"
+            "Especial" -> "special"
+            "Música" -> "music"
+            else -> format.lowercase()
+        }
+    }
+
+    // Helper method to map SearchAnimeResponse to List<AnimeCard>
+    private fun mapSearchResponseToCards(response: com.yumedev.seijakulist.data.remote.models.SearchAnimeResponse): List<AnimeCard> {
+        return response.data.mapNotNull { animeDto ->
+            if (animeDto == null) return@mapNotNull null
+            AnimeCard(
+                malId = animeDto.malId,
+                title = animeDto.title ?: "Título predeterminado",
+                images = animeDto.images?.webp?.largeImageUrl ?: "URL de imagen predeterminada",
+                score = animeDto.score ?: 0.0f,
+                status = animeDto.status ?: "Sin estado",
+                genres = animeDto.genres ?: emptyList(),
+                year = (animeDto.year ?: "N/A").toString(),
+                episodes = (animeDto.episodes ?: "N/A").toString()
+            )
         }
     }
 
