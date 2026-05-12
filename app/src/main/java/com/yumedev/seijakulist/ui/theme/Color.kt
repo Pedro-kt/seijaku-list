@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 // Colores del tema Oscuro (Dark True Black)
 val DarkPrimary = Color(0xFF1E88E5) // Azul GitHub
 val DarkOnPrimary = Color(0xFFFFFFFF)
-val DarkBackground = Color(0xFF141218) // Fondo Negro Profundo
+val DarkBackground = Color(0xFF131313) // Fondo Negro Profundo
 
 val DarkSecondary = Color(0xFF79C0FF) // Azul claro GitHub
 val DarkOnSecondary = Color(0xFF050505)

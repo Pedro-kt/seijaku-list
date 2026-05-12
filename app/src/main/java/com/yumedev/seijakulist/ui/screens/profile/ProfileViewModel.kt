@@ -42,6 +42,11 @@ data class AnimeStats(
     val completedAnimes: Int = 0,
     val totalEpisodesWatched: Int = 0,
     val watchingAnimes: Int = 0,
+    val plannedAnimes: Int = 0,
+    val onHoldAnimes: Int = 0,
+    val droppedAnimes: Int = 0,
+    val averageScore: Float = 0f,
+    val totalMinutesWatched: Int = 0,
     val genreStats: Map<String, Int> = emptyMap()
 )
 
@@ -141,11 +146,28 @@ class ProfileViewModel @Inject constructor(
                         }
                     }
                 }
+
+                // Calcular promedio de score (solo animes con score > 0)
+                val animesWithScore = animes.filter { (it.userScore ?: 0f) > 0f }
+                val averageScore = if (animesWithScore.isNotEmpty()) {
+                    animesWithScore.map { it.userScore ?: 0f }.average().toFloat()
+                } else {
+                    0f
+                }
+
+                // Calcular tiempo total (asumiendo ~24 minutos por episodio)
+                val totalMinutes = animes.sumOf { it.episodesWatched * 24 }
+
                 val stats = AnimeStats(
                     totalAnimes = animes.size,
                     completedAnimes = animes.count { it.statusUser == "Completado" },
                     totalEpisodesWatched = animes.sumOf { it.episodesWatched },
                     watchingAnimes = animes.count { it.statusUser == "Viendo" },
+                    plannedAnimes = animes.count { it.statusUser == "Planeado" },
+                    onHoldAnimes = animes.count { it.statusUser == "Pendiente" },
+                    droppedAnimes = animes.count { it.statusUser == "Abandonado" },
+                    averageScore = averageScore,
+                    totalMinutesWatched = totalMinutes,
                     genreStats = genreMap
                 )
                 _uiState.update { it.copy(allSavedAnimes = animes, stats = stats) }
