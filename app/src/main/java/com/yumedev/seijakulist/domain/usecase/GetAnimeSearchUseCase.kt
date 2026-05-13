@@ -11,9 +11,9 @@ class GetAnimeSearchUseCase @Inject constructor(
 
 ) {
 
-    suspend operator fun invoke(query: String, page: Int?): List<AnimeCard> {
+    suspend operator fun invoke(query: String, page: Int?, type: String? = null): List<AnimeCard> {
 
-        val animeResponse = animeRepository.searchAnimes(query, page)
+        val animeResponse = animeRepository.searchAnimes(query, page, type)
 
         val animeDtoList = animeResponse.data
 

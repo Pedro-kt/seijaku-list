@@ -72,11 +72,18 @@ class AnimeSearchViewModel @Inject constructor(
     fun onQuickFilterSelected(key: String?) {
         selectedQuickFilter.value = key
         _selectedFormat.value = null // Limpiar formato cuando se selecciona quick filter
+        _searchQuery.value = "" // Limpiar búsqueda de texto cuando se selecciona quick filter
+        _selectedGenreId.value = null // Limpiar género cuando se selecciona quick filter
     }
 
-    fun onFormatSelected(format: String) {
+    fun onFormatSelected(format: String?) {
         _selectedFormat.value = format
         selectedQuickFilter.value = null // Limpiar quick filter cuando se selecciona formato
+        _selectedGenreId.value = null // Limpiar género cuando se selecciona formato
+        // Si hay query activa, re-ejecutar la búsqueda con el nuevo filtro
+        if (_searchQuery.value.isNotBlank()) {
+            performSearchOrFilter()
+        }
     }
 
     init {
@@ -103,7 +110,7 @@ class AnimeSearchViewModel @Inject constructor(
         _selectedFilter.value = "Anime"
         _selectedGenreId.value = null
         selectedQuickFilter.value = null
-        _selectedFormat.value = null
+        // NO limpiar el formato - debe mantenerse para filtrar la búsqueda
     }
 
     fun clearSearch() {
@@ -120,8 +127,8 @@ class AnimeSearchViewModel @Inject constructor(
         _selectedFilter.value = filter
         // Si cambiamos el filtro, limpiamos la query de texto.
         _searchQuery.value = ""
-        // Si el nuevo filtro NO es "Generos", limpiamos el ID del género.
-        if (filter != "Generos") {
+        // Si el nuevo filtro NO es "Géneros", limpiamos el ID del género.
+        if (filter != "Géneros") {
             _selectedGenreId.value = null
         }
         // Limpiar quick filters y formato
@@ -175,23 +182,16 @@ class AnimeSearchViewModel @Inject constructor(
                             else -> emptyList()
                         }
                     }
-                    // 2. Si hay un formato seleccionado
-                    _selectedFormat.value != null -> {
-                        val formatType = mapFormatToType(_selectedFormat.value!!)
-                        animeRepository.getAnimeByType(formatType, page = 1)
+                    // 2. Si hay búsqueda de texto (con o sin formato)
+                    _searchQuery.value.isNotBlank() && _selectedFilter.value == "Anime" -> {
+                        // Guardar la búsqueda en el historial
+                        saveSearchToHistory(_searchQuery.value)
+                        // Pasar el formato si está seleccionado
+                        val formatType = _selectedFormat.value?.let { mapFormatToType(it) }
+                        getAnimeSearchUseCase(query = _searchQuery.value, page = 1, type = formatType)
                     }
-                    // 3. Si es filtro de Anime con búsqueda de texto
-                    _selectedFilter.value == "Anime" -> {
-                        if (_searchQuery.value.isNotBlank()) {
-                            // Guardar la búsqueda en el historial
-                            saveSearchToHistory(_searchQuery.value)
-                            getAnimeSearchUseCase(query = _searchQuery.value, page = 1)
-                        } else {
-                            emptyList()
-                        }
-                    }
-                    // 4. Si es filtro por género
-                    _selectedFilter.value == "Generos" -> {
+                    // 3. Si es filtro por género
+                    _selectedFilter.value == "Géneros" -> {
                         val id = _selectedGenreId.value
                         if (id != null) {
                             animeRepository.getAnimeByGenre(id)
@@ -199,6 +199,7 @@ class AnimeSearchViewModel @Inject constructor(
                             emptyList()
                         }
                     }
+                    // 4. Si solo hay formato seleccionado sin query → NO hacer nada
                     else -> emptyList()
                 }
                 _animeList.value = results.distinctBy { it.malId }
@@ -253,15 +254,46 @@ class AnimeSearchViewModel @Inject constructor(
         // Solo cargar más si no estamos ya cargando y hay más páginas
         if (_isLoadingMore.value || !_hasMorePages.value || _isLoading.value) return
 
-        // Solo funciona para búsqueda de anime por ahora
-        if (_selectedFilter.value != "Anime" || _searchQuery.value.isBlank()) return
-
         viewModelScope.launch {
             _isLoadingMore.value = true
 
             try {
                 val nextPage = _currentPage.value + 1
-                val results = getAnimeSearchUseCase(query = _searchQuery.value, page = nextPage)
+                val results: List<AnimeCard> = when {
+                    // 1. Si hay un quick filter seleccionado
+                    selectedQuickFilter.value != null -> {
+                        when (selectedQuickFilter.value) {
+                            "airing" -> animeRepository.getAnimeAiring(page = nextPage)
+                            "trending" -> {
+                                val response = animeRepository.searchTopAnimes(page = nextPage)
+                                mapSearchResponseToCards(response)
+                            }
+                            "top" -> {
+                                val response = animeRepository.searchTopAnimes(page = nextPage)
+                                mapSearchResponseToCards(response)
+                            }
+                            "upcoming" -> {
+                                val response = animeRepository.searchAnimeSeasonUpcoming(page = nextPage)
+                                mapSearchResponseToCards(response)
+                            }
+                            "season" -> {
+                                val response = animeRepository.searchAnimeSeasonNow(page = nextPage)
+                                mapSearchResponseToCards(response)
+                            }
+                            "new" -> animeRepository.getAnimeNew(page = nextPage)
+                            "popular" -> animeRepository.getAnimePopular(page = nextPage)
+                            else -> emptyList()
+                        }
+                    }
+                    // 2. Si hay búsqueda de texto (con o sin formato)
+                    _searchQuery.value.isNotBlank() && _selectedFilter.value == "Anime" -> {
+                        // Pasar el formato si está seleccionado
+                        val formatType = _selectedFormat.value?.let { mapFormatToType(it) }
+                        getAnimeSearchUseCase(query = _searchQuery.value, page = nextPage, type = formatType)
+                    }
+                    // 3. Si solo hay formato sin query → no cargar más
+                    else -> emptyList()
+                }
 
                 if (results.isNotEmpty()) {
                     _currentPage.value = nextPage
