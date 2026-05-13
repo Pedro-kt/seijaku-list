@@ -42,6 +42,11 @@ data class AnimeStats(
     val completedAnimes: Int = 0,
     val totalEpisodesWatched: Int = 0,
     val watchingAnimes: Int = 0,
+    val plannedAnimes: Int = 0,
+    val onHoldAnimes: Int = 0,
+    val droppedAnimes: Int = 0,
+    val averageScore: Float = 0f,
+    val totalMinutesWatched: Int = 0,
     val genreStats: Map<String, Int> = emptyMap()
 )
 
@@ -78,21 +83,50 @@ class ProfileViewModel @Inject constructor(
         // 2. Lógica de sincronización unificada y optimizada
         viewModelScope.launch {
             auth.currentUser?.let { user ->
-                userProfileLocalRepository.getUserProfile(user.uid)
-                    .flatMapLatest { localProfile ->
-                        // Sincroniza desde Firestore solo si el perfil local no existe o está incompleto.
-                        if (localProfile == null || localProfile.username.isNullOrEmpty()) {
-                            syncProfileFromFirestore(user.uid)
-                        }
-                        userProfileLocalRepository.getUserProfile(user.uid)
+                Log.d("ProfileViewModel", "Init - Current user UID: ${user.uid}")
+
+                // Primero intentar sincronizar desde Firestore
+                try {
+                    val doc = db.collection("users").document(user.uid).get().await()
+                    if (doc.exists()) {
+                        val data = doc.data
+                        Log.d("ProfileViewModel", "Firestore data: $data")
+                        val remoteProfile = com.yumedev.seijakulist.data.local.entities.UserProfile(
+                            uid = user.uid,
+                            username = data?.get("username") as? String,
+                            profilePictureUrl = data?.get("profilePictureUrl") as? String,
+                            bio = data?.get("bio") as? String,
+                            top5AnimeIds = data?.get("top5AnimeIds") as? String
+                        )
+                        userProfileLocalRepository.insertUserProfile(remoteProfile)
+                        Log.d("ProfileViewModel", "Profile synced from Firestore: username=${remoteProfile.username}, pic=${remoteProfile.profilePictureUrl}")
+                    } else {
+                        Log.d("ProfileViewModel", "No profile document found in Firestore")
                     }
-                    .collect { userProfile ->
-                        // 3. Actualiza el estado de la UI con los nuevos datos
-                        _uiState.update { it.copy(userProfile = userProfile) }
+                } catch (e: Exception) {
+                    Log.e("ProfileViewModel", "Error syncing from Firestore", e)
+                }
+
+                // Ahora observar los cambios del perfil local
+                userProfileLocalRepository.getUserProfile(user.uid)
+                    .collect { localProfile ->
+                        Log.d("ProfileViewModel", "Local profile updated: username=${localProfile?.username}, pic=${localProfile?.profilePictureUrl}")
+
+                        // Convertir de entidad Room a data class del ViewModel
+                        val profileForUi = localProfile?.let {
+                            UserProfile(
+                                uid = it.uid,
+                                username = it.username,
+                                profilePictureUrl = it.profilePictureUrl,
+                                bio = it.bio
+                            )
+                        }
+
+                        _uiState.update { it.copy(userProfile = profileForUi) }
 
                         // Cargar los top 5 animes si están configurados
-                        if (!userProfile?.top5AnimeIds.isNullOrBlank()) {
-                            val ids = userProfile!!.top5AnimeIds!!.split(",").mapNotNull { it.toIntOrNull() }
+                        if (!localProfile?.top5AnimeIds.isNullOrBlank()) {
+                            val ids = localProfile!!.top5AnimeIds!!.split(",").mapNotNull { it.toIntOrNull() }
                             Log.d("ProfileViewModel", "Loading top 5 from profile: $ids")
                             loadTop5Animes(ids)
                         }
@@ -112,11 +146,28 @@ class ProfileViewModel @Inject constructor(
                         }
                     }
                 }
+
+                // Calcular promedio de score (solo animes con score > 0)
+                val animesWithScore = animes.filter { (it.userScore ?: 0f) > 0f }
+                val averageScore = if (animesWithScore.isNotEmpty()) {
+                    animesWithScore.map { it.userScore ?: 0f }.average().toFloat()
+                } else {
+                    0f
+                }
+
+                // Calcular tiempo total (asumiendo ~24 minutos por episodio)
+                val totalMinutes = animes.sumOf { it.episodesWatched * 24 }
+
                 val stats = AnimeStats(
                     totalAnimes = animes.size,
                     completedAnimes = animes.count { it.statusUser == "Completado" },
                     totalEpisodesWatched = animes.sumOf { it.episodesWatched },
                     watchingAnimes = animes.count { it.statusUser == "Viendo" },
+                    plannedAnimes = animes.count { it.statusUser == "Planeado" },
+                    onHoldAnimes = animes.count { it.statusUser == "Pendiente" },
+                    droppedAnimes = animes.count { it.statusUser == "Abandonado" },
+                    averageScore = averageScore,
+                    totalMinutesWatched = totalMinutes,
                     genreStats = genreMap
                 )
                 _uiState.update { it.copy(allSavedAnimes = animes, stats = stats) }
@@ -124,25 +175,7 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    private fun syncProfileFromFirestore(uid: String) = flow<Nothing> {
-        try {
-            val doc = db.collection("users").document(uid).get().await()
-            if (doc.exists()) {
-                val data = doc.data
-                val remoteProfile = com.yumedev.seijakulist.data.local.entities.UserProfile(
-                    uid = uid,
-                    username = data?.get("username") as? String,
-                    profilePictureUrl = data?.get("profilePictureUrl") as? String,
-                    bio = data?.get("bio") as? String
-                )
-                userProfileLocalRepository.insertUserProfile(remoteProfile)
-            }
-        } catch (e: Exception) {
-            Log.e("ProfileViewModel", "Error al sincronizar desde Firestore", e)
-        }
-    }
-
-    // 4. Lógica de actualización del perfil simplificada
+    // Lógica de actualización del perfil simplificada
     fun updateUserProfile(username: String, bio: String, imageUri: Uri?) {
         val user = auth.currentUser ?: return
 
@@ -168,11 +201,12 @@ class ProfileViewModel @Inject constructor(
 
                 db.collection("users").document(user.uid).set(updates, SetOptions.merge()).await()
 
-                val localProfile = UserProfile(
+                val localProfile = com.yumedev.seijakulist.data.local.entities.UserProfile(
                     uid = user.uid,
                     username = username,
                     bio = bio,
-                    profilePictureUrl = imageUrl ?: existingProfile?.profilePictureUrl
+                    profilePictureUrl = imageUrl ?: existingProfile?.profilePictureUrl,
+                    top5AnimeIds = null
                 )
                 userProfileLocalRepository.insertUserProfile(localProfile)
 

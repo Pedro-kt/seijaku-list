@@ -24,10 +24,10 @@
       </SelectionState>
       <SelectionState runConfigName="MainActivity (1)">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-02-22T17:49:04.904106598Z">
+        <DropdownSelection timestamp="2026-05-10T19:25:59.738607885Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/bustamante/.android/avd/Small_Phone.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=ZY22FRZB73" />
             </handle>
           </Target>
         </DropdownSelection>

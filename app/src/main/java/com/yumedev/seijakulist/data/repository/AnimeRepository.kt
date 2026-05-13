@@ -41,9 +41,9 @@ class AnimeRepository @Inject constructor(
 
 ) {
 
-    suspend fun searchAnimes(query: String, page: Int?): SearchAnimeResponse {
+    suspend fun searchAnimes(query: String, page: Int?, type: String? = null): SearchAnimeResponse {
 
-        return ApiService.searchAnimes(query, page)
+        return ApiService.searchAnimes(query, page, type)
 
     }
 

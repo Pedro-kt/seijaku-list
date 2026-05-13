@@ -214,11 +214,13 @@ fun ProfileView(
 
     LazyColumn(modifier = Modifier.fillMaxSize(), state = listState) {
 
-        // ── 1. Header ─────────────────────────────────────────────────────────
+        // ── 1. Header Compacto ────────────────────────────────────────────────
         item {
-            ProfileHeader(
-                username          = username,
-                userBio           = userBio,
+            ProfileHeaderCompact(
+                username          = username.split(" ").firstOrNull() ?: username,
+                fullName          = username,
+                memberSince       = "MIEMBRO DESDE 2026",
+                currentlyWatching = if (watchingAnimes > 0) uiState.allSavedAnimes.firstOrNull { it.statusUser == "Viendo" }?.title else null,
                 profilePictureUrl = profilePictureUrl,
                 onEditClick       = { navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) }
             )
@@ -226,78 +228,108 @@ fun ProfileView(
 
         // ── 2. Tabs ───────────────────────────────────────────────────────────
         item {
-            Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                MinimalTabRow(
-                    tabs             = listOf("Anime", "Manga", "Estadisticas"),
-                    selectedTabIndex = selectedTabIndex,
-                    onTabSelected    = { selectedTabIndex = it }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                AnimatedContent(
-                    targetState = selectedTabIndex,
-                    label       = "TabAnimation",
-                    transitionSpec = {
-                        fadeIn(tween(400)) + scaleIn(initialScale = 0.95f) togetherWith fadeOut(tween(400))
-                    }
-                ) { targetIndex ->
-                    if (targetIndex == 0) {
+            ProfileTabSelector(
+                selectedTab   = selectedTabIndex,
+                onTabSelected = { selectedTabIndex = it },
+                tabs          = listOf("Anime", "Manga", "General")
+            )
+        }
+
+        // ── 3. Contenido según tab seleccionado ──────────────────────────────
+        item {
+            AnimatedContent(
+                targetState = selectedTabIndex,
+                label       = "TabAnimation",
+                transitionSpec = {
+                    fadeIn(tween(400)) + scaleIn(initialScale = 0.95f) togetherWith fadeOut(tween(400))
+                }
+            ) { targetIndex ->
+                when (targetIndex) {
+                    0 -> { // Tab Anime
                         Column {
-                            // ── Stats ─────────────────────────────────────────
-                            ProfileStatsSection(
-                                totalAnimes     = uiState.stats.totalAnimes,
-                                completedAnimes = uiState.stats.completedAnimes,
-                                totalEpisodes   = uiState.stats.totalEpisodesWatched,
-                                averageScore    = averageScore,
-                                watchingAnimes  = watchingAnimes,
-                                pendingAnimes   = pendingAnimes,
-                                abandonedAnimes = abandonedAnimes,
-                                plannedAnimes   = plannedAnimes
+                            // ── Resumen ───────────────────────────────────────
+                            val totalMinutes = uiState.stats.totalMinutesWatched
+                            val totalHours = totalMinutes / 60
+                            val totalDays = totalHours / 24
+                            val remainingHours = totalHours % 24
+
+                            ResumenSection(
+                                year              = 2026,
+                                totalAnimes       = uiState.stats.totalAnimes,
+                                averageScore      = uiState.stats.averageScore,
+                                totalEpisodes     = uiState.stats.totalEpisodesWatched,
+                                totalHours        = totalHours,
+                                totalDaysAndHours = Pair(totalDays, remainingHours)
                             )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // ── Distribución ──────────────────────────────────
+                            DistribucionSection(
+                                totalAnimes = uiState.stats.totalAnimes,
+                                items = listOf(
+                                    DistributionItem("Planeado", plannedAnimes, Color(0xFF9C6FDE)),
+                                    DistributionItem("Completado", uiState.stats.completedAnimes, Color(0xFF4CAF50)),
+                                    DistributionItem("Pendiente", pendingAnimes, Color(0xFFFFA726)),
+                                    DistributionItem("Viendo", watchingAnimes, Color(0xFF00A8FF)),
+                                    DistributionItem("Abandonado", abandonedAnimes, Color(0xFFEF5350))
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             // ── Géneros favoritos ─────────────────────────────
                             if (uiState.stats.genreStats.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(28.dp))
-                                SectionHeader(
-                                    title    = "Géneros Favoritos",
-                                    subtitle = "Los géneros que más aparecen en tu lista"
+                                val topGenres = uiState.stats.genreStats.entries
+                                    .sortedByDescending { it.value }
+                                    .take(3)
+                                val totalAnimes = uiState.stats.totalAnimes
+                                val genreColors = listOf(
+                                    Color(0xFFEF5350), // Rojo
+                                    Color(0xFF9C6FDE), // Morado
+                                    Color(0xFFFFA726)  // Naranja
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                run {
-                                    val topGenres        = uiState.stats.genreStats.entries.sortedByDescending { it.value }.take(3)
-                                    val totalGenreCounts = topGenres.sumOf { it.value }
-                                    val genreColors      = listOf(Color(0xFF3B82F6), Color(0xFF8B5CF6), Color(0xFFEC4899))
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 20.dp, vertical = 8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        topGenres.forEachIndexed { index, (genre, count) ->
-                                            val animeWithGenre = uiState.allSavedAnimes.firstOrNull { anime ->
-                                                anime.genres.split(",").any { it.trim().equals(genre, ignoreCase = true) }
-                                            }
-                                            GenreFavoriteCard(
-                                                genre       = genre,
-                                                count       = count,
-                                                totalCount  = totalGenreCounts,
-                                                imageUrl    = animeWithGenre?.imageUrl,
-                                                accentColor = genreColors.getOrElse(index) { Color(0xFF3B82F6) },
-                                                modifier    = Modifier.weight(1f)
-                                            )
-                                        }
+
+                                GenerosFavoritosSection(
+                                    genres = topGenres.mapIndexed { index, (genre, count) ->
+                                        GenreItem(
+                                            name = genre,
+                                            count = count,
+                                            percentage = ((count.toFloat() / totalAnimes.toFloat()) * 100).toInt(),
+                                            color = genreColors.getOrElse(index) { Color(0xFF00A8FF) }
+                                        )
                                     }
-                                }
+                                )
                             }
 
                             // ── Top 5 ─────────────────────────────────────────
-                            Spacer(modifier = Modifier.height(28.dp))
-                            SectionHeader(
-                                title    = "Top 5 Animes",
-                                subtitle = "Los 5 animes que más te gustan"
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.adp())
                             ) {
+                                Row(
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(
+                                        text = "Top 5 Animes",
+                                        fontFamily = PoppinsBold,
+                                        fontSize = 20.asp(),
+                                        color = Color.White,
+                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                    )
+                                    Spacer(modifier = Modifier.width(8.adp()))
+                                    Text(
+                                        text = "Los 5 animes que más te gustan",
+                                        fontFamily = PoppinsRegular,
+                                        fontSize = 12.asp(),
+                                        color = Color.Gray
+                                    )
+                                }
                                 IconButton(
                                     onClick   = { navController.navigate(AppDestinations.SELECT_TOP5_ROUTE) },
-                                    modifier  = Modifier.size(36.adp())
+                                    modifier  = Modifier.size(36.adp()).align(Alignment.CenterEnd)
                                 ) {
                                     Icon(
                                         Icons.Default.Edit,
@@ -307,7 +339,8 @@ fun ProfileView(
                                     )
                                 }
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Spacer(modifier = Modifier.height(12.dp))
                             if (uiState.top5Animes.isNotEmpty()) {
                                 AnimeTop5Showcase(
                                     animes        = uiState.top5Animes,
@@ -345,7 +378,8 @@ fun ProfileView(
                                 }
                             }
                         }
-                    } else if (targetIndex == 1) {
+                    }
+                    1 -> {
                         Column(
                             modifier            = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 48.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -371,7 +405,8 @@ fun ProfileView(
                                 textAlign  = TextAlign.Center
                             )
                         }
-                    } else {
+                    }
+                    2 -> { // Tab General
                         Column(
                             modifier            = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 48.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -384,13 +419,13 @@ fun ProfileView(
                                 tint     = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                             )
                             Text(
-                                "¡Estadisticas en camino!",
+                                "¡General en camino!",
                                 fontSize = 20.asp(),
                                 fontFamily = PoppinsBold,
                                 color      = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
-                                "Estamos trabajando para que puedas ver todas tus estadisticas aqui!.",
+                                "Estamos trabajando para que puedas ver información general aquí!",
                                 fontSize = 14.asp(),
                                 fontFamily = PoppinsRegular,
                                 color      = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -398,13 +433,16 @@ fun ProfileView(
                             )
                         }
                     }
+                    else -> {
+                        // Fallback
+                        Box(modifier = Modifier.fillMaxWidth().padding(48.dp))
+                    }
+                }
                 }
             }
-        }
-
         item { Spacer(modifier = Modifier.height(90.adp())) }
+        }
     }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  ProfileHeader
@@ -866,7 +904,7 @@ private fun GenreFavoriteCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  AnimeTop5Showcase
+//  AnimeTop5Showcase - Diseño de podio 3D
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun AnimeTop5Showcase(animes: List<AnimeEntity>, navController: NavController) {
@@ -880,243 +918,462 @@ private fun AnimeTop5Showcase(animes: List<AnimeEntity>, navController: NavContr
         label = "showcase_s"
     )
 
-    ElevatedCard(
-        modifier  = Modifier
+    Column(
+        modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .alpha(alpha)
             .scale(scale),
-        shape     = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors    = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier              = Modifier.fillMaxWidth().height(260.adp()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Column(
-                    modifier            = Modifier.weight(1f).fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Top5RankLabel(position = 1)
-                    animes.getOrNull(0)?.let { anime ->
-                        ShowcaseCell(
-                            anime         = anime,
-                            position      = 1,
-                            modifier      = Modifier.fillMaxWidth().weight(1f),
-                            navController = navController
-                        )
-                    }
-                }
-                Column(
-                    modifier            = Modifier.weight(1f).fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Top5RankLabel(position = 2)
-                    animes.getOrNull(1)?.let { anime ->
-                        ShowcaseCell(
-                            anime         = anime,
-                            position      = 2,
-                            modifier      = Modifier.fillMaxWidth().weight(1f),
-                            navController = navController
-                        )
-                    }
-                    Top5RankLabel(position = 3)
-                    animes.getOrNull(2)?.let { anime ->
-                        ShowcaseCell(
-                            anime         = anime,
-                            position      = 3,
-                            modifier      = Modifier.fillMaxWidth().weight(1f),
-                            navController = navController
-                        )
-                    }
-                }
+        // Podio 3D con los primeros 3 puestos
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            // Puesto 2 (izquierda, podio medio)
+            if (animes.size >= 2) {
+                PodiumPosition(
+                    anime = animes[1],
+                    position = 2,
+                    podiumHeight = 50.adp(),
+                    modifier = Modifier.weight(1f),
+                    navController = navController
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
             }
-            if (animes.size >= 4) {
+
+            // Puesto 1 (centro, podio más alto)
+            if (animes.isNotEmpty()) {
+                PodiumPosition(
+                    anime = animes[0],
+                    position = 1,
+                    podiumHeight = 80.adp(),
+                    modifier = Modifier.weight(1f),
+                    navController = navController
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+
+            // Puesto 3 (derecha, podio más bajo)
+            if (animes.size >= 3) {
+                PodiumPosition(
+                    anime = animes[2],
+                    position = 3,
+                    podiumHeight = 30.adp(),
+                    modifier = Modifier.weight(1f),
+                    navController = navController
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+
+        // Menciones honoríficas (Puestos 4 y 5)
+        if (animes.size >= 4) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Header de menciones honoríficas
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier            = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Top5RankLabel(position = 4)
-                        animes.getOrNull(3)?.let { anime ->
-                            ShowcaseCell(
-                                anime         = anime,
-                                position      = 4,
-                                modifier      = Modifier.fillMaxWidth().height(100.adp()),
-                                navController = navController
-                            )
-                        }
-                    }
-                    if (animes.size >= 5) {
-                        Column(
-                            modifier            = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            Top5RankLabel(position = 5)
-                            animes.getOrNull(4)?.let { anime ->
-                                ShowcaseCell(
-                                    anime         = anime,
-                                    position      = 5,
-                                    modifier      = Modifier.fillMaxWidth().height(100.adp()),
-                                    navController = navController
-                                )
-                            }
-                        }
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = 1.dp,
+                        color = Color.Gray.copy(alpha = 0.3f)
+                    )
+                    Text(
+                        text = "MENCIONES HONORÍFICAS",
+                        fontFamily = PoppinsBold,
+                        fontSize = 11.asp(),
+                        color = Color.Gray,
+                        letterSpacing = 1.sp,
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        thickness = 1.dp,
+                        color = Color.Gray.copy(alpha = 0.3f)
+                    )
+                }
+
+                // Cards de menciones
+                HonorableMentionCard(
+                    anime = animes[3],
+                    position = 4,
+                    navController = navController
+                )
+
+                if (animes.size >= 5) {
+                    HonorableMentionCard(
+                        anime = animes[4],
+                        position = 5,
+                        navController = navController
+                    )
                 }
             }
-            Row(
-                modifier              = Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 1.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.Star,
-                    contentDescription = null,
-                    tint     = MaterialTheme.colorScheme.primary.copy(0.35f),
-                    modifier = Modifier.size(8.dp)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-                Text(
-                    "SeijakuList",
-                    fontSize = 9.asp(),
-                    fontFamily    = PoppinsBold,
-                    color         = MaterialTheme.colorScheme.onSurface.copy(0.22f),
-                    letterSpacing = 0.5.sp
-                )
-            }
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Top5RankLabel
+//  PodiumPosition - Posición del podio con efecto 3D (estilo Home)
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun Top5RankLabel(position: Int) {
-    val (rankIcon, rankText, rankColor) = when (position) {
-        1    -> Triple(Icons.Default.EmojiEvents,      "FAVORITO", Color(0xFFFFD700))
-        2    -> Triple(Icons.Default.WorkspacePremium, "#2",        Color(0xFFBCC8D0))
-        3    -> Triple(Icons.Default.Star,             "#3",        Color(0xFFCD7F32))
-        else -> Triple(null,                            "#$position", MaterialTheme.colorScheme.onSurfaceVariant.copy(0.75f))
-    }
-    Row(
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        if (rankIcon != null) {
-            Icon(rankIcon, contentDescription = null, tint = rankColor, modifier = Modifier.size(13.dp))
-        } else {
-            Box(modifier = Modifier.size(5.dp).background(rankColor, CircleShape))
-        }
-        Text(
-            text          = rankText,
-            fontSize = 11.asp(),
-            fontFamily    = PoppinsBold,
-            color         = rankColor,
-            letterSpacing = if (position == 1) 0.6.sp else 0.sp
-        )
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  ShowcaseCell
-// ─────────────────────────────────────────────────────────────────────────────
-@Composable
-private fun ShowcaseCell(
+private fun PodiumPosition(
     anime: AnimeEntity,
     position: Int,
+    podiumHeight: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
     navController: NavController
 ) {
-    val isHero      = position == 1
-    val accentColor = when (position) {
-        1    -> Color(0xFFFFD700)
-        2    -> Color(0xFFBCC8D0)
-        3    -> Color(0xFFCD7F32)
-        else -> Color.Transparent
+    val (podiumColor, medalColor) = when (position) {
+        1 -> Pair(Color(0xFFFFD700), Color(0xFFFFD700)) // Oro
+        2 -> Pair(Color(0xFFC0C0C0), Color(0xFFC0C0C0)) // Plata
+        3 -> Pair(Color(0xFFCD7F32), Color(0xFFCD7F32)) // Bronce
+        else -> Pair(Color.Gray, Color.Gray)
     }
-    val borderWidth = if (position <= 3) 1.5.dp else 0.dp
 
-    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "glow_$position")
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.30f,
-        targetValue  = if (isHero) 0.78f else 0.30f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-            animation  = tween(1600, easing = androidx.compose.animation.core.FastOutSlowInEasing),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
-        ),
-        label = "glow_a_$position"
-    )
+    // Altura fija para todas las imágenes
+    val imageHeight = 200.adp()
 
-    Card(
-        modifier = modifier.border(borderWidth, accentColor.copy(0.65f), RoundedCornerShape(12.dp)),
-        shape    = RoundedCornerShape(12.dp),
-        onClick  = { navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}") }
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        // Card del anime (estilo Home)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(imageHeight)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable {
+                    navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
+                }
+        ) {
+            // Imagen de fondo completa
             AsyncImage(
-                model            = anime.imageUrl,
-                contentDescription = null,
-                modifier         = Modifier.fillMaxSize(),
-                contentScale     = ContentScale.Crop
+                model = anime.imageUrl,
+                contentDescription = anime.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             )
+
+            // Gradiente superior para Score
             Box(
-                modifier = Modifier.fillMaxSize().background(
-                    Brush.verticalGradient(
-                        0.0f to Color.Transparent,
-                        0.40f to Color.Black.copy(0.08f),
-                        1.0f to Color.Black.copy(0.80f)
-                    )
-                )
-            )
-            if (position <= 3) {
-                Box(
-                    modifier = Modifier.fillMaxSize().background(
-                        Brush.radialGradient(
-                            colors = listOf(accentColor.copy(alpha = glowAlpha * 0.20f), Color.Transparent),
-                            center = Offset(0f, 0f),
-                            radius = if (isHero) 520f else 300f
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.adp())
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colorStops = arrayOf(
+                                0.0f to Color.Black.copy(alpha = 0.85f),
+                                0.5f to Color.Black.copy(alpha = 0.5f),
+                                1.0f to Color.Transparent
+                            )
                         )
                     )
+            )
+
+            // Gradiente inferior para Título
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.adp())
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colorStops = arrayOf(
+                                0.0f to Color.Transparent,
+                                0.4f to Color.Black.copy(alpha = 0.6f),
+                                1.0f to Color.Black.copy(alpha = 0.92f)
+                            )
+                        )
+                    )
+            )
+
+            // Brillo especial para el primer lugar
+            if (position == 1) {
+                val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "glow")
+                val glowAlpha by infiniteTransition.animateFloat(
+                    initialValue = 0.2f,
+                    targetValue = 0.5f,
+                    animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                        animation = tween(2000, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                        repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+                    ),
+                    label = "glow_alpha"
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    medalColor.copy(alpha = glowAlpha * 0.25f),
+                                    Color.Transparent
+                                ),
+                                center = Offset(0.5f, 0.3f)
+                            )
+                        )
                 )
             }
+
+            // Score en la parte superior derecha
             if (anime.userScore > 0) {
-                Surface(
-                    modifier = Modifier.align(Alignment.TopEnd).padding(6.dp),
-                    shape    = RoundedCornerShape(7.dp),
-                    color    = Color.Black.copy(0.62f)
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier              = Modifier.padding(horizontal = 5.dp, vertical = 3.dp),
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        verticalAlignment     = Alignment.CenterVertically
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = Color(0xFFFFD700),
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Text(
+                        text = anime.userScore.toString(),
+                        color = Color.White,
+                        fontSize = 12.asp(),
+                        fontFamily = PoppinsBold
+                    )
+                }
+            }
+
+            // Título en la parte inferior
+            Text(
+                text = anime.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                fontFamily = PoppinsMedium,
+                fontSize = 13.asp(),
+                lineHeight = 17.asp(),
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 10.dp, vertical = 10.dp)
+            )
+        }
+
+        // Base del podio con número de posición (altura variable)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(podiumHeight),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            color = podiumColor.copy(alpha = 0.9f),
+            shadowElevation = 4.dp
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = position.toString(),
+                    fontSize = 24.asp(),
+                    fontFamily = PoppinsBold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  HonorableMentionCard - Card elegante para menciones honoríficas (puestos 4 y 5)
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun HonorableMentionCard(
+    anime: AnimeEntity,
+    position: Int,
+    navController: NavController
+) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.adp()),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}") }
+    ) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            // Imagen con gradiente (estilo home)
+            Box(
+                modifier = Modifier
+                    .width(70.adp())
+                    .fillMaxHeight()
+            ) {
+                AsyncImage(
+                    model = anime.imageUrl,
+                    contentDescription = anime.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Gradiente overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colorStops = arrayOf(
+                                    0.0f to Color.Black.copy(alpha = 0.4f),
+                                    1.0f to Color.Black.copy(alpha = 0.7f)
+                                )
+                            )
+                        )
+                )
+            }
+
+            // Contenido
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Título
+                Text(
+                    text = anime.title,
+                    fontSize = 14.asp(),
+                    fontFamily = PoppinsBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 18.sp
+                )
+
+                // Tipo, Géneros y Estado
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Tipo (TV, Movie, OVA, etc.)
+                    if (!anime.typeAnime.isNullOrBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = Color(0xFF6366F1).copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = anime.typeAnime,
+                                fontSize = 9.asp(),
+                                fontFamily = PoppinsBold,
+                                color = Color(0xFF6366F1),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    // Géneros (máximo 2)
+                    val genresList = anime.genres.split(",").map { it.trim() }.filter { it.isNotBlank() }
+                    genresList.take(2).forEach { genre ->
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = Color(0xFFF59E0B).copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = genre,
+                                fontSize = 9.asp(),
+                                fontFamily = PoppinsMedium,
+                                color = Color(0xFFF59E0B),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    // Estado del usuario
+                    if (anime.statusUser.isNotBlank()) {
+                        val statusColor = when (anime.statusUser) {
+                            "Viendo" -> Color(0xFF66BB6A)
+                            "Completado" -> Color(0xFF42A5F5)
+                            "Pendiente" -> Color(0xFFFFCA28)
+                            "Abandonado" -> Color(0xFFEF5350)
+                            "Planeado" -> Color(0xFF78909C)
+                            else -> Color.Gray
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = statusColor.copy(alpha = 0.15f)
+                        ) {
+                            Text(
+                                text = anime.statusUser,
+                                fontSize = 9.asp(),
+                                fontFamily = PoppinsBold,
+                                color = statusColor,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Row inferior con score y badge
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Score
+                    if (anime.userScore > 0) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFFD700),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = anime.userScore.toString(),
+                                fontSize = 13.asp(),
+                                fontFamily = PoppinsBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    // Badge "Mención honorífica"
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        )
                     ) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(10.dp))
-                        Text("${anime.userScore}", fontSize = 10.asp(), fontFamily = PoppinsBold, color = Color.White)
+                        Text(
+                            text = "Top ${position}",
+                            fontSize = 10.asp(),
+                            fontFamily = PoppinsBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            letterSpacing = 0.5.sp
+                        )
                     }
                 }
             }
-            Text(
-                text       = anime.title,
-                fontSize   = if (isHero) 13.sp else 10.sp,
-                fontFamily = PoppinsBold,
-                color      = Color.White,
-                maxLines   = 2,
-                overflow   = TextOverflow.Ellipsis,
-                lineHeight = if (isHero) 17.sp else 13.sp,
-                modifier   = Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 7.dp)
-            )
         }
     }
 }

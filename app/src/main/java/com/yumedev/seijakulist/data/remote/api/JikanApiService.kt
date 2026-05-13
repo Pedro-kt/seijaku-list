@@ -30,7 +30,8 @@ interface  JikanApiService {
     @GET("anime")
     suspend fun searchAnimes(
         @Query("q") query: String,
-        @Query("page") page: Int? = 1
+        @Query("page") page: Int? = 1,
+        @Query("type") type: String? = null
     ): SearchAnimeResponse
 
     //Esta peticion es para darme los datos de un solo anime en especifico

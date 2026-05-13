@@ -321,76 +321,88 @@ fun MyAnimeListScreen(
                 }
             }
 
-            // Detectar dark mode comparando la luminancia del color de surface
-            val surfaceColor = MaterialTheme.colorScheme.surface
-            val isDarkTheme = surfaceColor.luminance() < 0.5f
+            // Calcular la cantidad de animes por estado
+            val animeCounts = remember(savedAnimes) {
+                statusAnime.associateWith { status ->
+                    savedAnimes.count { it.statusUser == status }
+                }
+            }
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            // Contador de animes y filtros
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(statusAnime.size) { index ->
-                    val filter = statusAnime[index]
-                    val isSelected = selectedFilter == filter
+                // Contador de animes
+                Text(
+                    text = "${savedAnimes.size} animes",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = PoppinsBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
-                    val filterIcon = when (filter) {
-                        "Viendo" -> Icons.Default.RemoveRedEye
-                        "Completado" -> Icons.Default.CheckCircle
-                        "Pendiente" -> Icons.Default.Schedule
-                        "Abandonado" -> Icons.Default.Stop
-                        "Planeado" -> Icons.Default.EventAvailable
-                        else -> Icons.Default.Star
+                // Filtros redondeados
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(statusAnime.size) { index ->
+                        val filter = statusAnime[index]
+                        val isSelected = selectedFilter == filter
+                        val count = animeCounts[filter] ?: 0
+
+                        val filterIcon = when (filter) {
+                            "Viendo" -> Icons.Default.RemoveRedEye
+                            "Completado" -> Icons.Default.CheckCircle
+                            "Pendiente" -> Icons.Default.Schedule
+                            "Abandonado" -> Icons.Default.Stop
+                            "Planeado" -> Icons.Default.EventAvailable
+                            else -> Icons.Default.Star
+                        }
+
+                        Surface(
+                            onClick = {
+                                selectedFilter = if (isSelected) null else filter
+                            },
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            border = if (isSelected)
+                                BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+                            else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = filterIcon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.adp()),
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                                Text(
+                                    text = filter,
+                                    fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
+                                    fontSize = 13.asp(),
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                )
+                                Text(
+                                    text = count.toString(),
+                                    fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
+                                    fontSize = 12.asp(),
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
                     }
-
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            selectedFilter = if (isSelected) null else filter
-                        },
-                        label = {
-                            Text(
-                                text = filter,
-                                fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
-                                fontSize = 14.asp()
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = filterIcon,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.adp())
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = if (isDarkTheme) {
-                                MaterialTheme.colorScheme.surfaceContainerHigh
-                            } else {
-                                Color.White
-                            },
-                            labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            iconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
-                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = if (isSelected) {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                            } else {
-                                if (isDarkTheme) {
-                                    Color.Transparent
-                                } else {
-                                    Color.Black.copy(alpha = 0.2f)
-                                }
-                            },
-                            selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            borderWidth = if (!isSelected && !isDarkTheme) 1.dp else 1.dp,
-                            selectedBorderWidth = 1.dp
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
                 }
             }
 

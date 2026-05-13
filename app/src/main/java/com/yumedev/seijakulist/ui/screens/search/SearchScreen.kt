@@ -200,6 +200,7 @@ fun SearchScreen(
     val selectedFilter by viewModel.selectedFilter.collectAsState()
     val selectedGenreId by viewModel.selectedGenreId.collectAsState()
     val selectedQuick by viewModel.selectedQuickFilter.collectAsState() // nuevo estado en VM
+    val selectedFormat by viewModel.selectedFormat.collectAsState() // formato seleccionado
     val recentSearches by viewModel.recentSearches.collectAsState() // búsquedas recientes
 
     val genres by listGenres.genres.collectAsState()
@@ -226,13 +227,13 @@ fun SearchScreen(
             SearchDiscoveryView(
                 selectedFilter = selectedFilter,
                 selectedQuick = selectedQuick,
+                selectedFormat = selectedFormat,
                 genres = genres,
                 isLoadingGenres = isLoadingGenres,
                 onFilterSelected = { filter ->
                     if (filter == "Géneros") openBottomSheet = true
                     else {
                         viewModel.onFilterSelected(if (selectedFilter == filter) null else filter)
-                        expanded = true
                     }
                 },
                 onQuickFilterTap = { qf ->
@@ -242,9 +243,7 @@ fun SearchScreen(
                     expanded = true
                 },
                 onFormatSelected = { format ->
-                    viewModel.onFormatSelected(format)
-                    viewModel.performSearchOrFilter()
-                    expanded = true
+                    viewModel.onFormatSelected(if (selectedFormat == format) null else format)
                 },
                 onGenreDirectTap = { genreId ->
                     viewModel.onGenreSelected(genreId)
@@ -382,6 +381,7 @@ fun SearchScreen(
 private fun SearchDiscoveryView(
     selectedFilter: String?,
     selectedQuick: String?,
+    selectedFormat: String?,
     genres: List<Genre>,
     isLoadingGenres: Boolean,
     onFilterSelected: (String) -> Unit,
@@ -448,7 +448,11 @@ private fun SearchDiscoveryView(
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     items(formatFilters) { format ->
-                        FormatChip(label = format, onClick = { onFormatSelected(format) })
+                        FormatChip(
+                            label = format,
+                            isActive = selectedFormat == format,
+                            onClick = { onFormatSelected(format) }
+                        )
                     }
                 }
             }
@@ -544,18 +548,22 @@ private fun QuickFilterChip(
 
 /** Chip de formato — TV, Movie, OVA, ONA, Especial */
 @Composable
-private fun FormatChip(label: String, onClick: () -> Unit) {
+private fun FormatChip(label: String, isActive: Boolean, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        color = if (isActive) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = if (isActive)
+            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+        else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Text(
             text = label,
-            fontFamily = PoppinsRegular,
+            fontFamily = if (isActive) PoppinsBold else PoppinsRegular,
             fontSize = 13.asp(),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+            color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
         )
     }
