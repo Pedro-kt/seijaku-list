@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,6 +41,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -99,6 +101,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -120,9 +123,11 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.models.Genre
+import com.yumedev.seijakulist.domain.models.PopularGenres
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
+import com.yumedev.seijakulist.ui.theme.GenreThemeMapper
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.adp
@@ -131,24 +136,6 @@ import kotlin.collections.listOf
 
 // Altura aproximada de la barra colapsada
 private val SearchBarCollapsedHeight = 72.dp
-
-// ─── Paleta de gradientes para las tarjetas de género ───────────────────────
-private val genreCardColors = listOf(
-    Color(0xFF6C63FF) to Color(0xFF9C88FF),
-    Color(0xFFFF6B6B) to Color(0xFFFF8E53),
-    Color(0xFF0CB2AF) to Color(0xFF2EBFBC),
-    Color(0xFFFF9A00) to Color(0xFFFFBE0B),
-    Color(0xFF06C88A) to Color(0xFF2DC653),
-    Color(0xFFE91E8C) to Color(0xFFFF4B6E),
-    Color(0xFF7B2FBE) to Color(0xFFA855F7),
-    Color(0xFF2563EB) to Color(0xFF60A5FA),
-    Color(0xFFEA580C) to Color(0xFFFB923C),
-    Color(0xFF16A34A) to Color(0xFF4ADE80),
-    Color(0xFF0891B2) to Color(0xFF22D3EE),
-    Color(0xFFDC2626) to Color(0xFFF87171),
-    Color(0xFF0D9488) to Color(0xFF2DD4BF),
-    Color(0xFF7C3AED) to Color(0xFFC084FC),
-)
 
 // ─── Modelo para quick-filter chips ─────────────────────────────────────────
 data class QuickFilter(
@@ -189,7 +176,6 @@ private val formatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", 
 fun SearchScreen(
     navController: NavController,
     viewModel: AnimeSearchViewModel = hiltViewModel(),
-    listGenres: GenresViewModel = hiltViewModel(),
     onSearchExpandedChange: (Boolean) -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -202,13 +188,16 @@ fun SearchScreen(
     val selectedQuick by viewModel.selectedQuickFilter.collectAsState() // nuevo estado en VM
     val selectedFormat by viewModel.selectedFormat.collectAsState() // formato seleccionado
     val recentSearches by viewModel.recentSearches.collectAsState() // búsquedas recientes
-
-    val genres by listGenres.genres.collectAsState()
-    val isLoadingGenres by listGenres.isLoading.collectAsState()
-    val errorMessageGenres by listGenres.errorMessage.collectAsState()
+    val trendingAnimes by viewModel.trendingAnimes.collectAsState() // tendencias dinámicas
+    val previewResults by viewModel.previewResults.collectAsState() // vista previa de resultados
 
     var expanded by remember { mutableStateOf(false) }
     var openBottomSheet by remember { mutableStateOf(false) }
+
+    // Lazy load trending animes when screen opens
+    LaunchedEffect(Unit) {
+        viewModel.loadTrendingAnimes()
+    }
 
     // Notificar cambio de estado de expansión
     LaunchedEffect(expanded) {
@@ -228,8 +217,6 @@ fun SearchScreen(
                 selectedFilter = selectedFilter,
                 selectedQuick = selectedQuick,
                 selectedFormat = selectedFormat,
-                genres = genres,
-                isLoadingGenres = isLoadingGenres,
                 onFilterSelected = { filter ->
                     if (filter == "Géneros") openBottomSheet = true
                     else {
@@ -306,7 +293,7 @@ fun SearchScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = null,
+                                contentDescription = "Buscar",
                                 modifier = Modifier.size(22.adp()),
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
@@ -340,13 +327,21 @@ fun SearchScreen(
                 searchQuery = searchQuery,
                 navController = navController,
                 selectedFilter = selectedFilter,
+                selectedQuick = selectedQuick,
+                selectedFormat = selectedFormat,
+                selectedGenreId = selectedGenreId,
                 onFilterSelected = { filter ->
                     if (filter == "Géneros") openBottomSheet = true
                     else viewModel.onFilterSelected(if (selectedFilter == filter) null else filter)
                 },
+                onClearAllFilters = viewModel::clearAllFilters,
                 onLoadMore = viewModel::loadMoreAnimes,
                 recentSearches = recentSearches,
-                onRecentSearchClick = viewModel::onRecentSearchClicked
+                trendingSearches = trendingAnimes,
+                previewResults = previewResults,
+                onRecentSearchClick = viewModel::onRecentSearchClicked,
+                onDeleteRecentSearch = viewModel::deleteRecentSearch,
+                onPerformSearch = viewModel::performSearchOrFilter
             )
         }
     }
@@ -354,9 +349,6 @@ fun SearchScreen(
     // ── Bottom sheet de géneros ───────────────────────────────────────────
     if (openBottomSheet) {
         GenresBottomSheet(
-            isLoadingGenres = isLoadingGenres,
-            errorMessageGenres = errorMessageGenres,
-            genres = genres,
             selectedGenreId = selectedGenreId,
             onGenreSelected = viewModel::onGenreSelected,
             onDismiss = { openBottomSheet = false },
@@ -382,8 +374,6 @@ private fun SearchDiscoveryView(
     selectedFilter: String?,
     selectedQuick: String?,
     selectedFormat: String?,
-    genres: List<Genre>,
-    isLoadingGenres: Boolean,
     onFilterSelected: (String) -> Unit,
     onQuickFilterTap: (QuickFilter) -> Unit,
     onFormatSelected: (String) -> Unit,
@@ -463,36 +453,32 @@ private fun SearchDiscoveryView(
         // ═══════════════════════════════════════════════════════════════════
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (isLoadingGenres) {
-            GenreSkeletonGrid()
-        } else if (genres.isNotEmpty()) {
-            SectionHeader(title = "Géneros populares")
+        SectionHeader(title = "Géneros populares")
 
-            val displayGenres = genres.take(14)
-            val chunked = displayGenres.chunked(2)
+        val displayGenres = PopularGenres.popularGenres
+        val chunked = displayGenres.chunked(2)
 
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                chunked.forEachIndexed { rowIndex, rowGenres ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        rowGenres.forEachIndexed { colIndex, genre ->
-                            val colorIndex = (rowIndex * 2 + colIndex) % genreCardColors.size
-                            val (startColor, endColor) = genreCardColors[colorIndex]
-                            DiscoveryGenreCard(
-                                genre = genre,
-                                startColor = startColor,
-                                endColor = endColor,
-                                onClick = { onGenreDirectTap(genre.malId.toString()) },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        if (rowGenres.size == 1) Spacer(modifier = Modifier.weight(1f))
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            chunked.forEachIndexed { _, rowGenres ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    rowGenres.forEach { genre ->
+                        val genreTheme = GenreThemeMapper.getThemeForGenre(genre.name)
+                        DiscoveryGenreCard(
+                            genre = genre,
+                            startColor = genreTheme.startColor,
+                            endColor = genreTheme.endColor,
+                            icon = genreTheme.icon,
+                            onClick = { onGenreDirectTap(genre.malId.toString()) },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
+                    if (rowGenres.size == 1) Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -530,7 +516,7 @@ private fun QuickFilterChip(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = "Icono de $label",
                 modifier = Modifier.size(16.adp()),
                 tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -632,6 +618,7 @@ private fun DiscoveryGenreCard(
     genre: Genre,
     startColor: Color,
     endColor: Color,
+    icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -650,49 +637,40 @@ private fun DiscoveryGenreCard(
                         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                     )
                 )
-                .padding(12.dp)
         ) {
-            Text(
-                text = genre.name,
-                color = Color.White,
-                fontFamily = PoppinsBold,
-                fontSize = 14.asp(),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.align(Alignment.TopStart)
+            // Background icon as watermark
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.15f),
+                modifier = Modifier
+                    .size(64.dp)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 12.dp, y = 12.dp)
             )
-            Text(
-                text = "${genre.count}",
-                color = Color.White.copy(alpha = 0.65f),
-                fontFamily = PoppinsRegular,
-                fontSize = 11.asp(),
-                modifier = Modifier.align(Alignment.BottomEnd)
-            )
-        }
-    }
-}
 
-/** Skeleton 2x4 mientras cargan los géneros */
-@Composable
-private fun GenreSkeletonGrid() {
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        repeat(4) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
+            // Content
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp)
             ) {
-                repeat(2) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(80.adp())
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    )
-                }
+                Text(
+                    text = genre.name,
+                    color = Color.White,
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.asp(),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.align(Alignment.TopStart)
+                )
+                Text(
+                    text = "${genre.count}",
+                    color = Color.White.copy(alpha = 0.65f),
+                    fontFamily = PoppinsRegular,
+                    fontSize = 11.asp(),
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                )
             }
         }
     }
@@ -710,11 +688,21 @@ private fun SearchContent(
     searchQuery: String,
     navController: NavController,
     selectedFilter: String?,
+    selectedQuick: String?,
+    selectedFormat: String?,
+    selectedGenreId: String?,
     onFilterSelected: (String) -> Unit,
+    onClearAllFilters: () -> Unit,
     onLoadMore: () -> Unit = {},
     recentSearches: List<String> = emptyList(),
-    onRecentSearchClick: (String) -> Unit = {}
+    trendingSearches: List<String> = emptyList(),
+    previewResults: List<AnimeCard> = emptyList(),
+    onRecentSearchClick: (String) -> Unit = {},
+    onDeleteRecentSearch: (String) -> Unit = {},
+    onPerformSearch: () -> Unit = {}
 ) {
+    val hasActiveFilters = selectedQuick != null || selectedFormat != null || selectedGenreId != null
+    val showPreview = previewResults.isNotEmpty() && searchQuery.isNotBlank() && animeList.isEmpty()
     when {
         isLoading -> Box(
             modifier = Modifier.fillMaxSize(),
@@ -723,32 +711,78 @@ private fun SearchContent(
 
         errorMessage != null -> NoInternetScreen(onRetryClick = {})
 
-        animeList.isNotEmpty() -> LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
+        animeList.isNotEmpty() -> {
+            val listState = rememberLazyListState()
+
+            // Improved pagination trigger - prevents duplicate calls
+            LaunchedEffect(listState) {
+                snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                    .collect { lastVisibleIndex ->
+                        if (lastVisibleIndex != null && lastVisibleIndex >= animeList.size - 3 && !isLoadingMore) {
+                            onLoadMore()
+                        }
+                    }
+            }
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
             item {
                 ContentTypeFilters(
                     selectedFilter = selectedFilter,
                     onFilterSelected = onFilterSelected
                 )
             }
-            item {
-                Text(
-                    text = "${animeList.size}+ resultados encontrados",
-                    fontFamily = PoppinsRegular,
-                    fontSize = 14.asp(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
+            if (hasActiveFilters) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${animeList.size}+ resultados encontrados",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.asp(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        OutlinedButton(
+                            onClick = onClearAllFilters,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Limpiar filtros",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Limpiar filtros",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 12.asp()
+                            )
+                        }
+                    }
+                }
+            } else {
+                item {
+                    Text(
+                        text = "${animeList.size}+ resultados encontrados",
+                        fontFamily = PoppinsRegular,
+                        fontSize = 14.asp(),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
             }
             items(animeList, key = { it.malId }) { anime ->
                 AnimeCardItem(navController = navController, anime = anime)
-                // Carga anticipada: 2 elementos antes del final
-                if (anime == animeList.getOrNull(animeList.size - 2) && !isLoadingMore) {
-                    LaunchedEffect(key1 = anime.malId) { onLoadMore() }
-                }
             }
             if (isLoadingMore) {
                 item {
@@ -767,6 +801,53 @@ private fun SearchContent(
                 }
             }
             item { Spacer(Modifier.height(100.adp())) }
+            }
+        }
+
+        showPreview -> {
+            // Vista previa de resultados mientras escribe
+            Column(modifier = Modifier.fillMaxSize()) {
+                ContentTypeFilters(
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = onFilterSelected
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Resultados sugeridos",
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.asp(),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                previewResults.forEach { anime ->
+                    PreviewAnimeCard(
+                        anime = anime,
+                        navController = navController,
+                        onClick = {
+                            onPerformSearch()
+                        }
+                    )
+                }
+
+                // Botón para ver todos los resultados
+                if (previewResults.size >= 4) {
+                    OutlinedButton(
+                        onClick = onPerformSearch,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "Ver todos los resultados",
+                            fontFamily = PoppinsBold,
+                            fontSize = 14.asp()
+                        )
+                    }
+                }
+            }
         }
 
         else -> {
@@ -774,7 +855,9 @@ private fun SearchContent(
                 selectedFilter = selectedFilter,
                 onFilterSelected = onFilterSelected,
                 recentSearches = recentSearches,
-                onSearchClick = onRecentSearchClick
+                trendingSearches = trendingSearches,
+                onSearchClick = onRecentSearchClick,
+                onDeleteSearch = onDeleteRecentSearch
             )
         }
     }
@@ -785,9 +868,10 @@ private fun SearchContent(
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun EmptySearchState(
-    recentSearches: List<String> = listOf("TV", "Movie", "OVA", "ONA", "Especial"),
-    trendingSearches: List<String> = listOf("Naruto", "Jujutsu Kaisen", "One Piece"),
+    recentSearches: List<String> = emptyList(),
+    trendingSearches: List<String> = emptyList(),
     onSearchClick: (String) -> Unit = {},
+    onDeleteSearch: (String) -> Unit = {},
     selectedFilter: String? = null,
     onFilterSelected: (String) -> Unit = {}
 ) {
@@ -808,7 +892,9 @@ private fun EmptySearchState(
                 SearchItemRow(
                     text = query,
                     icon = Icons.Default.History,
-                    onClick = { onSearchClick(query) }
+                    showDelete = true,
+                    onClick = { onSearchClick(query) },
+                    onDelete = { onDeleteSearch(query) }
                 )
             }
         }
@@ -836,7 +922,9 @@ private fun SearchItemRow(
     text: String,
     icon: ImageVector,
     highlight: Boolean = false,
-    onClick: () -> Unit
+    showDelete: Boolean = false,
+    onClick: () -> Unit,
+    onDelete: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -854,7 +942,7 @@ private fun SearchItemRow(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = if (highlight) "Tendencia" else "Búsqueda reciente",
             modifier = Modifier.size(20.adp()),
             tint = if (highlight)
                 MaterialTheme.colorScheme.primary
@@ -868,6 +956,111 @@ private fun SearchItemRow(
             fontSize = 14.asp(),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
+        )
+
+        if (showDelete) {
+            IconButton(
+                onClick = {
+                    onDelete()
+                },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Eliminar búsqueda",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TARJETA DE VISTA PREVIA — VERSIÓN COMPACTA
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun PreviewAnimeCard(
+    anime: AnimeCard,
+    navController: NavController,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Imagen pequeña
+        AsyncImage(
+            model = anime.images,
+            contentDescription = "Portada de ${anime.title}",
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
+
+        // Info
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = anime.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 14.asp(),
+                fontFamily = PoppinsBold
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Score
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Calificación",
+                        tint = Color(0xFFFFB300),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = String.format("%.1f", anime.score),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        fontSize = 12.asp(),
+                        fontFamily = PoppinsRegular
+                    )
+                }
+
+                Text(
+                    text = "•",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    fontSize = 12.asp()
+                )
+
+                Text(
+                    text = anime.year,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 12.asp(),
+                    fontFamily = PoppinsRegular
+                )
+            }
+        }
+
+        // Flecha
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = "Ver detalles",
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            modifier = Modifier.size(16.dp)
         )
     }
 }
@@ -958,7 +1151,7 @@ fun AnimeCardItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Star,
-                            contentDescription = null,
+                            contentDescription = "Calificación",
                             tint = Color(0xFFFFB300),
                             modifier = Modifier.size(14.dp)
                         )
@@ -1114,7 +1307,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Star,
-                                contentDescription = null,
+                                contentDescription = "Calificación",
                                 tint = Color(0xFFFBBF24),
                                 modifier = Modifier.size(14.dp)
                             )
@@ -1151,7 +1344,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
+                        contentDescription = "Ver detalles",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.adp())
                     )
@@ -1237,7 +1430,7 @@ private fun InfoChip(icon: ImageVector, text: String) {
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = "Información: $text",
             modifier = Modifier.size(12.dp),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
@@ -1258,9 +1451,6 @@ private fun InfoChip(icon: ImageVector, text: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GenresBottomSheet(
-    isLoadingGenres: Boolean,
-    errorMessageGenres: String?,
-    genres: List<Genre>,
     selectedGenreId: String?,
     onGenreSelected: (String) -> Unit,
     onDismiss: () -> Unit,
@@ -1289,7 +1479,7 @@ private fun GenresBottomSheet(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar selector de géneros")
                 }
             }
 
@@ -1298,34 +1488,19 @@ private fun GenresBottomSheet(
                 color = MaterialTheme.colorScheme.outlineVariant
             )
 
-            when {
-                isLoadingGenres -> Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.adp()),
-                    contentAlignment = Alignment.Center
-                ) { LoadingScreen() }
-
-                errorMessageGenres != null -> Text(
-                    text = errorMessageGenres,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.error
-                )
-
-                else -> LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxHeight(0.7f)
-                ) {
-                    items(genres) { genre ->
-                        GenreGridChip(
-                            genre = genre,
-                            isSelected = selectedGenreId == genre.malId.toString(),
-                            onClick = { onGenreSelected(genre.malId.toString()) }
-                        )
-                    }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxHeight(0.7f)
+            ) {
+                items(PopularGenres.genres) { genre ->
+                    GenreGridChip(
+                        genre = genre,
+                        isSelected = selectedGenreId == genre.malId.toString(),
+                        onClick = { onGenreSelected(genre.malId.toString()) }
+                    )
                 }
             }
 
@@ -1384,7 +1559,7 @@ private fun GenreGridChip(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = null,
+                    contentDescription = "Género seleccionado",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.adp())
                 )
@@ -1446,7 +1621,7 @@ fun AddAnimeDialog(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
-                        contentDescription = null,
+                        contentDescription = "Agregar a favoritos",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.adp())
                     )
@@ -1484,7 +1659,7 @@ fun AddAnimeDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
-                                contentDescription = null,
+                                contentDescription = "Estado del anime",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.adp())
                             )
@@ -1550,7 +1725,7 @@ fun AddAnimeDialog(
                                 )
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = null,
+                                    contentDescription = "Expandir opciones de estado",
                                     modifier = Modifier
                                         .size(28.adp())
                                         .graphicsLayer { rotationZ = rotation }
@@ -1645,7 +1820,7 @@ fun AddAnimeDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
-                                    contentDescription = null,
+                                    contentDescription = "Calificación",
                                     tint = Color(0xFFFFD700),
                                     modifier = Modifier.size(24.adp())
                                 )
@@ -1706,7 +1881,7 @@ fun AddAnimeDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = null,
+                                contentDescription = "Escribir opinión",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.adp())
                             )
@@ -1777,7 +1952,7 @@ fun AddAnimeDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = null,
+                            contentDescription = "Confirmar",
                             modifier = Modifier.size(22.adp())
                         )
                         Spacer(modifier = Modifier.width(8.dp))
