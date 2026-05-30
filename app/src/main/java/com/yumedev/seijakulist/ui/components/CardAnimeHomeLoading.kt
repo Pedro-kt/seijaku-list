@@ -35,7 +35,7 @@ fun CardAnimesHomeLoading() {
 
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(list) {
