@@ -158,6 +158,15 @@ class AnimeSearchViewModel @Inject constructor(
         clearSearch()
     }
 
+    fun clearGenreFilter() {
+        _state.update {
+            it.copy(
+                selectedGenreId = null,
+                selectedFilter = if (it.selectedFilter == "Géneros") "Anime" else it.selectedFilter
+            )
+        }
+    }
+
     // FUNCIÓN UNIFICADA DE BÚSQUEDA (reinicia la paginación)
     fun performSearchOrFilter() {
         viewModelScope.launch {
