@@ -121,6 +121,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.models.Genre
+import com.yumedev.seijakulist.domain.models.PopularGenres
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
@@ -173,7 +174,6 @@ private val formatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", 
 fun SearchScreen(
     navController: NavController,
     viewModel: AnimeSearchViewModel = hiltViewModel(),
-    listGenres: GenresViewModel = hiltViewModel(),
     onSearchExpandedChange: (Boolean) -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -188,10 +188,6 @@ fun SearchScreen(
     val recentSearches by viewModel.recentSearches.collectAsState() // búsquedas recientes
     val trendingAnimes by viewModel.trendingAnimes.collectAsState() // tendencias dinámicas
     val previewResults by viewModel.previewResults.collectAsState() // vista previa de resultados
-
-    val genres by listGenres.genres.collectAsState()
-    val isLoadingGenres by listGenres.isLoading.collectAsState()
-    val errorMessageGenres by listGenres.errorMessage.collectAsState()
 
     var expanded by remember { mutableStateOf(false) }
     var openBottomSheet by remember { mutableStateOf(false) }
@@ -214,8 +210,6 @@ fun SearchScreen(
                 selectedFilter = selectedFilter,
                 selectedQuick = selectedQuick,
                 selectedFormat = selectedFormat,
-                genres = genres,
-                isLoadingGenres = isLoadingGenres,
                 onFilterSelected = { filter ->
                     if (filter == "Géneros") openBottomSheet = true
                     else {
@@ -348,9 +342,6 @@ fun SearchScreen(
     // ── Bottom sheet de géneros ───────────────────────────────────────────
     if (openBottomSheet) {
         GenresBottomSheet(
-            isLoadingGenres = isLoadingGenres,
-            errorMessageGenres = errorMessageGenres,
-            genres = genres,
             selectedGenreId = selectedGenreId,
             onGenreSelected = viewModel::onGenreSelected,
             onDismiss = { openBottomSheet = false },
@@ -376,8 +367,6 @@ private fun SearchDiscoveryView(
     selectedFilter: String?,
     selectedQuick: String?,
     selectedFormat: String?,
-    genres: List<Genre>,
-    isLoadingGenres: Boolean,
     onFilterSelected: (String) -> Unit,
     onQuickFilterTap: (QuickFilter) -> Unit,
     onFormatSelected: (String) -> Unit,
@@ -457,36 +446,32 @@ private fun SearchDiscoveryView(
         // ═══════════════════════════════════════════════════════════════════
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (isLoadingGenres) {
-            GenreSkeletonGrid()
-        } else if (genres.isNotEmpty()) {
-            SectionHeader(title = "Géneros populares")
+        SectionHeader(title = "Géneros populares")
 
-            val displayGenres = genres.take(14)
-            val chunked = displayGenres.chunked(2)
+        val displayGenres = PopularGenres.popularGenres
+        val chunked = displayGenres.chunked(2)
 
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                chunked.forEachIndexed { _, rowGenres ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        rowGenres.forEach { genre ->
-                            val genreTheme = GenreThemeMapper.getThemeForGenre(genre.name)
-                            DiscoveryGenreCard(
-                                genre = genre,
-                                startColor = genreTheme.startColor,
-                                endColor = genreTheme.endColor,
-                                icon = genreTheme.icon,
-                                onClick = { onGenreDirectTap(genre.malId.toString()) },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        if (rowGenres.size == 1) Spacer(modifier = Modifier.weight(1f))
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            chunked.forEachIndexed { _, rowGenres ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    rowGenres.forEach { genre ->
+                        val genreTheme = GenreThemeMapper.getThemeForGenre(genre.name)
+                        DiscoveryGenreCard(
+                            genre = genre,
+                            startColor = genreTheme.startColor,
+                            endColor = genreTheme.endColor,
+                            icon = genreTheme.icon,
+                            onClick = { onGenreDirectTap(genre.malId.toString()) },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
+                    if (rowGenres.size == 1) Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -679,32 +664,6 @@ private fun DiscoveryGenreCard(
                     fontSize = 11.asp(),
                     modifier = Modifier.align(Alignment.BottomEnd)
                 )
-            }
-        }
-    }
-}
-
-/** Skeleton 2x4 mientras cargan los géneros */
-@Composable
-private fun GenreSkeletonGrid() {
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        repeat(4) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                repeat(2) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(80.adp())
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    )
-                }
             }
         }
     }
@@ -1474,9 +1433,6 @@ private fun InfoChip(icon: ImageVector, text: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GenresBottomSheet(
-    isLoadingGenres: Boolean,
-    errorMessageGenres: String?,
-    genres: List<Genre>,
     selectedGenreId: String?,
     onGenreSelected: (String) -> Unit,
     onDismiss: () -> Unit,
@@ -1514,34 +1470,19 @@ private fun GenresBottomSheet(
                 color = MaterialTheme.colorScheme.outlineVariant
             )
 
-            when {
-                isLoadingGenres -> Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.adp()),
-                    contentAlignment = Alignment.Center
-                ) { LoadingScreen() }
-
-                errorMessageGenres != null -> Text(
-                    text = errorMessageGenres,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.error
-                )
-
-                else -> LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxHeight(0.7f)
-                ) {
-                    items(genres) { genre ->
-                        GenreGridChip(
-                            genre = genre,
-                            isSelected = selectedGenreId == genre.malId.toString(),
-                            onClick = { onGenreSelected(genre.malId.toString()) }
-                        )
-                    }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxHeight(0.7f)
+            ) {
+                items(PopularGenres.genres) { genre ->
+                    GenreGridChip(
+                        genre = genre,
+                        isSelected = selectedGenreId == genre.malId.toString(),
+                        onClick = { onGenreSelected(genre.malId.toString()) }
+                    )
                 }
             }
 
