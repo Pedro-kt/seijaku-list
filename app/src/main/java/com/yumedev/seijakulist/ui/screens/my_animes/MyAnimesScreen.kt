@@ -368,10 +368,10 @@ fun MyAnimeListScreen(
                                 selectedFilter = if (isSelected) null else filter
                             },
                             shape = RoundedCornerShape(20.dp),
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                             else MaterialTheme.colorScheme.surfaceContainerHigh,
                             border = if (isSelected)
-                                BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+                                BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                             else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Row(
@@ -383,21 +383,21 @@ fun MyAnimeListScreen(
                                     imageVector = filterIcon,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.adp()),
-                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    tint = if (isSelected) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
                                 Text(
                                     text = filter,
                                     fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                                     fontSize = 13.asp(),
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                                 )
                                 Text(
                                     text = count.toString(),
                                     fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                                     fontSize = 12.asp(),
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                 )
                             }

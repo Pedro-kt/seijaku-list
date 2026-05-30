@@ -628,10 +628,10 @@ fun FilterAnimesHome(
                 androidx.compose.material3.Surface(
                     onClick = { onFilterSelected(if (isSelected) null else filter) },
                     shape = RoundedCornerShape(20.dp),
-                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                    color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                     else MaterialTheme.colorScheme.surfaceContainer,
                     border = if (isSelected)
-                        BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+                        BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Row(
@@ -644,14 +644,14 @@ fun FilterAnimesHome(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.adp()),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                         Text(
                             text = listLabel[index],
                             fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                             fontSize = 13.asp(),
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         )
                     }
