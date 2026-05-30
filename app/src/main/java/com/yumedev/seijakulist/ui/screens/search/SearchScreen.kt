@@ -587,10 +587,10 @@ private fun QuickFilterChip(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        color = if (isActive) MaterialTheme.colorScheme.primaryContainer
+        color = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         else MaterialTheme.colorScheme.surfaceContainerHigh,
         border = if (isActive)
-            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
         else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
@@ -602,14 +602,14 @@ private fun QuickFilterChip(
                 imageVector = icon,
                 contentDescription = "Icono de $label",
                 modifier = Modifier.size(16.adp()),
-                tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+                tint = if (isActive) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
             Text(
                 text = label,
                 fontFamily = if (isActive) PoppinsBold else PoppinsRegular,
                 fontSize = 13.asp(),
-                color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+                color = if (isActive) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
         }
@@ -622,17 +622,17 @@ private fun FormatChip(label: String, isActive: Boolean, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        color = if (isActive) MaterialTheme.colorScheme.primaryContainer
+        color = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         else MaterialTheme.colorScheme.surfaceContainerHigh,
         border = if (isActive)
-            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
         else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Text(
             text = label,
             fontFamily = if (isActive) PoppinsBold else PoppinsRegular,
             fontSize = 13.asp(),
-            color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
+            color = if (isActive) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
         )
@@ -1635,9 +1635,9 @@ private fun GenreGridChip(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         else MaterialTheme.colorScheme.surfaceContainerHigh,
-        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+        border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)) else null,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -1651,7 +1651,7 @@ private fun GenreGridChip(
                 text = genre.name,
                 fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                 fontSize = 14.asp(),
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                color = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
@@ -1733,8 +1733,8 @@ private fun ActiveFilterChip(
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
     ) {
         Row(
             modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
@@ -1745,12 +1745,12 @@ private fun ActiveFilterChip(
                 text = label,
                 fontFamily = PoppinsBold,
                 fontSize = 13.asp(),
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
             Surface(
                 onClick = onRemove,
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                 modifier = Modifier.size(20.dp)
             ) {
                 Box(
@@ -1761,7 +1761,7 @@ private fun ActiveFilterChip(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Remover filtro",
                         modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -2040,10 +2040,10 @@ private fun GenreFilterChip(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(10.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         else MaterialTheme.colorScheme.surfaceContainerHigh,
         border = if (isSelected)
-            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
         else null
     ) {
         Row(
@@ -2057,7 +2057,7 @@ private fun GenreFilterChip(
                 text = genre.name,
                 fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
                 fontSize = 13.asp(),
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                color = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
