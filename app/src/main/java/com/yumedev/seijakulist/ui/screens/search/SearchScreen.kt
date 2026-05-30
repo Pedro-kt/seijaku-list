@@ -203,9 +203,19 @@ fun SearchScreen(
         viewModel.loadTrendingAnimes()
     }
 
+    // Rastrear el estado anterior de expanded para detectar transiciones
+    var previousExpanded by remember { mutableStateOf(expanded) }
+
     // Notificar cambio de estado de expansión
     LaunchedEffect(expanded) {
         onSearchExpandedChange(expanded)
+
+        // Limpiar filtros y resultados cuando se navega de pantalla expandida a base
+        if (previousExpanded && !expanded) {
+            viewModel.clearAllFilters()
+        }
+
+        previousExpanded = expanded
     }
 
     BackHandler(enabled = expanded) { expanded = false }
