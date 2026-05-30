@@ -60,6 +60,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -73,6 +74,8 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Upcoming
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -193,6 +196,7 @@ fun SearchScreen(
 
     var expanded by remember { mutableStateOf(false) }
     var openBottomSheet by remember { mutableStateOf(false) }
+    var openFiltersSheet by remember { mutableStateOf(false) }
 
     // Lazy load trending animes when screen opens
     LaunchedEffect(Unit) {
@@ -300,16 +304,60 @@ fun SearchScreen(
                         }
                     },
                     trailingIcon = {
-                        when {
-                            searchQuery.isNotBlank() -> IconButton(
-                                onClick = { viewModel.clearSearch() }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Limpiar búsqueda",
-                                    modifier = Modifier.size(20.adp()),
-                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Botón de filtros (solo cuando está expandido)
+                            if (expanded) {
+                                val activeFiltersCount = listOfNotNull(
+                                    selectedQuick,
+                                    selectedFormat,
+                                    selectedGenreId
+                                ).size
+
+                                BadgedBox(
+                                    badge = {
+                                        if (activeFiltersCount > 0) {
+                                            Badge(
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                            ) {
+                                                Text(
+                                                    text = activeFiltersCount.toString(),
+                                                    fontSize = 10.asp(),
+                                                    fontFamily = PoppinsBold
+                                                )
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    IconButton(onClick = { openFiltersSheet = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.FilterList,
+                                            contentDescription = "Filtros",
+                                            modifier = Modifier.size(22.adp()),
+                                            tint = if (activeFiltersCount > 0)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Botón de limpiar búsqueda
+                            if (searchQuery.isNotBlank()) {
+                                IconButton(
+                                    onClick = { viewModel.clearSearch() }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Limpiar búsqueda",
+                                        modifier = Modifier.size(20.adp()),
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                }
                             }
                         }
                     }
@@ -341,7 +389,19 @@ fun SearchScreen(
                 previewResults = previewResults,
                 onRecentSearchClick = viewModel::onRecentSearchClicked,
                 onDeleteRecentSearch = viewModel::deleteRecentSearch,
-                onPerformSearch = viewModel::performSearchOrFilter
+                onPerformSearch = viewModel::performSearchOrFilter,
+                onRemoveQuickFilter = {
+                    viewModel.onQuickFilterSelected(null)
+                    viewModel.performSearchOrFilter()
+                },
+                onRemoveFormat = {
+                    viewModel.onFormatSelected(null)
+                    viewModel.performSearchOrFilter()
+                },
+                onRemoveGenre = {
+                    viewModel.clearGenreFilter()
+                    viewModel.performSearchOrFilter()
+                }
             )
         }
     }
@@ -361,6 +421,30 @@ fun SearchScreen(
                     viewModel.onFilterSelected(null)
                 }
                 openBottomSheet = false
+            }
+        )
+    }
+
+    // ── Bottom sheet de filtros completo ──────────────────────────────────
+    if (openFiltersSheet) {
+        FiltersBottomSheet(
+            selectedQuick = selectedQuick,
+            selectedFormat = selectedFormat,
+            selectedGenreId = selectedGenreId,
+            onQuickFilterSelected = { filter ->
+                viewModel.onQuickFilterSelected(if (selectedQuick == filter) null else filter)
+            },
+            onFormatSelected = { format ->
+                viewModel.onFormatSelected(if (selectedFormat == format) null else format)
+            },
+            onGenreSelected = viewModel::onGenreSelected,
+            onDismiss = { openFiltersSheet = false },
+            onApplyFilters = {
+                viewModel.performSearchOrFilter()
+                openFiltersSheet = false
+            },
+            onClearAll = {
+                viewModel.clearAllFilters()
             }
         )
     }
@@ -699,7 +783,10 @@ private fun SearchContent(
     previewResults: List<AnimeCard> = emptyList(),
     onRecentSearchClick: (String) -> Unit = {},
     onDeleteRecentSearch: (String) -> Unit = {},
-    onPerformSearch: () -> Unit = {}
+    onPerformSearch: () -> Unit = {},
+    onRemoveQuickFilter: () -> Unit = {},
+    onRemoveFormat: () -> Unit = {},
+    onRemoveGenre: () -> Unit = {}
 ) {
     val hasActiveFilters = selectedQuick != null || selectedFormat != null || selectedGenreId != null
     val showPreview = previewResults.isNotEmpty() && searchQuery.isNotBlank() && animeList.isEmpty()
@@ -735,6 +822,20 @@ private fun SearchContent(
                     selectedFilter = selectedFilter,
                     onFilterSelected = onFilterSelected
                 )
+            }
+
+            // ── Chips de filtros activos removibles ─────────────────
+            if (hasActiveFilters) {
+                item {
+                    ActiveFiltersChips(
+                        selectedQuick = selectedQuick,
+                        selectedFormat = selectedFormat,
+                        selectedGenreId = selectedGenreId,
+                        onRemoveQuickFilter = onRemoveQuickFilter,
+                        onRemoveFormat = onRemoveFormat,
+                        onRemoveGenre = onRemoveGenre
+                    )
+                }
             }
             if (hasActiveFilters) {
                 item {
@@ -1569,6 +1670,412 @@ private fun GenreGridChip(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     fontSize = 12.asp()
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHIPS DE FILTROS ACTIVOS REMOVIBLES
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun ActiveFiltersChips(
+    selectedQuick: String?,
+    selectedFormat: String?,
+    selectedGenreId: String?,
+    onRemoveQuickFilter: () -> Unit,
+    onRemoveFormat: () -> Unit,
+    onRemoveGenre: () -> Unit
+) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(vertical = 8.dp)
+    ) {
+        // Quick filter chip
+        if (selectedQuick != null) {
+            item {
+                val quickFilterLabel = quickFilters.find { it.filterKey == selectedQuick }?.label ?: selectedQuick
+                ActiveFilterChip(
+                    label = quickFilterLabel,
+                    onRemove = onRemoveQuickFilter
+                )
+            }
+        }
+
+        // Format chip
+        if (selectedFormat != null) {
+            item {
+                ActiveFilterChip(
+                    label = selectedFormat,
+                    onRemove = onRemoveFormat
+                )
+            }
+        }
+
+        // Genre chip
+        if (selectedGenreId != null) {
+            item {
+                val genreName = PopularGenres.genres.find { it.malId.toString() == selectedGenreId }?.name ?: "Género"
+                ActiveFilterChip(
+                    label = genreName,
+                    onRemove = onRemoveGenre
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActiveFilterChip(
+    label: String,
+    onRemove: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                fontFamily = PoppinsBold,
+                fontSize = 13.asp(),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Surface(
+                onClick = onRemove,
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                modifier = Modifier.size(20.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Remover filtro",
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BOTTOM SHEET DE FILTROS COMPLETO
+// ─────────────────────────────────────────────────────────────────────────────
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FiltersBottomSheet(
+    selectedQuick: String?,
+    selectedFormat: String?,
+    selectedGenreId: String?,
+    onQuickFilterSelected: (String) -> Unit,
+    onFormatSelected: (String) -> Unit,
+    onGenreSelected: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onApplyFilters: () -> Unit,
+    onClearAll: () -> Unit
+) {
+    val hasActiveFilters = selectedQuick != null || selectedFormat != null || selectedGenreId != null
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle() }
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // ── Header ────────────────────────────────────────────────
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = "Filtros",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.adp())
+                        )
+                        Text(
+                            text = "Filtros",
+                            fontFamily = PoppinsBold,
+                            fontSize = 24.asp(),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cerrar filtros",
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+
+            item { HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant) }
+
+            // ── SECCIÓN 1: Quick Filters ──────────────────────────────
+            item {
+                Text(
+                    text = "Acceso rápido",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.asp(),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                )
+            }
+
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp)
+                ) {
+                    items(quickFilters) { qf ->
+                        QuickFilterChip(
+                            label = qf.label,
+                            icon = qf.icon,
+                            isActive = selectedQuick == qf.filterKey,
+                            onClick = { onQuickFilterSelected(qf.filterKey) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+            }
+
+            // ── SECCIÓN 2: Formatos ────────────────────────────────────
+            item {
+                Text(
+                    text = "Formatos",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.asp(),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                )
+            }
+
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp)
+                ) {
+                    items(formatFilters) { format ->
+                        FormatChip(
+                            label = format,
+                            isActive = selectedFormat == format,
+                            onClick = { onFormatSelected(format) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+            }
+
+            // ── SECCIÓN 3: Géneros ─────────────────────────────────────
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Géneros",
+                        fontFamily = PoppinsBold,
+                        fontSize = 16.asp(),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (selectedGenreId != null) {
+                        val selectedGenreName = PopularGenres.genres.find { it.malId.toString() == selectedGenreId }?.name
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Text(
+                                text = selectedGenreName ?: "Seleccionado",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 12.asp(),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            items(PopularGenres.genres.chunked(2)) { rowGenres ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    rowGenres.forEach { genre ->
+                        GenreFilterChip(
+                            genre = genre,
+                            isSelected = selectedGenreId == genre.malId.toString(),
+                            onClick = { onGenreSelected(genre.malId.toString()) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (rowGenres.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(80.dp)) }
+        }
+
+        // ── Botones de acción (fijos en la parte inferior) ────────────
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onApplyFilters,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.adp()),
+                    enabled = hasActiveFilters,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Aplicar filtros",
+                        fontFamily = PoppinsBold,
+                        fontSize = 16.asp()
+                    )
+                }
+
+                if (hasActiveFilters) {
+                    OutlinedButton(
+                        onClick = {
+                            onClearAll()
+                            onDismiss()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.adp()),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Limpiar todo",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.asp()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GenreFilterChip(
+    genre: Genre,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(10.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = if (isSelected)
+            BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+        else null
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = genre.name,
+                fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
+                fontSize = 13.asp(),
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Seleccionado",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            } else {
+                Text(
+                    text = genre.count.toString(),
+                    fontFamily = PoppinsRegular,
+                    fontSize = 11.asp(),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
             }
         }
