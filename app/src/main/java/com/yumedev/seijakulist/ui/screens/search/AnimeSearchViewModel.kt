@@ -69,6 +69,14 @@ class AnimeSearchViewModel @Inject constructor(
     private val _recentSearches = MutableStateFlow<List<String>>(emptyList())
     val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
 
+    // Estado para tendencias dinámicas
+    private val _trendingAnimes = MutableStateFlow<List<String>>(emptyList())
+    val trendingAnimes: StateFlow<List<String>> = _trendingAnimes.asStateFlow()
+
+    // Estado para vista previa de resultados
+    private val _previewResults = MutableStateFlow<List<AnimeCard>>(emptyList())
+    val previewResults: StateFlow<List<AnimeCard>> = _previewResults.asStateFlow()
+
     fun onQuickFilterSelected(key: String?) {
         selectedQuickFilter.value = key
         _selectedFormat.value = null // Limpiar formato cuando se selecciona quick filter
@@ -87,18 +95,35 @@ class AnimeSearchViewModel @Inject constructor(
     }
 
     init {
-        // Búsqueda automática mientras el usuario escribe (debounce 400ms)
+        // Vista previa de resultados mientras el usuario escribe (debounce 300ms)
         viewModelScope.launch {
             _searchQuery
-                .debounce(400L)
-                .filter { it.isNotBlank() }
-                .collect { performSearchOrFilter() }
+                .debounce(300L)
+                .collect { query ->
+                    if (query.isNotBlank() && query.length >= 2) {
+                        fetchPreviewResults(query)
+                    } else {
+                        _previewResults.value = emptyList()
+                    }
+                }
         }
 
         // Cargar búsquedas recientes
         viewModelScope.launch {
             searchHistoryRepository.getRecentSearches().collect { searches ->
                 _recentSearches.value = searches.map { it.query }
+            }
+        }
+
+        // Cargar tendencias dinámicas
+        viewModelScope.launch {
+            try {
+                val popularAnimes = animeRepository.getAnimePopular(page = 1)
+                _trendingAnimes.value = popularAnimes.take(3).map { it.title }
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error al cargar tendencias: ${e.message}")
+                // Fallback a tendencias estáticas si falla la API
+                _trendingAnimes.value = listOf("Naruto", "Jujutsu Kaisen", "One Piece")
             }
         }
     }
@@ -111,9 +136,25 @@ class AnimeSearchViewModel @Inject constructor(
         _selectedGenreId.value = null
         selectedQuickFilter.value = null
         // NO limpiar el formato - debe mantenerse para filtrar la búsqueda
+
+        // Limpiar resultados completos si el query cambia
+        if (newQuery.isBlank()) {
+            _animeList.value = emptyList()
+            _previewResults.value = emptyList()
+        }
     }
 
     fun clearSearch() {
+        _searchQuery.value = ""
+        _selectedFilter.value = "Anime"
+        _selectedGenreId.value = null
+        selectedQuickFilter.value = null
+        _selectedFormat.value = null
+        _animeList.value = emptyList()
+        _errorMessage.value = null
+    }
+
+    fun clearAllFilters() {
         _searchQuery.value = ""
         _selectedFilter.value = "Anime"
         _selectedGenreId.value = null
@@ -342,6 +383,31 @@ class AnimeSearchViewModel @Inject constructor(
         _selectedGenreId.value = null
         selectedQuickFilter.value = null
         _selectedFormat.value = null
+    }
+
+    // Función para eliminar una búsqueda del historial
+    fun deleteRecentSearch(query: String) {
+        viewModelScope.launch {
+            try {
+                searchHistoryRepository.deleteSearchByQuery(query)
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error al eliminar búsqueda: ${e.message}")
+            }
+        }
+    }
+
+    // Función para obtener vista previa de resultados (solo 4 items)
+    private fun fetchPreviewResults(query: String) {
+        viewModelScope.launch {
+            try {
+                val formatType = _selectedFormat.value?.let { mapFormatToType(it) }
+                val results = getAnimeSearchUseCase(query = query, page = 1, type = formatType)
+                _previewResults.value = results.take(4)
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error en vista previa: ${e.message}")
+                _previewResults.value = emptyList()
+            }
+        }
     }
 
     // --- FUNCIÓN PARA AGREGAR ANIME A LA LISTA LOCAL ---

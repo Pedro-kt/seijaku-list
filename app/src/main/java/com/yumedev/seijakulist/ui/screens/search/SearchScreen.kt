@@ -202,6 +202,8 @@ fun SearchScreen(
     val selectedQuick by viewModel.selectedQuickFilter.collectAsState() // nuevo estado en VM
     val selectedFormat by viewModel.selectedFormat.collectAsState() // formato seleccionado
     val recentSearches by viewModel.recentSearches.collectAsState() // búsquedas recientes
+    val trendingAnimes by viewModel.trendingAnimes.collectAsState() // tendencias dinámicas
+    val previewResults by viewModel.previewResults.collectAsState() // vista previa de resultados
 
     val genres by listGenres.genres.collectAsState()
     val isLoadingGenres by listGenres.isLoading.collectAsState()
@@ -306,7 +308,7 @@ fun SearchScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = null,
+                                contentDescription = "Buscar",
                                 modifier = Modifier.size(22.adp()),
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
@@ -340,13 +342,21 @@ fun SearchScreen(
                 searchQuery = searchQuery,
                 navController = navController,
                 selectedFilter = selectedFilter,
+                selectedQuick = selectedQuick,
+                selectedFormat = selectedFormat,
+                selectedGenreId = selectedGenreId,
                 onFilterSelected = { filter ->
                     if (filter == "Géneros") openBottomSheet = true
                     else viewModel.onFilterSelected(if (selectedFilter == filter) null else filter)
                 },
+                onClearAllFilters = viewModel::clearAllFilters,
                 onLoadMore = viewModel::loadMoreAnimes,
                 recentSearches = recentSearches,
-                onRecentSearchClick = viewModel::onRecentSearchClicked
+                trendingSearches = trendingAnimes,
+                previewResults = previewResults,
+                onRecentSearchClick = viewModel::onRecentSearchClicked,
+                onDeleteRecentSearch = viewModel::deleteRecentSearch,
+                onPerformSearch = viewModel::performSearchOrFilter
             )
         }
     }
@@ -530,7 +540,7 @@ private fun QuickFilterChip(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
+                contentDescription = "Icono de $label",
                 modifier = Modifier.size(16.adp()),
                 tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -710,11 +720,21 @@ private fun SearchContent(
     searchQuery: String,
     navController: NavController,
     selectedFilter: String?,
+    selectedQuick: String?,
+    selectedFormat: String?,
+    selectedGenreId: String?,
     onFilterSelected: (String) -> Unit,
+    onClearAllFilters: () -> Unit,
     onLoadMore: () -> Unit = {},
     recentSearches: List<String> = emptyList(),
-    onRecentSearchClick: (String) -> Unit = {}
+    trendingSearches: List<String> = emptyList(),
+    previewResults: List<AnimeCard> = emptyList(),
+    onRecentSearchClick: (String) -> Unit = {},
+    onDeleteRecentSearch: (String) -> Unit = {},
+    onPerformSearch: () -> Unit = {}
 ) {
+    val hasActiveFilters = selectedQuick != null || selectedFormat != null || selectedGenreId != null
+    val showPreview = previewResults.isNotEmpty() && searchQuery.isNotBlank() && animeList.isEmpty()
     when {
         isLoading -> Box(
             modifier = Modifier.fillMaxSize(),
@@ -734,14 +754,50 @@ private fun SearchContent(
                     onFilterSelected = onFilterSelected
                 )
             }
-            item {
-                Text(
-                    text = "${animeList.size}+ resultados encontrados",
-                    fontFamily = PoppinsRegular,
-                    fontSize = 14.asp(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
+            if (hasActiveFilters) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${animeList.size}+ resultados encontrados",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.asp(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        OutlinedButton(
+                            onClick = onClearAllFilters,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Limpiar filtros",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Limpiar filtros",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 12.asp()
+                            )
+                        }
+                    }
+                }
+            } else {
+                item {
+                    Text(
+                        text = "${animeList.size}+ resultados encontrados",
+                        fontFamily = PoppinsRegular,
+                        fontSize = 14.asp(),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
             }
             items(animeList, key = { it.malId }) { anime ->
                 AnimeCardItem(navController = navController, anime = anime)
@@ -769,12 +825,60 @@ private fun SearchContent(
             item { Spacer(Modifier.height(100.adp())) }
         }
 
+        showPreview -> {
+            // Vista previa de resultados mientras escribe
+            Column(modifier = Modifier.fillMaxSize()) {
+                ContentTypeFilters(
+                    selectedFilter = selectedFilter,
+                    onFilterSelected = onFilterSelected
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Resultados sugeridos",
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.asp(),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                previewResults.forEach { anime ->
+                    PreviewAnimeCard(
+                        anime = anime,
+                        navController = navController,
+                        onClick = {
+                            onPerformSearch()
+                        }
+                    )
+                }
+
+                // Botón para ver todos los resultados
+                if (previewResults.size >= 4) {
+                    OutlinedButton(
+                        onClick = onPerformSearch,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "Ver todos los resultados",
+                            fontFamily = PoppinsBold,
+                            fontSize = 14.asp()
+                        )
+                    }
+                }
+            }
+        }
+
         else -> {
             EmptySearchState(
                 selectedFilter = selectedFilter,
                 onFilterSelected = onFilterSelected,
                 recentSearches = recentSearches,
-                onSearchClick = onRecentSearchClick
+                trendingSearches = trendingSearches,
+                onSearchClick = onRecentSearchClick,
+                onDeleteSearch = onDeleteRecentSearch
             )
         }
     }
@@ -785,9 +889,10 @@ private fun SearchContent(
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun EmptySearchState(
-    recentSearches: List<String> = listOf("TV", "Movie", "OVA", "ONA", "Especial"),
-    trendingSearches: List<String> = listOf("Naruto", "Jujutsu Kaisen", "One Piece"),
+    recentSearches: List<String> = emptyList(),
+    trendingSearches: List<String> = emptyList(),
     onSearchClick: (String) -> Unit = {},
+    onDeleteSearch: (String) -> Unit = {},
     selectedFilter: String? = null,
     onFilterSelected: (String) -> Unit = {}
 ) {
@@ -808,7 +913,9 @@ private fun EmptySearchState(
                 SearchItemRow(
                     text = query,
                     icon = Icons.Default.History,
-                    onClick = { onSearchClick(query) }
+                    showDelete = true,
+                    onClick = { onSearchClick(query) },
+                    onDelete = { onDeleteSearch(query) }
                 )
             }
         }
@@ -836,7 +943,9 @@ private fun SearchItemRow(
     text: String,
     icon: ImageVector,
     highlight: Boolean = false,
-    onClick: () -> Unit
+    showDelete: Boolean = false,
+    onClick: () -> Unit,
+    onDelete: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -854,7 +963,7 @@ private fun SearchItemRow(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = if (highlight) "Tendencia" else "Búsqueda reciente",
             modifier = Modifier.size(20.adp()),
             tint = if (highlight)
                 MaterialTheme.colorScheme.primary
@@ -868,6 +977,111 @@ private fun SearchItemRow(
             fontSize = 14.asp(),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
+        )
+
+        if (showDelete) {
+            IconButton(
+                onClick = {
+                    onDelete()
+                },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Eliminar búsqueda",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TARJETA DE VISTA PREVIA — VERSIÓN COMPACTA
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun PreviewAnimeCard(
+    anime: AnimeCard,
+    navController: NavController,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Imagen pequeña
+        AsyncImage(
+            model = anime.images,
+            contentDescription = "Portada de ${anime.title}",
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
+
+        // Info
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = anime.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 14.asp(),
+                fontFamily = PoppinsBold
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Score
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Calificación",
+                        tint = Color(0xFFFFB300),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = String.format("%.1f", anime.score),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        fontSize = 12.asp(),
+                        fontFamily = PoppinsRegular
+                    )
+                }
+
+                Text(
+                    text = "•",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    fontSize = 12.asp()
+                )
+
+                Text(
+                    text = anime.year,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 12.asp(),
+                    fontFamily = PoppinsRegular
+                )
+            }
+        }
+
+        // Flecha
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = "Ver detalles",
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            modifier = Modifier.size(16.dp)
         )
     }
 }
@@ -958,7 +1172,7 @@ fun AnimeCardItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Star,
-                            contentDescription = null,
+                            contentDescription = "Calificación",
                             tint = Color(0xFFFFB300),
                             modifier = Modifier.size(14.dp)
                         )
@@ -1114,7 +1328,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Star,
-                                contentDescription = null,
+                                contentDescription = "Calificación",
                                 tint = Color(0xFFFBBF24),
                                 modifier = Modifier.size(14.dp)
                             )
@@ -1151,7 +1365,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
+                        contentDescription = "Ver detalles",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.adp())
                     )
@@ -1237,7 +1451,7 @@ private fun InfoChip(icon: ImageVector, text: String) {
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = "Información: $text",
             modifier = Modifier.size(12.dp),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
@@ -1289,7 +1503,7 @@ private fun GenresBottomSheet(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Cerrar selector de géneros")
                 }
             }
 
@@ -1384,7 +1598,7 @@ private fun GenreGridChip(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = null,
+                    contentDescription = "Género seleccionado",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.adp())
                 )
@@ -1446,7 +1660,7 @@ fun AddAnimeDialog(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
-                        contentDescription = null,
+                        contentDescription = "Agregar a favoritos",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.adp())
                     )
@@ -1484,7 +1698,7 @@ fun AddAnimeDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
-                                contentDescription = null,
+                                contentDescription = "Estado del anime",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.adp())
                             )
@@ -1550,7 +1764,7 @@ fun AddAnimeDialog(
                                 )
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = null,
+                                    contentDescription = "Expandir opciones de estado",
                                     modifier = Modifier
                                         .size(28.adp())
                                         .graphicsLayer { rotationZ = rotation }
@@ -1645,7 +1859,7 @@ fun AddAnimeDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
-                                    contentDescription = null,
+                                    contentDescription = "Calificación",
                                     tint = Color(0xFFFFD700),
                                     modifier = Modifier.size(24.adp())
                                 )
@@ -1706,7 +1920,7 @@ fun AddAnimeDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = null,
+                                contentDescription = "Escribir opinión",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.adp())
                             )
@@ -1777,7 +1991,7 @@ fun AddAnimeDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = null,
+                            contentDescription = "Confirmar",
                             modifier = Modifier.size(22.adp())
                         )
                         Spacer(modifier = Modifier.width(8.dp))
