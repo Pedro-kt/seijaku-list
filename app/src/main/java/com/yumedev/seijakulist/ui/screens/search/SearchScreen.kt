@@ -41,6 +41,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -100,6 +101,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -191,6 +193,11 @@ fun SearchScreen(
 
     var expanded by remember { mutableStateOf(false) }
     var openBottomSheet by remember { mutableStateOf(false) }
+
+    // Lazy load trending animes when screen opens
+    LaunchedEffect(Unit) {
+        viewModel.loadTrendingAnimes()
+    }
 
     // Notificar cambio de estado de expansión
     LaunchedEffect(expanded) {
@@ -704,11 +711,25 @@ private fun SearchContent(
 
         errorMessage != null -> NoInternetScreen(onRetryClick = {})
 
-        animeList.isNotEmpty() -> LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
+        animeList.isNotEmpty() -> {
+            val listState = rememberLazyListState()
+
+            // Improved pagination trigger - prevents duplicate calls
+            LaunchedEffect(listState) {
+                snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                    .collect { lastVisibleIndex ->
+                        if (lastVisibleIndex != null && lastVisibleIndex >= animeList.size - 3 && !isLoadingMore) {
+                            onLoadMore()
+                        }
+                    }
+            }
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
             item {
                 ContentTypeFilters(
                     selectedFilter = selectedFilter,
@@ -762,10 +783,6 @@ private fun SearchContent(
             }
             items(animeList, key = { it.malId }) { anime ->
                 AnimeCardItem(navController = navController, anime = anime)
-                // Carga anticipada: 2 elementos antes del final
-                if (anime == animeList.getOrNull(animeList.size - 2) && !isLoadingMore) {
-                    LaunchedEffect(key1 = anime.malId) { onLoadMore() }
-                }
             }
             if (isLoadingMore) {
                 item {
@@ -784,6 +801,7 @@ private fun SearchContent(
                 }
             }
             item { Spacer(Modifier.height(100.adp())) }
+            }
         }
 
         showPreview -> {

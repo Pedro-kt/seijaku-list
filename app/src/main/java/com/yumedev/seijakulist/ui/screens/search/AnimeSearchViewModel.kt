@@ -9,7 +9,6 @@ import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
 import com.yumedev.seijakulist.data.repository.SearchHistoryRepository
-import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.usecase.GetAnimeSearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,11 +16,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.emptyList
-import kotlin.collections.distinctBy
+
+// Constants
+private const val MIN_QUERY_LENGTH = 2
+private const val PREVIEW_ITEMS_COUNT = 4
+private const val DEBOUNCE_DELAY_MS = 300L
+private const val PAGE_SIZE = 25
 
 @HiltViewModel
 class AnimeSearchViewModel @Inject constructor(
@@ -32,78 +35,23 @@ class AnimeSearchViewModel @Inject constructor(
     private val searchHistoryRepository: SearchHistoryRepository
 ) : ViewModel() {
 
-    // --- ESTADOS DE ENTRADA (Filtros) ---
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    // Single consolidated state
+    private val _state = MutableStateFlow(SearchState())
+    val state: StateFlow<SearchState> = _state.asStateFlow()
 
-    private val _selectedFilter = MutableStateFlow<String?>("Anime") // Valor inicial: Anime
-    val selectedFilter: StateFlow<String?> = _selectedFilter.asStateFlow()
-
-    private val _selectedGenreId = MutableStateFlow<String?>(null)
-    val selectedGenreId: StateFlow<String?> = _selectedGenreId.asStateFlow()
-
-    // --- ESTADOS DE SALIDA (Resultados) ---
-    private val _animeList = MutableStateFlow<List<AnimeCard>>(emptyList())
-    val animeList: StateFlow<List<AnimeCard>> = _animeList.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _isLoadingMore = MutableStateFlow(false)
-    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    // Estados para paginación
-    private val _currentPage = MutableStateFlow(1)
-    private val _hasMorePages = MutableStateFlow(true)
-
-    // Estado nuevo
-    val selectedQuickFilter = MutableStateFlow<String?>(null)
-
-    private val _selectedFormat = MutableStateFlow<String?>(null)
-    val selectedFormat: StateFlow<String?> = _selectedFormat.asStateFlow()
-
-    // Estado para búsquedas recientes
-    private val _recentSearches = MutableStateFlow<List<String>>(emptyList())
-    val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
-
-    // Estado para tendencias dinámicas
-    private val _trendingAnimes = MutableStateFlow<List<String>>(emptyList())
-    val trendingAnimes: StateFlow<List<String>> = _trendingAnimes.asStateFlow()
-
-    // Estado para vista previa de resultados
-    private val _previewResults = MutableStateFlow<List<AnimeCard>>(emptyList())
-    val previewResults: StateFlow<List<AnimeCard>> = _previewResults.asStateFlow()
-
-    fun onQuickFilterSelected(key: String?) {
-        selectedQuickFilter.value = key
-        _selectedFormat.value = null // Limpiar formato cuando se selecciona quick filter
-        _searchQuery.value = "" // Limpiar búsqueda de texto cuando se selecciona quick filter
-        _selectedGenreId.value = null // Limpiar género cuando se selecciona quick filter
-    }
-
-    fun onFormatSelected(format: String?) {
-        _selectedFormat.value = format
-        selectedQuickFilter.value = null // Limpiar quick filter cuando se selecciona formato
-        _selectedGenreId.value = null // Limpiar género cuando se selecciona formato
-        // Si hay query activa, re-ejecutar la búsqueda con el nuevo filtro
-        if (_searchQuery.value.isNotBlank()) {
-            performSearchOrFilter()
-        }
-    }
+    // Set to track loaded anime IDs for efficient deduplication
+    private val loadedAnimeIds = mutableSetOf<Int>()
 
     init {
         // Vista previa de resultados mientras el usuario escribe (debounce 300ms)
         viewModelScope.launch {
-            _searchQuery
-                .debounce(300L)
-                .collect { query ->
-                    if (query.isNotBlank() && query.length >= 2) {
-                        fetchPreviewResults(query)
+            _state
+                .debounce(DEBOUNCE_DELAY_MS)
+                .collect { state ->
+                    if (state.searchQuery.isNotBlank() && state.searchQuery.length >= MIN_QUERY_LENGTH) {
+                        fetchPreviewResults(state.searchQuery, state.selectedFormat)
                     } else {
-                        _previewResults.value = emptyList()
+                        _state.update { it.copy(previewResults = emptyList()) }
                     }
                 }
         }
@@ -111,19 +59,26 @@ class AnimeSearchViewModel @Inject constructor(
         // Cargar búsquedas recientes
         viewModelScope.launch {
             searchHistoryRepository.getRecentSearches().collect { searches ->
-                _recentSearches.value = searches.map { it.query }
+                _state.update { it.copy(recentSearches = searches.map { search -> search.query }) }
             }
         }
+    }
 
-        // Cargar tendencias dinámicas
+    /**
+     * Lazy load trending animes (called when SearchScreen opens)
+     */
+    fun loadTrendingAnimes() {
+        // Only load if not already loaded
+        if (_state.value.trendingAnimes.isNotEmpty()) return
+
         viewModelScope.launch {
             try {
                 val popularAnimes = animeRepository.getAnimePopular(page = 1)
-                _trendingAnimes.value = popularAnimes.take(3).map { it.title }
+                _state.update { it.copy(trendingAnimes = popularAnimes.take(3).map { anime -> anime.title }) }
             } catch (e: Exception) {
                 Log.e("AnimeSearchVM", "Error al cargar tendencias: ${e.message}")
                 // Fallback a tendencias estáticas si falla la API
-                _trendingAnimes.value = listOf("Naruto", "Jujutsu Kaisen", "One Piece")
+                _state.update { it.copy(trendingAnimes = listOf("Naruto", "Jujutsu Kaisen", "One Piece")) }
             }
         }
     }
@@ -131,132 +86,188 @@ class AnimeSearchViewModel @Inject constructor(
     // --- ACCIONES ---
 
     fun onSearchQueryChanged(newQuery: String) {
-        _searchQuery.value = newQuery
-        _selectedFilter.value = "Anime"
-        _selectedGenreId.value = null
-        selectedQuickFilter.value = null
-        // NO limpiar el formato - debe mantenerse para filtrar la búsqueda
+        _state.update {
+            it.copy(
+                searchQuery = newQuery,
+                selectedFilter = "Anime",
+                selectedGenreId = null,
+                selectedQuickFilter = null,
+                animeList = if (newQuery.isBlank()) emptyList() else it.animeList,
+                previewResults = if (newQuery.isBlank()) emptyList() else it.previewResults
+            )
+        }
+    }
 
-        // Limpiar resultados completos si el query cambia
-        if (newQuery.isBlank()) {
-            _animeList.value = emptyList()
-            _previewResults.value = emptyList()
+    fun onQuickFilterSelected(key: String?) {
+        _state.update {
+            it.copy(
+                selectedQuickFilter = key,
+                selectedFormat = null,
+                searchQuery = "",
+                selectedGenreId = null
+            )
+        }
+    }
+
+    fun onFormatSelected(format: String?) {
+        _state.update {
+            it.copy(
+                selectedFormat = format,
+                selectedQuickFilter = null,
+                selectedGenreId = null
+            )
+        }
+        // Si hay query activa, re-ejecutar la búsqueda con el nuevo filtro
+        if (_state.value.searchQuery.isNotBlank()) {
+            performSearchOrFilter()
+        }
+    }
+
+    fun onFilterSelected(filter: String?) {
+        _state.update {
+            it.copy(
+                selectedFilter = filter,
+                searchQuery = "",
+                selectedGenreId = if (filter != "Géneros") null else it.selectedGenreId,
+                selectedQuickFilter = null,
+                selectedFormat = null
+            )
+        }
+    }
+
+    fun onGenreSelected(genreId: String) {
+        _state.update {
+            it.copy(
+                searchQuery = "",
+                selectedGenreId = if (it.selectedGenreId == genreId) null else genreId,
+                selectedQuickFilter = null,
+                selectedFormat = null
+            )
         }
     }
 
     fun clearSearch() {
-        _searchQuery.value = ""
-        _selectedFilter.value = "Anime"
-        _selectedGenreId.value = null
-        selectedQuickFilter.value = null
-        _selectedFormat.value = null
-        _animeList.value = emptyList()
-        _errorMessage.value = null
+        _state.value = SearchState(
+            recentSearches = _state.value.recentSearches,
+            trendingAnimes = _state.value.trendingAnimes
+        )
+        loadedAnimeIds.clear()
     }
 
     fun clearAllFilters() {
-        _searchQuery.value = ""
-        _selectedFilter.value = "Anime"
-        _selectedGenreId.value = null
-        selectedQuickFilter.value = null
-        _selectedFormat.value = null
-        _animeList.value = emptyList()
-        _errorMessage.value = null
-    }
-
-    fun onFilterSelected(filter: String?) {
-        _selectedFilter.value = filter
-        // Si cambiamos el filtro, limpiamos la query de texto.
-        _searchQuery.value = ""
-        // Si el nuevo filtro NO es "Géneros", limpiamos el ID del género.
-        if (filter != "Géneros") {
-            _selectedGenreId.value = null
-        }
-        // Limpiar quick filters y formato
-        selectedQuickFilter.value = null
-        _selectedFormat.value = null
-    }
-
-    fun onGenreSelected(genreId: String) {
-        // Al seleccionar un género, limpiamos la query de texto.
-        _searchQuery.value = ""
-        // Si ya está seleccionado, lo deselecciona; si no, lo selecciona.
-        _selectedGenreId.value = if (_selectedGenreId.value == genreId) null else genreId
-        // Limpiar quick filters y formato
-        selectedQuickFilter.value = null
-        _selectedFormat.value = null
+        clearSearch()
     }
 
     // FUNCIÓN UNIFICADA DE BÚSQUEDA (reinicia la paginación)
     fun performSearchOrFilter() {
         viewModelScope.launch {
-            _errorMessage.value = null
-            _isLoading.value = true
-            _currentPage.value = 1
-            _hasMorePages.value = true
+            _state.update { it.copy(isLoading = true, errorMessage = null, currentPage = 1, hasMorePages = true) }
+            loadedAnimeIds.clear()
 
             try {
-                // Especificamos explícitamente que 'results' será List<AnimeCard>
-                val results: List<AnimeCard> = when {
-                    // 1. Si hay un quick filter seleccionado
-                    selectedQuickFilter.value != null -> {
-                        when (selectedQuickFilter.value) {
-                            "airing" -> animeRepository.getAnimeAiring(page = 1)
-                            "trending" -> {
-                                val response = animeRepository.searchTopAnimes(page = 1)
-                                mapSearchResponseToCards(response)
-                            }
-                            "top" -> {
-                                val response = animeRepository.searchTopAnimes(page = 1)
-                                mapSearchResponseToCards(response)
-                            }
-                            "upcoming" -> {
-                                val response = animeRepository.searchAnimeSeasonUpcoming(page = 1)
-                                mapSearchResponseToCards(response)
-                            }
-                            "season" -> {
-                                val response = animeRepository.searchAnimeSeasonNow(page = 1)
-                                mapSearchResponseToCards(response)
-                            }
-                            "new" -> animeRepository.getAnimeNew(page = 1)
-                            "popular" -> animeRepository.getAnimePopular(page = 1)
-                            else -> emptyList()
-                        }
+                val results = fetchSearchResults(page = 1)
+
+                // Add IDs to the set for deduplication
+                results.forEach { loadedAnimeIds.add(it.malId) }
+
+                _state.update {
+                    it.copy(
+                        animeList = results,
+                        hasMorePages = results.size >= PAGE_SIZE,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        errorMessage = "Error al obtener datos: ${e.localizedMessage ?: "Error desconocido"}",
+                        animeList = emptyList(),
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    // FUNCIÓN PARA CARGAR MÁS RESULTADOS (siguiente página)
+    fun loadMoreAnimes() {
+        val currentState = _state.value
+
+        // Solo cargar más si no estamos ya cargando y hay más páginas
+        if (currentState.isLoadingMore || !currentState.hasMorePages || currentState.isLoading) return
+
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingMore = true) }
+
+            try {
+                val nextPage = currentState.currentPage + 1
+                val results = fetchSearchResults(page = nextPage)
+
+                if (results.isNotEmpty()) {
+                    // Efficient deduplication using Set
+                    val newResults = results.filter { loadedAnimeIds.add(it.malId) }
+
+                    _state.update {
+                        it.copy(
+                            currentPage = nextPage,
+                            animeList = it.animeList + newResults,
+                            hasMorePages = results.size >= PAGE_SIZE,
+                            isLoadingMore = false
+                        )
                     }
-                    // 2. Si hay búsqueda de texto (con o sin formato)
-                    _searchQuery.value.isNotBlank() && _selectedFilter.value == "Anime" -> {
-                        // Guardar la búsqueda en el historial
-                        saveSearchToHistory(_searchQuery.value)
-                        // Pasar el formato si está seleccionado
-                        val formatType = _selectedFormat.value?.let { mapFormatToType(it) }
-                        getAnimeSearchUseCase(query = _searchQuery.value, page = 1, type = formatType)
+                } else {
+                    _state.update { it.copy(hasMorePages = false, isLoadingMore = false) }
+                }
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error al cargar más animes: ${e.message}")
+                _state.update { it.copy(hasMorePages = false, isLoadingMore = false) }
+            }
+        }
+    }
+
+    /**
+     * Centralized search logic - used by both performSearchOrFilter and loadMoreAnimes
+     * Eliminates 70+ lines of duplication
+     */
+    private suspend fun fetchSearchResults(page: Int): List<AnimeCard> {
+        val currentState = _state.value
+
+        return when {
+            // 1. Si hay un quick filter seleccionado
+            currentState.selectedQuickFilter != null -> {
+                when (currentState.selectedQuickFilter) {
+                    "airing" -> animeRepository.getAnimeAiring(page = page)
+                    "trending", "top" -> {
+                        val response = animeRepository.searchTopAnimes(page = page)
+                        mapSearchResponseToCards(response)
                     }
-                    // 3. Si es filtro por género
-                    _selectedFilter.value == "Géneros" -> {
-                        val id = _selectedGenreId.value
-                        if (id != null) {
-                            animeRepository.getAnimeByGenre(id)
-                        } else {
-                            emptyList()
-                        }
+                    "upcoming" -> {
+                        val response = animeRepository.searchAnimeSeasonUpcoming(page = page)
+                        mapSearchResponseToCards(response)
                     }
-                    // 4. Si solo hay formato seleccionado sin query → NO hacer nada
+                    "season" -> {
+                        val response = animeRepository.searchAnimeSeasonNow(page = page)
+                        mapSearchResponseToCards(response)
+                    }
+                    "new" -> animeRepository.getAnimeNew(page = page)
+                    "popular" -> animeRepository.getAnimePopular(page = page)
                     else -> emptyList()
                 }
-                _animeList.value = results.distinctBy { it.malId }
-
-                // Si recibimos menos de 25 resultados, no hay más páginas
-                if (results.size < 25) {
-                    _hasMorePages.value = false
-                }
-
-            } catch (e: Exception) {
-                _errorMessage.value = "Error al obtener datos: ${e.localizedMessage ?: "Error desconocido"}"
-                _animeList.value = emptyList()
-
-            } finally {
-                _isLoading.value = false
             }
+            // 2. Si hay búsqueda de texto (con o sin formato)
+            currentState.searchQuery.isNotBlank() && currentState.selectedFilter == "Anime" -> {
+                // Guardar la búsqueda en el historial solo en la primera página
+                if (page == 1) {
+                    saveSearchToHistory(currentState.searchQuery)
+                }
+                val formatType = currentState.selectedFormat?.let { mapFormatToType(it) }
+                getAnimeSearchUseCase(query = currentState.searchQuery, page = page, type = formatType)
+            }
+            // 3. Si es filtro por género
+            currentState.selectedFilter == "Géneros" && currentState.selectedGenreId != null -> {
+                animeRepository.getAnimeByGenre(currentState.selectedGenreId)
+            }
+            else -> emptyList()
         }
     }
 
@@ -290,76 +301,6 @@ class AnimeSearchViewModel @Inject constructor(
         }
     }
 
-    // FUNCIÓN PARA CARGAR MÁS RESULTADOS (siguiente página)
-    fun loadMoreAnimes() {
-        // Solo cargar más si no estamos ya cargando y hay más páginas
-        if (_isLoadingMore.value || !_hasMorePages.value || _isLoading.value) return
-
-        viewModelScope.launch {
-            _isLoadingMore.value = true
-
-            try {
-                val nextPage = _currentPage.value + 1
-                val results: List<AnimeCard> = when {
-                    // 1. Si hay un quick filter seleccionado
-                    selectedQuickFilter.value != null -> {
-                        when (selectedQuickFilter.value) {
-                            "airing" -> animeRepository.getAnimeAiring(page = nextPage)
-                            "trending" -> {
-                                val response = animeRepository.searchTopAnimes(page = nextPage)
-                                mapSearchResponseToCards(response)
-                            }
-                            "top" -> {
-                                val response = animeRepository.searchTopAnimes(page = nextPage)
-                                mapSearchResponseToCards(response)
-                            }
-                            "upcoming" -> {
-                                val response = animeRepository.searchAnimeSeasonUpcoming(page = nextPage)
-                                mapSearchResponseToCards(response)
-                            }
-                            "season" -> {
-                                val response = animeRepository.searchAnimeSeasonNow(page = nextPage)
-                                mapSearchResponseToCards(response)
-                            }
-                            "new" -> animeRepository.getAnimeNew(page = nextPage)
-                            "popular" -> animeRepository.getAnimePopular(page = nextPage)
-                            else -> emptyList()
-                        }
-                    }
-                    // 2. Si hay búsqueda de texto (con o sin formato)
-                    _searchQuery.value.isNotBlank() && _selectedFilter.value == "Anime" -> {
-                        // Pasar el formato si está seleccionado
-                        val formatType = _selectedFormat.value?.let { mapFormatToType(it) }
-                        getAnimeSearchUseCase(query = _searchQuery.value, page = nextPage, type = formatType)
-                    }
-                    // 3. Si solo hay formato sin query → no cargar más
-                    else -> emptyList()
-                }
-
-                if (results.isNotEmpty()) {
-                    _currentPage.value = nextPage
-                    // Agregar los nuevos resultados a la lista existente, eliminando duplicados
-                    _animeList.value = (_animeList.value + results).distinctBy { it.malId }
-
-                    // Si recibimos menos de 25 resultados, no hay más páginas
-                    if (results.size < 25) {
-                        _hasMorePages.value = false
-                    }
-                } else {
-                    _hasMorePages.value = false
-                }
-
-            } catch (e: Exception) {
-                Log.e("AnimeSearchVM", "Error al cargar más animes: ${e.message}")
-                // No mostramos error en pantalla, solo dejamos de cargar
-                _hasMorePages.value = false
-
-            } finally {
-                _isLoadingMore.value = false
-            }
-        }
-    }
-
     // --- FUNCIÓN PARA GUARDAR BÚSQUEDA EN HISTORIAL ---
     private fun saveSearchToHistory(query: String) {
         viewModelScope.launch {
@@ -378,11 +319,15 @@ class AnimeSearchViewModel @Inject constructor(
 
     // Función para ejecutar una búsqueda desde el historial
     fun onRecentSearchClicked(query: String) {
-        _searchQuery.value = query
-        _selectedFilter.value = "Anime"
-        _selectedGenreId.value = null
-        selectedQuickFilter.value = null
-        _selectedFormat.value = null
+        _state.update {
+            it.copy(
+                searchQuery = query,
+                selectedFilter = "Anime",
+                selectedGenreId = null,
+                selectedQuickFilter = null,
+                selectedFormat = null
+            )
+        }
     }
 
     // Función para eliminar una búsqueda del historial
@@ -397,15 +342,15 @@ class AnimeSearchViewModel @Inject constructor(
     }
 
     // Función para obtener vista previa de resultados (solo 4 items)
-    private fun fetchPreviewResults(query: String) {
+    private fun fetchPreviewResults(query: String, selectedFormat: String?) {
         viewModelScope.launch {
             try {
-                val formatType = _selectedFormat.value?.let { mapFormatToType(it) }
+                val formatType = selectedFormat?.let { mapFormatToType(it) }
                 val results = getAnimeSearchUseCase(query = query, page = 1, type = formatType)
-                _previewResults.value = results.take(4)
+                _state.update { it.copy(previewResults = results.take(PREVIEW_ITEMS_COUNT)) }
             } catch (e: Exception) {
                 Log.e("AnimeSearchVM", "Error en vista previa: ${e.message}")
-                _previewResults.value = emptyList()
+                _state.update { it.copy(previewResults = emptyList()) }
             }
         }
     }
@@ -448,5 +393,43 @@ class AnimeSearchViewModel @Inject constructor(
                 onError(e.message ?: "Error desconocido")
             }
         }
+    }
+
+    // Backward compatibility properties - delegates to state
+    val searchQuery: StateFlow<String> get() = MutableStateFlow("").also {
+        viewModelScope.launch { state.collect { s -> it.value = s.searchQuery } }
+    }
+    val selectedFilter: StateFlow<String?> get() = MutableStateFlow<String?>(null).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.selectedFilter } }
+    }
+    val selectedGenreId: StateFlow<String?> get() = MutableStateFlow<String?>(null).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.selectedGenreId } }
+    }
+    val animeList: StateFlow<List<AnimeCard>> get() = MutableStateFlow<List<AnimeCard>>(emptyList()).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.animeList } }
+    }
+    val isLoading: StateFlow<Boolean> get() = MutableStateFlow(false).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.isLoading } }
+    }
+    val isLoadingMore: StateFlow<Boolean> get() = MutableStateFlow(false).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.isLoadingMore } }
+    }
+    val errorMessage: StateFlow<String?> get() = MutableStateFlow<String?>(null).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.errorMessage } }
+    }
+    val selectedQuickFilter: MutableStateFlow<String?> get() = MutableStateFlow<String?>(null).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.selectedQuickFilter } }
+    }
+    val selectedFormat: StateFlow<String?> get() = MutableStateFlow<String?>(null).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.selectedFormat } }
+    }
+    val recentSearches: StateFlow<List<String>> get() = MutableStateFlow<List<String>>(emptyList()).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.recentSearches } }
+    }
+    val trendingAnimes: StateFlow<List<String>> get() = MutableStateFlow<List<String>>(emptyList()).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.trendingAnimes } }
+    }
+    val previewResults: StateFlow<List<AnimeCard>> get() = MutableStateFlow<List<AnimeCard>>(emptyList()).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.previewResults } }
     }
 }
