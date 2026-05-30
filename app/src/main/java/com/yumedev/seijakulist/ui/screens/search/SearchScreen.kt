@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -123,6 +124,7 @@ import com.yumedev.seijakulist.domain.models.Genre
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
+import com.yumedev.seijakulist.ui.theme.GenreThemeMapper
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.adp
@@ -131,24 +133,6 @@ import kotlin.collections.listOf
 
 // Altura aproximada de la barra colapsada
 private val SearchBarCollapsedHeight = 72.dp
-
-// ─── Paleta de gradientes para las tarjetas de género ───────────────────────
-private val genreCardColors = listOf(
-    Color(0xFF6C63FF) to Color(0xFF9C88FF),
-    Color(0xFFFF6B6B) to Color(0xFFFF8E53),
-    Color(0xFF0CB2AF) to Color(0xFF2EBFBC),
-    Color(0xFFFF9A00) to Color(0xFFFFBE0B),
-    Color(0xFF06C88A) to Color(0xFF2DC653),
-    Color(0xFFE91E8C) to Color(0xFFFF4B6E),
-    Color(0xFF7B2FBE) to Color(0xFFA855F7),
-    Color(0xFF2563EB) to Color(0xFF60A5FA),
-    Color(0xFFEA580C) to Color(0xFFFB923C),
-    Color(0xFF16A34A) to Color(0xFF4ADE80),
-    Color(0xFF0891B2) to Color(0xFF22D3EE),
-    Color(0xFFDC2626) to Color(0xFFF87171),
-    Color(0xFF0D9488) to Color(0xFF2DD4BF),
-    Color(0xFF7C3AED) to Color(0xFFC084FC),
-)
 
 // ─── Modelo para quick-filter chips ─────────────────────────────────────────
 data class QuickFilter(
@@ -485,18 +469,18 @@ private fun SearchDiscoveryView(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                chunked.forEachIndexed { rowIndex, rowGenres ->
+                chunked.forEachIndexed { _, rowGenres ->
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        rowGenres.forEachIndexed { colIndex, genre ->
-                            val colorIndex = (rowIndex * 2 + colIndex) % genreCardColors.size
-                            val (startColor, endColor) = genreCardColors[colorIndex]
+                        rowGenres.forEach { genre ->
+                            val genreTheme = GenreThemeMapper.getThemeForGenre(genre.name)
                             DiscoveryGenreCard(
                                 genre = genre,
-                                startColor = startColor,
-                                endColor = endColor,
+                                startColor = genreTheme.startColor,
+                                endColor = genreTheme.endColor,
+                                icon = genreTheme.icon,
                                 onClick = { onGenreDirectTap(genre.malId.toString()) },
                                 modifier = Modifier.weight(1f)
                             )
@@ -642,6 +626,7 @@ private fun DiscoveryGenreCard(
     genre: Genre,
     startColor: Color,
     endColor: Color,
+    icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -660,24 +645,41 @@ private fun DiscoveryGenreCard(
                         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                     )
                 )
-                .padding(12.dp)
         ) {
-            Text(
-                text = genre.name,
-                color = Color.White,
-                fontFamily = PoppinsBold,
-                fontSize = 14.asp(),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.align(Alignment.TopStart)
+            // Background icon as watermark
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.15f),
+                modifier = Modifier
+                    .size(64.dp)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 12.dp, y = 12.dp)
             )
-            Text(
-                text = "${genre.count}",
-                color = Color.White.copy(alpha = 0.65f),
-                fontFamily = PoppinsRegular,
-                fontSize = 11.asp(),
-                modifier = Modifier.align(Alignment.BottomEnd)
-            )
+
+            // Content
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = genre.name,
+                    color = Color.White,
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.asp(),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.align(Alignment.TopStart)
+                )
+                Text(
+                    text = "${genre.count}",
+                    color = Color.White.copy(alpha = 0.65f),
+                    fontFamily = PoppinsRegular,
+                    fontSize = 11.asp(),
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                )
+            }
         }
     }
 }
