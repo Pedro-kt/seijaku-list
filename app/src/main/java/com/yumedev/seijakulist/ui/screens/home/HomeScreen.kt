@@ -703,10 +703,27 @@ private fun HeroCarousel(
     val pageCount = if (cards.isNullOrEmpty()) heroPlaceholderColors.size else cards.size
     val pagerState = rememberPagerState(pageCount = { pageCount })
 
+    // Control de auto-scroll con detección de interacción del usuario
+    var lastUserInteractionTime by remember { mutableStateOf(0L) }
+
+    // Detectar cuando el usuario arrastra manualmente
+    LaunchedEffect(pagerState.currentPageOffsetFraction) {
+        // Si hay un offset significativo y el pager está siendo arrastrado (scroll in progress),
+        // es muy probable que sea interacción del usuario
+        if (kotlin.math.abs(pagerState.currentPageOffsetFraction) > 0.01f && pagerState.isScrollInProgress) {
+            lastUserInteractionTime = System.currentTimeMillis()
+        }
+    }
+
+    // Auto-scroll que respeta la interacción del usuario
     LaunchedEffect(pagerState.settledPage) {
         delay(5000)
-        val next = (pagerState.settledPage + 1) % pageCount
-        pagerState.animateScrollToPage(next)
+        // Solo hacer auto-scroll si han pasado más de 3 segundos desde la última interacción
+        val timeSinceInteraction = System.currentTimeMillis() - lastUserInteractionTime
+        if (timeSinceInteraction > 3000) {
+            val next = (pagerState.settledPage + 1) % pageCount
+            pagerState.animateScrollToPage(next)
+        }
     }
 
     val shouldAnimate = !HomeAnimationState.hasAnimated
