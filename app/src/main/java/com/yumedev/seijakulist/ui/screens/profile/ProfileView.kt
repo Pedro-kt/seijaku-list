@@ -316,7 +316,7 @@ fun ProfileView(
                                         text = "Top 5 Animes",
                                         fontFamily = PoppinsBold,
                                         fontSize = 20.asp(),
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                     )
                                     Spacer(modifier = Modifier.width(8.adp()))
@@ -324,7 +324,7 @@ fun ProfileView(
                                         text = "Los 5 animes que más te gustan",
                                         fontFamily = PoppinsRegular,
                                         fontSize = 12.asp(),
-                                        color = Color.Gray
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 IconButton(
@@ -1147,7 +1147,7 @@ private fun PodiumPosition(
                     )
                     Text(
                         text = anime.userScore.toString(),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 12.asp(),
                         fontFamily = PoppinsBold
                     )
