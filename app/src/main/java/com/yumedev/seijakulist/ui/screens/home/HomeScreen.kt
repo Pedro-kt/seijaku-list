@@ -18,6 +18,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -119,6 +120,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.components.CardAnimesHome
@@ -129,6 +131,7 @@ import com.yumedev.seijakulist.ui.screens.home.FilterAnimesHome
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.MangaPlaceholder
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
+import com.yumedev.seijakulist.ui.screens.profile.AnimeStats
 import com.yumedev.seijakulist.ui.screens.profile.CustomSeijakuTabSelector
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
@@ -1468,38 +1471,42 @@ private fun shimmerBrush(targetValue: Float = 1000f, showShimmer: Boolean = true
 // Quick Stats Mejorado - Tu progreso
 @Composable
 private fun QuickStats(
-    stats: com.yumedev.seijakulist.ui.screens.profile.AnimeStats,
-    recentAnimes: List<com.yumedev.seijakulist.data.local.entities.AnimeEntity>,
+    stats: AnimeStats,
+    recentAnimes: List<AnimeEntity>,
     navController: NavController
 ) {
-    val shouldAnimate = !HomeAnimationState.hasAnimated
-    var isVisible by remember { mutableStateOf(!shouldAnimate) }
     var isExpanded by remember { mutableStateOf(false) }
-
-    LaunchedEffect(shouldAnimate) {
-        if (shouldAnimate) {
-            kotlinx.coroutines.delay(200)
-            isVisible = true
-        }
-    }
 
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
         label = "Arrow rotation"
     )
 
-    AnimatedVisibility(
-        visible = isVisible, enter = fadeIn(tween(600)) + slideInVertically(initialOffsetY = { 40 })
+    // Animación de pulso sutil para el botón cuando está colapsado
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+
+    val buttonScale = if (!isExpanded) pulseScale else 1f
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1523,9 +1530,14 @@ private fun QuickStats(
                             lineHeight = 18.asp()
                         )
 
-                        // Botón expandir — estilo outlined
+                        // Botón expandir — estilo outlined con animación de pulso
                         Surface(
-                            modifier = Modifier.size(32.adp()),
+                            modifier = Modifier
+                                .size(32.adp())
+                                .graphicsLayer {
+                                    scaleX = buttonScale
+                                    scaleY = buttonScale
+                                },
                             shape = CircleShape,
                             color = Color.Transparent,
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -1621,7 +1633,18 @@ private fun QuickStats(
                                 AnimatedContent(
                                     targetState = insights[currentInsightIndex],
                                     transitionSpec = {
-                                        fadeIn(tween(400)) togetherWith fadeOut(tween(400))
+                                        // Slide desde abajo con fade
+                                        (slideInVertically(
+                                            animationSpec = tween(500, easing = EaseOutBack),
+                                            initialOffsetY = { it / 2 }
+                                        ) + fadeIn(
+                                            animationSpec = tween(400)
+                                        )) togetherWith (slideOutVertically(
+                                            animationSpec = tween(400, easing = FastOutSlowInEasing),
+                                            targetOffsetY = { -it / 2 }
+                                        ) + fadeOut(
+                                            animationSpec = tween(300)
+                                        ))
                                     },
                                     label = "insight_animation"
                                 ) { insight ->
@@ -1668,12 +1691,32 @@ private fun QuickStats(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                recentAnimes.take(3).forEach { anime ->
-                                    EnhancedContinueWatchingCard(
-                                        anime = anime,
-                                        navController = navController,
+                                recentAnimes.take(3).forEachIndexed { index, anime ->
+                                    // Animación escalonada de entrada
+                                    var cardVisible by remember { mutableStateOf(false) }
+
+                                    LaunchedEffect(Unit) {
+                                        kotlinx.coroutines.delay((index * 100).toLong())
+                                        cardVisible = true
+                                    }
+
+                                    AnimatedVisibility(
+                                        visible = cardVisible,
+                                        enter = fadeIn(tween(400)) + scaleIn(
+                                            initialScale = 0.85f,
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessMediumLow
+                                            )
+                                        ),
                                         modifier = Modifier.weight(1f)
-                                    )
+                                    ) {
+                                        EnhancedContinueWatchingCard(
+                                            anime = anime,
+                                            navController = navController,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -1682,7 +1725,7 @@ private fun QuickStats(
             }
         }
     }
-}
+
 
 // Card de estadística mejorada con animación
 @Composable
@@ -1764,9 +1807,19 @@ private fun EnhancedContinueWatchingCard(
         ), label = "scale"
     )
 
-    val progress = remember(anime.episodesWatched, anime.totalEpisodes) {
+    val targetProgress = remember(anime.episodesWatched, anime.totalEpisodes) {
         if (anime.totalEpisodes > 0) anime.episodesWatched.toFloat() / anime.totalEpisodes.toFloat() else 0f
     }
+
+    // Animación suave de la barra de progreso
+    val progress by animateFloatAsState(
+        targetValue = targetProgress,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "progress_animation"
+    )
 
     Card(
         modifier = modifier
