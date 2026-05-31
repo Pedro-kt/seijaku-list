@@ -2,8 +2,14 @@ package com.yumedev.seijakulist.ui.screens.configuration
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +22,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.res.painterResource
 import com.yumedev.seijakulist.R
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Card
@@ -44,6 +55,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -112,24 +125,29 @@ fun ConfigurationScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.adp())
+                .height(60.adp())
                 .background(MaterialTheme.colorScheme.background)
         ) {
             IconButton(
                 onClick = { navController.popBackStack() },
-                modifier = Modifier.align(Alignment.CenterStart)
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 4.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_arrow_left_line),
                     contentDescription = "Volver",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.adp())
                 )
             }
             Text(
                 text = "Configuración",
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 20.asp(),
+                fontSize = 22.asp(),
                 fontFamily = PoppinsBold,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                letterSpacing = 0.3.sp,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -148,61 +166,57 @@ fun ConfigurationScreen(
             }
 
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 2.dp
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column {
-                        ThemeOption(
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ThemePreviewCard(
                             title = "Sistema",
                             subtitle = "Usa el tema del sistema",
                             selected = currentThemeMode == ThemeMode.SYSTEM,
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary,
+                                MaterialTheme.colorScheme.tertiary
+                            ),
                             onClick = { settingsViewModel.setThemeMode(ThemeMode.SYSTEM) }
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 68.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                        )
-
-                        ThemeOption(
+                        ThemePreviewCard(
                             title = "Claro",
                             subtitle = "Tema claro de la app",
                             selected = currentThemeMode == ThemeMode.LIGHT,
+                            colors = listOf(
+                                Color(0xFF1E88E5),
+                                Color(0xFF64B5F6),
+                                Color(0xFFF8F5F5)
+                            ),
                             onClick = { settingsViewModel.setThemeMode(ThemeMode.LIGHT) }
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 68.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                        )
-
-                        ThemeOption(
+                        ThemePreviewCard(
                             title = "Oscuro",
                             subtitle = "Tema oscuro de la app",
                             selected = currentThemeMode == ThemeMode.DARK,
+                            colors = listOf(
+                                Color(0xFF1E88E5),
+                                Color(0xFF7EE787),
+                                Color(0xFF131313)
+                            ),
                             onClick = { settingsViewModel.setThemeMode(ThemeMode.DARK) }
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 68.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                        )
-
-                        ThemeOption(
+                        ThemePreviewCard(
                             title = "Japonés",
                             subtitle = "Colores tradicionales de Japón",
                             selected = currentThemeMode == ThemeMode.JAPANESE,
+                            colors = listOf(
+                                Color(0xFFFF69B4),
+                                Color(0xFFFFB7C5),
+                                Color(0xFF6B9574)
+                            ),
                             onClick = { settingsViewModel.setThemeMode(ThemeMode.JAPANESE) }
                         )
                     }
-                }
             }
 
             item { Spacer(modifier = Modifier.height(8.dp)) }
@@ -213,32 +227,19 @@ fun ConfigurationScreen(
             }
 
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 2.dp
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         // Información del usuario
-                        SettingItem(
+                        SettingItemCard(
                             icon = Icons.Default.AccountCircle,
                             title = "Usuario",
                             subtitle = userEmail,
                             onClick = null
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 68.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                        )
-
                         // Cerrar sesión
-                        SettingItem(
+                        SettingItemCard(
                             icon = Icons.AutoMirrored.Filled.ExitToApp,
                             title = "Cerrar sesión",
                             subtitle = "Salir de tu cuenta",
@@ -250,8 +251,27 @@ fun ConfigurationScreen(
                             showArrow = false
                         )
                     }
-                }
             }
+
+            // Sección: Soporte
+            item {
+                SectionTitle(text = "Soporte")
+            }
+
+            item {
+                // Reportar error
+                SettingItemCard(
+                    icon = Icons.Default.BugReport,
+                    title = "Reportar error",
+                    subtitle = "Envíanos un correo con los detalles del problema",
+                    onClick = {
+                        navController.navigate(AppDestinations.REPORT_ERROR_ROUTE)
+                    },
+                    showArrow = true
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(8.dp)) }
 
             // Sección: Información
             item {
@@ -259,32 +279,11 @@ fun ConfigurationScreen(
             }
 
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 2.dp
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column {
-                        // Versión
-                        SettingItem(
-                            icon = Icons.Default.Info,
-                            title = "Versión",
-                            subtitle = versionInfo,
-                            onClick = null
-                        )
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 68.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                        )
-
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         // Política de Privacidad
-                        SettingItem(
+                        SettingItemCard(
                             icon = Icons.Default.PrivacyTip,
                             title = "Política de Privacidad",
                             subtitle = "Lee nuestra política de privacidad",
@@ -294,37 +293,14 @@ fun ConfigurationScreen(
                             showArrow = true
                         )
 
+                        // Versión
+                        SettingItemCard(
+                            icon = Icons.Default.Info,
+                            title = "Versión",
+                            subtitle = versionInfo,
+                            onClick = null
+                        )
                     }
-                }
-            }
-
-            // Sección: Soporte
-            item {
-                SectionTitle(text = "Soporte")
-            }
-
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 2.dp
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    // Reportar error
-                    SettingItem(
-                        icon = Icons.Default.BugReport,
-                        title = "Reportar error",
-                        subtitle = "Envíanos un correo con los detalles del problema",
-                        onClick = {
-                            navController.navigate(AppDestinations.REPORT_ERROR_ROUTE)
-                        },
-                        showArrow = true
-                    )
-                }
             }
 
             // Espaciado final
@@ -338,11 +314,12 @@ fun ConfigurationScreen(
 private fun SectionTitle(text: String) {
     Text(
         text = text,
-        fontSize = 14.asp(),
-        fontWeight = FontWeight.SemiBold,
+        fontSize = 21.asp(),
         fontFamily = PoppinsBold,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+        color = MaterialTheme.colorScheme.onSurface,
+        letterSpacing = 0.3.sp,
+        modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
     )
 }
 
@@ -367,13 +344,18 @@ private fun SettingItem(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Ícono
+        // Ícono con gradiente
         Box(
             modifier = Modifier
                 .size(40.adp())
                 .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    RoundedCornerShape(10.dp)
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -412,12 +394,112 @@ private fun SettingItem(
         // Flecha (si es clickeable)
         if (showArrow && onClick != null) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_arrow_left_line),
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                modifier = Modifier
-                    .size(20.adp())
+                modifier = Modifier.size(20.adp())
             )
+        }
+    }
+}
+
+@Composable
+private fun SettingItemCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: (() -> Unit)?,
+    showArrow: Boolean = false
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "card_scale"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        shape = RoundedCornerShape(16.dp),
+        onClick = onClick ?: {},
+        enabled = onClick != null,
+        interactionSource = interactionSource
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Ícono con gradiente
+            Box(
+                modifier = Modifier
+                    .size(40.adp())
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.adp())
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Texto
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 16.asp(),
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = PoppinsBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (subtitle.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        fontSize = 13.asp(),
+                        fontFamily = PoppinsRegular,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
+            // Flecha (si es clickeable)
+            if (showArrow && onClick != null) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    modifier = Modifier.size(20.adp())
+                )
+            }
         }
     }
 }
@@ -437,13 +519,18 @@ private fun SettingItemWithSwitch(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Ícono
+        // Ícono con gradiente
         Box(
             modifier = Modifier
                 .size(40.adp())
                 .background(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    RoundedCornerShape(10.dp)
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -490,6 +577,121 @@ private fun SettingItemWithSwitch(
                 uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         )
+    }
+}
+
+@Composable
+private fun ThemePreviewCard(
+    title: String,
+    subtitle: String,
+    selected: Boolean,
+    colors: List<Color>,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "card_scale"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            shape = RoundedCornerShape(16.dp),
+            border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+            onClick = onClick,
+            interactionSource = interactionSource
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Texto a la izquierda
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = title,
+                        fontSize = 16.asp(),
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = PoppinsBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        fontSize = 13.asp(),
+                        fontFamily = PoppinsRegular,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+
+                // Espacio para el gradiente
+                Spacer(modifier = Modifier.width(100.dp))
+            }
+        }
+
+        // Gradiente que sale desde la derecha
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxWidth(0.3f)
+                .padding(
+                    end = if (selected) 2.dp else 0.dp,
+                    top = if (selected) 2.dp else 0.dp,
+                    bottom = if (selected) 2.dp else 0.dp
+                )
+                .height(if (selected) 66.dp else 70.dp)
+                .clip(RoundedCornerShape(topEnd = 14.dp, bottomEnd = 14.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            colors[0].copy(alpha = 0.3f),
+                            colors[1].copy(alpha = 0.6f),
+                            colors[2]
+                        )
+                    )
+                )
+        )
+
+        // Checkmark superpuesto
+        if (selected) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp)
+                    .size(28.adp())
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.95f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Seleccionado",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.adp())
+                )
+            }
+        }
     }
 }
 
