@@ -1498,7 +1498,7 @@ private fun QuickStats(
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(20.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shadowElevation = 6.dp
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
         ) {
             Column(
                 modifier = Modifier
@@ -1506,69 +1506,134 @@ private fun QuickStats(
                     .padding(20.dp)
             ) {
                 // --- CABECERA (Siempre visible) ---
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(42.adp())
-                                .background(
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    RoundedCornerShape(12.dp)
-                                ),
-                            contentAlignment = Alignment.Center
+                        Text(
+                            text = "Tu Progreso",
+                            fontFamily = PoppinsBold,
+                            fontSize = 16.asp(),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            lineHeight = 18.asp()
+                        )
+
+                        // Botón expandir — estilo outlined
+                        Surface(
+                            modifier = Modifier.size(32.adp()),
+                            shape = CircleShape,
+                            color = Color.Transparent,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            onClick = { isExpanded = !isExpanded }
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.TrendingUp,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(22.adp())
-                            )
-                        }
-                        Column {
-                            Text(
-                                text = "Tu Progreso",
-                                fontFamily = PoppinsBold,
-                                fontSize = 16.asp(),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                lineHeight = 18.asp()
-                            )
-                            Text(
-                                text = "${stats.totalAnimes} animes en tu lista",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 12.asp(),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 15.asp()
-                            )
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(18.adp())
+                                        .rotate(rotationAngle),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
 
-                    // Botón expandir — estilo outlined
-                    Surface(
-                        modifier = Modifier.size(32.adp()),
-                        shape = CircleShape,
-                        color = Color.Transparent,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                        onClick = { isExpanded = !isExpanded }
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
+                    // Texto rotativo con insights
+                    val insights = remember(stats) {
+                        buildList {
+                            // 1. Siempre: Total de animes
+                            add("${stats.totalAnimes} animes en tu lista")
+
+                            // 2. Siempre: Horas vistas
+                            val hours = stats.totalEpisodesWatched * 24 / 60
+                            val days = hours / 24
+                            if (days > 0) {
+                                add("$days días disfrutando anime")
+                            } else {
+                                add("$hours horas disfrutando anime")
+                            }
+
+                            // 3. Si completedAnimes > 0
+                            if (stats.completedAnimes > 0) {
+                                add("Has completado ${stats.completedAnimes} series")
+                            }
+
+                            // 4. Si averageScore > 0
+                            if (stats.averageScore > 0) {
+                                add("Promedio ${String.format("%.1f", stats.averageScore)}/10 en tus scores")
+                            }
+
+                            // 5. Si genreStats no está vacío
+                            val topGenre = stats.genreStats.maxByOrNull { it.value }?.key
+                            if (topGenre != null) {
+                                add("Tu género favorito es $topGenre")
+                            }
+
+                            // 6. Si watchingAnimes > 0
+                            if (stats.watchingAnimes > 0) {
+                                add("Viendo ${stats.watchingAnimes} animes ahora mismo")
+                            }
+
+                            // 7. Si completedAnimes >= 10
+                            if (stats.completedAnimes >= 10) {
+                                add("¡Ya completaste ${stats.completedAnimes} series!")
+                            }
+
+                            // 8. Si totalEpisodesWatched >= 100
+                            if (stats.totalEpisodesWatched >= 100) {
+                                add("Llevas ${stats.totalEpisodesWatched} episodios vistos")
+                            }
+                        }
+                    }
+
+                    var currentInsightIndex by remember { mutableStateOf(0) }
+
+                    LaunchedEffect(insights) {
+                        if (insights.isNotEmpty()) {
+                            while (true) {
+                                kotlinx.coroutines.delay(4000)
+                                currentInsightIndex = (currentInsightIndex + 1) % insights.size
+                            }
+                        }
+                    }
+
+                    if (insights.isNotEmpty()) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = null,
+                            Box(
                                 modifier = Modifier
-                                    .size(18.adp())
-                                    .rotate(rotationAngle),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            ) {
+                                AnimatedContent(
+                                    targetState = insights[currentInsightIndex],
+                                    transitionSpec = {
+                                        fadeIn(tween(400)) togetherWith fadeOut(tween(400))
+                                    },
+                                    label = "insight_animation"
+                                ) { insight ->
+                                    Text(
+                                        text = insight,
+                                        fontFamily = PoppinsMedium,
+                                        fontSize = 12.asp(),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        lineHeight = 16.asp()
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -1579,107 +1644,23 @@ private fun QuickStats(
                     enter = expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)) + fadeIn(),
                     exit = shrinkVertically() + fadeOut()
                 ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        val primaryColor = MaterialTheme.colorScheme.primary
-                        val secondaryColor = MaterialTheme.colorScheme.secondary
-                        val tertiaryColor = MaterialTheme.colorScheme.tertiary
-                        val greenColor = Color(0xFF4CAF50)
-                        val hours = stats.totalEpisodesWatched * 24 / 60
-
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            NarrativeStatCard(
-                                icon = Icons.AutoMirrored.Filled.List,
-                                iconTint = primaryColor,
-                                text = buildAnnotatedString {
-                                    append("Tu lista tiene ")
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Bold,
-                                            color = primaryColor
-                                        )
-                                    ) {
-                                        append("${stats.totalAnimes}")
-                                    }
-                                    append(" animes guardados")
-                                }
+                    // Sección "Continuar viendo"
+                    if (recentAnimes.isNotEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                             )
-                            NarrativeStatCard(
-                                icon = Icons.Default.Check,
-                                iconTint = greenColor,
-                                text = buildAnnotatedString {
-                                    append("¡Ya terminaste ")
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Bold,
-                                            color = greenColor
-                                        )
-                                    ) {
-                                        append("${stats.completedAnimes}")
-                                    }
-                                    append(" series completas!")
-                                }
-                            )
-                            NarrativeStatCard(
-                                icon = Icons.Default.PlayArrow,
-                                iconTint = secondaryColor,
-                                text = buildAnnotatedString {
-                                    append("Acumulaste ")
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Bold,
-                                            color = secondaryColor
-                                        )
-                                    ) {
-                                        append("${stats.totalEpisodesWatched} eps,")
-                                    }
-                                    append(" son ")
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Bold,
-                                            color = secondaryColor
-                                        )
-                                    ) {
-                                        append("$hours hs")
-                                    }
-                                    append(" de anime!")
-                                }
-                            )
-                            NarrativeStatCard(
-                                icon = Icons.Default.Tv,
-                                iconTint = tertiaryColor,
-                                text = buildAnnotatedString {
-                                    append("Ahora mismo estás viendo ")
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Bold,
-                                            color = tertiaryColor
-                                        )
-                                    ) {
-                                        append("${stats.watchingAnimes}")
-                                    }
-                                    append(" animes")
-                                }
-                            )
-                        }
-
-                        // Sección de Animes Recientes (dentro del mismo despliegue)
-                        if (recentAnimes.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
                                 text = "Continuar viendo",
                                 fontFamily = PoppinsBold,
-                                fontSize = 14.asp(),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 16.asp(),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
 
@@ -1700,44 +1681,6 @@ private fun QuickStats(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun NarrativeStatCard(
-    icon: ImageVector,
-    iconTint: Color,
-    text: AnnotatedString
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(iconTint.copy(alpha = 0.08f))
-            .padding(horizontal = 12.dp, vertical = 11.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.adp())
-                .background(iconTint.copy(alpha = 0.20f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(18.adp())
-            )
-        }
-        Text(
-            text = text,
-            fontFamily = PoppinsRegular,
-            fontSize = 13.asp(),
-            color = MaterialTheme.colorScheme.onSurface,
-            lineHeight = 19.asp()
-        )
     }
 }
 
