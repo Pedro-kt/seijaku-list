@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,6 +70,7 @@ import androidx.navigation.NavController
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.auth_screen.AuthViewModel
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.ThemeMode
 import com.google.firebase.auth.ktx.auth
@@ -146,9 +149,10 @@ fun ConfigurationScreen(
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 22.asp(),
                 fontFamily = PoppinsBold,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                 letterSpacing = 0.3.sp,
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 56.dp)
             )
         }
 
@@ -173,11 +177,7 @@ fun ConfigurationScreen(
                             title = "Sistema",
                             subtitle = "Usa el tema del sistema",
                             selected = currentThemeMode == ThemeMode.SYSTEM,
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.secondary,
-                                MaterialTheme.colorScheme.tertiary
-                            ),
+                            icon = Icons.Default.PhoneAndroid,
                             onClick = { settingsViewModel.setThemeMode(ThemeMode.SYSTEM) }
                         )
 
@@ -248,7 +248,7 @@ fun ConfigurationScreen(
                                     showSignOutDialog = true
                                 }
                             },
-                            showArrow = false
+                            showArrow = true
                         )
                     }
             }
@@ -585,7 +585,8 @@ private fun ThemePreviewCard(
     title: String,
     subtitle: String,
     selected: Boolean,
-    colors: List<Color>,
+    colors: List<Color>? = null,
+    icon: ImageVector? = null,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -600,96 +601,151 @@ private fun ThemePreviewCard(
         label = "card_scale"
     )
 
-    Box(
+    // Animación para el checkmark
+    val checkmarkScale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.5f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "checkmark_scale"
+    )
+
+    val checkmarkAlpha by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "checkmark_alpha"
+    )
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        shape = RoundedCornerShape(16.dp),
+        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+        onClick = onClick,
+        interactionSource = interactionSource
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            shape = RoundedCornerShape(16.dp),
-            border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
-            onClick = onClick,
-            interactionSource = interactionSource
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // Texto a la izquierda
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                // Texto a la izquierda
-                Column(
-                    modifier = Modifier.weight(1f)
+                Text(
+                    text = title,
+                    fontSize = 16.asp(),
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = PoppinsBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    fontSize = 13.asp(),
+                    fontFamily = PoppinsRegular,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Mostrar ícono + texto "Adaptativo" o círculos de colores
+            if (icon != null) {
+                // Ícono con fondo + texto
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.adp())
+                            .clip(CircleShape)
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.adp())
+                        )
+                    }
                     Text(
-                        text = title,
-                        fontSize = 16.asp(),
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = PoppinsBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = subtitle,
+                        text = "Adaptativo",
                         fontSize = 13.asp(),
-                        fontFamily = PoppinsRegular,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        fontFamily = PoppinsMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
-
-                // Espacio para el gradiente
-                Spacer(modifier = Modifier.width(100.dp))
-            }
-        }
-
-        // Gradiente que sale desde la derecha
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxWidth(0.3f)
-                .padding(
-                    end = if (selected) 2.dp else 0.dp,
-                    top = if (selected) 2.dp else 0.dp,
-                    bottom = if (selected) 2.dp else 0.dp
-                )
-                .height(if (selected) 66.dp else 70.dp)
-                .clip(RoundedCornerShape(topEnd = 14.dp, bottomEnd = 14.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            colors[0].copy(alpha = 0.3f),
-                            colors[1].copy(alpha = 0.6f),
-                            colors[2]
+            } else if (colors != null) {
+                // Círculos de colores
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    colors.forEach { color ->
+                        Box(
+                            modifier = Modifier
+                                .size(32.adp())
+                                .clip(CircleShape)
+                                .background(color)
+                                .border(
+                                    width = 2.dp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                    shape = CircleShape
+                                )
                         )
-                    )
-                )
-        )
+                    }
+                }
+            }
 
-        // Checkmark superpuesto
-        if (selected) {
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Checkmark con animación
             Box(
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp)
                     .size(28.adp())
+                    .graphicsLayer {
+                        scaleX = checkmarkScale
+                        scaleY = checkmarkScale
+                        alpha = checkmarkAlpha
+                    }
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.95f)),
+                    .background(
+                        if (selected) MaterialTheme.colorScheme.primary
+                        else Color.Transparent
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Seleccionado",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.adp())
-                )
+                if (selected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Seleccionado",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.adp())
+                    )
+                }
             }
         }
     }
