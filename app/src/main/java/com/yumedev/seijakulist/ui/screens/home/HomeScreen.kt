@@ -570,12 +570,6 @@ private fun AnimeSectionHeader(
     }
 }
 
-// Header legacy (mantener para compatibilidad)
-@Composable
-private fun SectionHeader(
-    title: String, icon: ImageVector, onViewMoreClick: () -> Unit
-) = AnimeSectionHeader(title, icon, onViewMoreClick)
-
 @Composable
 fun FilterAnimesHome(
     list: List<String>,
@@ -684,10 +678,6 @@ private fun EnhancedEmptyState(message: String) {
         }
     }
 }
-
-// Mensaje vacío legacy (mantener para compatibilidad)
-@Composable
-private fun EmptyStateMessage(message: String) = EnhancedEmptyState(message)
 
 // Objeto para controlar si ya se animó la primera vez
 private object HomeAnimationState {
@@ -1559,50 +1549,52 @@ private fun QuickStats(
                         }
                     }
 
-                    // Texto rotativo con insights
+                    // Texto rotativo con insights - cada uno con su color
+                    data class InsightData(val text: String, val color: Color)
+
                     val insights = remember(stats) {
                         buildList {
-                            // 1. Siempre: Total de animes
-                            add("${stats.totalAnimes} animes en tu lista")
+                            // 1. Siempre: Total de animes - Azul
+                            add(InsightData("${stats.totalAnimes} animes en tu lista", Color(0xFF2196F3)))
 
-                            // 2. Siempre: Horas vistas
+                            // 2. Siempre: Horas vistas - Verde
                             val hours = stats.totalEpisodesWatched * 24 / 60
                             val days = hours / 24
                             if (days > 0) {
-                                add("$days días disfrutando anime")
+                                add(InsightData("$days días disfrutando anime", Color(0xFF4CAF50)))
                             } else {
-                                add("$hours horas disfrutando anime")
+                                add(InsightData("$hours horas disfrutando anime", Color(0xFF4CAF50)))
                             }
 
-                            // 3. Si completedAnimes > 0
+                            // 3. Si completedAnimes > 0 - Celeste
                             if (stats.completedAnimes > 0) {
-                                add("Has completado ${stats.completedAnimes} series")
+                                add(InsightData("Has completado ${stats.completedAnimes} series", Color(0xFF00BCD4)))
                             }
 
-                            // 4. Si averageScore > 0
+                            // 4. Si averageScore > 0 - Naranja
                             if (stats.averageScore > 0) {
-                                add("Promedio ${String.format("%.1f", stats.averageScore)}/10 en tus scores")
+                                add(InsightData("Promedio ${String.format("%.1f", stats.averageScore)}/10 en tus scores", Color(0xFFFF9800)))
                             }
 
-                            // 5. Si genreStats no está vacío
+                            // 5. Si genreStats no está vacío - Morado
                             val topGenre = stats.genreStats.maxByOrNull { it.value }?.key
                             if (topGenre != null) {
-                                add("Tu género favorito es $topGenre")
+                                add(InsightData("Tu género favorito es $topGenre", Color(0xFF9C27B0)))
                             }
 
-                            // 6. Si watchingAnimes > 0
+                            // 6. Si watchingAnimes > 0 - Rosa
                             if (stats.watchingAnimes > 0) {
-                                add("Viendo ${stats.watchingAnimes} animes ahora mismo")
+                                add(InsightData("Viendo ${stats.watchingAnimes} animes ahora mismo", Color(0xFFE91E63)))
                             }
 
-                            // 7. Si completedAnimes >= 10
+                            // 7. Si completedAnimes >= 10 - Teal
                             if (stats.completedAnimes >= 10) {
-                                add("¡Ya completaste ${stats.completedAnimes} series!")
+                                add(InsightData("¡Ya completaste ${stats.completedAnimes} series!", Color(0xFF009688)))
                             }
 
-                            // 8. Si totalEpisodesWatched >= 100
+                            // 8. Si totalEpisodesWatched >= 100 - Índigo
                             if (stats.totalEpisodesWatched >= 100) {
-                                add("Llevas ${stats.totalEpisodesWatched} episodios vistos")
+                                add(InsightData("Llevas ${stats.totalEpisodesWatched} episodios vistos", Color(0xFF3F51B5)))
                             }
                         }
                     }
@@ -1619,42 +1611,108 @@ private fun QuickStats(
                     }
 
                     if (insights.isNotEmpty()) {
+                        val currentInsight = insights[currentInsightIndex]
+
+                        // Animar el color del stripe
+                        val stripeColor by animateColorAsState(
+                            targetValue = currentInsight.color,
+                            animationSpec = tween(600, easing = FastOutSlowInEasing),
+                            label = "stripe_color"
+                        )
+
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.surfaceContainer,
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                AnimatedContent(
-                                    targetState = insights[currentInsightIndex],
-                                    transitionSpec = {
-                                        // Slide desde abajo con fade
-                                        (slideInVertically(
-                                            animationSpec = tween(500, easing = EaseOutBack),
-                                            initialOffsetY = { it / 2 }
-                                        ) + fadeIn(
-                                            animationSpec = tween(400)
-                                        )) togetherWith (slideOutVertically(
-                                            animationSpec = tween(400, easing = FastOutSlowInEasing),
-                                            targetOffsetY = { -it / 2 }
-                                        ) + fadeOut(
-                                            animationSpec = tween(300)
-                                        ))
-                                    },
-                                    label = "insight_animation"
-                                ) { insight ->
-                                    Text(
-                                        text = insight,
-                                        fontFamily = PoppinsMedium,
-                                        fontSize = 12.asp(),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        lineHeight = 16.asp()
-                                    )
+                                // Stripe vertical de color
+                                Box(
+                                    modifier = Modifier
+                                        .width(3.dp)
+                                        .fillMaxHeight()
+                                        .background(stripeColor)
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                                ) {
+                                    AnimatedContent(
+                                        targetState = currentInsight,
+                                        transitionSpec = {
+                                            // Slide desde abajo con fade
+                                            (slideInVertically(
+                                                animationSpec = tween(500, easing = EaseOutBack),
+                                                initialOffsetY = { it / 2 }
+                                            ) + fadeIn(
+                                                animationSpec = tween(400)
+                                            )) togetherWith (slideOutVertically(
+                                                animationSpec = tween(400, easing = FastOutSlowInEasing),
+                                                targetOffsetY = { -it / 2 }
+                                            ) + fadeOut(
+                                                animationSpec = tween(300)
+                                            ))
+                                        },
+                                        label = "insight_animation"
+                                    ) { insight ->
+                                        // Función para resaltar números y palabras clave en el texto
+                                        val annotatedText = buildAnnotatedString {
+                                            val text = insight.text
+
+                                            // Detectar si es el insight de género favorito
+                                            if (text.contains("Tu género favorito es ")) {
+                                                val parts = text.split("Tu género favorito es ")
+                                                append(parts[0] + "Tu género favorito es ")
+
+                                                // Resaltar el género
+                                                withStyle(
+                                                    SpanStyle(
+                                                        color = insight.color,
+                                                        fontFamily = PoppinsBold
+                                                    )
+                                                ) {
+                                                    append(parts.getOrNull(1) ?: "")
+                                                }
+                                            } else {
+                                                // Para otros insights, resaltar números
+                                                val numberRegex = "\\d+(?:[.,]\\d+)?".toRegex()
+                                                var lastIndex = 0
+
+                                                numberRegex.findAll(text).forEach { matchResult ->
+                                                    // Añadir texto antes del número
+                                                    append(text.substring(lastIndex, matchResult.range.first))
+
+                                                    // Añadir número con color
+                                                    withStyle(
+                                                        SpanStyle(
+                                                            color = insight.color,
+                                                            fontFamily = PoppinsBold
+                                                        )
+                                                    ) {
+                                                        append(matchResult.value)
+                                                    }
+
+                                                    lastIndex = matchResult.range.last + 1
+                                                }
+
+                                                // Añadir texto restante
+                                                append(text.substring(lastIndex))
+                                            }
+                                        }
+
+                                        Text(
+                                            text = annotatedText,
+                                            fontFamily = PoppinsMedium,
+                                            fontSize = 12.asp(),
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            lineHeight = 16.asp()
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -1691,32 +1749,12 @@ private fun QuickStats(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                recentAnimes.take(3).forEachIndexed { index, anime ->
-                                    // Animación escalonada de entrada
-                                    var cardVisible by remember { mutableStateOf(false) }
-
-                                    LaunchedEffect(Unit) {
-                                        kotlinx.coroutines.delay((index * 100).toLong())
-                                        cardVisible = true
-                                    }
-
-                                    AnimatedVisibility(
-                                        visible = cardVisible,
-                                        enter = fadeIn(tween(400)) + scaleIn(
-                                            initialScale = 0.85f,
-                                            animationSpec = spring(
-                                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                                stiffness = Spring.StiffnessMediumLow
-                                            )
-                                        ),
+                                recentAnimes.take(3).forEach { anime ->
+                                    EnhancedContinueWatchingCard(
+                                        anime = anime,
+                                        navController = navController,
                                         modifier = Modifier.weight(1f)
-                                    ) {
-                                        EnhancedContinueWatchingCard(
-                                            anime = anime,
-                                            navController = navController,
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
-                                    }
+                                    )
                                 }
                             }
                         }
@@ -1784,12 +1822,6 @@ private fun EnhancedStatCard(
         Spacer(modifier = Modifier.width(16.dp))
     }
 }
-
-// Card legacy (mantener compatibilidad)
-@Composable
-private fun QuickStatCard(
-    modifier: Modifier = Modifier, value: String, label: String
-) = EnhancedStatCard(modifier, value, label, 0)
 
 // Card mejorada de "Continúa viendo"
 @Composable
@@ -1936,14 +1968,6 @@ private fun EnhancedContinueWatchingCard(
         }
     }
 }
-
-// Card legacy (mantener compatibilidad)
-@Composable
-private fun ContinueWatchingCard(
-    anime: com.yumedev.seijakulist.data.local.entities.AnimeEntity,
-    navController: NavController,
-    modifier: Modifier = Modifier
-) = EnhancedContinueWatchingCard(anime, navController, modifier)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Utilidad: obtiene el versionCode actual de la app
