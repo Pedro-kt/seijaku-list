@@ -1,8 +1,14 @@
 package com.yumedev.seijakulist.ui.screens.profile
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,11 +32,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import kotlinx.coroutines.delay
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  ProfileHeaderCompact - Header compacto del perfil
@@ -40,25 +48,40 @@ fun ProfileHeaderCompact(
     username: String,
     fullName: String,
     memberSince: String,
-    currentlyWatching: String?,
+    watchingAnimes: List<AnimeEntity>,
     profilePictureUrl: String?,
     onEditClick: () -> Unit,
+    onAnimeClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    // Estado para el índice del anime actual en rotación
+    var currentAnimeIndex by remember { mutableStateOf(0) }
+
+    // Efecto para rotar automáticamente cada 5 segundos
+    LaunchedEffect(watchingAnimes.size) {
+        if (watchingAnimes.isNotEmpty()) {
+            while (true) {
+                delay(5000)
+                currentAnimeIndex = (currentAnimeIndex + 1) % watchingAnimes.size
+            }
+        }
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.adp(), vertical = 12.adp())
+            .padding(horizontal = 16.adp(), vertical = 12.adp()),
+        verticalArrangement = Arrangement.spacedBy(12.adp())
     ) {
+        // Primera fila: Avatar + Info + Botón Editar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar y info
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.adp()),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f, fill = false)
             ) {
                 // Avatar con gradiente
                 Box(
@@ -98,10 +121,18 @@ fun ProfileHeaderCompact(
                     }
                 }
 
-                // Info del usuario
+                // Info del usuario (nombre y username/fecha)
                 Column(
                     verticalArrangement = Arrangement.spacedBy(2.adp())
                 ) {
+                    Text(
+                        text = fullName,
+                        fontFamily = PoppinsBold,
+                        fontSize = 26.asp(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Text(
                         text = "@${username.uppercase()} · $memberSince",
                         fontFamily = PoppinsMedium,
@@ -109,30 +140,6 @@ fun ProfileHeaderCompact(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.5.sp
                     )
-                    Text(
-                        text = fullName,
-                        fontFamily = PoppinsBold,
-                        fontSize = 26.asp(),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    if (currentlyWatching != null) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.adp()),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.adp())
-                                    .background(Color.Red, CircleShape)
-                            )
-                            Text(
-                                text = "Ahora viendo $currentlyWatching",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 11.asp(),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
                 }
             }
 
@@ -155,6 +162,56 @@ fun ProfileHeaderCompact(
                     fontFamily = PoppinsMedium,
                     fontSize = 13.asp()
                 )
+            }
+        }
+
+        // Pill "Ahora viendo" con carrusel automático
+        if (watchingAnimes.isNotEmpty()) {
+            val currentAnime = watchingAnimes[currentAnimeIndex]
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onAnimeClick(currentAnime.malId) },
+                shape = RoundedCornerShape(20.adp()),
+                color = Color(0xFF00A8FF).copy(alpha = 0.12f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00A8FF).copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.adp(), vertical = 6.adp()),
+                    horizontalArrangement = Arrangement.spacedBy(6.adp()),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Ahora viendo",
+                        fontFamily = PoppinsMedium,
+                        fontSize = 11.asp(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // AnimatedContent para transiciones suaves
+                    AnimatedContent(
+                        targetState = currentAnime.title,
+                        transitionSpec = {
+                            (slideInVertically { height -> height } + fadeIn()).togetherWith(
+                                slideOutVertically { height -> -height } + fadeOut()
+                            )
+                        },
+                        label = "anime_title_transition",
+                        modifier = Modifier.weight(1f)
+                    ) { title ->
+                        Text(
+                            text = title,
+                            fontFamily = PoppinsBold,
+                            fontSize = 11.asp(),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
     }
