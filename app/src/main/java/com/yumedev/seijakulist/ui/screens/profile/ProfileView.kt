@@ -220,9 +220,10 @@ fun ProfileView(
                 username          = username.split(" ").firstOrNull() ?: username,
                 fullName          = username,
                 memberSince       = "MIEMBRO DESDE 2026",
-                currentlyWatching = if (watchingAnimes > 0) uiState.allSavedAnimes.firstOrNull { it.statusUser == "Viendo" }?.title else null,
+                watchingAnimes    = uiState.allSavedAnimes.filter { it.statusUser == "Viendo" },
                 profilePictureUrl = profilePictureUrl,
-                onEditClick       = { navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) }
+                onEditClick       = { navController.navigate(AppDestinations.PROFILE_SETUP_ROUTE) },
+                onAnimeClick      = { malId -> navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/$malId") }
             )
         }
 
@@ -316,7 +317,7 @@ fun ProfileView(
                                         text = "Top 5 Animes",
                                         fontFamily = PoppinsBold,
                                         fontSize = 20.asp(),
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                     )
                                     Spacer(modifier = Modifier.width(8.adp()))
@@ -324,7 +325,7 @@ fun ProfileView(
                                         text = "Los 5 animes que más te gustan",
                                         fontFamily = PoppinsRegular,
                                         fontSize = 12.asp(),
-                                        color = Color.Gray
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 IconButton(
@@ -1147,7 +1148,7 @@ private fun PodiumPosition(
                     )
                     Text(
                         text = anime.userScore.toString(),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 12.asp(),
                         fontFamily = PoppinsBold
                     )

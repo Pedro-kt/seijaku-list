@@ -1,8 +1,14 @@
 package com.yumedev.seijakulist.ui.screens.profile
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,11 +32,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import kotlinx.coroutines.delay
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  ProfileHeaderCompact - Header compacto del perfil
@@ -40,25 +48,40 @@ fun ProfileHeaderCompact(
     username: String,
     fullName: String,
     memberSince: String,
-    currentlyWatching: String?,
+    watchingAnimes: List<AnimeEntity>,
     profilePictureUrl: String?,
     onEditClick: () -> Unit,
+    onAnimeClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    // Estado para el índice del anime actual en rotación
+    var currentAnimeIndex by remember { mutableStateOf(0) }
+
+    // Efecto para rotar automáticamente cada 5 segundos
+    LaunchedEffect(watchingAnimes.size) {
+        if (watchingAnimes.isNotEmpty()) {
+            while (true) {
+                delay(5000)
+                currentAnimeIndex = (currentAnimeIndex + 1) % watchingAnimes.size
+            }
+        }
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.adp(), vertical = 12.adp())
+            .padding(horizontal = 16.adp(), vertical = 12.adp()),
+        verticalArrangement = Arrangement.spacedBy(12.adp())
     ) {
+        // Primera fila: Avatar + Info + Botón Editar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar y info
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.adp()),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f, fill = false)
             ) {
                 // Avatar con gradiente
                 Box(
@@ -92,47 +115,31 @@ fun ProfileHeaderCompact(
                                 text = fullName.firstOrNull()?.toString()?.uppercase() ?: "U",
                                 fontFamily = PoppinsBold,
                                 fontSize = 32.asp(),
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
 
-                // Info del usuario
+                // Info del usuario (nombre y username/fecha)
                 Column(
                     verticalArrangement = Arrangement.spacedBy(2.adp())
                 ) {
                     Text(
-                        text = "@${username.uppercase()} · $memberSince",
-                        fontFamily = PoppinsMedium,
-                        fontSize = 11.asp(),
-                        color = Color.Gray,
-                        letterSpacing = 0.5.sp
-                    )
-                    Text(
                         text = fullName,
                         fontFamily = PoppinsBold,
                         fontSize = 26.asp(),
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    if (currentlyWatching != null) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.adp()),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.adp())
-                                    .background(Color.Red, CircleShape)
-                            )
-                            Text(
-                                text = "Ahora viendo $currentlyWatching",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 11.asp(),
-                                color = Color.White
-                            )
-                        }
-                    }
+                    Text(
+                        text = "@${username.uppercase()} · $memberSince",
+                        fontFamily = PoppinsMedium,
+                        fontSize = 11.asp(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 0.5.sp
+                    )
                 }
             }
 
@@ -144,9 +151,9 @@ fun ProfileHeaderCompact(
                     .widthIn(min = 80.adp()),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = Color.Transparent,
-                    contentColor = Color.White
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
                 shape = RoundedCornerShape(18.adp()),
                 contentPadding = PaddingValues(horizontal = 16.adp(), vertical = 8.adp())
             ) {
@@ -155,6 +162,56 @@ fun ProfileHeaderCompact(
                     fontFamily = PoppinsMedium,
                     fontSize = 13.asp()
                 )
+            }
+        }
+
+        // Pill "Ahora viendo" con carrusel automático
+        if (watchingAnimes.isNotEmpty()) {
+            val currentAnime = watchingAnimes[currentAnimeIndex]
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onAnimeClick(currentAnime.malId) },
+                shape = RoundedCornerShape(20.adp()),
+                color = Color(0xFF00A8FF).copy(alpha = 0.12f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00A8FF).copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.adp(), vertical = 6.adp()),
+                    horizontalArrangement = Arrangement.spacedBy(6.adp()),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Ahora viendo",
+                        fontFamily = PoppinsMedium,
+                        fontSize = 11.asp(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // AnimatedContent para transiciones suaves
+                    AnimatedContent(
+                        targetState = currentAnime.title,
+                        transitionSpec = {
+                            (slideInVertically { height -> height } + fadeIn()).togetherWith(
+                                slideOutVertically { height -> -height } + fadeOut()
+                            )
+                        },
+                        label = "anime_title_transition",
+                        modifier = Modifier.weight(1f)
+                    ) { title ->
+                        Text(
+                            text = title,
+                            fontFamily = PoppinsBold,
+                            fontSize = 11.asp(),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
         }
     }
@@ -179,7 +236,7 @@ fun ProfileTabSelector(
         tabs.forEachIndexed { index, title ->
             val isSelected = selectedTab == index
             val color by animateColorAsState(
-                targetValue = if (isSelected) Color.White else Color.Gray,
+                targetValue = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                 animationSpec = tween(300),
                 label = "tab_color"
             )
@@ -248,14 +305,14 @@ fun ResumenSection(
                 text = "Resumen",
                 fontFamily = PoppinsBold,
                 fontSize = 20.asp(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             )
             Text(
                 text = year.toString(),
                 fontFamily = PoppinsBold,
                 fontSize = 11.asp(),
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 1.sp
             )
         }
@@ -280,7 +337,7 @@ fun ResumenSection(
                         text = totalAnimes.toString(),
                         fontFamily = PoppinsBold,
                         fontSize = 48.asp(),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 48.sp,
                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                     )
@@ -288,7 +345,7 @@ fun ResumenSection(
                         text = "ANIMES",
                         fontFamily = PoppinsBold,
                         fontSize = 11.asp(),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                 }
@@ -315,7 +372,7 @@ fun ResumenSection(
                         text = "SCORE MEDIO",
                         fontFamily = PoppinsBold,
                         fontSize = 11.asp(),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                 }
@@ -342,13 +399,13 @@ fun ResumenSection(
                         text = totalEpisodes.toString(),
                         fontFamily = PoppinsBold,
                         fontSize = 28.asp(),
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "EPISODIOS",
                         fontFamily = PoppinsBold,
                         fontSize = 10.asp(),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.5.sp
                     )
                 }
@@ -371,13 +428,13 @@ fun ResumenSection(
                             text = totalHours.toString(),
                             fontFamily = PoppinsBold,
                             fontSize = 28.asp(),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "hs",
                             fontFamily = PoppinsBold,
                             fontSize = 10.asp(),
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 0.5.sp,
                             modifier = Modifier.padding(bottom = 2.dp)
                         )
@@ -386,7 +443,7 @@ fun ResumenSection(
                         text = "TIEMPO",
                         fontFamily = PoppinsBold,
                         fontSize = 10.asp(),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.5.sp
                     )
                 }
@@ -409,13 +466,13 @@ fun ResumenSection(
                             text = "${totalDaysAndHours.first}",
                             fontFamily = PoppinsBold,
                             fontSize = 28.asp(),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "d",
                             fontFamily = PoppinsBold,
                             fontSize = 10.asp(),
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 0.5.sp,
                             modifier = Modifier.padding(bottom = 2.dp)
                         )
@@ -423,13 +480,13 @@ fun ResumenSection(
                             text = "${totalDaysAndHours.second}",
                             fontFamily = PoppinsBold,
                             fontSize = 28.asp(),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "h",
                             fontFamily = PoppinsBold,
                             fontSize = 10.asp(),
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 0.5.sp,
                             modifier = Modifier.padding(bottom = 2.dp)
                         )
@@ -438,7 +495,7 @@ fun ResumenSection(
                         text = "TOT. VISTO",
                         fontFamily = PoppinsBold,
                         fontSize = 10.asp(),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.5.sp
                     )
                 }
@@ -475,7 +532,7 @@ fun DistribucionSection(
                 text = "Distribución",
                 fontFamily = PoppinsBold,
                 fontSize = 20.asp(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             )
             Spacer(modifier = Modifier.width(8.adp()))
@@ -483,7 +540,7 @@ fun DistribucionSection(
                 text = "$totalAnimes animes en tu lista",
                 fontFamily = PoppinsRegular,
                 fontSize = 12.asp(),
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -535,14 +592,14 @@ fun DistribucionSection(
                                 text = item.label,
                                 fontFamily = PoppinsRegular,
                                 fontSize = 13.asp(),
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
                                 text = item.count.toString(),
                                 fontFamily = PoppinsBold,
                                 fontSize = 13.asp(),
-                                color = Color.White
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -584,7 +641,7 @@ fun GenerosFavoritosSection(
                 text = "Géneros favoritos",
                 fontFamily = PoppinsBold,
                 fontSize = 20.asp(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             )
             Spacer(modifier = Modifier.width(8.adp()))
@@ -592,7 +649,7 @@ fun GenerosFavoritosSection(
                 text = "los que más aparecen en tu lista",
                 fontFamily = PoppinsRegular,
                 fontSize = 12.asp(),
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -631,13 +688,13 @@ private fun GenreProgressBar(
                 text = name,
                 fontFamily = PoppinsMedium,
                 fontSize = 15.asp(),
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "$count · ${percentage}%",
                 fontFamily = PoppinsMedium,
                 fontSize = 13.asp(),
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(modifier = Modifier.height(8.adp()))
@@ -646,7 +703,7 @@ private fun GenreProgressBar(
                 .fillMaxWidth()
                 .height(8.adp())
                 .clip(RoundedCornerShape(4.adp()))
-                .background(Color.White.copy(alpha = 0.1f))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Box(
                 modifier = Modifier
