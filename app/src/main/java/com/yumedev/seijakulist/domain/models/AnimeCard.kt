@@ -10,6 +10,7 @@ data class AnimeCard(
     val images: String,
     val score: Float,
     val status: String,
+    val type: String,
     val genres: List<GenreDto?>,
     val year: String,
     val episodes: String,

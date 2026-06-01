@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.data.local.entities.SearchHistoryEntity
+import com.yumedev.seijakulist.data.remote.models.SearchAnimeResponse
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
 import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
@@ -294,7 +295,7 @@ class AnimeSearchViewModel @Inject constructor(
     }
 
     // Helper method to map SearchAnimeResponse to List<AnimeCard>
-    private fun mapSearchResponseToCards(response: com.yumedev.seijakulist.data.remote.models.SearchAnimeResponse): List<AnimeCard> {
+    private fun mapSearchResponseToCards(response: SearchAnimeResponse): List<AnimeCard> {
         return response.data.mapNotNull { animeDto ->
             if (animeDto == null) return@mapNotNull null
             AnimeCard(
@@ -305,7 +306,8 @@ class AnimeSearchViewModel @Inject constructor(
                 status = animeDto.status ?: "Sin estado",
                 genres = animeDto.genres ?: emptyList(),
                 year = (animeDto.year ?: "N/A").toString(),
-                episodes = (animeDto.episodes ?: "N/A").toString()
+                episodes = (animeDto.episodes ?: "N/A").toString(),
+                type = animeDto.type ?: "TV"
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.yumedev.seijakulist.data.remote.models.anime_random
 
+import com.yumedev.seijakulist.data.remote.models.AiredDto
 import com.yumedev.seijakulist.data.remote.models.GenreDto
 import com.yumedev.seijakulist.data.remote.models.ImagesDto
 import com.google.gson.annotations.SerializedName
@@ -10,7 +11,9 @@ data class AnimeCardDto(
     val images: ImagesDto?,
     val score: Float?,
     val status: String?,
+    val type: String?,
     val genres: List<GenreDto?>,
     val year: Int?,
+    val aired: AiredDto?,
     val episodes: Int?,
 )

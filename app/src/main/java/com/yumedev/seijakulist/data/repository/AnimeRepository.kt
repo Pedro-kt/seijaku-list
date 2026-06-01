@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.first
 import com.yumedev.seijakulist.data.mapper.toCharacterPictures
 import com.yumedev.seijakulist.data.mapper.toProducerDetail
 import com.yumedev.seijakulist.data.remote.api.JikanApiService
+import com.yumedev.seijakulist.util.getDisplayYear
+import com.yumedev.seijakulist.util.getDisplayEpisodes
 import com.yumedev.seijakulist.data.remote.models.AnimeDetailDto
 import com.yumedev.seijakulist.data.remote.models.AnimeDetailResponseDto
 import com.yumedev.seijakulist.data.remote.models.anime_random.AnimeCardResponseDto
@@ -196,9 +198,10 @@ class AnimeRepository @Inject constructor(
                 images = animeDto?.images?.webp?.largeImageUrl ?: "URL de imagen predeterminada",
                 score = animeDto?.score ?: 0.0f,
                 status = animeDto?.status ?: "Sin estado",
+                type = animeDto?.type ?: "TV",
                 genres = animeDto?.genres ?: emptyList(),
-                year = (animeDto?.year ?: "N/A").toString(),
-                episodes = (animeDto?.episodes ?: "N/A").toString()
+                year = getDisplayYear(animeDto?.year, animeDto?.aired?.airedString),
+                episodes = getDisplayEpisodes(animeDto?.episodes, animeDto?.type, animeDto?.status)
             )
         }
 
@@ -506,9 +509,10 @@ class AnimeRepository @Inject constructor(
                 images = animeDto.images?.webp?.largeImageUrl ?: "URL de imagen predeterminada",
                 score = animeDto.score ?: 0.0f,
                 status = animeDto.status ?: "Sin estado",
+                type = animeDto.type ?: "TV",
                 genres = animeDto.genres ?: emptyList(),
-                year = (animeDto.year ?: "N/A").toString(),
-                episodes = (animeDto.episodes ?: "N/A").toString()
+                year = getDisplayYear(animeDto.year, animeDto.aired?.airedString),
+                episodes = getDisplayEpisodes(animeDto.episodes, animeDto.type, animeDto.status)
             )
         }
     }
