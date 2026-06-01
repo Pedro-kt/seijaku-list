@@ -3,6 +3,8 @@ package com.yumedev.seijakulist.domain.usecase
 import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.domain.models.AnimeCard
+import com.yumedev.seijakulist.util.getDisplayYear
+import com.yumedev.seijakulist.util.getDisplayEpisodes
 import javax.inject.Inject
 
 class GetAnimeRandomUseCase @Inject constructor(
@@ -21,9 +23,10 @@ class GetAnimeRandomUseCase @Inject constructor(
                 ?: "URL de imagen predeterminada",
             score = animeDto?.score ?: 0.0f,
             status = animeDto?.status ?: "Sin estado",
+            type = animeDto?.type ?: "TV",
             genres = animeDto?.genres ?: emptyList(),
-            year = (animeDto?.year ?: "N/A").toString(),
-            episodes = (animeDto?.episodes ?: "N/A").toString()
+            year = getDisplayYear(animeDto?.year, animeDto?.aired?.airedString),
+            episodes = getDisplayEpisodes(animeDto?.episodes, animeDto?.type, animeDto?.status)
         )
 
         return animeDomain

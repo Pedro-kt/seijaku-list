@@ -825,7 +825,7 @@ private fun SearchContent(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 8.dp)
             ) {
             item {
                 ContentTypeFilters(
@@ -852,7 +852,7 @@ private fun SearchContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -888,12 +888,14 @@ private fun SearchContent(
                         fontFamily = PoppinsRegular,
                         fontSize = 14.asp(),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp)
                     )
                 }
             }
             items(animeList, key = { it.malId }) { anime ->
-                AnimeCardItem(navController = navController, anime = anime)
+                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    AnimeCardItem(navController = navController, anime = anime)
+                }
             }
             if (isLoadingMore) {
                 item {
@@ -1217,109 +1219,73 @@ fun AnimeCardItem(
                 .fillMaxWidth()
                 .height(170.adp())
         ) {
-            // ── Cover con badge de score ──────────────────────────────────
-            Box(
+            // ── Cover limpia (sin badges) ──────────────────────────────────
+            AsyncImage(
+                model = anime.images,
+                contentDescription = "Portada de ${anime.title}",
                 modifier = Modifier
                     .width(120.adp())
                     .fillMaxHeight()
-            ) {
-                AsyncImage(
-                    model = anime.images,
-                    contentDescription = "Portada de ${anime.title}",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                // Gradiente sobre la imagen
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    Color.Black.copy(alpha = 0.3f),
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.5f)
-                                )
-                            )
-                        )
-                )
-                // Badge de score
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                    shadowElevation = 6.dp,
-                    tonalElevation = 2.dp
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Calificación",
-                            tint = Color(0xFFFFB300),
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = String.format("%.1f", anime.score),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 13.asp(),
-                            fontFamily = PoppinsBold,
-                            letterSpacing = 0.2.sp
-                        )
-                    }
-                }
-            }
+                    .clip(RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)),
+                contentScale = ContentScale.Crop
+            )
 
-            // ── Info ──────────────────────────────────────────────────────
+            // ── Info rediseñada ──────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .padding(12.dp),
+                    .padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    // 1. Título (1 línea, prominente)
                     Text(
                         text = anime.title,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 15.asp(),
+                        fontSize = 16.asp(),
                         fontFamily = PoppinsBold,
-                        lineHeight = 19.asp(),
+                        lineHeight = 20.asp(),
                         letterSpacing = 0.sp
                     )
-                    StatusBadge(status = anime.status)
+
+                    // 2. Type + Score + Status en formato Pill (misma Row)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TypePill(type = anime.type)
+                        ScorePill(score = anime.score)
+                        StatusPill(status = anime.status)
+                    }
+
+                    // 3. Géneros (hasta 3)
                     if (anime.genres.isNotEmpty()) {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items(anime.genres.take(2)) { genre ->
+                            items(anime.genres.take(3)) { genre ->
                                 genre?.name?.let { GenreChipCompact(genreName = it) }
                             }
-                            if (anime.genres.size > 2) {
-                                item { GenreChipCompact(genreName = "+${anime.genres.size - 2}") }
+                            if (anime.genres.size > 3) {
+                                item { GenreChipCompact(genreName = "+${anime.genres.size - 3}") }
                             }
                         }
                     }
                 }
 
+                // 4. Bottom: Metadata Pills + Botón
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        InfoChip(icon = Icons.Default.CalendarToday, text = anime.year)
-                        InfoChip(icon = Icons.Default.PlayCircleOutline, text = "${anime.episodes}")
+                        YearPill(year = anime.year)
+                        EpisodesPill(episodes = anime.episodes)
                     }
                     Surface(
                         onClick = {
@@ -1327,7 +1293,7 @@ fun AnimeCardItem(
                         },
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                        modifier = Modifier.size(38.adp())
+                        modifier = Modifier.size(48.adp())
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -1337,7 +1303,7 @@ fun AnimeCardItem(
                                 imageVector = Icons.Default.BookmarkBorder,
                                 contentDescription = "Añadir a lista",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.adp())
+                                modifier = Modifier.size(22.adp())
                             )
                         }
                     }
@@ -1469,6 +1435,207 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
 // SUBCOMPONENTES VISUALES
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PILLS COMPACTOS (Type, Score, Status) - Formato unificado
+// ═══════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun TypePill(type: String) {
+    val (color, displayText) = when (type) {
+        "TV" -> Color(0xFF6366F1) to "TV"
+        "Movie" -> Color(0xFFEC4899) to "Movie"
+        "OVA" -> Color(0xFF8B5CF6) to "OVA"
+        "ONA" -> Color(0xFF14B8A6) to "ONA"
+        "Special" -> Color(0xFFF59E0B) to "Special"
+        "Music" -> Color(0xFF06B6D4) to "Music"
+        else -> MaterialTheme.colorScheme.tertiary to type
+    }
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = color.copy(alpha = 0.18f)
+    ) {
+        Text(
+            text = displayText,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            color = color,
+            fontFamily = PoppinsBold,
+            fontSize = 10.asp(),
+            letterSpacing = 0.4.sp
+        )
+    }
+}
+
+@Composable
+private fun ScorePill(score: Float) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFFFFB300).copy(alpha = 0.18f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "Calificación",
+                tint = Color(0xFFFFB300),
+                modifier = Modifier.size(11.dp)
+            )
+            Text(
+                text = String.format("%.1f", score),
+                color = Color(0xFFFFB300),
+                fontSize = 10.asp(),
+                fontFamily = PoppinsBold,
+                letterSpacing = 0.3.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatusPill(status: String) {
+    val (color, text, dot) = when (status) {
+        "Currently Airing" -> Triple(Color(0xFF10B981), "Emisión", "●")
+        "Finished Airing" -> Triple(MaterialTheme.colorScheme.primary, "Finalizado", "✓")
+        "Not yet aired" -> Triple(Color(0xFFFF9800), "Próximo", "◐")
+        else -> Triple(MaterialTheme.colorScheme.outline, status, "○")
+    }
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = color.copy(alpha = 0.18f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = dot, color = color, fontSize = 9.asp(), fontFamily = PoppinsBold)
+            Text(
+                text = text,
+                color = color,
+                fontFamily = PoppinsBold,
+                fontSize = 10.asp(),
+                letterSpacing = 0.3.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun YearPill(year: String) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.CalendarToday,
+                contentDescription = "Año",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.size(10.dp)
+            )
+            Text(
+                text = year,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                fontSize = 10.asp(),
+                fontFamily = PoppinsBold,
+                letterSpacing = 0.3.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun EpisodesPill(episodes: String) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayCircleOutline,
+                contentDescription = "Episodios",
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.size(10.dp)
+            )
+            Text(
+                text = episodes,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                fontSize = 10.asp(),
+                fontFamily = PoppinsBold,
+                letterSpacing = 0.3.sp
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BADGES (usado en AnimeCardItemMinimal - mantener compatibilidad)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun TypeBadge(type: String) {
+    val (color, displayText) = when (type) {
+        "TV" -> Color(0xFF6366F1) to "TV"
+        "Movie" -> Color(0xFFEC4899) to "Movie"
+        "OVA" -> Color(0xFF8B5CF6) to "OVA"
+        "ONA" -> Color(0xFF14B8A6) to "ONA"
+        "Special" -> Color(0xFFF59E0B) to "Special"
+        "Music" -> Color(0xFF06B6D4) to "Music"
+        else -> MaterialTheme.colorScheme.tertiary to type
+    }
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = color.copy(alpha = 0.15f)
+    ) {
+        Text(
+            text = displayText,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            color = color,
+            fontFamily = PoppinsBold,
+            fontSize = 10.asp(),
+            letterSpacing = 0.3.sp
+        )
+    }
+}
+
+@Composable
+private fun ScoreChip(score: Float) {
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = Color(0xFFFFB300).copy(alpha = 0.15f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "Calificación",
+                tint = Color(0xFFFFB300),
+                modifier = Modifier.size(12.dp)
+            )
+            Text(
+                text = String.format("%.1f", score),
+                color = Color(0xFFFFB300),
+                fontSize = 11.asp(),
+                fontFamily = PoppinsBold,
+                letterSpacing = 0.2.sp
+            )
+        }
+    }
+}
+
 @Composable
 private fun StatusBadge(status: String) {
     val (color, text, dot) = when (status) {
@@ -1477,7 +1644,7 @@ private fun StatusBadge(status: String) {
         "Not yet aired" -> Triple(Color(0xFFFF9800), "Próximamente", "◐")
         else -> Triple(MaterialTheme.colorScheme.outline, status, "○")
     }
-    Surface(shape = RoundedCornerShape(8.dp), color = color.copy(alpha = 0.15f)) {
+    Surface(shape = RoundedCornerShape(7.dp), color = color.copy(alpha = 0.15f)) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1700,7 +1867,7 @@ private fun ActiveFiltersChips(
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(vertical = 8.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
         // Quick filter chip
         if (selectedQuick != null) {
