@@ -12,8 +12,10 @@ import com.yumedev.seijakulist.util.UserAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,6 +27,16 @@ class MyAnimeListViewModel @Inject constructor(
     private val firestoreAnimeRepository: FirestoreAnimeRepository,
     private val animeRepository: AnimeRepository
 ) : ViewModel() {
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private var hasLoadedOnce = false
+
+    // Evento para notificar cuando se completa un anime
+    data class AnimeCompletedEvent(val animeId: Int, val totalCompleted: Int)
+    private val _animeCompletedEvent = MutableStateFlow<AnimeCompletedEvent?>(null)
+    val animeCompletedEvent: StateFlow<AnimeCompletedEvent?> = _animeCompletedEvent.asStateFlow()
 
     val savedAnimes: StateFlow<List<AnimeEntity>> =
         animeLocalRepository.getAllAnimes()
@@ -74,8 +86,58 @@ class MyAnimeListViewModel @Inject constructor(
                 emptyList()
             )
 
+    /**
+     * Obtiene todos los géneros únicos de los animes guardados
+     */
+    fun getAvailableGenres(): List<String> {
+        return savedAnimes.value
+            .flatMap { anime ->
+                anime.genres.split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+            }
+            .distinct()
+            .sorted()
+    }
+
+    /**
+     * Obtiene todos los años únicos de los animes guardados
+     */
+    fun getAvailableYears(): List<String> {
+        return savedAnimes.value
+            .mapNotNull { it.year }
+            .filter { it.isNotBlank() && it != "No encontrado" }
+            .distinct()
+            .sortedDescending()
+    }
+
+    /**
+     * Obtiene todos los tipos únicos de los animes guardados
+     */
+    fun getAvailableTypes(): List<String> {
+        return savedAnimes.value
+            .mapNotNull { it.typeAnime }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+    }
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
+            // Solo mostrar skeleton la primera vez
+            if (!hasLoadedOnce) {
+                _isLoading.value = true
+                val startTime = System.currentTimeMillis()
+                savedAnimes.first()
+                val elapsed = System.currentTimeMillis() - startTime
+                if (elapsed < 600) {
+                    delay(600 - elapsed)
+                }
+                _isLoading.value = false
+                hasLoadedOnce = true
+            }
+
+            // Luego enriquecer detalles en background
             enrichMissingDetails()
         }
     }
@@ -150,10 +212,13 @@ class MyAnimeListViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val currentAnime = animeLocalRepository.getAnimeById(animeId)
 
+            var wasJustCompleted = false
+
             val updatedAnime = when (action) {
 
                 is UserAction.UpdateProgress -> {
                     val willBeCompleted = action.newProgress >= currentAnime.totalEpisodes
+                    wasJustCompleted = willBeCompleted && currentAnime.userStatus != "Completado"
                     val newRewatchCount = if (willBeCompleted && currentAnime.userStatus != "Completado") {
                         if (currentAnime.rewatchCount == 0) 1 else currentAnime.rewatchCount + 1
                     } else {
@@ -168,6 +233,7 @@ class MyAnimeListViewModel @Inject constructor(
                 }
 
                 is UserAction.MarkAsCompleted -> {
+                    wasJustCompleted = currentAnime.userStatus != "Completado"
                     currentAnime.copy(
                         userStatus = "Completado",
                         episodesWatched = currentAnime.totalEpisodes,
@@ -208,6 +274,13 @@ class MyAnimeListViewModel @Inject constructor(
 
             val animeEntity = updatedAnime.toAnimeEntity()
             animeLocalRepository.updateAnime(animeEntity)
+
+            // Si se acaba de completar, emitir el evento
+            if (wasJustCompleted) {
+                val totalCompleted = savedAnimeStatusComplete.value.size + 1
+                _animeCompletedEvent.value = AnimeCompletedEvent(animeId, totalCompleted)
+            }
+
             try {
                 firestoreAnimeRepository.syncAnimeToFirestore(animeEntity)
             } catch (e: Exception) {
@@ -219,6 +292,9 @@ class MyAnimeListViewModel @Inject constructor(
     fun updateEpisodesWatched(animeId: Int, newEpisodesWatched: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val currentAnime = animeLocalRepository.getAnimeById(animeId)
+
+            val wasJustCompleted = newEpisodesWatched == currentAnime.totalEpisodes &&
+                                   currentAnime.userStatus != "Completado"
 
             val newStatus = if (newEpisodesWatched == currentAnime.totalEpisodes) {
                 "Completado"
@@ -240,12 +316,23 @@ class MyAnimeListViewModel @Inject constructor(
 
             val anime = updatedAnime.toAnimeEntity()
             animeLocalRepository.updateAnime(anime)
+
+            // Si se acaba de completar, emitir el evento
+            if (wasJustCompleted) {
+                val totalCompleted = savedAnimeStatusComplete.value.size + 1
+                _animeCompletedEvent.value = AnimeCompletedEvent(animeId, totalCompleted)
+            }
+
             try {
                 firestoreAnimeRepository.syncAnimeToFirestore(anime)
             } catch (e: Exception) {
                 Log.e("MyAnimeListVM", "Error syncing episodes update to Firestore: ${e.message}")
             }
         }
+    }
+
+    fun clearAnimeCompletedEvent() {
+        _animeCompletedEvent.value = null
     }
 
     fun deleteAnimeToList(animeId: Int) {
