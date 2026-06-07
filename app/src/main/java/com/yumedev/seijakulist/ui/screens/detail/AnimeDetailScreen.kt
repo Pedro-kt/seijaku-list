@@ -3772,16 +3772,16 @@ fun DetailChip(icon: ImageVector, text: String) {
 fun DetailChipSmall(icon: ImageVector, text: String) {
     Surface(
         shape = RoundedCornerShape(6.dp),
-        color = Color.Black.copy(alpha = 0.6f),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, null, modifier = Modifier.size(11.dp), tint = Color.White)
+            Icon(icon, null, modifier = Modifier.size(11.dp), tint = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.width(4.dp))
-            Text(text, fontSize = 11.asp(), fontFamily = PoppinsMedium, color = Color.White)
+            Text(text, fontSize = 11.asp(), fontFamily = PoppinsMedium, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -3838,22 +3838,22 @@ fun StatusChip(status: String) {
     // Definimos los colores basados en el estado
     val (statusBg, statusFg, dotColor) = when (status) {
         "Currently Airing" -> Triple(
-            Color.Black.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.surfaceContainerHigh,
             Color(0xFF66BB6A),
             Color(0xFF66BB6A)
         )
         "Finished Airing" -> Triple(
-            Color.Black.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.surfaceContainerHigh,
             Color(0xFF42A5F5),
             Color(0xFF42A5F5)
         )
         "Not yet aired" -> Triple(
-            Color.Black.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.surfaceContainerHigh,
             Color(0xFFFFA726),
             Color(0xFFFFA726)
         )
         else -> Triple(
-            Color.Black.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.surfaceContainerHigh,
             Color.White,
             Color.White
         )
