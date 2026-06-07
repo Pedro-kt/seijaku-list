@@ -34,9 +34,19 @@ class MyAnimeListViewModel @Inject constructor(
     private var hasLoadedOnce = false
 
     // Evento para notificar cuando se completa un anime
-    data class AnimeCompletedEvent(val animeId: Int, val totalCompleted: Int)
+    data class AnimeCompletedEvent(val animeId: Int, val totalCompleted: Int, val animeTitle: String)
     private val _animeCompletedEvent = MutableStateFlow<AnimeCompletedEvent?>(null)
     val animeCompletedEvent: StateFlow<AnimeCompletedEvent?> = _animeCompletedEvent.asStateFlow()
+
+    // Estado para controlar el modal de review
+    data class ReviewDialogState(
+        val animeId: Int,
+        val animeTitle: String,
+        val currentScore: Float,
+        val currentOpinion: String
+    )
+    private val _showReviewDialog = MutableStateFlow<ReviewDialogState?>(null)
+    val showReviewDialog: StateFlow<ReviewDialogState?> = _showReviewDialog.asStateFlow()
 
     val savedAnimes: StateFlow<List<AnimeEntity>> =
         animeLocalRepository.getAllAnimes()
@@ -275,10 +285,16 @@ class MyAnimeListViewModel @Inject constructor(
             val animeEntity = updatedAnime.toAnimeEntity()
             animeLocalRepository.updateAnime(animeEntity)
 
-            // Si se acaba de completar, emitir el evento
+            // Si se acaba de completar, emitir el evento y mostrar modal de review
             if (wasJustCompleted) {
                 val totalCompleted = savedAnimeStatusComplete.value.size + 1
-                _animeCompletedEvent.value = AnimeCompletedEvent(animeId, totalCompleted)
+                _animeCompletedEvent.value = AnimeCompletedEvent(animeId, totalCompleted, animeEntity.title)
+                _showReviewDialog.value = ReviewDialogState(
+                    animeId = animeId,
+                    animeTitle = animeEntity.title,
+                    currentScore = animeEntity.userScore,
+                    currentOpinion = animeEntity.userOpiniun
+                )
             }
 
             try {
@@ -317,10 +333,16 @@ class MyAnimeListViewModel @Inject constructor(
             val anime = updatedAnime.toAnimeEntity()
             animeLocalRepository.updateAnime(anime)
 
-            // Si se acaba de completar, emitir el evento
+            // Si se acaba de completar, emitir el evento y mostrar modal de review
             if (wasJustCompleted) {
                 val totalCompleted = savedAnimeStatusComplete.value.size + 1
-                _animeCompletedEvent.value = AnimeCompletedEvent(animeId, totalCompleted)
+                _animeCompletedEvent.value = AnimeCompletedEvent(animeId, totalCompleted, anime.title)
+                _showReviewDialog.value = ReviewDialogState(
+                    animeId = animeId,
+                    animeTitle = anime.title,
+                    currentScore = anime.userScore,
+                    currentOpinion = anime.userOpiniun
+                )
             }
 
             try {
@@ -348,5 +370,40 @@ class MyAnimeListViewModel @Inject constructor(
                 Log.e("MyAnimeListVM", "Error al eliminar el anime: ${e.message}")
             }
         }
+    }
+
+    /**
+     * Actualiza la puntuación y opinión del usuario sobre un anime
+     */
+    fun updateAnimeReview(animeId: Int, score: Float, opinion: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val currentAnime = animeLocalRepository.getAnimeById(animeId)
+                val updatedAnime = currentAnime.copy(
+                    userScore = score,
+                    userOpiniun = opinion
+                )
+
+                val animeEntity = updatedAnime.toAnimeEntity()
+                animeLocalRepository.updateAnime(animeEntity)
+
+                try {
+                    firestoreAnimeRepository.syncAnimeToFirestore(animeEntity)
+                } catch (e: Exception) {
+                    Log.e("MyAnimeListVM", "Error syncing review to Firestore: ${e.message}")
+                }
+
+                Log.d("MyAnimeListVM", "Review actualizado: score=$score, opinion=${opinion.take(50)}")
+            } catch (e: Exception) {
+                Log.e("MyAnimeListVM", "Error updating anime review: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Cierra el modal de review
+     */
+    fun dismissReviewDialog() {
+        _showReviewDialog.value = null
     }
 }

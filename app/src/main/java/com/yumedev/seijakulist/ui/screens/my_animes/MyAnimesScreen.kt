@@ -121,6 +121,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.components.AdvancedFiltersBottomSheet
 import com.yumedev.seijakulist.ui.components.AnimeFilters
+import com.yumedev.seijakulist.ui.components.AnimeReviewDialog
 import com.yumedev.seijakulist.ui.components.AnimeStatusChip
 import com.yumedev.seijakulist.ui.components.CustomDialog
 import com.yumedev.seijakulist.ui.components.DeleteMyAnime
@@ -151,6 +152,7 @@ fun MyAnimeListScreen(
     val savedAnimeStatusAbandoned by viewModel.savedAnimeStatusAbandoned.collectAsState()
     val savedAnimeStatusPlanned by viewModel.savedAnimeStatusPlanned.collectAsState()
     val animeCompletedEvent by viewModel.animeCompletedEvent.collectAsState()
+    val showReviewDialog by viewModel.showReviewDialog.collectAsState()
 
     // Estado para el glow de cada anime
     var glowingAnimeId by remember { mutableStateOf<Int?>(null) }
@@ -1123,6 +1125,22 @@ fun MyAnimeListScreen(
         availableGenres = viewModel.getAvailableGenres(),
         availableYears = viewModel.getAvailableYears()
     )
+
+    // Modal de review al completar un anime
+    showReviewDialog?.let { dialogState ->
+        AnimeReviewDialog(
+            onDismissRequest = { viewModel.dismissReviewDialog() },
+            onSave = { score, opinion ->
+                viewModel.updateAnimeReview(dialogState.animeId, score, opinion)
+            },
+            onSkip = {
+                // No hacer nada, solo cerrar el modal
+            },
+            animeTitle = dialogState.animeTitle,
+            currentScore = dialogState.currentScore,
+            currentOpinion = dialogState.currentOpinion
+        )
+    }
 }
 
 @Composable
