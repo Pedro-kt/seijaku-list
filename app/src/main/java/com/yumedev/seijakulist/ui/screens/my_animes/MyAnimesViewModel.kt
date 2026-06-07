@@ -235,47 +235,77 @@ class MyAnimeListViewModel @Inject constructor(
                         currentAnime.rewatchCount
                     }
 
+                    // Auto-setear fecha de fin solo si estaba "Viendo" y ahora se completa
+                    val endDate = if (willBeCompleted && currentAnime.userStatus == "Viendo") {
+                        System.currentTimeMillis()
+                    } else {
+                        currentAnime.endDate
+                    }
+
                     currentAnime.copy(
                         episodesWatched = action.newProgress,
                         userStatus = if (willBeCompleted) "Completado" else currentAnime.userStatus,
-                        rewatchCount = newRewatchCount
+                        rewatchCount = newRewatchCount,
+                        endDate = endDate
                     )
                 }
 
                 is UserAction.MarkAsCompleted -> {
                     wasJustCompleted = currentAnime.userStatus != "Completado"
+                    // Auto-setear fecha de fin solo si estaba "Viendo"
+                    val endDate = if (currentAnime.userStatus == "Viendo") {
+                        System.currentTimeMillis()
+                    } else {
+                        currentAnime.endDate
+                    }
                     currentAnime.copy(
                         userStatus = "Completado",
                         episodesWatched = currentAnime.totalEpisodes,
-                        rewatchCount = currentAnime.rewatchCount + 1
+                        rewatchCount = currentAnime.rewatchCount + 1,
+                        endDate = endDate
                     )
                 }
 
                 is UserAction.MarkAsPlanned -> {
+                    // Limpiar ambas fechas al marcar como planeado
                     currentAnime.copy(
                         userStatus = "Planeado",
-                        episodesWatched = 0
+                        episodesWatched = 0,
+                        startDate = null,
+                        endDate = null
                     )
                 }
 
                 is UserAction.MarkAsWatching -> {
+                    // Auto-setear fecha de inicio solo si está vacía
+                    val startDate = currentAnime.startDate ?: System.currentTimeMillis()
+                    // Limpiar fecha de fin si venía de completado
+                    val endDate = if (currentAnime.userStatus == "Completado") null else currentAnime.endDate
                     currentAnime.copy(
                         userStatus = "Viendo",
-                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched
+                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched,
+                        startDate = startDate,
+                        endDate = endDate
                     )
                 }
 
                 is UserAction.MarkAsDropped -> {
+                    // Limpiar fecha de fin si venía de completado
+                    val endDate = if (currentAnime.userStatus == "Completado") null else currentAnime.endDate
                     currentAnime.copy(
                         userStatus = "Abandonado",
-                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched
+                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched,
+                        endDate = endDate
                     )
                 }
 
                 is UserAction.MarkAsPending -> {
+                    // Limpiar fecha de fin si venía de completado
+                    val endDate = if (currentAnime.userStatus == "Completado") null else currentAnime.endDate
                     currentAnime.copy(
                         userStatus = "Pendiente",
-                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched
+                        episodesWatched = if (currentAnime.userStatus == "Completado") 0 else currentAnime.episodesWatched,
+                        endDate = endDate
                     )
                 }
 
@@ -324,10 +354,18 @@ class MyAnimeListViewModel @Inject constructor(
                 currentAnime.rewatchCount
             }
 
+            // Auto-setear fecha de fin solo si estaba "Viendo" y ahora se completa
+            val endDate = if (newStatus == "Completado" && currentAnime.userStatus == "Viendo") {
+                System.currentTimeMillis()
+            } else {
+                currentAnime.endDate
+            }
+
             val updatedAnime = currentAnime.copy(
                 episodesWatched = newEpisodesWatched,
                 userStatus = newStatus,
-                rewatchCount = newRewatchCount
+                rewatchCount = newRewatchCount,
+                endDate = endDate
             )
 
             val anime = updatedAnime.toAnimeEntity()
