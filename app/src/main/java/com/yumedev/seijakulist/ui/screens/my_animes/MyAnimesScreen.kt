@@ -1052,32 +1052,6 @@ fun MyAnimeListScreen(
                                                     animeIdToDelete = anime.malId
                                                 }
                                             )
-
-                                            if (showDialog) {
-                                                CustomDialog(
-                                                    onDismissRequest = {
-                                                        showDialog = false
-                                                    },
-                                                    onConfirm = {
-                                                        viewModel.deleteAnimeToList(animeIdToDelete)
-                                                        scope.launch {
-                                                            snackbarHostState.showSnackbar(
-                                                                message = "Anime eliminado de tu lista",
-                                                                actionLabel = "Deshacer",
-                                                                duration = SnackbarDuration.Long
-                                                            )
-                                                        }
-                                                    },
-                                                    onDismiss = {
-                                                        // Solo cierra el diálogo
-                                                    },
-                                                    title = "Confirmar eliminación",
-                                                    message = "¿Estás seguro de que quieres eliminar este anime de tu lista?\n\nUna vez eliminado tendrás que volver a agregarlo de nuevo a tu lista.",
-                                                    confirmButtonText = "Eliminar",
-                                                    dismissButtonText = "Cancelar",
-                                                    type = DialogType.DELETE
-                                                )
-                                            }
                                         }
                                     }
                                 }
@@ -1139,6 +1113,33 @@ fun MyAnimeListScreen(
             animeTitle = dialogState.animeTitle,
             currentScore = dialogState.currentScore,
             currentOpinion = dialogState.currentOpinion
+        )
+    }
+
+    // Modal de confirmación de eliminación (disponible para todas las vistas)
+    if (showDialog) {
+        CustomDialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            onConfirm = {
+                viewModel.deleteAnimeToList(animeIdToDelete)
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Anime eliminado de tu lista",
+                        actionLabel = "Deshacer",
+                        duration = SnackbarDuration.Long
+                    )
+                }
+            },
+            onDismiss = {
+                // Solo cierra el diálogo
+            },
+            title = "Confirmar eliminación",
+            message = "¿Estás seguro de que quieres eliminar este anime de tu lista?\n\nUna vez eliminado tendrás que volver a agregarlo de nuevo a tu lista.",
+            confirmButtonText = "Eliminar",
+            dismissButtonText = "Cancelar",
+            type = DialogType.DELETE
         )
     }
 }
