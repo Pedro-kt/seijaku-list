@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
+import androidx.navigation.NavController
 
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Notifications
@@ -71,7 +72,7 @@ fun AppScaffold(
     val navController = rememberNavController()
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     var isSearching by remember { mutableStateOf(false) }
-    var viewMode by remember { mutableStateOf(ViewMode.LIST) }
+    val viewMode by settingsViewModel.viewMode.collectAsState()
     var sortOrder by remember { mutableStateOf(SortOrder.NONE) }
     var isSearchExpanded by remember { mutableStateOf(false) }
 
@@ -112,11 +113,12 @@ fun AppScaffold(
                             FilterTopAppBar(
                                 onSearchClick = { isSearching = true },
                                 onViewModeChange = {
-                                    viewMode = when (viewMode) {
+                                    val newMode = when (viewMode) {
                                         ViewMode.LIST -> ViewMode.GRID
                                         ViewMode.GRID -> ViewMode.CARD
                                         ViewMode.CARD -> ViewMode.LIST
                                     }
+                                    settingsViewModel.setViewMode(newMode)
                                 },
                                 viewMode = viewMode,
                                 onSortClick = {
