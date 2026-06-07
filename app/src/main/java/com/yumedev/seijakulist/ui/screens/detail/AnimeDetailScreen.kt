@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FilterList
@@ -142,6 +143,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -211,6 +214,7 @@ import com.yumedev.seijakulist.util.translateSeason
 import com.yumedev.seijakulist.util.translateStatus
 import java.net.URLEncoder
 import androidx.browser.customtabs.CustomTabsIntent
+import android.widget.Toast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -397,6 +401,7 @@ fun AnimeDetailScreen(
 
     var userOpinion by remember { mutableStateOf("") }
     val focusManager: FocusManager = LocalFocusManager.current
+    val clipboardManager = LocalClipboardManager.current
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -971,12 +976,37 @@ fun AnimeDetailScreen(
                                                         fontFamily = PoppinsRegular,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
-                                                    Text(
-                                                        text = animeDetail?.titleEnglish ?: "",
-                                                        fontSize = 14.asp(),
-                                                        fontFamily = PoppinsBold,
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            text = animeDetail?.titleEnglish ?: "",
+                                                            fontSize = 14.asp(),
+                                                            fontFamily = PoppinsBold,
+                                                            color = MaterialTheme.colorScheme.onSurface,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                        IconButton(
+                                                            onClick = {
+                                                                clipboardManager.setText(AnnotatedString(animeDetail?.titleEnglish ?: ""))
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Título copiado al portapapeles",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            },
+                                                            modifier = Modifier.size(32.dp)
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.ContentCopy,
+                                                                contentDescription = "Copiar título",
+                                                                modifier = Modifier.size(18.dp),
+                                                                tint = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                                 if (!animeDetail?.titleJapanese.isNullOrBlank()) {
                                                     HorizontalDivider(
@@ -993,12 +1023,37 @@ fun AnimeDetailScreen(
                                                         fontFamily = PoppinsRegular,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
-                                                    Text(
-                                                        text = animeDetail?.titleJapanese ?: "",
-                                                        fontSize = 14.asp(),
-                                                        fontFamily = PoppinsBold,
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            text = animeDetail?.titleJapanese ?: "",
+                                                            fontSize = 14.asp(),
+                                                            fontFamily = PoppinsBold,
+                                                            color = MaterialTheme.colorScheme.onSurface,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                        IconButton(
+                                                            onClick = {
+                                                                clipboardManager.setText(AnnotatedString(animeDetail?.titleJapanese ?: ""))
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Título copiado al portapapeles",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            },
+                                                            modifier = Modifier.size(32.dp)
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.ContentCopy,
+                                                                contentDescription = "Copiar título",
+                                                                modifier = Modifier.size(18.dp),
+                                                                tint = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -2676,16 +2731,11 @@ fun AnimeDetailScreen(
                                     plannedPriority = null,
                                     plannedNote = null
                                 )
-                                scope.launch {
-                                    val result = snackbarHostState.showSnackbar(
-                                        message = "Estado actualizado",
-                                        actionLabel = "Ver lista",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                    if (result == SnackbarResult.ActionPerformed) {
-                                        navController.navigate(AppDestinations.MY_ANIMES_ROUTE)
-                                    }
-                                }
+                                Toast.makeText(
+                                    context,
+                                    "Estado actualizado",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 showAddToListSheet = false
                             }
                         },
@@ -3071,16 +3121,11 @@ fun AnimeDetailScreen(
                                         plannedPriority = if (newStatus == "Planeado") plannedPriority else null,
                                         plannedNote = if (newStatus == "Planeado" && plannedNote.isNotBlank()) plannedNote else null
                                     )
-                                    scope.launch {
-                                        val result = snackbarHostState.showSnackbar(
-                                            message = "Anime guardado en tu lista",
-                                            actionLabel = "Ver lista",
-                                            duration = SnackbarDuration.Short
-                                        )
-                                        if (result == SnackbarResult.ActionPerformed) {
-                                            navController.navigate(AppDestinations.MY_ANIMES_ROUTE)
-                                        }
-                                    }
+                                    Toast.makeText(
+                                        context,
+                                        "Anime guardado en tu lista",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     showAddToListSheet = false
                                 }
                             }
