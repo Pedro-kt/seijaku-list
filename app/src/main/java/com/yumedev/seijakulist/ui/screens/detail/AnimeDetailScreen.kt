@@ -205,6 +205,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.util.translateAiredDates
+import com.yumedev.seijakulist.util.translateDuration
+import com.yumedev.seijakulist.util.translateSeason
+import com.yumedev.seijakulist.util.translateStatus
+import java.net.URLEncoder
+import androidx.browser.customtabs.CustomTabsIntent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -790,7 +796,7 @@ fun AnimeDetailScreen(
                                             .padding(start = 20.dp, end = 20.dp),
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                         ),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                     ) {
@@ -845,7 +851,7 @@ fun AnimeDetailScreen(
                                         .padding(horizontal = 20.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                     ),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
@@ -855,12 +861,52 @@ fun AnimeDetailScreen(
                                             .padding(16.dp),
                                         verticalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        Text(
-                                            text = "Sinopsis",
-                                            fontSize = 16.asp(),
-                                            fontFamily = PoppinsBold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Sinopsis",
+                                                fontSize = 16.asp(),
+                                                fontFamily = PoppinsBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+
+                                            TextButton(
+                                                onClick = {
+                                                    val synopsis = animeDetail?.synopsis ?: ""
+                                                    // Limitar el texto si es muy largo para evitar problemas con URLs
+                                                    val textToTranslate = if (synopsis.length > 2000) {
+                                                        synopsis.substring(0, 2000) + "..."
+                                                    } else {
+                                                        synopsis
+                                                    }
+                                                    val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
+                                                    // Usar el formato correcto de Google Translate
+                                                    val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
+
+                                                    val customTabsIntent = CustomTabsIntent.Builder()
+                                                        .setShowTitle(true)
+                                                        .build()
+                                                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                                                },
+                                                modifier = Modifier.height(32.dp),
+                                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.OpenInNew,
+                                                    contentDescription = "Traducir",
+                                                    modifier = Modifier.size(14.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = "Traducir",
+                                                    fontSize = 12.asp(),
+                                                    fontFamily = PoppinsMedium
+                                                )
+                                            }
+                                        }
 
                                         var textLayoutResult by remember {
                                             mutableStateOf<TextLayoutResult?>(null)
@@ -900,7 +946,7 @@ fun AnimeDetailScreen(
                                             .padding(horizontal = 20.dp),
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                         ),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                     ) {
@@ -970,7 +1016,7 @@ fun AnimeDetailScreen(
                                             .padding(horizontal = 20.dp),
                                         shape = RoundedCornerShape(16.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                         ),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                     ) {
@@ -1026,7 +1072,7 @@ fun AnimeDetailScreen(
                                         .padding(horizontal = 20.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                     ),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
@@ -1057,19 +1103,19 @@ fun AnimeDetailScreen(
                                             CompactInfoRow(label = "Episodios", value = "$it")
                                         }
                                         animeDetail?.duration?.let {
-                                            CompactInfoRow(label = "Duración", value = it)
+                                            CompactInfoRow(label = "Duración", value = translateDuration(it))
                                         }
                                         animeDetail?.season?.let {
-                                            CompactInfoRow(label = "Temporada", value = it)
+                                            CompactInfoRow(label = "Temporada", value = translateSeason(it))
                                         }
                                         animeDetail?.year?.let {
                                             CompactInfoRow(label = "Año", value = "$it")
                                         }
                                         animeDetail?.status?.let {
-                                            CompactInfoRow(label = "Estado", value = it)
+                                            CompactInfoRow(label = "Estado", value = translateStatus(it))
                                         }
                                         animeDetail?.aired?.let {
-                                            CompactInfoRow(label = "Transmitido", value = it)
+                                            CompactInfoRow(label = "Transmitido", value = translateAiredDates(it))
                                         }
                                         animeDetail?.rank?.let {
                                             CompactInfoRow(label = "Ranking", value = "#$it")
@@ -1093,7 +1139,7 @@ fun AnimeDetailScreen(
                                         .padding(horizontal = 20.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                     ),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
@@ -3597,12 +3643,13 @@ fun SectionHeader(
 @Composable
 fun StatusChip(status: String) {
     // Definimos los colores basados en el estado
-    val (statusBg, statusFg, statusLabel) = when (status) {
-        "Currently Airing" -> Triple(Color(0xFF4CAF50).copy(alpha = 0.15f), Color(0xFF4CAF50), "En emisión")
-        "Finished Airing" -> Triple(Color(0xFF2196F3).copy(alpha = 0.15f), Color(0xFF2196F3), "Finalizado")
-        "Not yet aired" -> Triple(Color(0xFFFF9800).copy(alpha = 0.15f), Color(0xFFFF9800), "Próximamente")
-        else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, status)
+    val (statusBg, statusFg) = when (status) {
+        "Currently Airing" -> Pair(Color(0xFF4CAF50).copy(alpha = 0.15f), Color(0xFF4CAF50))
+        "Finished Airing" -> Pair(Color(0xFF2196F3).copy(alpha = 0.15f), Color(0xFF2196F3))
+        "Not yet aired" -> Pair(Color(0xFFFF9800).copy(alpha = 0.15f), Color(0xFFFF9800))
+        else -> Pair(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant)
     }
+    val statusLabel = translateStatus(status)
 
     Surface(
         shape = RoundedCornerShape(50), // Estilo píldora
