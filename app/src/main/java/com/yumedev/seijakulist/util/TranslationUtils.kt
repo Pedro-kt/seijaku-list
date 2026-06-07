@@ -115,6 +115,30 @@ private fun translateSingleDate(date: String): String {
 }
 
 /**
+ * Traduce el origen del anime del inglés al español
+ */
+fun translateSource(source: String): String {
+    return when (source) {
+        "Light novel" -> "Novela ligera"
+        "Manga" -> "Manga"
+        "Original" -> "Original"
+        "Visual novel" -> "Novela visual"
+        "Game" -> "Videojuego"
+        "Video game" -> "Videojuego"
+        "Web manga" -> "Manga web"
+        "Novel" -> "Novela"
+        "4-koma manga" -> "Manga 4-koma"
+        "Book" -> "Libro"
+        "Card game" -> "Juego de cartas"
+        "Radio" -> "Radio"
+        "Music" -> "Música"
+        "Other" -> "Otro"
+        "Unknown" -> "Desconocido"
+        else -> source
+    }
+}
+
+/**
  * Capitaliza la primera letra de cada palabra
  */
 fun String.capitalizeWords(): String {
