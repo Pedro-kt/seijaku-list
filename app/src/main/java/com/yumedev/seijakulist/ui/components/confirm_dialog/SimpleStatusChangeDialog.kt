@@ -4,8 +4,12 @@ import androidx.compose.runtime.Composable
 import com.yumedev.seijakulist.ui.components.CustomDialog
 import com.yumedev.seijakulist.ui.components.DialogType
 
+/**
+ * Diálogo simple y genérico para confirmar cambio de estado
+ */
 @Composable
-fun ConfirmResetEpisodesDialog(
+fun SimpleStatusChangeDialog(
+    newStatus: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -13,10 +17,10 @@ fun ConfirmResetEpisodesDialog(
         onDismissRequest = onDismiss,
         onConfirm = onConfirm,
         onDismiss = onDismiss,
-        title = "Reiniciar progreso",
-        message = "Al cambiar de 'Completado' a otro estado, los episodios vistos se reiniciarán a 0.\n\n¿Deseas continuar?",
+        title = "Cambiar estado",
+        message = "¿Cambiar este anime a $newStatus?",
         confirmButtonText = "Sí",
         dismissButtonText = "No",
-        type = DialogType.WARNING
+        type = DialogType.INFO
     )
 }

@@ -35,9 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmCompleteDialog
-import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmPlannedDialog
-import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmResetEpisodesDialog
+import com.yumedev.seijakulist.ui.components.confirm_dialog.SimpleStatusChangeDialog
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.util.UserAction
@@ -54,9 +52,8 @@ fun AnimeStatusChip(
     onStatusSelected: (UserAction) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var showPlannedDialog by remember { mutableStateOf(false) }
-    var showCompleteDialog by remember { mutableStateOf(false) }
-    var showConfirmCompleteDialog by remember { mutableStateOf(false) }
+    var showStatusChangeDialog by remember { mutableStateOf(false) }
+    var pendingStatus by remember { mutableStateOf("") }
     var pendingAction: UserAction? by remember { mutableStateOf(null) }
 
     val statusAnime = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
@@ -140,7 +137,8 @@ fun AnimeStatusChip(
                     },
                     onClick = {
                         expanded = false
-                        if (status == "Completado" && newStatus == "Completado") return@DropdownMenuItem
+                        // No hacer nada si es el mismo estado
+                        if (status == newStatus) return@DropdownMenuItem
 
                         val action = when (newStatus) {
                             "Viendo" -> UserAction.MarkAsWatching
@@ -151,28 +149,10 @@ fun AnimeStatusChip(
                             else -> UserAction.None
                         }
 
-                        when (newStatus) {
-                            "Planeado" -> {
-                                if (episodesWatched > 0) {
-                                    pendingAction = action
-                                    showPlannedDialog = true
-                                } else onStatusSelected(action)
-                            }
-                            "Completado" -> {
-                                if (episodesWatched >= 0 && episodesWatched < totalEpisodes || episodesWatched == totalEpisodes) {
-                                    pendingAction = action
-                                    showConfirmCompleteDialog = true
-                                } else {
-                                    onStatusSelected(action)
-                                }
-                            }
-                            else -> {
-                                if (episodesWatched == totalEpisodes && newStatus != "Completado") {
-                                    pendingAction = action
-                                    showCompleteDialog = true
-                                } else onStatusSelected(action)
-                            }
-                        }
+                        // Mostrar diálogo de confirmación simple para cualquier cambio
+                        pendingAction = action
+                        pendingStatus = newStatus
+                        showStatusChangeDialog = true
                     },
                     leadingIcon = {
                         if (statusIcon != null) {
@@ -211,47 +191,20 @@ fun AnimeStatusChip(
         }
     }
 
-    if (showPlannedDialog && pendingAction != null) {
-        ConfirmPlannedDialog(
+    // Diálogo simple genérico para cualquier cambio de estado
+    if (showStatusChangeDialog && pendingAction != null) {
+        SimpleStatusChangeDialog(
+            newStatus = pendingStatus,
             onConfirm = {
                 onStatusSelected(pendingAction!!)
-                showPlannedDialog = false
+                showStatusChangeDialog = false
                 pendingAction = null
+                pendingStatus = ""
             },
             onDismiss = {
-                showPlannedDialog = false
+                showStatusChangeDialog = false
                 pendingAction = null
-            }
-        )
-    }
-
-    if (showCompleteDialog && pendingAction != null) {
-        ConfirmResetEpisodesDialog(
-            onConfirm = {
-                onStatusSelected(pendingAction!!)
-                showCompleteDialog = false
-                pendingAction = null
-            },
-            onDismiss = {
-                showCompleteDialog = false
-                pendingAction = null
-            }
-        )
-    }
-
-    if (showConfirmCompleteDialog && pendingAction != null) {
-        ConfirmCompleteDialog(
-            animeTitle = animeTitle,
-            watched = episodesWatched,
-            total = totalEpisodes,
-            onConfirm = {
-                onStatusSelected(pendingAction!!)
-                showConfirmCompleteDialog = false
-                pendingAction = null
-            },
-            onDismiss = {
-                showConfirmCompleteDialog = false
-                pendingAction = null
+                pendingStatus = ""
             }
         )
     }
