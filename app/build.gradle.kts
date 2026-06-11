@@ -127,4 +127,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage-ktx")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Custom Tabs para abrir navegador integrado
+    implementation("androidx.browser:browser:1.8.0")
 }
