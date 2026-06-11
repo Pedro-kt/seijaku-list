@@ -76,7 +76,12 @@ import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CalendarToday
@@ -269,12 +274,13 @@ fun HomeScreen(
             if (animeSeasonUpcomingIsLoading) {
                 LoadingScreen()
             } else if (animeSeasonNow.isNotEmpty()) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        CustomSeijakuTabSelector(
-                            tabs = listOf("Anime", "Manga"),
-                            selectedTabIndex = selectedTabIndex,
-                            onTabSelected = { selectedTabIndex = it })
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // TabRow fijo sin padding bottom
+                    CustomSeijakuTabSelector(
+                        tabs = listOf("Anime", "Manga"),
+                        selectedTabIndex = selectedTabIndex,
+                        onTabSelected = { selectedTabIndex = it }
+                    )
 
                         WhatsNewBanner(
                     versionName = CURRENT_WHATS_NEW.versionName,
@@ -315,7 +321,14 @@ fun HomeScreen(
                             localAnimeStatuses = localAnimeStatuses,
                             heroCards = heroCards,
                             heroIsLoading = heroIsLoading,
-                            listState = listState
+                            listState = listState,
+                            isRefreshing = animeSeasonNowIsLoading,
+                            onRefresh = {
+                                seasonNowViewModel.AnimesSeasonNow()
+                                topAnimesViewModel.topAnime()
+                                seasonUpcomingViewModel.AnimesSeasonUpcoming()
+                                heroCarouselViewModel.retry()
+                            }
                         )
                     }
 
@@ -323,36 +336,13 @@ fun HomeScreen(
                         MangaPlaceholder()
                     }
                 }
-                    }
-
-                    // Degradado suave debajo del TabSelector que se superpone al contenido
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(28.dp)
-                            .align(Alignment.TopCenter)
-                            .offset(y = 56.dp) // Posición justo debajo del TabSelector
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.background,
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.3f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.1f),
-                                        Color.Transparent
-                                    )
-                                )
-                            )
-                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AnimeContent(
     animeSeasonNow: List<Any>,
@@ -382,12 +372,19 @@ private fun AnimeContent(
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     heroCards: List<com.yumedev.seijakulist.domain.models.HeroAnimeItem>? = null,
     heroIsLoading: Boolean = true,
-    listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState()
+    listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {}
 ) {
-    LazyColumn(
-        state = listState,
-        contentPadding = PaddingValues(top = 2.dp, bottom = 16.dp)
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
     ) {
+        LazyColumn(
+            state = listState,
+            contentPadding = PaddingValues(bottom = 16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
         // Quick Stats PRIMERO (solo si tiene animes guardados)
         profileUiState.allSavedAnimes.takeIf { it.isNotEmpty() }?.let { savedAnimes ->
             item {
@@ -476,6 +473,7 @@ private fun AnimeContent(
             Spacer(Modifier.height(80.adp()))
         }
     }
+  }
 }
 
 @Composable
