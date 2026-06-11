@@ -282,15 +282,6 @@ fun HomeScreen(
                         onTabSelected = { selectedTabIndex = it }
                     )
 
-                        WhatsNewBanner(
-                    versionName = CURRENT_WHATS_NEW.versionName,
-                    visible = showWhatsNewBanner,
-                    onTap = {
-                        showWhatsNewBanner = false
-                        navController.navigate(AppDestinations.NOVEDADES_ROUTE)
-                    },
-                    onDismiss = { showWhatsNewBanner = false })
-
                 when (selectedTabIndex) {
                     0 -> {
                         AnimeContent(
@@ -1616,20 +1607,28 @@ private fun QuickStats(
                     val insights = remember(stats) {
                         buildList {
                             // 1. Siempre: Total de animes - Azul
-                            add(InsightData("${stats.totalAnimes} animes en tu lista", Color(0xFF2196F3)))
+                            val animeText = if (stats.totalAnimes == 1) "anime" else "animes"
+                            add(InsightData("${stats.totalAnimes} $animeText en tu lista", Color(0xFF2196F3)))
 
                             // 2. Siempre: Horas vistas - Verde
-                            val hours = stats.totalEpisodesWatched * 24 / 60
+                            val totalMinutes = stats.totalEpisodesWatched * 24
+                            val hours = totalMinutes / 60
                             val days = hours / 24
                             if (days > 0) {
-                                add(InsightData("$days días disfrutando anime", Color(0xFF4CAF50)))
+                                val diasText = if (days == 1) "día" else "días"
+                                add(InsightData("$days $diasText disfrutando anime", Color(0xFF4CAF50)))
+                            } else if (hours > 0) {
+                                val horasText = if (hours == 1) "hora" else "horas"
+                                add(InsightData("$hours $horasText disfrutando anime", Color(0xFF4CAF50)))
                             } else {
-                                add(InsightData("$hours horas disfrutando anime", Color(0xFF4CAF50)))
+                                val minutosText = if (totalMinutes == 1) "minuto" else "minutos"
+                                add(InsightData("$totalMinutes $minutosText disfrutando anime", Color(0xFF4CAF50)))
                             }
 
                             // 3. Si completedAnimes > 0 - Celeste
                             if (stats.completedAnimes > 0) {
-                                add(InsightData("Has completado ${stats.completedAnimes} series", Color(0xFF00BCD4)))
+                                val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
+                                add(InsightData("Has completado ${stats.completedAnimes} $seriesText", Color(0xFF00BCD4)))
                             }
 
                             // 4. Si averageScore > 0 - Naranja
@@ -1645,17 +1644,20 @@ private fun QuickStats(
 
                             // 6. Si watchingAnimes > 0 - Rosa
                             if (stats.watchingAnimes > 0) {
-                                add(InsightData("Viendo ${stats.watchingAnimes} animes ahora mismo", Color(0xFFE91E63)))
+                                val watchingText = if (stats.watchingAnimes == 1) "anime" else "animes"
+                                add(InsightData("Viendo ${stats.watchingAnimes} $watchingText ahora mismo", Color(0xFFE91E63)))
                             }
 
                             // 7. Si completedAnimes >= 10 - Teal
                             if (stats.completedAnimes >= 10) {
-                                add(InsightData("¡Ya completaste ${stats.completedAnimes} series!", Color(0xFF009688)))
+                                val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
+                                add(InsightData("¡Ya completaste ${stats.completedAnimes} $seriesText!", Color(0xFF009688)))
                             }
 
                             // 8. Si totalEpisodesWatched >= 100 - Índigo
                             if (stats.totalEpisodesWatched >= 100) {
-                                add(InsightData("Llevas ${stats.totalEpisodesWatched} episodios vistos", Color(0xFF3F51B5)))
+                                val episodiosText = if (stats.totalEpisodesWatched == 1) "episodio visto" else "episodios vistos"
+                                add(InsightData("Llevas ${stats.totalEpisodesWatched} $episodiosText", Color(0xFF3F51B5)))
                             }
                         }
                     }
