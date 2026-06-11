@@ -3,7 +3,6 @@ package com.yumedev.seijakulist.ui.screens.home
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
@@ -15,15 +14,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -38,7 +34,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -165,9 +160,7 @@ fun HomeScreen(
     heroCarouselViewModel: HeroCarouselViewModel = hiltViewModel(),
     onScrollChanged: (Boolean) -> Unit = {}
 ) {
-    // ── Banner "¿Qué hay de nuevo?" — una sola vez por versionCode ──────────
     val context = LocalContext.current
-    var showWhatsNewBanner by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("seijaku_prefs", Context.MODE_PRIVATE)
@@ -175,7 +168,6 @@ fun HomeScreen(
         val lastShownVersion = prefs.getInt("whats_new_last_version", 0)
         if (currentVersionCode > lastShownVersion) {
             prefs.edit().putInt("whats_new_last_version", currentVersionCode).apply()
-            showWhatsNewBanner = true
         }
     }
 
@@ -212,7 +204,6 @@ fun HomeScreen(
             animeSeasonNow.isEmpty() && topAnimes.isEmpty() && animeSeasonUpcoming.isEmpty()
 
     val listTab = listOf("Anime", "Manga")
-    val selectedTab = remember { mutableStateOf(listTab[0]) }
 
     val listDays =
         listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
@@ -1242,274 +1233,6 @@ private fun HeroMetaBadge(
     }
 }
 
-@Composable
-fun ScoreBadge(
-    score: Float?, modifier: Modifier = Modifier
-) {
-    if (score == null) return
-
-    val formattedScore = remember(score) {
-        String.format(java.util.Locale.US, "%.1f", score)
-    }
-
-    val animatedAlpha by animateFloatAsState(
-        targetValue = 1f, animationSpec = tween(400)
-    )
-
-    Surface(
-        modifier = modifier.graphicsLayer { alpha = animatedAlpha },
-        shape = RoundedCornerShape(50),
-        color = Color.Black.copy(alpha = 0.75f),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null,
-                tint = Color(0xFFFFC107), // Dorado más elegante
-                modifier = Modifier.size(13.dp)
-            )
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            Text(
-                text = formattedScore,
-                fontFamily = PoppinsMedium,
-                fontSize = 12.asp(),
-                color = Color.White
-            )
-        }
-    }
-}
-
-
-@Composable
-fun SectionLabel() {
-    Text(
-        text = "Anime Random",
-        fontFamily = PoppinsBold,
-        fontSize = 10.asp(),
-        letterSpacing = 1.4.sp,
-        color = MaterialTheme.colorScheme.primary
-    )
-}
-
-@Composable
-fun DetailsButton() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Ver detalles",
-                fontFamily = PoppinsMedium,
-                fontSize = 13.asp(),
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(14.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun MetadataItemModern(text: String, icon: ImageVector) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(14.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-            text = text,
-            fontFamily = PoppinsRegular,
-            fontSize = 12.asp(),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-
-// Skeleton del Banner Hero (diseño horizontal)
-@Composable
-private fun HeroBannerSkeleton() {
-    androidx.compose.material3.Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.adp())
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
-    ) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Skeleton de la imagen (lado izquierdo)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(130.adp())
-                    .background(
-                        shimmerBrush(
-                            targetValue = 1000f, showShimmer = true
-                        )
-                    )
-            )
-
-            // Skeleton del contenido (lado derecho)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Skeleton superior (título y metadata)
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Label skeleton
-                        Box(
-                            modifier = Modifier
-                                .width(90.adp())
-                                .height(14.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    shimmerBrush(
-                                        targetValue = 1000f, showShimmer = true
-                                    )
-                                )
-                        )
-
-                        // Título skeleton
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .height(20.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    shimmerBrush(
-                                        targetValue = 1000f, showShimmer = true
-                                    )
-                                )
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(18.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    shimmerBrush(
-                                        targetValue = 1000f, showShimmer = true
-                                    )
-                                )
-                        )
-
-                        // Metadata skeleton
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .width(50.dp)
-                                    .height(14.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(
-                                        shimmerBrush(
-                                            targetValue = 1000f, showShimmer = true
-                                        )
-                                    )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .width(60.adp())
-                                    .height(14.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(
-                                        shimmerBrush(
-                                            targetValue = 1000f, showShimmer = true
-                                        )
-                                    )
-                            )
-                        }
-                    }
-
-                    // Score skeleton (inferior)
-                    Box(
-                        modifier = Modifier
-                            .width(80.adp())
-                            .height(24.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(
-                                shimmerBrush(
-                                    targetValue = 1000f, showShimmer = true
-                                )
-                            )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun shimmerBrush(targetValue: Float = 1000f, showShimmer: Boolean = true): Brush {
-    return if (showShimmer) {
-        val shimmerColors = listOf(
-            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
-            MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f)
-        )
-
-        val transition =
-            rememberInfiniteTransition(label = "shimmer")
-        val translateAnimation = transition.animateFloat(
-            initialValue = 0f,
-            targetValue = targetValue,
-            animationSpec = infiniteRepeatable(
-                animation = tween(
-                    durationMillis = 1200,
-                    easing = FastOutSlowInEasing
-                ), repeatMode = RepeatMode.Restart
-            ),
-            label = "shimmerTranslate"
-        )
-
-        Brush.linearGradient(
-            colors = shimmerColors,
-            start = androidx.compose.ui.geometry.Offset.Zero,
-            end = androidx.compose.ui.geometry.Offset(
-                x = translateAnimation.value, y = translateAnimation.value
-            )
-        )
-    } else {
-        Brush.linearGradient(
-            colors = listOf(Color.Transparent, Color.Transparent),
-            start = androidx.compose.ui.geometry.Offset.Zero,
-            end = androidx.compose.ui.geometry.Offset.Zero
-        )
-    }
-}
-
 // Quick Stats Mejorado - Tu progreso
 @Composable
 private fun QuickStats(
@@ -1827,69 +1550,10 @@ private fun QuickStats(
         }
     }
 
-
-// Card de estadística mejorada con animación
-@Composable
-private fun EnhancedStatCard(
-    modifier: Modifier = Modifier, value: String, label: String, delay: Int = 0
-) {
-    val shouldAnimate = !HomeAnimationState.hasAnimated
-    var isVisible by remember { mutableStateOf(!shouldAnimate) }
-
-    LaunchedEffect(shouldAnimate) {
-        if (shouldAnimate) {
-            kotlinx.coroutines.delay(delay.toLong())
-            isVisible = true
-        }
-    }
-
-    AnimatedVisibility(
-        visible = isVisible, enter = fadeIn(animationSpec = tween(400)) + scaleIn(
-            initialScale = 0.9f, animationSpec = tween(400, easing = FastOutSlowInEasing)
-        ), modifier = modifier
-    ) {
-        androidx.compose.material3.Card(
-            modifier = Modifier.height(70.adp()),
-            shape = RoundedCornerShape(14.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = androidx.compose.material3.CardDefaults.cardElevation(
-                defaultElevation = 1.dp
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = label,
-                    fontFamily = PoppinsRegular,
-                    fontSize = 11.asp(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    letterSpacing = 0.3.sp
-                )
-
-                Text(
-                    text = value,
-                    fontFamily = PoppinsBold,
-                    fontSize = 26.asp(),
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 0.sp,
-                    lineHeight = 26.asp()
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-    }
-}
-
 // Card mejorada de "Continúa viendo"
 @Composable
 private fun EnhancedContinueWatchingCard(
-    anime: com.yumedev.seijakulist.data.local.entities.AnimeEntity,
+    anime: AnimeEntity,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
