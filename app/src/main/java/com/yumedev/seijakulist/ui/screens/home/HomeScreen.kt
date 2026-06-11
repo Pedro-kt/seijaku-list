@@ -66,6 +66,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.animateDpAsState
@@ -130,9 +131,10 @@ import com.yumedev.seijakulist.ui.components.CardAnimesHomeLoading
 import com.yumedev.seijakulist.ui.components.CURRENT_WHATS_NEW
 import com.yumedev.seijakulist.ui.components.WhatsNewBanner
 import com.yumedev.seijakulist.ui.screens.home.FilterAnimesHome
-import com.yumedev.seijakulist.ui.components.LoadingScreen
+import com.yumedev.seijakulist.ui.components.FullHomeScreenSkeleton
 import com.yumedev.seijakulist.ui.components.MangaPlaceholder
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
+import com.yumedev.seijakulist.ui.components.shimmerBrush
 import com.yumedev.seijakulist.ui.screens.profile.AnimeStats
 import com.yumedev.seijakulist.ui.screens.profile.CustomSeijakuTabSelector
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
@@ -250,6 +252,28 @@ fun HomeScreen(
         onScrollChanged(isScrolled.value)
     }
 
+    // Determinar si estamos en carga inicial
+    // SOLO mostrar skeleton si:
+    // 1. Estamos cargando Y
+    // 2. NO hay datos que mostrar
+    val isInitialLoading = (animeSeasonNowIsLoading || animeSeasonUpcomingIsLoading) &&
+                           animeSeasonNow.isEmpty() &&
+                           topAnimes.isEmpty() &&
+                           animeSeasonUpcoming.isEmpty()
+
+    // Log de estados para debugging
+    LaunchedEffect(animeSeasonNowIsLoading, animeSeasonUpcomingIsLoading,
+                   animeSeasonNow.size, topAnimes.size, animeSeasonUpcoming.size) {
+        Log.d("HomeScreen", """
+            |--- HOME SCREEN STATE ---
+            |SeasonNow Loading: $animeSeasonNowIsLoading, Size: ${animeSeasonNow.size}
+            |SeasonUpcoming Loading: $animeSeasonUpcomingIsLoading, Size: ${animeSeasonUpcoming.size}
+            |TopAnimes Size: ${topAnimes.size}
+            |isInitialLoading: $isInitialLoading
+            |-------------------------
+        """.trimMargin())
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (hasError) {
             NoInternetScreen(
@@ -262,8 +286,8 @@ fun HomeScreen(
                     //characterRandomViewModel.loadCharacterRandom()
                 })
         } else {
-            if (animeSeasonUpcomingIsLoading) {
-                LoadingScreen()
+            if (isInitialLoading) {
+                FullHomeScreenSkeleton()
             } else if (animeSeasonNow.isNotEmpty()) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     // TabRow fijo sin padding bottom
@@ -710,14 +734,6 @@ private object HomeAnimationState {
     var hasAnimated = false
 }
 
-private val heroPlaceholderColors = listOf(
-    Color(0xFF6200EA),
-    Color(0xFF00897B),
-    Color(0xFFE64A19),
-    Color(0xFF1565C0),
-    Color(0xFF558B2F),
-)
-
 // Hero Carousel — 5 cards deslizables con diseño moderno inspirado en "My Favorites"
 @Composable
 private fun HeroCarousel(
@@ -726,7 +742,7 @@ private fun HeroCarousel(
     @Suppress("UNUSED_PARAMETER") isLoading: Boolean,
     localAnimeStatuses: Map<Int, String> = emptyMap()
 ) {
-    val pageCount = if (cards.isNullOrEmpty()) heroPlaceholderColors.size else cards.size
+    val pageCount = if (cards.isNullOrEmpty()) 5 else cards.size
     val pagerState = rememberPagerState(pageCount = { pageCount })
 
     // Control de auto-scroll con detección de interacción del usuario
@@ -864,7 +880,7 @@ private fun HeroCarousel(
                     contentAlignment = Alignment.Center
                 ) {
                     if (cards.isNullOrEmpty()) {
-                        HeroPlaceholderCard(color = heroPlaceholderColors[page])
+                        HeroPlaceholderCard()
                     } else {
                         HeroAnimeCard(
                             item = cards[page],
@@ -920,28 +936,76 @@ private fun HeroCarousel(
 }
 
 @Composable
-private fun HeroPlaceholderCard(color: Color) {
+private fun HeroPlaceholderCard() {
+    val brush = shimmerBrush()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.adp()),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = color)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            val transition = rememberInfiniteTransition(label = "shimmer")
-            val alpha by transition.animateFloat(
-                initialValue = 0.3f,
-                targetValue = 0.6f,
-                animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
-                label = "shimmer_alpha"
-            )
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(brush)
+        ) {
+            // Contenido skeleton del hero card
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White.copy(alpha = alpha))
-            )
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Géneros skeleton
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    repeat(2) {
+                        Box(
+                            modifier = Modifier
+                                .width(60.dp)
+                                .height(18.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color.White.copy(alpha = 0.2f))
+                        )
+                    }
+                }
+
+                // Título skeleton
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.3f))
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(18.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.3f))
+                )
+
+                // Meta badges skeleton
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    repeat(3) {
+                        Box(
+                            modifier = Modifier
+                                .width(50.dp)
+                                .height(22.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.White.copy(alpha = 0.2f))
+                        )
+                    }
+                }
+            }
         }
     }
 }
