@@ -8,13 +8,13 @@ import javax.inject.Singleton
 
 /**
  * Throttler para coordinar peticiones a la API y respetar los rate limits.
- * Jikan API permite 3 peticiones por segundo, usamos 500ms de delay para estar seguros.
+ * Jikan API permite 2 peticiones por segundo, usamos 600ms de delay para estar seguros.
  */
 @Singleton
 class RequestThrottler @Inject constructor() {
     private val mutex = Mutex()
     private var lastRequestTime = 0L
-    private val minDelayBetweenRequests = 500L // 500ms = máx 2 req/seg (conservador)
+    private val minDelayBetweenRequests = 600L // 600ms = máx 1.66 req/seg (conservador para 2 req/seg)
 
     /**
      * Ejecuta una petición respetando el rate limit.

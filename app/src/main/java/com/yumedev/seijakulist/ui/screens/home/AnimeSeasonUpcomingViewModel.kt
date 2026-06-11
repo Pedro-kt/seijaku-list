@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,7 +48,11 @@ class AnimeSeasonUpcomingViewModel @Inject constructor(
             // Si hay cache, cargar en background sin bloquear la UI
             AnimesSeasonUpcoming(silent = true)
         } else {
-            AnimesSeasonUpcoming()
+            // Delay de 1400ms para evitar saturar el rate limit (3ª petición)
+            viewModelScope.launch {
+                delay(1400)
+                AnimesSeasonUpcoming()
+            }
         }
     }
 

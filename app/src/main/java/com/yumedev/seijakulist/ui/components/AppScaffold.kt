@@ -1,14 +1,24 @@
 package com.yumedev.seijakulist.ui.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
@@ -43,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,6 +67,7 @@ import com.yumedev.seijakulist.util.navigation_tools.navItems
 import com.yumedev.seijakulist.AppNavigation
 import com.yumedev.seijakulist.R
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
+import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 
 enum class SortOrder {
     NONE,
@@ -63,7 +75,8 @@ enum class SortOrder {
     Z_TO_A
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.P)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun AppScaffold(
     viewModel: MyAnimeListViewModel = hiltViewModel(),
@@ -75,6 +88,7 @@ fun AppScaffold(
     val viewMode by settingsViewModel.viewMode.collectAsState()
     var sortOrder by remember { mutableStateOf(SortOrder.NONE) }
     var isSearchExpanded by remember { mutableStateOf(false) }
+    var homeScrolled by remember { mutableStateOf(false) }
 
     // Pantallas fullscreen que deben dibujarse detrás de la status bar (sin Scaffold)
     if (currentRoute == AppDestinations.SPLASH ||
@@ -89,7 +103,8 @@ fun AppScaffold(
             viewMode = viewMode,
             sortOrder = sortOrder,
             settingsViewModel = settingsViewModel,
-            onSearchExpandedChange = { isSearchExpanded = it }
+            onSearchExpandedChange = { isSearchExpanded = it },
+            onHomeScrollChanged = { homeScrolled = it }
         )
         return
     }
@@ -168,9 +183,33 @@ fun AppScaffold(
                 AppDestinations.HOME -> {
                     var titleVisible by remember { mutableStateOf(false) }
 
+                    // Lista de placeholders que van iterando
+                    val searchPlaceholders = remember {
+                        listOf(
+                            "Buscar anime...",
+                            "Buscar manga...",
+                            "Buscar personajes...",
+                            "Buscar estudios...",
+                            "Buscar géneros de anime...",
+                            "Buscar géneros de manga...",
+                            "Buscar staffs..."
+                        )
+                    }
+                    var currentPlaceholderIndex by remember { mutableStateOf(0) }
+
                     androidx.compose.runtime.LaunchedEffect(Unit) {
                         kotlinx.coroutines.delay(100)
                         titleVisible = true
+                    }
+
+                    // Iteración del placeholder cada 3 segundos
+                    androidx.compose.runtime.LaunchedEffect(homeScrolled) {
+                        if (homeScrolled) {
+                            while (true) {
+                                kotlinx.coroutines.delay(3000)
+                                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % searchPlaceholders.size
+                            }
+                        }
                     }
 
                     TopAppBar(
@@ -178,57 +217,165 @@ fun AppScaffold(
                             containerColor = MaterialTheme.colorScheme.background
                         ),
                         title = {
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = titleVisible,
-                                enter = androidx.compose.animation.fadeIn(
-                                    animationSpec = androidx.compose.animation.core.tween(
-                                        durationMillis = 800,
-                                        easing = androidx.compose.animation.core.FastOutSlowInEasing
-                                    )
-                                ) + androidx.compose.animation.slideInHorizontally(
-                                    initialOffsetX = { -40 },
-                                    animationSpec = androidx.compose.animation.core.tween(
-                                        durationMillis = 800,
-                                        easing = androidx.compose.animation.core.FastOutSlowInEasing
-                                    )
-                                ) + androidx.compose.animation.scaleIn(
-                                    initialScale = 0.9f,
-                                    animationSpec = androidx.compose.animation.core.spring(
-                                        dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-                                        stiffness = androidx.compose.animation.core.Spring.StiffnessLow
-                                    )
-                                )
-                            ) {
-                                Text(
-                                    text = "Seijaku List",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontSize = 26.asp(),
-                                    fontStyle = FontStyle.Italic,
-                                )
+                            AnimatedContent(
+                                targetState = homeScrolled,
+                                transitionSpec = {
+                                    if (targetState) {
+                                        // Scrolled: searchbar entra desde abajo
+                                        (androidx.compose.animation.slideInVertically(
+                                            animationSpec = androidx.compose.animation.core.tween(250),
+                                            initialOffsetY = { it }
+                                        ) + androidx.compose.animation.fadeIn(
+                                            animationSpec = androidx.compose.animation.core.tween(250)
+                                        )).togetherWith(
+                                            androidx.compose.animation.slideOutVertically(
+                                                animationSpec = androidx.compose.animation.core.tween(250),
+                                                targetOffsetY = { -it }
+                                            ) + androidx.compose.animation.fadeOut(
+                                                animationSpec = androidx.compose.animation.core.tween(250)
+                                            )
+                                        )
+                                    } else {
+                                        // No scrolled: título entra desde arriba
+                                        (androidx.compose.animation.slideInVertically(
+                                            animationSpec = androidx.compose.animation.core.tween(250),
+                                            initialOffsetY = { -it }
+                                        ) + androidx.compose.animation.fadeIn(
+                                            animationSpec = androidx.compose.animation.core.tween(250)
+                                        )).togetherWith(
+                                            androidx.compose.animation.slideOutVertically(
+                                                animationSpec = androidx.compose.animation.core.tween(250),
+                                                targetOffsetY = { it }
+                                            ) + androidx.compose.animation.fadeOut(
+                                                animationSpec = androidx.compose.animation.core.tween(250)
+                                            )
+                                        )
+                                    }
+                                },
+                                label = "home_topbar_content"
+                            ) { scrolled ->
+                                if (scrolled) {
+                                    // Searchbar compacto
+                                    androidx.compose.material3.Surface(
+                                        onClick = { navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE) },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(end = 16.dp)
+                                            .height(40.dp),
+                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(horizontal = 16.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Search,
+                                                contentDescription = "Buscar",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(12.dp))
+
+                                            // Placeholder animado que itera
+                                            AnimatedContent(
+                                                targetState = searchPlaceholders[currentPlaceholderIndex],
+                                                transitionSpec = {
+                                                    androidx.compose.animation.slideInVertically(
+                                                        animationSpec = androidx.compose.animation.core.tween(300),
+                                                        initialOffsetY = { it / 2 }
+                                                    ) + androidx.compose.animation.fadeIn(
+                                                        animationSpec = androidx.compose.animation.core.tween(300)
+                                                    ) togetherWith androidx.compose.animation.slideOutVertically(
+                                                        animationSpec = androidx.compose.animation.core.tween(300),
+                                                        targetOffsetY = { -it / 2 }
+                                                    ) + androidx.compose.animation.fadeOut(
+                                                        animationSpec = androidx.compose.animation.core.tween(300)
+                                                    )
+                                                },
+                                                label = "placeholder_animation"
+                                            ) { placeholder ->
+                                                Text(
+                                                    text = placeholder,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    fontSize = 14.sp,
+                                                    fontFamily = PoppinsRegular
+                                                )
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // Título normal
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = titleVisible,
+                                        enter = androidx.compose.animation.fadeIn(
+                                            animationSpec = androidx.compose.animation.core.tween(
+                                                durationMillis = 800,
+                                                easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                            )
+                                        ) + androidx.compose.animation.slideInHorizontally(
+                                            initialOffsetX = { -40 },
+                                            animationSpec = androidx.compose.animation.core.tween(
+                                                durationMillis = 800,
+                                                easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                            )
+                                        ) + androidx.compose.animation.scaleIn(
+                                            initialScale = 0.9f,
+                                            animationSpec = androidx.compose.animation.core.spring(
+                                                dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+                                                stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+                                            )
+                                        )
+                                    ) {
+                                        Text(
+                                            text = "Seijaku List",
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontSize = 26.asp(),
+                                            fontStyle = FontStyle.Italic,
+                                            modifier = Modifier.padding(end = 4.dp)
+                                        )
+                                    }
+                                }
                             }
                         },
                         actions = {
-                            // Notificaciones
-                            IconButton(onClick = {
-                                navController.navigate(AppDestinations.NOVEDADES_ROUTE)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notificaciones",
-                                    tint = MaterialTheme.colorScheme.onSurface
+                            // Los iconos solo se muestran cuando NO está scrolleado
+                            AnimatedVisibility(
+                                visible = !homeScrolled,
+                                enter = androidx.compose.animation.fadeIn(
+                                    animationSpec = androidx.compose.animation.core.tween(200)
+                                ),
+                                exit = androidx.compose.animation.fadeOut(
+                                    animationSpec = androidx.compose.animation.core.tween(200)
                                 )
-                            }
+                            ) {
+                                Row {
+                                    // Notificaciones
+                                    IconButton(onClick = {
+                                        navController.navigate(AppDestinations.NOVEDADES_ROUTE)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Notifications,
+                                            contentDescription = "Notificaciones",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
 
-                            // Perfil
-                            IconButton(onClick = {
-                                navController.navigate(AppDestinations.PROFILE_VIEW_ROUTE)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.AccountCircle,
-                                    contentDescription = "Perfil",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
+                                    // Perfil
+                                    IconButton(onClick = {
+                                        navController.navigate(AppDestinations.PROFILE_VIEW_ROUTE)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.AccountCircle,
+                                            contentDescription = "Perfil",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
                             }
                         }
                     )
@@ -354,7 +501,8 @@ fun AppScaffold(
                 viewMode = viewMode,
                 sortOrder = sortOrder,
                 settingsViewModel = settingsViewModel,
-                onSearchExpandedChange = { isSearchExpanded = it }
+                onSearchExpandedChange = { isSearchExpanded = it },
+                onHomeScrollChanged = { homeScrolled = it }
             )
 
             // Bottom Navigation flotante

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,7 +49,11 @@ class TopAnimeViewModel @Inject constructor(
             // Si hay cache, cargar en background sin bloquear la UI
             topAnime(silent = true)
         } else {
-            topAnime()
+            // Delay de 700ms para evitar saturar el rate limit (2ª petición)
+            viewModelScope.launch {
+                delay(700)
+                topAnime()
+            }
         }
     }
 

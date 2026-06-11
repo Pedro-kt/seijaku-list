@@ -152,7 +152,8 @@ fun AppNavigation(
     viewMode: com.yumedev.seijakulist.ui.components.ViewMode = com.yumedev.seijakulist.ui.components.ViewMode.LIST,
     sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE,
     settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel,
-    onSearchExpandedChange: (Boolean) -> Unit = {}
+    onSearchExpandedChange: (Boolean) -> Unit = {},
+    onHomeScrollChanged: (Boolean) -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -306,7 +307,10 @@ fun AppNavigation(
         composable(
             route = AppDestinations.HOME
         ) {
-            HomeScreen(navController)
+            HomeScreen(
+                navController = navController,
+                onScrollChanged = onHomeScrollChanged
+            )
         }
         composable(
             route = AppDestinations.SEARCH_ANIME_ROUTE

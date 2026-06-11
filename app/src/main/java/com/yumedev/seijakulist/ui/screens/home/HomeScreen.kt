@@ -43,6 +43,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,6 +75,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
@@ -155,7 +157,8 @@ fun HomeScreen(
     seasonUpcomingFilterViewModel: AnimeSeasonUpcomingFilterViewModel = hiltViewModel(),
     profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel(),
     localAnimeIdsViewModel: LocalAnimeIdsViewModel = hiltViewModel(),
-    heroCarouselViewModel: HeroCarouselViewModel = hiltViewModel()
+    heroCarouselViewModel: HeroCarouselViewModel = hiltViewModel(),
+    onScrollChanged: (Boolean) -> Unit = {}
 ) {
     // ── Banner "¿Qué hay de nuevo?" — una sola vez por versionCode ──────────
     val context = LocalContext.current
@@ -238,6 +241,19 @@ fun HomeScreen(
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
     val tabs = listOf("Anime", "Manga")
 
+    // Estado de scroll para el LazyColumn
+    val listState = rememberLazyListState()
+
+    // Detectar si se ha hecho scroll
+    val isScrolled = androidx.compose.runtime.derivedStateOf {
+        listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+    }
+
+    // Notificar cambios de scroll
+    LaunchedEffect(isScrolled.value) {
+        onScrollChanged(isScrolled.value)
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (hasError) {
             NoInternetScreen(
@@ -253,12 +269,14 @@ fun HomeScreen(
             if (animeSeasonUpcomingIsLoading) {
                 LoadingScreen()
             } else if (animeSeasonNow.isNotEmpty()) {
-                CustomSeijakuTabSelector(
-                    tabs = listOf("Anime", "Manga"),
-                    selectedTabIndex = selectedTabIndex,
-                    onTabSelected = { selectedTabIndex = it })
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        CustomSeijakuTabSelector(
+                            tabs = listOf("Anime", "Manga"),
+                            selectedTabIndex = selectedTabIndex,
+                            onTabSelected = { selectedTabIndex = it })
 
-                WhatsNewBanner(
+                        WhatsNewBanner(
                     versionName = CURRENT_WHATS_NEW.versionName,
                     visible = showWhatsNewBanner,
                     onTap = {
@@ -296,13 +314,39 @@ fun HomeScreen(
                             navController = navController,
                             localAnimeStatuses = localAnimeStatuses,
                             heroCards = heroCards,
-                            heroIsLoading = heroIsLoading
+                            heroIsLoading = heroIsLoading,
+                            listState = listState
                         )
                     }
 
                     1 -> {
                         MangaPlaceholder()
                     }
+                }
+                    }
+
+                    // Degradado suave debajo del TabSelector que se superpone al contenido
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(28.dp)
+                            .align(Alignment.TopCenter)
+                            .offset(y = 56.dp) // Posición justo debajo del TabSelector
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.background,
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.3f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.1f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
+                    )
                 }
             }
         }
@@ -337,9 +381,11 @@ private fun AnimeContent(
     navController: NavController,
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     heroCards: List<com.yumedev.seijakulist.domain.models.HeroAnimeItem>? = null,
-    heroIsLoading: Boolean = true
+    heroIsLoading: Boolean = true,
+    listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState()
 ) {
     LazyColumn(
+        state = listState,
         contentPadding = PaddingValues(top = 2.dp, bottom = 16.dp)
     ) {
         // Quick Stats PRIMERO (solo si tiene animes guardados)

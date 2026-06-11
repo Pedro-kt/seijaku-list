@@ -47,6 +47,7 @@ class AnimeSeasonNowViewModel @Inject constructor(
             // Si hay cache, cargar en background sin bloquear la UI
             AnimesSeasonNow(silent = true)
         } else {
+            // Primera petición sin delay
             AnimesSeasonNow()
         }
     }
