@@ -369,3 +369,161 @@ fun FullHomeScreenSkeleton() {
         }
     }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ANIME DETAIL SKELETON - Skeleton completo para la pantalla de detalle
+// Muestra la imagen de portada (del shared element) pero skeleton para el resto
+// Estructura EXACTA de la pantalla real para que la transición compartida funcione
+// ══════════════════════════════════════════════════════════════════════════════
+@Composable
+fun AnimeDetailSkeleton(
+    imageContent: @Composable () -> Unit
+) {
+    val brush = shimmerBrush()
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Header con imagen de portada y datos - MISMA estructura que la real
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(340.adp())  // EXACTO como en la pantalla real
+        ) {
+            // Fondo skeleton (sin blur, solo color de fondo)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.3f))
+            )
+
+            // 2. CONTENIDO HORIZONTAL - EXACTA estructura que la real
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)  // EXACTO
+                    .padding(horizontal = 16.dp)  // EXACTO
+                    .padding(bottom = 24.dp, top = 16.dp),  // EXACTO
+                verticalAlignment = Alignment.Bottom  // EXACTO
+            ) {
+                // PORTADA - Muestra la imagen real del shared element
+                // EXACTAMENTE con las mismas dimensiones que la Card real
+                Box(
+                    modifier = Modifier
+                        .width(140.adp())  // EXACTO - mismo tamaño que la Card real
+                        .height(210.adp())  // EXACTO - mismo tamaño que la Card real
+                ) {
+                    imageContent()
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))  // EXACTO
+
+                // COLUMNA DE DATOS - EXACTA estructura
+                Column(
+                    modifier = Modifier
+                        .weight(1f)  // EXACTO
+                        .height(210.adp()),  // EXACTO - Misma altura que la portada
+                    verticalArrangement = Arrangement.SpaceBetween  // EXACTO
+                ) {
+                    // Sección superior: Títulos y Status
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        // Título principal - 2 líneas
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(22.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(brush)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.7f)
+                                .height(22.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(brush)
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Título japonés
+                        Box(
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(11.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(brush)
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Status chip
+                        Box(
+                            modifier = Modifier
+                                .width(80.dp)
+                                .height(24.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(brush)
+                        )
+                    }
+
+                    // Sección inferior: Chips y botón
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        // Chips de detalle (Score, Tipo, Año)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            repeat(3) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(45.dp)
+                                        .height(28.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(brush)
+                                )
+                            }
+                        }
+
+                        // Botón
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(42.adp())
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(brush)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Tabs skeleton
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 20.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(brush)
+            )
+        }
+
+        // Contenido del tab skeleton
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Líneas de texto simulando contenido
+            repeat(3) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(brush)
+                )
+            }
+        }
+    }
+}

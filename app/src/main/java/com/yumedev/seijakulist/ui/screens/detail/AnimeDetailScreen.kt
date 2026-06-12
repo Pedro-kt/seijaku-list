@@ -178,6 +178,7 @@ import com.yumedev.seijakulist.ui.components.CardAnimesHome
 import com.yumedev.seijakulist.ui.components.DescriptionAnime
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.components.TitleWithPadding
+import com.yumedev.seijakulist.ui.components.AnimeDetailSkeleton
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
@@ -390,22 +391,18 @@ fun AnimeDetailScreen(
     var selectedTabIndex by remember { mutableStateOf(initialTab) }
 
     // Cargar imágenes, videos y episodios cuando se selecciona el tab 2
-    // Con delay de 1 segundo entre cada petición para respetar el rate limit de la API (3/seg)
+    // RequestThrottler maneja automáticamente el rate limiting
     LaunchedEffect(selectedTabIndex) {
         if (selectedTabIndex == 2 && animeDetail != null) {
             animeDetailViewModel.loadAnimePictures(animeDetail!!.malId)
-            delay(1000L)
             animeDetailViewModel.loadAnimeVideos(animeDetail!!.malId)
-            delay(1000L)
             animeDetailViewModel.loadAnimeEpisodes(animeDetail!!.malId)
-            delay(1000L)
             animeDetailViewModel.loadForumTopics(animeDetail!!.malId)
         }
     }
 
     LaunchedEffect(animeDetail) {
         if (animeDetail != null) {
-            delay(500L)
             animeDetailViewModel.loadRecommendations(animeDetail!!.malId)
         }
     }
@@ -477,6 +474,71 @@ fun AnimeDetailScreen(
                             if (animeId != null) animeDetailViewModel.loadAnimeDetail(animeId)
                         }
                     )
+                }
+            }
+        }
+
+        isLoading && animeDetail == null -> {
+            // Mostrar skeleton mientras carga, con la imagen compartida visible
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Header con botón de volver
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.adp())
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_left_line),
+                            contentDescription = "Volver",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                // Skeleton con la imagen compartida
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    item {
+                        AnimeDetailSkeleton {
+                            // Muestra la imagen compartida o del cache
+                            Card(
+                                modifier = Modifier.fillMaxSize(),
+                                shape = RoundedCornerShape(12.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                            ) {
+                                val imageModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null && animeId != null) {
+                                    with(sharedTransitionScope) {
+                                        Modifier
+                                            .sharedElement(
+                                                sharedContentState = rememberSharedContentState(key = "anime-image-$animeId"),
+                                                animatedVisibilityScope = animatedVisibilityScope
+                                            )
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(12.dp))
+                                    }
+                                } else {
+                                    Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(12.dp))
+                                }
+
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(displayImageUrl).size(Size.ORIGINAL)
+                                        .crossfade(false).build(),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = imageModifier
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

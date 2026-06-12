@@ -22,6 +22,7 @@ import com.yumedev.seijakulist.domain.models.AnimeRecommendation
 import com.yumedev.seijakulist.domain.models.AnimeVideos
 import com.yumedev.seijakulist.domain.models.ForumTopic
 import com.yumedev.seijakulist.domain.usecase.GetAnimeDetailUseCase
+import com.yumedev.seijakulist.common.RequestThrottler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,8 @@ class AnimeDetailViewModel @Inject constructor(
     private val getAnimeDetailUseCase: GetAnimeDetailUseCase,
     private val animeLocalRepository: AnimeLocalRepository,
     private val animeRepository: AnimeRepository,
-    private val firestoreAnimeRepository: FirestoreAnimeRepository
+    private val firestoreAnimeRepository: FirestoreAnimeRepository,
+    private val requestThrottler: RequestThrottler
 ) : ViewModel() {
 
     private val _animeDetail: MutableStateFlow<AnimeDetail?> = MutableStateFlow(null)
@@ -121,8 +123,15 @@ class AnimeDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val detail = getAnimeDetailUseCase(animeId)
-                _animeDetail.value = detail
+                val detail = requestThrottler.throttle {
+                    getAnimeDetailUseCase(animeId)
+                }
+
+                if (detail != null) {
+                    _animeDetail.value = detail
+                } else {
+                    throw Exception("No se pudo obtener los detalles del anime")
+                }
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar detalles del anime: ${e.localizedMessage ?: "Error desconocido"}")
                 _errorMessage.value = "Algo salió mal al cargar los detalles del anime, por favor inténtalo de nuevo."
@@ -139,7 +148,9 @@ class AnimeDetailViewModel @Inject constructor(
         _isPicturesLoading.value = true
         viewModelScope.launch {
             try {
-                val pictures = animeRepository.getAnimePicturesById(animeId)
+                val pictures = requestThrottler.throttle {
+                    animeRepository.getAnimePicturesById(animeId)
+                } ?: emptyList()
                 _animePictures.value = pictures
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar imágenes: ${e.localizedMessage}")
@@ -156,7 +167,9 @@ class AnimeDetailViewModel @Inject constructor(
         _isVideosLoading.value = true
         viewModelScope.launch {
             try {
-                val videos = animeRepository.getAnimeVideosById(animeId)
+                val videos = requestThrottler.throttle {
+                    animeRepository.getAnimeVideosById(animeId)
+                }
                 _animeVideos.value = videos
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar videos: ${e.localizedMessage}")
@@ -179,13 +192,23 @@ class AnimeDetailViewModel @Inject constructor(
         _isEpisodesLoading.value = true
         viewModelScope.launch {
             try {
-                val result = animeRepository.getAnimeEpisodesById(animeId, currentEpisodesPage)
-                if (loadMore) {
-                    _animeEpisodes.value = _animeEpisodes.value + result.episodes
-                } else {
-                    _animeEpisodes.value = result.episodes
+                val result = requestThrottler.throttle {
+                    animeRepository.getAnimeEpisodesById(animeId, currentEpisodesPage)
                 }
-                _hasMoreEpisodes.value = result.pagination?.hasNextPage ?: false
+
+                if (result != null) {
+                    if (loadMore) {
+                        _animeEpisodes.value = _animeEpisodes.value + result.episodes
+                    } else {
+                        _animeEpisodes.value = result.episodes
+                    }
+                    _hasMoreEpisodes.value = result.pagination?.hasNextPage ?: false
+                } else {
+                    if (!loadMore) {
+                        _animeEpisodes.value = emptyList()
+                    }
+                    _hasMoreEpisodes.value = false
+                }
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar episodios: ${e.localizedMessage}")
                 if (!loadMore) {
@@ -202,7 +225,9 @@ class AnimeDetailViewModel @Inject constructor(
         _isEpisodeDetailLoading.value = true
         viewModelScope.launch {
             try {
-                val detail = animeRepository.getAnimeEpisodeDetailById(animeId, episodeId)
+                val detail = requestThrottler.throttle {
+                    animeRepository.getAnimeEpisodeDetailById(animeId, episodeId)
+                }
                 _selectedEpisodeDetail.value = detail
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar detalle del episodio: ${e.localizedMessage}")
@@ -222,7 +247,10 @@ class AnimeDetailViewModel @Inject constructor(
         _isRecommendationsLoading.value = true
         viewModelScope.launch {
             try {
-                _recommendations.value = animeRepository.getAnimeRecommendations(animeId)
+                val recommendations = requestThrottler.throttle {
+                    animeRepository.getAnimeRecommendations(animeId)
+                } ?: emptyList()
+                _recommendations.value = recommendations
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar recomendaciones: ${e.localizedMessage}")
                 _recommendations.value = emptyList()
@@ -237,7 +265,10 @@ class AnimeDetailViewModel @Inject constructor(
         _isForumLoading.value = true
         viewModelScope.launch {
             try {
-                _forumTopics.value = animeRepository.getAnimeForumTopics(animeId)
+                val topics = requestThrottler.throttle {
+                    animeRepository.getAnimeForumTopics(animeId)
+                } ?: emptyList()
+                _forumTopics.value = topics
             } catch (e: Exception) {
                 Log.e("AnimeDetailVM", "Error al cargar foro: ${e.localizedMessage}")
                 _forumTopics.value = emptyList()
