@@ -1,5 +1,3 @@
-# Seijaku List
-
 <p align="center">
   <img src="./images/seijaku_list_banner.png" alt="SeijakuList Banner" width="100%"/>
 </p>
