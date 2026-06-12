@@ -1,5 +1,8 @@
 package com.yumedev.seijakulist.ui.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,33 +56,42 @@ import com.yumedev.seijakulist.domain.models.Anime
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
+import com.yumedev.seijakulist.ui.screens.detail.AnimeTransitionCache
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun CardAnimesHome(
     animeList: List<Anime>,
     navController: NavController,
-    localAnimeStatuses: Map<Int, String> = emptyMap()
+    localAnimeStatuses: Map<Int, String> = emptyMap(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(animeList) { anime ->
+        items(animeList, key = { it.malId }) { anime ->
             AnimeSectionCard(
                 anime = anime,
                 navController = navController,
-                localAnimeStatuses = localAnimeStatuses
+                localAnimeStatuses = localAnimeStatuses,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
             )
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimeSectionCard(
     anime: Anime,
     navController: NavController,
-    localAnimeStatuses: Map<Int, String> = emptyMap()
+    localAnimeStatuses: Map<Int, String> = emptyMap(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     val context = LocalContext.current
 
@@ -89,20 +101,38 @@ private fun AnimeSectionCard(
             .height(200.adp())
             .clip(RoundedCornerShape(16.dp))
             .clickable {
+                // Guardar imagen en cache para la transición
+                AnimeTransitionCache.setAnimeImage(anime.malId, anime.image)
                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
             }
     ) {
-        // Imagen de fondo completa
+        // Imagen de fondo completa con shared element transition
+        val imageModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+            with(sharedTransitionScope) {
+                Modifier
+                    .sharedElement(
+                        sharedContentState = rememberSharedContentState(key = "anime-image-${anime.malId}"),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            }
+        } else {
+            Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+        }
+
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data(anime.image)
-                .crossfade(true)
+                .crossfade(false) // Desactivar crossfade para que no interfiera con la transición
                 .build(),
             contentDescription = anime.title,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            modifier = imageModifier
         )
 
         // Gradiente superior para Score y Estado
@@ -233,6 +263,8 @@ fun CardAnimesHomeGrid(
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(RoundedCornerShape(12.dp))
             .clickable(interactionSource = interactionSource, indication = null) {
+                // Guardar imagen en cache para la transición
+                AnimeTransitionCache.setAnimeImage(anime.malId, anime.image)
                 navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
             }
     ) {

@@ -722,61 +722,6 @@ private fun StatusCard(label: String, count: Int, color: Color, modifier: Modifi
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  MinimalTabRow — badge por tab, sin contenedor externo
-// ─────────────────────────────────────────────────────────────────────────────
-@Composable
-fun MinimalTabRow(
-    tabs: List<String>,
-    selectedTabIndex: Int,
-    onTabSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier              = modifier.fillMaxWidth().padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        tabs.forEachIndexed { index, title ->
-            val isSelected = selectedTabIndex == index
-            val bgAlpha by animateFloatAsState(
-                targetValue   = if (isSelected) 1f else 0f,
-                animationSpec = tween(220),
-                label         = "tab_bg_$index"
-            )
-            val contentAlpha by animateFloatAsState(
-                targetValue   = if (isSelected) 1f else 0.45f,
-                animationSpec = tween(220),
-                label         = "tab_text_$index"
-            )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(40.adp())
-                    .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f * bgAlpha),
-                        shape = RoundedCornerShape(10.dp)
-                    )
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication        = null
-                    ) { onTabSelected(index) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text       = title,
-                    fontSize = 14.asp(),
-                    fontFamily = if (isSelected) PoppinsBold else PoppinsMedium,
-                    color      = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
-                    maxLines   = 1
-                )
-            }
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  CustomSeijakuTabSelector
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable

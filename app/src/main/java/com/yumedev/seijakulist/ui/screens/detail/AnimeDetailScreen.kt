@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.padding
@@ -222,7 +225,7 @@ import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.ui.text.font.FontStyle
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun AnimeDetailScreen(
     navController: NavController,
@@ -232,7 +235,9 @@ fun AnimeDetailScreen(
     animeDetailViewModel: AnimeDetailViewModel = hiltViewModel(),
     animeCharacterDetailViewModel: AnimeCharacterDetailViewModel = hiltViewModel(),
     animeThemesViewModel: AnimeThemesViewModel = hiltViewModel(),
-    producerDetailViewModel: ProducerDetailViewModel = hiltViewModel()
+    producerDetailViewModel: ProducerDetailViewModel = hiltViewModel(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
 
     val animeDetail by animeDetailViewModel.animeDetail.collectAsState()
@@ -417,17 +422,22 @@ fun AnimeDetailScreen(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 
-    when {
-        isLoading -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                LoadingScreen()
-            }
-        }
+    // Obtener imagen del cache para mostrarla durante la transición
+    val cachedImageUrl = remember(animeId) {
+        animeId?.let { AnimeTransitionCache.getAnimeImage(it) }
+    }
 
+    // Usar la imagen del detalle si está disponible, sino usar la del cache
+    val displayImageUrl = animeDetail?.images ?: cachedImageUrl
+
+    // Limpiar cache cuando se carga el detalle completo
+    LaunchedEffect(animeDetail) {
+        if (animeDetail != null) {
+            AnimeTransitionCache.clear()
+        }
+    }
+
+    when {
         errorMessage != null -> {
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(
@@ -616,7 +626,7 @@ fun AnimeDetailScreen(
                                 // 1. FONDO DIFUMINADO (Mantenemos el efecto premium)
                                 AsyncImage(
                                     model = ImageRequest.Builder(LocalContext.current)
-                                        .data(animeDetail?.images).size(Size.ORIGINAL)
+                                        .data(displayImageUrl).size(Size.ORIGINAL)
                                         .crossfade(true).build(),
                                     contentDescription = null,
                                     modifier = Modifier
@@ -658,13 +668,29 @@ fun AnimeDetailScreen(
                                         shape = RoundedCornerShape(12.dp),
                                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                                     ) {
+                                        val imageModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null && animeId != null) {
+                                            with(sharedTransitionScope) {
+                                                Modifier
+                                                    .sharedElement(
+                                                        sharedContentState = rememberSharedContentState(key = "anime-image-$animeId"),
+                                                        animatedVisibilityScope = animatedVisibilityScope
+                                                    )
+                                                    .fillMaxSize()
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            }
+                                        } else {
+                                            Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(12.dp))
+                                        }
+
                                         AsyncImage(
                                             model = ImageRequest.Builder(LocalContext.current)
-                                                .data(animeDetail?.images).size(Size.ORIGINAL)
-                                                .crossfade(true).build(),
+                                                .data(displayImageUrl).size(Size.ORIGINAL)
+                                                .crossfade(false).build(),
                                             contentDescription = null,
                                             contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
+                                            modifier = imageModifier
                                         )
                                     }
 

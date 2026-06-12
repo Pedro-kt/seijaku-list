@@ -2,8 +2,10 @@ package com.yumedev.seijakulist.ui.screens.home
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
@@ -15,15 +17,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -38,11 +37,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,11 +69,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutBack
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CalendarToday
@@ -128,9 +134,10 @@ import com.yumedev.seijakulist.ui.components.CardAnimesHomeLoading
 import com.yumedev.seijakulist.ui.components.CURRENT_WHATS_NEW
 import com.yumedev.seijakulist.ui.components.WhatsNewBanner
 import com.yumedev.seijakulist.ui.screens.home.FilterAnimesHome
-import com.yumedev.seijakulist.ui.components.LoadingScreen
+import com.yumedev.seijakulist.ui.components.FullHomeScreenSkeleton
 import com.yumedev.seijakulist.ui.components.MangaPlaceholder
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
+import com.yumedev.seijakulist.ui.components.shimmerBrush
 import com.yumedev.seijakulist.ui.screens.profile.AnimeStats
 import com.yumedev.seijakulist.ui.screens.profile.CustomSeijakuTabSelector
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
@@ -142,9 +149,12 @@ import com.yumedev.seijakulist.ui.theme.asp
 
 
 // HomeScreen con UI mejorada
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     seasonNowViewModel: AnimeSeasonNowViewModel = hiltViewModel(),
     topAnimesViewModel: TopAnimeViewModel = hiltViewModel(),
     seasonUpcomingViewModel: AnimeSeasonUpcomingViewModel = hiltViewModel(),
@@ -155,11 +165,10 @@ fun HomeScreen(
     seasonUpcomingFilterViewModel: AnimeSeasonUpcomingFilterViewModel = hiltViewModel(),
     profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel(),
     localAnimeIdsViewModel: LocalAnimeIdsViewModel = hiltViewModel(),
-    heroCarouselViewModel: HeroCarouselViewModel = hiltViewModel()
+    heroCarouselViewModel: HeroCarouselViewModel = hiltViewModel(),
+    onScrollChanged: (Boolean) -> Unit = {}
 ) {
-    // ── Banner "¿Qué hay de nuevo?" — una sola vez por versionCode ──────────
     val context = LocalContext.current
-    var showWhatsNewBanner by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("seijaku_prefs", Context.MODE_PRIVATE)
@@ -167,7 +176,6 @@ fun HomeScreen(
         val lastShownVersion = prefs.getInt("whats_new_last_version", 0)
         if (currentVersionCode > lastShownVersion) {
             prefs.edit().putInt("whats_new_last_version", currentVersionCode).apply()
-            showWhatsNewBanner = true
         }
     }
 
@@ -204,7 +212,6 @@ fun HomeScreen(
             animeSeasonNow.isEmpty() && topAnimes.isEmpty() && animeSeasonUpcoming.isEmpty()
 
     val listTab = listOf("Anime", "Manga")
-    val selectedTab = remember { mutableStateOf(listTab[0]) }
 
     val listDays =
         listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
@@ -238,6 +245,41 @@ fun HomeScreen(
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
     val tabs = listOf("Anime", "Manga")
 
+    // Estado de scroll para el LazyColumn
+    val listState = rememberLazyListState()
+
+    // Detectar si se ha hecho scroll
+    val isScrolled = androidx.compose.runtime.derivedStateOf {
+        listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+    }
+
+    // Notificar cambios de scroll
+    LaunchedEffect(isScrolled.value) {
+        onScrollChanged(isScrolled.value)
+    }
+
+    // Determinar si estamos en carga inicial
+    // SOLO mostrar skeleton si:
+    // 1. Estamos cargando Y
+    // 2. NO hay datos que mostrar
+    val isInitialLoading = (animeSeasonNowIsLoading || animeSeasonUpcomingIsLoading) &&
+                           animeSeasonNow.isEmpty() &&
+                           topAnimes.isEmpty() &&
+                           animeSeasonUpcoming.isEmpty()
+
+    // Log de estados para debugging
+    LaunchedEffect(animeSeasonNowIsLoading, animeSeasonUpcomingIsLoading,
+                   animeSeasonNow.size, topAnimes.size, animeSeasonUpcoming.size) {
+        Log.d("HomeScreen", """
+            |--- HOME SCREEN STATE ---
+            |SeasonNow Loading: $animeSeasonNowIsLoading, Size: ${animeSeasonNow.size}
+            |SeasonUpcoming Loading: $animeSeasonUpcomingIsLoading, Size: ${animeSeasonUpcoming.size}
+            |TopAnimes Size: ${topAnimes.size}
+            |isInitialLoading: $isInitialLoading
+            |-------------------------
+        """.trimMargin())
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (hasError) {
             NoInternetScreen(
@@ -250,22 +292,16 @@ fun HomeScreen(
                     //characterRandomViewModel.loadCharacterRandom()
                 })
         } else {
-            if (animeSeasonUpcomingIsLoading) {
-                LoadingScreen()
+            if (isInitialLoading) {
+                FullHomeScreenSkeleton()
             } else if (animeSeasonNow.isNotEmpty()) {
-                CustomSeijakuTabSelector(
-                    tabs = listOf("Anime", "Manga"),
-                    selectedTabIndex = selectedTabIndex,
-                    onTabSelected = { selectedTabIndex = it })
-
-                WhatsNewBanner(
-                    versionName = CURRENT_WHATS_NEW.versionName,
-                    visible = showWhatsNewBanner,
-                    onTap = {
-                        showWhatsNewBanner = false
-                        navController.navigate(AppDestinations.NOVEDADES_ROUTE)
-                    },
-                    onDismiss = { showWhatsNewBanner = false })
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // TabRow fijo sin padding bottom
+                    CustomSeijakuTabSelector(
+                        tabs = listOf("Anime", "Manga"),
+                        selectedTabIndex = selectedTabIndex,
+                        onTabSelected = { selectedTabIndex = it }
+                    )
 
                 when (selectedTabIndex) {
                     0 -> {
@@ -296,7 +332,17 @@ fun HomeScreen(
                             navController = navController,
                             localAnimeStatuses = localAnimeStatuses,
                             heroCards = heroCards,
-                            heroIsLoading = heroIsLoading
+                            heroIsLoading = heroIsLoading,
+                            listState = listState,
+                            isRefreshing = animeSeasonNowIsLoading,
+                            onRefresh = {
+                                seasonNowViewModel.AnimesSeasonNow()
+                                topAnimesViewModel.topAnime()
+                                seasonUpcomingViewModel.AnimesSeasonUpcoming()
+                                heroCarouselViewModel.retry()
+                            },
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope
                         )
                     }
 
@@ -304,11 +350,13 @@ fun HomeScreen(
                         MangaPlaceholder()
                     }
                 }
+                }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimeContent(
     animeSeasonNow: List<Any>,
@@ -337,11 +385,22 @@ private fun AnimeContent(
     navController: NavController,
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     heroCards: List<com.yumedev.seijakulist.domain.models.HeroAnimeItem>? = null,
-    heroIsLoading: Boolean = true
+    heroIsLoading: Boolean = true,
+    listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
-    LazyColumn(
-        contentPadding = PaddingValues(top = 2.dp, bottom = 16.dp)
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
     ) {
+        LazyColumn(
+            state = listState,
+            contentPadding = PaddingValues(bottom = 16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
         // Quick Stats PRIMERO (solo si tiene animes guardados)
         profileUiState.allSavedAnimes.takeIf { it.isNotEmpty() }?.let { savedAnimes ->
             item {
@@ -384,7 +443,10 @@ private fun AnimeContent(
                 localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_now")
-                })
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
         }
 
         // Sección Top Puntuación
@@ -403,7 +465,10 @@ private fun AnimeContent(
                 localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/top_anime")
-                })
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
         }
 
         // Sección Próxima Temporada
@@ -422,7 +487,10 @@ private fun AnimeContent(
                 localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_upcoming")
-                })
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
         }
 
         // Espacio final
@@ -430,8 +498,10 @@ private fun AnimeContent(
             Spacer(Modifier.height(80.adp()))
         }
     }
+  }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimeSectionWithFilter(
     title: String,
@@ -445,7 +515,9 @@ private fun AnimeSectionWithFilter(
     emptyMessage: String,
     navController: NavController,
     onViewMoreClick: () -> Unit,
-    localAnimeStatuses: Map<Int, String> = emptyMap()
+    localAnimeStatuses: Map<Int, String> = emptyMap(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -499,7 +571,9 @@ private fun AnimeSectionWithFilter(
                         CardAnimesHome(
                             animeList = animeList as List<Anime>,
                             navController = navController,
-                            localAnimeStatuses = localAnimeStatuses
+                            localAnimeStatuses = localAnimeStatuses,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope
                         )
                     }
                 }
@@ -684,14 +758,6 @@ private object HomeAnimationState {
     var hasAnimated = false
 }
 
-private val heroPlaceholderColors = listOf(
-    Color(0xFF6200EA),
-    Color(0xFF00897B),
-    Color(0xFFE64A19),
-    Color(0xFF1565C0),
-    Color(0xFF558B2F),
-)
-
 // Hero Carousel — 5 cards deslizables con diseño moderno inspirado en "My Favorites"
 @Composable
 private fun HeroCarousel(
@@ -700,7 +766,7 @@ private fun HeroCarousel(
     @Suppress("UNUSED_PARAMETER") isLoading: Boolean,
     localAnimeStatuses: Map<Int, String> = emptyMap()
 ) {
-    val pageCount = if (cards.isNullOrEmpty()) heroPlaceholderColors.size else cards.size
+    val pageCount = if (cards.isNullOrEmpty()) 5 else cards.size
     val pagerState = rememberPagerState(pageCount = { pageCount })
 
     // Control de auto-scroll con detección de interacción del usuario
@@ -838,7 +904,7 @@ private fun HeroCarousel(
                     contentAlignment = Alignment.Center
                 ) {
                     if (cards.isNullOrEmpty()) {
-                        HeroPlaceholderCard(color = heroPlaceholderColors[page])
+                        HeroPlaceholderCard()
                     } else {
                         HeroAnimeCard(
                             item = cards[page],
@@ -894,28 +960,76 @@ private fun HeroCarousel(
 }
 
 @Composable
-private fun HeroPlaceholderCard(color: Color) {
+private fun HeroPlaceholderCard() {
+    val brush = shimmerBrush()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.adp()),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = color)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            val transition = rememberInfiniteTransition(label = "shimmer")
-            val alpha by transition.animateFloat(
-                initialValue = 0.3f,
-                targetValue = 0.6f,
-                animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
-                label = "shimmer_alpha"
-            )
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(brush)
+        ) {
+            // Contenido skeleton del hero card
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White.copy(alpha = alpha))
-            )
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Géneros skeleton
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    repeat(2) {
+                        Box(
+                            modifier = Modifier
+                                .width(60.dp)
+                                .height(18.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color.White.copy(alpha = 0.2f))
+                        )
+                    }
+                }
+
+                // Título skeleton
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.3f))
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .height(18.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.3f))
+                )
+
+                // Meta badges skeleton
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    repeat(3) {
+                        Box(
+                            modifier = Modifier
+                                .width(50.dp)
+                                .height(22.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.White.copy(alpha = 0.2f))
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -1207,274 +1321,6 @@ private fun HeroMetaBadge(
     }
 }
 
-@Composable
-fun ScoreBadge(
-    score: Float?, modifier: Modifier = Modifier
-) {
-    if (score == null) return
-
-    val formattedScore = remember(score) {
-        String.format(java.util.Locale.US, "%.1f", score)
-    }
-
-    val animatedAlpha by animateFloatAsState(
-        targetValue = 1f, animationSpec = tween(400)
-    )
-
-    Surface(
-        modifier = modifier.graphicsLayer { alpha = animatedAlpha },
-        shape = RoundedCornerShape(50),
-        color = Color.Black.copy(alpha = 0.75f),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null,
-                tint = Color(0xFFFFC107), // Dorado más elegante
-                modifier = Modifier.size(13.dp)
-            )
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            Text(
-                text = formattedScore,
-                fontFamily = PoppinsMedium,
-                fontSize = 12.asp(),
-                color = Color.White
-            )
-        }
-    }
-}
-
-
-@Composable
-fun SectionLabel() {
-    Text(
-        text = "Anime Random",
-        fontFamily = PoppinsBold,
-        fontSize = 10.asp(),
-        letterSpacing = 1.4.sp,
-        color = MaterialTheme.colorScheme.primary
-    )
-}
-
-@Composable
-fun DetailsButton() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Ver detalles",
-                fontFamily = PoppinsMedium,
-                fontSize = 13.asp(),
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(14.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun MetadataItemModern(text: String, icon: ImageVector) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(14.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-            text = text,
-            fontFamily = PoppinsRegular,
-            fontSize = 12.asp(),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-
-// Skeleton del Banner Hero (diseño horizontal)
-@Composable
-private fun HeroBannerSkeleton() {
-    androidx.compose.material3.Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.adp())
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
-    ) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Skeleton de la imagen (lado izquierdo)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(130.adp())
-                    .background(
-                        shimmerBrush(
-                            targetValue = 1000f, showShimmer = true
-                        )
-                    )
-            )
-
-            // Skeleton del contenido (lado derecho)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Skeleton superior (título y metadata)
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Label skeleton
-                        Box(
-                            modifier = Modifier
-                                .width(90.adp())
-                                .height(14.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    shimmerBrush(
-                                        targetValue = 1000f, showShimmer = true
-                                    )
-                                )
-                        )
-
-                        // Título skeleton
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .height(20.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    shimmerBrush(
-                                        targetValue = 1000f, showShimmer = true
-                                    )
-                                )
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(18.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    shimmerBrush(
-                                        targetValue = 1000f, showShimmer = true
-                                    )
-                                )
-                        )
-
-                        // Metadata skeleton
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .width(50.dp)
-                                    .height(14.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(
-                                        shimmerBrush(
-                                            targetValue = 1000f, showShimmer = true
-                                        )
-                                    )
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .width(60.adp())
-                                    .height(14.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(
-                                        shimmerBrush(
-                                            targetValue = 1000f, showShimmer = true
-                                        )
-                                    )
-                            )
-                        }
-                    }
-
-                    // Score skeleton (inferior)
-                    Box(
-                        modifier = Modifier
-                            .width(80.adp())
-                            .height(24.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(
-                                shimmerBrush(
-                                    targetValue = 1000f, showShimmer = true
-                                )
-                            )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun shimmerBrush(targetValue: Float = 1000f, showShimmer: Boolean = true): Brush {
-    return if (showShimmer) {
-        val shimmerColors = listOf(
-            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
-            MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f)
-        )
-
-        val transition =
-            rememberInfiniteTransition(label = "shimmer")
-        val translateAnimation = transition.animateFloat(
-            initialValue = 0f,
-            targetValue = targetValue,
-            animationSpec = infiniteRepeatable(
-                animation = tween(
-                    durationMillis = 1200,
-                    easing = FastOutSlowInEasing
-                ), repeatMode = RepeatMode.Restart
-            ),
-            label = "shimmerTranslate"
-        )
-
-        Brush.linearGradient(
-            colors = shimmerColors,
-            start = androidx.compose.ui.geometry.Offset.Zero,
-            end = androidx.compose.ui.geometry.Offset(
-                x = translateAnimation.value, y = translateAnimation.value
-            )
-        )
-    } else {
-        Brush.linearGradient(
-            colors = listOf(Color.Transparent, Color.Transparent),
-            start = androidx.compose.ui.geometry.Offset.Zero,
-            end = androidx.compose.ui.geometry.Offset.Zero
-        )
-    }
-}
-
 // Quick Stats Mejorado - Tu progreso
 @Composable
 private fun QuickStats(
@@ -1572,20 +1418,28 @@ private fun QuickStats(
                     val insights = remember(stats) {
                         buildList {
                             // 1. Siempre: Total de animes - Azul
-                            add(InsightData("${stats.totalAnimes} animes en tu lista", Color(0xFF2196F3)))
+                            val animeText = if (stats.totalAnimes == 1) "anime" else "animes"
+                            add(InsightData("${stats.totalAnimes} $animeText en tu lista", Color(0xFF2196F3)))
 
                             // 2. Siempre: Horas vistas - Verde
-                            val hours = stats.totalEpisodesWatched * 24 / 60
+                            val totalMinutes = stats.totalEpisodesWatched * 24
+                            val hours = totalMinutes / 60
                             val days = hours / 24
                             if (days > 0) {
-                                add(InsightData("$days días disfrutando anime", Color(0xFF4CAF50)))
+                                val diasText = if (days == 1) "día" else "días"
+                                add(InsightData("$days $diasText disfrutando anime", Color(0xFF4CAF50)))
+                            } else if (hours > 0) {
+                                val horasText = if (hours == 1) "hora" else "horas"
+                                add(InsightData("$hours $horasText disfrutando anime", Color(0xFF4CAF50)))
                             } else {
-                                add(InsightData("$hours horas disfrutando anime", Color(0xFF4CAF50)))
+                                val minutosText = if (totalMinutes == 1) "minuto" else "minutos"
+                                add(InsightData("$totalMinutes $minutosText disfrutando anime", Color(0xFF4CAF50)))
                             }
 
                             // 3. Si completedAnimes > 0 - Celeste
                             if (stats.completedAnimes > 0) {
-                                add(InsightData("Has completado ${stats.completedAnimes} series", Color(0xFF00BCD4)))
+                                val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
+                                add(InsightData("Has completado ${stats.completedAnimes} $seriesText", Color(0xFF00BCD4)))
                             }
 
                             // 4. Si averageScore > 0 - Naranja
@@ -1601,17 +1455,20 @@ private fun QuickStats(
 
                             // 6. Si watchingAnimes > 0 - Rosa
                             if (stats.watchingAnimes > 0) {
-                                add(InsightData("Viendo ${stats.watchingAnimes} animes ahora mismo", Color(0xFFE91E63)))
+                                val watchingText = if (stats.watchingAnimes == 1) "anime" else "animes"
+                                add(InsightData("Viendo ${stats.watchingAnimes} $watchingText ahora mismo", Color(0xFFE91E63)))
                             }
 
                             // 7. Si completedAnimes >= 10 - Teal
                             if (stats.completedAnimes >= 10) {
-                                add(InsightData("¡Ya completaste ${stats.completedAnimes} series!", Color(0xFF009688)))
+                                val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
+                                add(InsightData("¡Ya completaste ${stats.completedAnimes} $seriesText!", Color(0xFF009688)))
                             }
 
                             // 8. Si totalEpisodesWatched >= 100 - Índigo
                             if (stats.totalEpisodesWatched >= 100) {
-                                add(InsightData("Llevas ${stats.totalEpisodesWatched} episodios vistos", Color(0xFF3F51B5)))
+                                val episodiosText = if (stats.totalEpisodesWatched == 1) "episodio visto" else "episodios vistos"
+                                add(InsightData("Llevas ${stats.totalEpisodesWatched} $episodiosText", Color(0xFF3F51B5)))
                             }
                         }
                     }
@@ -1781,69 +1638,10 @@ private fun QuickStats(
         }
     }
 
-
-// Card de estadística mejorada con animación
-@Composable
-private fun EnhancedStatCard(
-    modifier: Modifier = Modifier, value: String, label: String, delay: Int = 0
-) {
-    val shouldAnimate = !HomeAnimationState.hasAnimated
-    var isVisible by remember { mutableStateOf(!shouldAnimate) }
-
-    LaunchedEffect(shouldAnimate) {
-        if (shouldAnimate) {
-            kotlinx.coroutines.delay(delay.toLong())
-            isVisible = true
-        }
-    }
-
-    AnimatedVisibility(
-        visible = isVisible, enter = fadeIn(animationSpec = tween(400)) + scaleIn(
-            initialScale = 0.9f, animationSpec = tween(400, easing = FastOutSlowInEasing)
-        ), modifier = modifier
-    ) {
-        androidx.compose.material3.Card(
-            modifier = Modifier.height(70.adp()),
-            shape = RoundedCornerShape(14.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = androidx.compose.material3.CardDefaults.cardElevation(
-                defaultElevation = 1.dp
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = label,
-                    fontFamily = PoppinsRegular,
-                    fontSize = 11.asp(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    letterSpacing = 0.3.sp
-                )
-
-                Text(
-                    text = value,
-                    fontFamily = PoppinsBold,
-                    fontSize = 26.asp(),
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 0.sp,
-                    lineHeight = 26.asp()
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-    }
-}
-
 // Card mejorada de "Continúa viendo"
 @Composable
 private fun EnhancedContinueWatchingCard(
-    anime: com.yumedev.seijakulist.data.local.entities.AnimeEntity,
+    anime: AnimeEntity,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {

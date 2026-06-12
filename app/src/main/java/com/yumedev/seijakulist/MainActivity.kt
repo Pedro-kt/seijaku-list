@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.fadeOut
@@ -144,6 +146,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @RequiresApi(Build.VERSION_CODES.P)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -152,12 +155,14 @@ fun AppNavigation(
     viewMode: com.yumedev.seijakulist.ui.components.ViewMode = com.yumedev.seijakulist.ui.components.ViewMode.LIST,
     sortOrder: com.yumedev.seijakulist.ui.components.SortOrder = com.yumedev.seijakulist.ui.components.SortOrder.NONE,
     settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel,
-    onSearchExpandedChange: (Boolean) -> Unit = {}
+    onSearchExpandedChange: (Boolean) -> Unit = {},
+    onHomeScrollChanged: (Boolean) -> Unit = {}
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = AppDestinations.SPLASH
-    ) {
+    SharedTransitionLayout {
+        NavHost(
+            navController = navController,
+            startDestination = AppDestinations.SPLASH
+        ) {
         composable(
             route = AppDestinations.SPLASH
         ) {
@@ -306,7 +311,12 @@ fun AppNavigation(
         composable(
             route = AppDestinations.HOME
         ) {
-            HomeScreen(navController)
+            HomeScreen(
+                navController = navController,
+                onScrollChanged = onHomeScrollChanged,
+                sharedTransitionScope = this@SharedTransitionLayout,
+                animatedVisibilityScope = this@composable
+            )
         }
         composable(
             route = AppDestinations.SEARCH_ANIME_ROUTE
@@ -350,7 +360,14 @@ fun AppNavigation(
             val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
             val openSheet = backStackEntry.arguments?.getBoolean("openSheet") ?: false
             if (animeId != null) {
-                AnimeDetailScreen(navController, animeId = animeId, initialTab = initialTab, openSheet = openSheet)
+                AnimeDetailScreen(
+                    navController = navController,
+                    animeId = animeId,
+                    initialTab = initialTab,
+                    openSheet = openSheet,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@composable
+                )
             } else {
                 Text("Error: anime no encontrado")
             }
@@ -396,6 +413,7 @@ fun AppNavigation(
             route = AppDestinations.POLICY_PRIVACY_ROUTE
         ) {
             PolicyPrivacyScreen(navController)
+        }
         }
     }
 }

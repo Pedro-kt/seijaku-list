@@ -536,8 +536,9 @@ fun DistribucionSection(
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             )
             Spacer(modifier = Modifier.width(8.adp()))
+            val animeText = if (totalAnimes == 1) "anime" else "animes"
             Text(
-                text = "$totalAnimes animes en tu lista",
+                text = "$totalAnimes $animeText en tu lista",
                 fontFamily = PoppinsRegular,
                 fontSize = 12.asp(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
