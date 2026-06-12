@@ -2,6 +2,9 @@ package com.yumedev.seijakulist.ui.screens.home
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -146,9 +149,12 @@ import com.yumedev.seijakulist.ui.theme.asp
 
 
 // HomeScreen con UI mejorada
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     seasonNowViewModel: AnimeSeasonNowViewModel = hiltViewModel(),
     topAnimesViewModel: TopAnimeViewModel = hiltViewModel(),
     seasonUpcomingViewModel: AnimeSeasonUpcomingViewModel = hiltViewModel(),
@@ -334,7 +340,9 @@ fun HomeScreen(
                                 topAnimesViewModel.topAnime()
                                 seasonUpcomingViewModel.AnimesSeasonUpcoming()
                                 heroCarouselViewModel.retry()
-                            }
+                            },
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope
                         )
                     }
 
@@ -348,7 +356,7 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimeContent(
     animeSeasonNow: List<Any>,
@@ -380,7 +388,9 @@ private fun AnimeContent(
     heroIsLoading: Boolean = true,
     listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
     isRefreshing: Boolean = false,
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -433,7 +443,10 @@ private fun AnimeContent(
                 localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_now")
-                })
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
         }
 
         // Sección Top Puntuación
@@ -452,7 +465,10 @@ private fun AnimeContent(
                 localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/top_anime")
-                })
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
         }
 
         // Sección Próxima Temporada
@@ -471,7 +487,10 @@ private fun AnimeContent(
                 localAnimeStatuses = localAnimeStatuses,
                 onViewMoreClick = {
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_upcoming")
-                })
+                },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
         }
 
         // Espacio final
@@ -482,6 +501,7 @@ private fun AnimeContent(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimeSectionWithFilter(
     title: String,
@@ -495,7 +515,9 @@ private fun AnimeSectionWithFilter(
     emptyMessage: String,
     navController: NavController,
     onViewMoreClick: () -> Unit,
-    localAnimeStatuses: Map<Int, String> = emptyMap()
+    localAnimeStatuses: Map<Int, String> = emptyMap(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -549,7 +571,9 @@ private fun AnimeSectionWithFilter(
                         CardAnimesHome(
                             animeList = animeList as List<Anime>,
                             navController = navController,
-                            localAnimeStatuses = localAnimeStatuses
+                            localAnimeStatuses = localAnimeStatuses,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope
                         )
                     }
                 }

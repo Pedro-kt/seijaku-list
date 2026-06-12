@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.fadeOut
@@ -144,6 +146,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @RequiresApi(Build.VERSION_CODES.P)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
     navController: NavHostController,
@@ -155,10 +158,11 @@ fun AppNavigation(
     onSearchExpandedChange: (Boolean) -> Unit = {},
     onHomeScrollChanged: (Boolean) -> Unit = {}
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = AppDestinations.SPLASH
-    ) {
+    SharedTransitionLayout {
+        NavHost(
+            navController = navController,
+            startDestination = AppDestinations.SPLASH
+        ) {
         composable(
             route = AppDestinations.SPLASH
         ) {
@@ -309,7 +313,9 @@ fun AppNavigation(
         ) {
             HomeScreen(
                 navController = navController,
-                onScrollChanged = onHomeScrollChanged
+                onScrollChanged = onHomeScrollChanged,
+                sharedTransitionScope = this@SharedTransitionLayout,
+                animatedVisibilityScope = this@composable
             )
         }
         composable(
@@ -354,7 +360,14 @@ fun AppNavigation(
             val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
             val openSheet = backStackEntry.arguments?.getBoolean("openSheet") ?: false
             if (animeId != null) {
-                AnimeDetailScreen(navController, animeId = animeId, initialTab = initialTab, openSheet = openSheet)
+                AnimeDetailScreen(
+                    navController = navController,
+                    animeId = animeId,
+                    initialTab = initialTab,
+                    openSheet = openSheet,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@composable
+                )
             } else {
                 Text("Error: anime no encontrado")
             }
@@ -400,6 +413,7 @@ fun AppNavigation(
             route = AppDestinations.POLICY_PRIVACY_ROUTE
         ) {
             PolicyPrivacyScreen(navController)
+        }
         }
     }
 }
