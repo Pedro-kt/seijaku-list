@@ -60,8 +60,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .offset(y = barOffset)
-            .padding(bottom = 12.dp), // Separación estética del borde inferior
+            .offset(y = barOffset),
         contentAlignment = Alignment.Center
     ) {
         Surface(
