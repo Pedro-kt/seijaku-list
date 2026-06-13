@@ -264,8 +264,6 @@ fun AnimeDetailScreen(
 
     val recommendations by animeDetailViewModel.recommendations.collectAsState()
     val isRecommendationsLoading by animeDetailViewModel.isRecommendationsLoading.collectAsState()
-    val forumTopics by animeDetailViewModel.forumTopics.collectAsState()
-    val isForumLoading by animeDetailViewModel.isForumLoading.collectAsState()
 
     val animeEpisodes by animeDetailViewModel.animeEpisodes.collectAsState()
     val isEpisodesLoading by animeDetailViewModel.isEpisodesLoading.collectAsState()
@@ -383,6 +381,13 @@ fun AnimeDetailScreen(
 
     var selectedTabIndex by remember { mutableStateOf(initialTab) }
 
+    // Cargar personajes cuando se selecciona el tab 1
+    LaunchedEffect(selectedTabIndex) {
+        if (selectedTabIndex == 1 && animeDetail != null) {
+            animeCharacterDetailViewModel.loadAnimeCharacters(animeDetail!!.malId)
+        }
+    }
+
     // Cargar imágenes, videos y episodios cuando se selecciona el tab 2
     // RequestThrottler maneja automáticamente el rate limiting
     LaunchedEffect(selectedTabIndex) {
@@ -390,7 +395,6 @@ fun AnimeDetailScreen(
             animeDetailViewModel.loadAnimePictures(animeDetail!!.malId)
             animeDetailViewModel.loadAnimeVideos(animeDetail!!.malId)
             animeDetailViewModel.loadAnimeEpisodes(animeDetail!!.malId)
-            animeDetailViewModel.loadForumTopics(animeDetail!!.malId)
         }
     }
 
@@ -2300,207 +2304,6 @@ fun AnimeDetailScreen(
                                                     )
                                                 }
                                             }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // ========== SECCIÓN DE FORO ==========
-                            item {
-                                Spacer(modifier = Modifier.height(24.dp))
-                                SectionHeader(
-                                    title = "Foro",
-                                    subtitle = if (isForumLoading) "Cargando..." else "${forumTopics.size} tema${if (forumTopics.size != 1) "s en MyAnimeList" else " en MyAnimeList"}"
-                                ) {
-                                    if (!isForumLoading) {
-                                        Surface(
-                                            shape = RoundedCornerShape(8.dp),
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                                        ) {
-                                            Text(
-                                                text = "${forumTopics.size}",
-                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                fontFamily = PoppinsBold,
-                                                fontSize = 13.asp()
-                                            )
-                                        }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                            }
-                            if (isForumLoading) {
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(32.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) { CircularProgressIndicator() }
-                                }
-                            } else if (forumTopics.isEmpty()) {
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(32.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "No hay temas de discusión",
-                                            fontFamily = PoppinsMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            } else {
-                                items(forumTopics) { topic ->
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp, vertical = 6.dp),
-                                        shape = RoundedCornerShape(20.dp), // Más redondeado para un look moderno
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                                2.dp
-                                            )
-                                        ),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // Flat design con sutil color de elevación
-                                    ) {
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    pendingExternalUrl = topic.url
-                                                    showExternalLinkDialog = true
-                                                }
-                                                .padding(16.dp), // Padding interno uniforme
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            // 1. INDICADOR DE ACTIVIDAD (En lugar de una barra lateral, un punto con "glow")
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.padding(end = 12.dp)
-                                            ) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(8.dp)
-                                                        .clip(CircleShape)
-                                                        .background(MaterialTheme.colorScheme.primary)
-                                                )
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                // Línea conectora sutil opcional
-                                                Box(
-                                                    modifier = Modifier
-                                                        .width(1.dp)
-                                                        .height(20.dp)
-                                                        .background(
-                                                            MaterialTheme.colorScheme.primary.copy(
-                                                                alpha = 0.2f
-                                                            )
-                                                        )
-                                                )
-                                            }
-
-                                            Column(
-                                                modifier = Modifier.weight(1f),
-                                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                // TÍTULO (Más prominente)
-                                                Text(
-                                                    text = topic.title,
-                                                    maxLines = 2,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    fontFamily = PoppinsBold,
-                                                    fontSize = 15.asp(),
-                                                    lineHeight = 20.asp(),
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
-
-                                                // INFO DE AUTOR Y METADATOS
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    modifier = Modifier.fillMaxWidth()
-                                                ) {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(
-                                                            8.dp
-                                                        )
-                                                    ) {
-                                                        // AVATAR MEJORADO
-                                                        Surface(
-                                                            shape = CircleShape,
-                                                            color = MaterialTheme.colorScheme.primaryContainer.copy(
-                                                                alpha = 0.4f
-                                                            ),
-                                                            modifier = Modifier.size(24.adp())
-                                                        ) {
-                                                            Box(contentAlignment = Alignment.Center) {
-                                                                Text(
-                                                                    text = topic.authorUsername.firstOrNull()
-                                                                        ?.uppercase() ?: "?",
-                                                                    fontSize = 11.asp(),
-                                                                    fontFamily = PoppinsBold,
-                                                                    color = MaterialTheme.colorScheme.primary
-                                                                )
-                                                            }
-                                                        }
-
-                                                        Text(
-                                                            text = topic.authorUsername,
-                                                            fontFamily = PoppinsMedium,
-                                                            fontSize = 12.asp(),
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        )
-                                                    }
-
-                                                    // BADGE DE COMENTARIOS (Estilo burbuja de chat)
-                                                    Surface(
-                                                        shape = RoundedCornerShape(8.dp),
-                                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                                            alpha = 0.5f
-                                                        ),
-                                                    ) {
-                                                        Row(
-                                                            modifier = Modifier.padding(
-                                                                horizontal = 8.dp,
-                                                                vertical = 4.dp
-                                                            ),
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                            horizontalArrangement = Arrangement.spacedBy(
-                                                                4.dp
-                                                            )
-                                                        ) {
-                                                            Icon(
-                                                                Icons.Rounded.ChatBubbleOutline,
-                                                                null,
-                                                                Modifier.size(12.dp),
-                                                                tint = MaterialTheme.colorScheme.primary
-                                                            )
-                                                            Text(
-                                                                text = "${topic.comments}",
-                                                                fontFamily = PoppinsBold,
-                                                                fontSize = 11.asp(),
-                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            // ICONO DE SALIDA (Más sutil y elegante)
-                                            Icon(
-                                                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .padding(start = 12.dp)
-                                                    .size(14.dp),
-                                                tint = MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.2f
-                                                )
-                                            )
                                         }
                                     }
                                 }
