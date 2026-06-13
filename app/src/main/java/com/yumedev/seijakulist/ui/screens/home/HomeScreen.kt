@@ -147,6 +147,7 @@ import kotlinx.coroutines.delay
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
 import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
+import kotlinx.coroutines.launch
 
 
 // HomeScreen con UI mejorada
@@ -246,7 +247,7 @@ fun HomeScreen(
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
     val tabs = listOf("Anime", "Manga")
 
-    // Estado de scroll para el LazyColumn
+    // Estado de scroll para el LazyColumn - NO guardar estado entre navegaciones
     val listState = rememberLazyListState()
 
     // Detectar si se ha hecho scroll
@@ -402,31 +403,27 @@ private fun AnimeContent(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-        // Quick Stats PRIMERO (solo si tiene animes guardados)
-        profileUiState.allSavedAnimes.takeIf { it.isNotEmpty() }?.let { savedAnimes ->
-            val recentAnimes = savedAnimes.filter { it.statusUser == "Viendo" }.take(3)
-            item(key = "quick_stats_${savedAnimes.size}_${recentAnimes.size}") {
-                QuickStats(
-                    stats = profileUiState.stats,
-                    recentAnimes = recentAnimes,
-                    navController = navController
+        // Quick Stats + Hero Carousel en un solo item
+        item(key = "top_section_${profileUiState.allSavedAnimes.size}_${heroCards?.size ?: 0}") {
+            Column {
+                // Quick Stats (solo si tiene animes guardados)
+                profileUiState.allSavedAnimes.takeIf { it.isNotEmpty() }?.let { savedAnimes ->
+                    val recentAnimes = savedAnimes.filter { it.statusUser == "Viendo" }.take(3)
+                    QuickStats(
+                        stats = profileUiState.stats,
+                        recentAnimes = recentAnimes,
+                        navController = navController
+                    )
+                }
+
+                // Hero Carousel
+                HeroCarousel(
+                    navController = navController,
+                    cards = heroCards,
+                    isLoading = heroIsLoading,
+                    localAnimeStatuses = localAnimeStatuses
                 )
             }
-
-            // Espacio reducido entre QuickStats y Hero Carousel
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
-
-        // Hero Carousel — 5 cards deslizables
-        item(key = "hero_carousel_${heroCards?.size ?: 0}_${heroIsLoading}") {
-            HeroCarousel(
-                navController = navController,
-                cards = heroCards,
-                isLoading = heroIsLoading,
-                localAnimeStatuses = localAnimeStatuses
-            )
         }
 
         // Sección En Emisión
@@ -755,11 +752,6 @@ private fun EnhancedEmptyState(message: String) {
     }
 }
 
-// Objeto para controlar si ya se animó la primera vez
-private object HomeAnimationState {
-    var hasAnimated = false
-}
-
 // Hero Carousel — 5 cards deslizables con diseño moderno inspirado en "My Favorites"
 @Composable
 private fun HeroCarousel(
@@ -798,17 +790,6 @@ private fun HeroCarousel(
         }
     }
 
-    val shouldAnimate = !HomeAnimationState.hasAnimated
-    var isVisible by remember { mutableStateOf(!shouldAnimate) }
-
-    LaunchedEffect(shouldAnimate) {
-        if (shouldAnimate) {
-            HomeAnimationState.hasAnimated = true
-            delay(100)
-            isVisible = true
-        }
-    }
-
     // Obtener el título dinámico basado en la página actual
     val currentLabel = remember(pagerState.currentPage, hasCards, cards) {
         if (hasCards && pagerState.currentPage < cards!!.size) {
@@ -818,18 +799,11 @@ private fun HeroCarousel(
         }
     }
 
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(tween(500)) + slideInVertically(
-            initialOffsetY = { it / 4 },
-            animationSpec = tween(500, easing = FastOutSlowInEasing)
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        ) {
             // Header: Título dinámico + Botón Ver más
             Row(
                 modifier = Modifier
@@ -963,7 +937,6 @@ private fun HeroCarousel(
             }
         }
     }
-}
 
 @Composable
 private fun HeroPlaceholderCard() {
