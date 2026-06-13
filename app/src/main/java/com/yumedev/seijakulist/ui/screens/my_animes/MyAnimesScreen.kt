@@ -133,6 +133,7 @@ import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.launch
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 import kotlinx.coroutines.delay
 
 @Composable
@@ -176,14 +177,6 @@ fun MyAnimeListScreen(
     var collapsedSearch by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     var isSortedAscending by remember { mutableStateOf(false) }
-
-    val statusColors = mapOf(
-        "Viendo" to Color(0xFF66BB6A),
-        "Completado" to Color(0xFF42A5F5),
-        "Pendiente" to Color(0xFFFFCA28),
-        "Abandonado" to Color(0xFFEF5350),
-        "Planeado" to Color(0xFF78909C)
-    )
 
     LaunchedEffect(collapsedSearch) {
         if (collapsedSearch) {
@@ -632,7 +625,7 @@ fun MyAnimeListScreen(
                                 items(displayedAnimes) { anime ->
                                     CompactAnimeCard(
                                         anime = anime,
-                                        statusColor = statusColors[anime.statusUser] ?: Color.Gray,
+                                        statusColor = getAnimeStatusColor(anime.statusUser),
                                         onAnimeClick = {
                                             navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
                                         },
@@ -663,7 +656,7 @@ fun MyAnimeListScreen(
                                 items(displayedAnimes) { anime ->
                                     OnboardingStyleAnimeCard(
                                         anime = anime,
-                                        statusColor = statusColors[anime.statusUser] ?: Color.Gray,
+                                        statusColor = getAnimeStatusColor(anime.statusUser),
                                         onAnimeClick = {
                                             navController.navigate("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/${anime.malId}")
                                         },
@@ -958,8 +951,7 @@ fun MyAnimeListScreen(
                                                         ) {
                                                             AnimeStatusChip(
                                                                 status = anime.statusUser,
-                                                                statusColor = statusColors[anime.statusUser]
-                                                                    ?: Color.Gray,
+                                                                statusColor = getAnimeStatusColor(anime.statusUser),
                                                                 onStatusSelected = { action ->
                                                                     viewModel.handleUserAction(
                                                                         anime.malId,

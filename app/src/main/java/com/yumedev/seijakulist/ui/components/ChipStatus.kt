@@ -41,6 +41,7 @@ import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.util.UserAction
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 
 @Composable
 fun AnimeStatusChip(
@@ -117,14 +118,7 @@ fun AnimeStatusChip(
                     "Planeado" -> Icons.Default.EventAvailable
                     else -> null
                 }
-                val itemColor = when (newStatus) {
-                    "Viendo" -> Color(0xFF66BB6A)
-                    "Completado" -> Color(0xFF42A5F5)
-                    "Pendiente" -> Color(0xFFFFCA28)
-                    "Abandonado" -> Color(0xFFEF5350)
-                    "Planeado" -> Color(0xFF78909C)
-                    else -> MaterialTheme.colorScheme.onSurface
-                }
+                val itemColor = getAnimeStatusColor(newStatus)
 
                 DropdownMenuItem(
                     text = {

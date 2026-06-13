@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -196,14 +197,7 @@ private fun AnimeSectionCard(
         // Estado del anime en la parte superior izquierda
         val userStatus = localAnimeStatuses[anime.malId]
         if (userStatus != null) {
-            val statusColor = when (userStatus) {
-                "Viendo" -> Color(0xFF66BB6A)
-                "Completado" -> Color(0xFF42A5F5)
-                "Pendiente" -> Color(0xFFFFCA28)
-                "Abandonado" -> Color(0xFFEF5350)
-                "Planeado" -> Color(0xFF78909C)
-                else -> Color.Gray
-            }
+            val statusColor = getAnimeStatusColor(userStatus)
             Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -339,14 +333,7 @@ fun CardAnimesHomeGrid(
         // Badge "en lista" con el estado del usuario
         val userStatus = localAnimeStatuses[anime.malId]
         if (userStatus != null) {
-            val statusColor = when (userStatus) {
-                "Viendo" -> Color(0xFF66BB6A)
-                "Completado" -> Color(0xFF42A5F5)
-                "Pendiente" -> Color(0xFFFFCA28)
-                "Abandonado" -> Color(0xFFEF5350)
-                "Planeado" -> Color(0xFF78909C)
-                else -> Color.Gray
-            }
+            val statusColor = getAnimeStatusColor(userStatus)
             Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)

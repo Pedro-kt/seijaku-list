@@ -214,6 +214,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 import com.yumedev.seijakulist.util.translateAiredDates
 import com.yumedev.seijakulist.util.translateDuration
 import com.yumedev.seijakulist.util.translateSeason
@@ -372,14 +373,6 @@ fun AnimeDetailScreen(
     )
 
     val statusAnime = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
-
-    val statusColors = mapOf(
-        "Viendo" to Color(0xFF66BB6A),
-        "Completado" to Color(0xFF42A5F5),
-        "Pendiente" to Color(0xFFFFCA28),
-        "Abandonado" to Color(0xFFEF5350),
-        "Planeado" to Color(0xFF78909C)
-    )
 
     val animeVideosRemember = remember(animeVideos) {
         animeVideos?.episodes?.associateBy(
@@ -3041,7 +3034,7 @@ fun AnimeDetailScreen(
                                         .then(if (isDisabled) Modifier.alpha(0.4f) else Modifier),
                                     shape = RoundedCornerShape(12.dp),
                                     color = if (isSelected)
-                                        statusColors[status] ?: MaterialTheme.colorScheme.primaryContainer
+                                        getAnimeStatusColor(status)
                                     else
                                         MaterialTheme.colorScheme.surfaceContainerHighest,
                                     shadowElevation = if (isSelected) 4.dp else 1.dp

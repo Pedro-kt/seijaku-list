@@ -257,7 +257,7 @@ fun AppScaffold(
                                 if (scrolled) {
                                     // Searchbar compacto
                                     androidx.compose.material3.Surface(
-                                        onClick = { navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE) },
+                                        onClick = { navController.navigate("${AppDestinations.SEARCH_ANIME_ROUTE}?${AppDestinations.SEARCH_AUTO_EXPAND_KEY}=true") },
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(end = 16.dp)
@@ -507,7 +507,9 @@ fun AppScaffold(
 
             // Bottom Navigation flotante
             AnimatedVisibility(
-                visible = currentRoute in bottomNavRoutes && !isSearchExpanded,
+                visible = (currentRoute in bottomNavRoutes ||
+                          currentRoute?.startsWith(AppDestinations.SEARCH_ANIME_ROUTE) == true)
+                          && !isSearchExpanded,
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it },
                 modifier = Modifier.align(Alignment.BottomCenter)

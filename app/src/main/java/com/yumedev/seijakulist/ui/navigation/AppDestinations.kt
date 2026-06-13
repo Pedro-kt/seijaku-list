@@ -4,6 +4,7 @@ object AppDestinations {
     const val SPLASH = "splash"
     const val HOME = "home"
     const val SEARCH_ANIME_ROUTE = "search_anime_route"
+    const val SEARCH_AUTO_EXPAND_KEY = "autoExpand"
     const val ANIME_DETAIL_ROUTE = "anime_detail_route"
     const val ANIME_ID_KEY = "animeId"
 

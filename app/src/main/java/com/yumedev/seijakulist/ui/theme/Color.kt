@@ -159,3 +159,31 @@ val JapaneseLightInverseOnSurface = Color(0xFFFFF0F5)
 val JapaneseLightInversePrimary = Color(0xFFFF69B4) // Sakura pink vibrante
 val JapaneseLightShadow = Color(0xFF000000)
 val JapaneseLightScrim = Color(0xFF000000)
+
+// ============================================
+// Colores de Estado de Anime
+// ============================================
+// Estos colores se usan de forma consistente en toda la app
+// para representar los diferentes estados de un anime en la lista del usuario
+
+val StatusWatching = Color(0xFF00A8FF)     // Azul - Viendo
+val StatusCompleted = Color(0xFF4CAF50)    // Verde - Completado
+val StatusPending = Color(0xFFFFA726)      // Naranja - Pendiente
+val StatusDropped = Color(0xFFEF5350)      // Rojo - Abandonado
+val StatusPlanned = Color(0xFF9C6FDE)      // Morado - Planeado
+
+/**
+ * Obtiene el color correspondiente a un estado de anime
+ * @param status El estado del anime ("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
+ * @return Color correspondiente al estado
+ */
+fun getAnimeStatusColor(status: String): Color {
+    return when (status) {
+        "Viendo" -> StatusWatching
+        "Completado" -> StatusCompleted
+        "Pendiente" -> StatusPending
+        "Abandonado" -> StatusDropped
+        "Planeado" -> StatusPlanned
+        else -> Color.Gray
+    }
+}

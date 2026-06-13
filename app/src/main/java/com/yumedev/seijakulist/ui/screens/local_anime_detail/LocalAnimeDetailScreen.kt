@@ -114,6 +114,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,13 +144,6 @@ fun AnimeDetailScreenLocal(
     val editSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()) }
     val statusList   = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
-    val statusColors = mapOf(
-        "Viendo"     to Color(0xFF66BB6A),
-        "Completado" to Color(0xFF42A5F5),
-        "Pendiente"  to Color(0xFFFFCA28),
-        "Abandonado" to Color(0xFFEF5350),
-        "Planeado"   to Color(0xFF78909C)
-    )
     var sheetStatus           by remember { mutableStateOf<String?>(null) }
     var sheetRating           by remember { mutableFloatStateOf(0f) }
     var sheetOpinion          by remember { mutableStateOf("") }
@@ -1371,7 +1365,7 @@ fun AnimeDetailScreenLocal(
                                         onClick = { sheetStatus = if (isSelected) null else status },
                                         modifier = Modifier.height(50.adp()),
                                         shape = RoundedCornerShape(12.dp),
-                                        color = if (isSelected) statusColors[status] ?: MaterialTheme.colorScheme.primaryContainer
+                                        color = if (isSelected) getAnimeStatusColor(status)
                                                 else MaterialTheme.colorScheme.surfaceContainerHighest,
                                         shadowElevation = if (isSelected) 4.dp else 1.dp
                                     ) {
