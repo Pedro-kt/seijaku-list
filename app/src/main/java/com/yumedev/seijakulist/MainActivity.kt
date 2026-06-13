@@ -319,11 +319,13 @@ fun AppNavigation(
             )
         }
         composable(
-            route = AppDestinations.SEARCH_ANIME_ROUTE
-        ) {
+            route = "${AppDestinations.SEARCH_ANIME_ROUTE}?${AppDestinations.SEARCH_AUTO_EXPAND_KEY}={${AppDestinations.SEARCH_AUTO_EXPAND_KEY}}"
+        ) { backStackEntry ->
+            val autoExpand = backStackEntry.arguments?.getString(AppDestinations.SEARCH_AUTO_EXPAND_KEY)?.toBoolean() ?: false
             SearchScreen(
                 navController = navController,
-                onSearchExpandedChange = onSearchExpandedChange
+                onSearchExpandedChange = onSearchExpandedChange,
+                autoExpand = autoExpand
             )
         }
         composable(

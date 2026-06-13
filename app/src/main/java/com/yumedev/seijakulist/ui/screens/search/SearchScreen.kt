@@ -116,6 +116,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -179,7 +182,8 @@ private val formatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", 
 fun SearchScreen(
     navController: NavController,
     viewModel: AnimeSearchViewModel = hiltViewModel(),
-    onSearchExpandedChange: (Boolean) -> Unit = {}
+    onSearchExpandedChange: (Boolean) -> Unit = {},
+    autoExpand: Boolean = false
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val animeList by viewModel.animeList.collectAsState()
@@ -194,13 +198,33 @@ fun SearchScreen(
     val trendingAnimes by viewModel.trendingAnimes.collectAsState() // tendencias dinámicas
     val previewResults by viewModel.previewResults.collectAsState() // vista previa de resultados
 
-    var expanded by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val view = LocalView.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var expanded by remember { mutableStateOf(autoExpand) }
     var openBottomSheet by remember { mutableStateOf(false) }
     var openFiltersSheet by remember { mutableStateOf(false) }
 
     // Lazy load trending animes when screen opens
     LaunchedEffect(Unit) {
         viewModel.loadTrendingAnimes()
+    }
+
+    // Auto-expand cuando se navega desde el Home y forzar teclado
+    LaunchedEffect(autoExpand) {
+        if (autoExpand) {
+            // Pequeño delay para asegurar que la composición esté completa
+            kotlinx.coroutines.delay(300)
+            expanded = true
+
+            // Forzar el teclado usando InputMethodManager nativo
+            kotlinx.coroutines.delay(200)
+            val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            imm?.let {
+                view.requestFocus()
+                it.showSoftInput(view, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
     }
 
     // Rastrear el estado anterior de expanded para detectar transiciones
@@ -279,7 +303,13 @@ fun SearchScreen(
                         if (searchQuery.isNotBlank()) viewModel.performSearchOrFilter()
                     },
                     expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    onExpandedChange = { newExpanded ->
+                        expanded = newExpanded
+                        if (newExpanded) {
+                            // Forzar el teclado cuando se expande
+                            keyboardController?.show()
+                        }
+                    },
                     colors = SearchBarDefaults.inputFieldColors(
                         focusedContainerColor = if (expanded) MaterialTheme.colorScheme.background
                         else MaterialTheme.colorScheme.surfaceContainerHigh,

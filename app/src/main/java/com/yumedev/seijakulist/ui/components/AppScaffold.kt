@@ -257,7 +257,7 @@ fun AppScaffold(
                                 if (scrolled) {
                                     // Searchbar compacto
                                     androidx.compose.material3.Surface(
-                                        onClick = { navController.navigate(AppDestinations.SEARCH_ANIME_ROUTE) },
+                                        onClick = { navController.navigate("${AppDestinations.SEARCH_ANIME_ROUTE}?${AppDestinations.SEARCH_AUTO_EXPAND_KEY}=true") },
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(end = 16.dp)
