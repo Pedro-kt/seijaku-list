@@ -226,7 +226,7 @@ fun MyAnimeListScreen(
     val listState = rememberLazyListState()
 
     // Determinar si mostrar el botón de "volver arriba"
-    val showScrollToTopButton by remember {
+    val showScrollToTopButton by remember(viewMode) {
         derivedStateOf {
             when (viewMode) {
                 ViewMode.GRID -> gridState.firstVisibleItemIndex > 3
