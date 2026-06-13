@@ -91,8 +91,7 @@ fun AppScaffold(
     var homeScrolled by remember { mutableStateOf(false) }
 
     // Pantallas fullscreen que deben dibujarse detrás de la status bar (sin Scaffold)
-    if (currentRoute == AppDestinations.SPLASH ||
-        currentRoute == AppDestinations.AUTH_ROUTE ||
+    if (currentRoute == AppDestinations.AUTH_ROUTE ||
         currentRoute == AppDestinations.LOGIN_ROUTE ||
         currentRoute == AppDestinations.REGISTER_ROUTE || currentRoute == AppDestinations.SELECT_TOP5_ROUTE
     ) {

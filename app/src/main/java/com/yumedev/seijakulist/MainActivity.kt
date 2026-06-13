@@ -98,7 +98,6 @@ import com.yumedev.seijakulist.ui.screens.profile.ProfileSetupView
 import com.yumedev.seijakulist.ui.screens.profile.ProfileView
 import com.yumedev.seijakulist.ui.screens.profile.SelectTop5Screen
 import com.yumedev.seijakulist.ui.screens.report.ReportErrorScreen
-import com.yumedev.seijakulist.ui.screens.splash.SplashScreen
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.google.firebase.auth.FirebaseAuth
@@ -110,17 +109,10 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var settingsViewModel: com.yumedev.seijakulist.ui.screens.configuration.SettingsViewModel
+    lateinit var settingsViewModel: SettingsViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Instalar splash screen ANTES de super.onCreate()
-       // val splashScreen = installSplashScreen()
-
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        // Opcional: Controlar cuando se quita el splash nativo
-       // var isAppReady = false
-        //splashScreen.setKeepOnScreenCondition { !isAppReady }
 
         setContent {
             val themeMode by settingsViewModel.themeMode.collectAsState()
@@ -161,19 +153,8 @@ fun AppNavigation(
     SharedTransitionLayout {
         NavHost(
             navController = navController,
-            startDestination = AppDestinations.SPLASH
+            startDestination = AppDestinations.HOME
         ) {
-        composable(
-            route = AppDestinations.SPLASH
-        ) {
-            SplashScreen(
-                onSplashFinished = {
-                    navController.navigate(AppDestinations.HOME) {
-                        popUpTo(AppDestinations.SPLASH) { inclusive = true }
-                    }
-                }
-            )
-        }
         composable(
             route = AppDestinations.LOGIN_ROUTE,
             enterTransition = {

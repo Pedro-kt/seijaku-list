@@ -1,7 +1,6 @@
 package com.yumedev.seijakulist.ui.navigation
 
 object AppDestinations {
-    const val SPLASH = "splash"
     const val HOME = "home"
     const val SEARCH_ANIME_ROUTE = "search_anime_route"
     const val SEARCH_AUTO_EXPAND_KEY = "autoExpand"
