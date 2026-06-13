@@ -507,7 +507,9 @@ fun AppScaffold(
 
             // Bottom Navigation flotante
             AnimatedVisibility(
-                visible = currentRoute in bottomNavRoutes && !isSearchExpanded,
+                visible = (currentRoute in bottomNavRoutes ||
+                          currentRoute?.startsWith(AppDestinations.SEARCH_ANIME_ROUTE) == true)
+                          && !isSearchExpanded,
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it },
                 modifier = Modifier.align(Alignment.BottomCenter)

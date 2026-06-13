@@ -52,6 +52,7 @@ import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.yumedev.seijakulist.ui.screens.detail.SectionHeader
 import androidx.compose.animation.core.animateFloatAsState
@@ -1250,14 +1251,7 @@ private fun HonorableMentionCard(
 
                     // Estado del usuario
                     if (anime.statusUser.isNotBlank()) {
-                        val statusColor = when (anime.statusUser) {
-                            "Viendo" -> Color(0xFF66BB6A)
-                            "Completado" -> Color(0xFF42A5F5)
-                            "Pendiente" -> Color(0xFFFFCA28)
-                            "Abandonado" -> Color(0xFFEF5350)
-                            "Planeado" -> Color(0xFF78909C)
-                            else -> Color.Gray
-                        }
+                        val statusColor = getAnimeStatusColor(anime.statusUser)
                         Surface(
                             shape = RoundedCornerShape(6.dp),
                             color = statusColor.copy(alpha = 0.15f)

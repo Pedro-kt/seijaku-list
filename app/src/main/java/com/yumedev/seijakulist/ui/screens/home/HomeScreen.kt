@@ -146,6 +146,7 @@ import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import kotlinx.coroutines.delay
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 
 
 // HomeScreen con UI mejorada
@@ -1084,11 +1085,11 @@ private fun translateGenre(genre: String): String = genreTranslations[genre] ?: 
 private data class HeroStatusConfig(val icon: ImageVector, val color: Color)
 
 private fun heroStatusConfig(status: String): HeroStatusConfig? = when (status) {
-    "Viendo" -> HeroStatusConfig(Icons.Default.PlayArrow, Color(0xFF4CAF50))
-    "Completado" -> HeroStatusConfig(Icons.Default.Check, Color(0xFF42A5F5))
-    "Pendiente" -> HeroStatusConfig(Icons.AutoMirrored.Filled.List, Color(0xFFFFCA28))
-    "Abandonado" -> HeroStatusConfig(Icons.Default.Info, Color(0xFF9E9E9E))
-    "Planeado" -> HeroStatusConfig(Icons.Default.CalendarToday, Color(0xFFAB47BC))
+    "Viendo" -> HeroStatusConfig(Icons.Default.PlayArrow, getAnimeStatusColor(status))
+    "Completado" -> HeroStatusConfig(Icons.Default.Check, getAnimeStatusColor(status))
+    "Pendiente" -> HeroStatusConfig(Icons.AutoMirrored.Filled.List, getAnimeStatusColor(status))
+    "Abandonado" -> HeroStatusConfig(Icons.Default.Info, getAnimeStatusColor(status))
+    "Planeado" -> HeroStatusConfig(Icons.Default.CalendarToday, getAnimeStatusColor(status))
     else -> null
 }
 
@@ -1156,28 +1157,29 @@ private fun HeroAnimeCard(
                     )
             )
 
-            // ── Indicador "en tu lista" (top end) — estilo etiqueta ──────────
+            // ── Indicador "en tu lista" (top start) — estilo sutil ──────────
             localAnimeStatus?.let { userStatus ->
                 heroStatusConfig(userStatus)?.let { cfg ->
                     Row(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .clip(RoundedCornerShape(bottomStart = 20.dp))
-                            .background(cfg.color.copy(alpha = 0.92f))
+                            .align(Alignment.TopStart)
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.6f))
                             .border(
                                 1.dp,
-                                Color.White.copy(alpha = 0.25f),
-                                RoundedCornerShape(bottomStart = 20.dp)
+                                cfg.color.copy(alpha = 0.5f),
+                                RoundedCornerShape(8.dp)
                             )
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
                             imageVector = cfg.icon,
                             contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(11.adp())
+                            tint = cfg.color,
+                            modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = userStatus,
