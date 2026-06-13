@@ -404,10 +404,11 @@ private fun AnimeContent(
         ) {
         // Quick Stats PRIMERO (solo si tiene animes guardados)
         profileUiState.allSavedAnimes.takeIf { it.isNotEmpty() }?.let { savedAnimes ->
-            item {
+            val recentAnimes = savedAnimes.filter { it.statusUser == "Viendo" }.take(3)
+            item(key = "quick_stats_${savedAnimes.size}_${recentAnimes.size}") {
                 QuickStats(
                     stats = profileUiState.stats,
-                    recentAnimes = savedAnimes.filter { it.statusUser == "Viendo" }.take(3),
+                    recentAnimes = recentAnimes,
                     navController = navController
                 )
             }
@@ -419,7 +420,7 @@ private fun AnimeContent(
         }
 
         // Hero Carousel — 5 cards deslizables
-        item {
+        item(key = "hero_carousel_${heroCards?.size ?: 0}_${heroIsLoading}") {
             HeroCarousel(
                 navController = navController,
                 cards = heroCards,
@@ -767,8 +768,12 @@ private fun HeroCarousel(
     @Suppress("UNUSED_PARAMETER") isLoading: Boolean,
     localAnimeStatuses: Map<Int, String> = emptyMap()
 ) {
-    val pageCount = if (cards.isNullOrEmpty()) 5 else cards.size
-    val pagerState = rememberPagerState(pageCount = { pageCount })
+    val hasCards = !cards.isNullOrEmpty()
+    val pageCount = if (hasCards) cards!!.size else 5
+    // Usar remember con key para recrear el pagerState cuando cambie el estado de carga de las cards
+    val pagerState = androidx.compose.runtime.key(hasCards) {
+        rememberPagerState(pageCount = { pageCount })
+    }
 
     // Control de auto-scroll con detección de interacción del usuario
     var lastUserInteractionTime by remember { mutableStateOf(0L) }
@@ -805,8 +810,8 @@ private fun HeroCarousel(
     }
 
     // Obtener el título dinámico basado en la página actual
-    val currentLabel = remember(pagerState.currentPage, cards) {
-        if (!cards.isNullOrEmpty() && pagerState.currentPage < cards.size) {
+    val currentLabel = remember(pagerState.currentPage, hasCards, cards) {
+        if (hasCards && pagerState.currentPage < cards!!.size) {
             heroBadgeConfig(cards[pagerState.currentPage].label).displayLabel
         } else {
             "Destacados"
@@ -904,11 +909,11 @@ private fun HeroCarousel(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    if (cards.isNullOrEmpty()) {
+                    if (!hasCards) {
                         HeroPlaceholderCard()
                     } else {
                         HeroAnimeCard(
-                            item = cards[page],
+                            item = cards!![page],
                             localAnimeStatus = localAnimeStatuses[cards[page].malId],
                             onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${cards[page].malId}") }
                         )
