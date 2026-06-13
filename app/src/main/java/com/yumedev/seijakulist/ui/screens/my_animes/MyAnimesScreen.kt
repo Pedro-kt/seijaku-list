@@ -47,7 +47,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -55,6 +57,7 @@ import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EventAvailable
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlusOne
@@ -71,6 +74,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -215,6 +219,22 @@ fun MyAnimeListScreen(
     // Estados para filtros avanzados
     var showAdvancedFilters by remember { mutableStateOf(false) }
     var activeFilters by remember { mutableStateOf(AnimeFilters()) }
+
+    // Estados de scroll para cada modo de visualización
+    val gridState = rememberLazyGridState()
+    val cardState = rememberLazyGridState()
+    val listState = rememberLazyListState()
+
+    // Determinar si mostrar el botón de "volver arriba"
+    val showScrollToTopButton by remember(viewMode) {
+        derivedStateOf {
+            when (viewMode) {
+                ViewMode.GRID -> gridState.firstVisibleItemIndex > 3
+                ViewMode.CARD -> cardState.firstVisibleItemIndex > 2
+                ViewMode.LIST -> listState.firstVisibleItemIndex > 2
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -611,6 +631,7 @@ fun MyAnimeListScreen(
                     when (viewMode) {
                         ViewMode.GRID -> {
                             LazyVerticalGrid(
+                                state = gridState,
                                 columns = GridCells.Fixed(3),
                                 modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -642,6 +663,7 @@ fun MyAnimeListScreen(
 
                         ViewMode.CARD -> {
                             LazyVerticalGrid(
+                                state = cardState,
                                 columns = GridCells.Fixed(2),
                                 modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -669,6 +691,7 @@ fun MyAnimeListScreen(
 
                         ViewMode.LIST -> {
                             LazyColumn(
+                                state = listState,
                                 modifier = Modifier
                                     .fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -1073,6 +1096,53 @@ fun MyAnimeListScreen(
                 actionColor = MaterialTheme.colorScheme.inversePrimary,
                 shape = RoundedCornerShape(12.dp)
             )
+        }
+
+        // Botón flotante de "volver arriba" - solo visible cuando hay contenido para mostrar
+        if (!isLoading && savedAnimes.isNotEmpty()) {
+            AnimatedVisibility(
+                visible = showScrollToTopButton,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 90.dp)
+            ) {
+                Surface(
+                    onClick = {
+                        scope.launch {
+                            when (viewMode) {
+                                ViewMode.GRID -> gridState.animateScrollToItem(0)
+                                ViewMode.CARD -> cardState.animateScrollToItem(0)
+                                ViewMode.LIST -> listState.animateScrollToItem(0)
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shadowElevation = 6.dp,
+                    tonalElevation = 3.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "Volver arriba",
+                            fontFamily = PoppinsBold,
+                            fontSize = 13.asp(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
         }
     }
 
