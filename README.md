@@ -1,3 +1,10 @@
+> [!WARNING]
+> **Seijaku List is currently migrating from Jikan API to AniList.**
+>
+> The migration is required because the public Jikan API will be discontinued in October 2026.
+>
+> During this transition period, some features may be temporarily affected while providers and integrations are being updated.
+
 <p align="center">
   <img src="./images/seijaku_list_banner.png" alt="SeijakuList Banner" width="100%"/>
 </p>
@@ -7,103 +14,113 @@
   <img src="https://img.shields.io/badge/Kotlin-2.0-blue?logo=kotlin" alt="Kotlin"/>
   <img src="https://img.shields.io/badge/Jetpack%20Compose-Material3-purple" alt="Compose"/>
   <img src="https://img.shields.io/badge/Firebase-Auth%20%7C%20Firestore%20%7C%20Storage-orange?logo=firebase" alt="Firebase"/>
-  <img src="https://img.shields.io/badge/Arquitectura-MVVM%20%2B%20Clean-blueviolet" alt="MVVM"/>
+  <img src="https://img.shields.io/badge/Architecture-MVVM%20%2B%20Clean-blueviolet" alt="MVVM"/>
 </p>
 
-Tu compañero definitivo para organizar, descubrir y compartir tu pasión por el anime. Seijaku List es una aplicación Android nativa que te permite llevar un seguimiento completo de tus animes favoritos, explorar nuevos títulos desde MyAnimeList, sincronizar todo en la nube y muchas cosas mas!.
+Your ultimate companion for organizing, discovering, and sharing your passion for anime. Seijaku List is a native Android application that allows you to keep track of your favorite anime, discover new titles, sync everything to the cloud, and much more.
 
 ---
 
-## ✨ Características principales
+## ✨ Main Features
 
-### 🏠 Descubrimiento inteligente
-- **Hero Banner** con anime aleatorio cada vez que abres la app
-- Secciones dinámicas: En emisión, Top puntuación, Próxima temporada
-- Filtros por tipo (TV, Movie, OVA) y día de la semana
-- Mini-stats de tu colección en el Home
+### 🏠 Smart Discovery
 
-### 🔍 Búsqueda avanzada
-- Busca animes, mangas, personajes, estudios y más
-- Filtros por género con más de 40 categorías
-- Resultados paginados con carga progresiva
-- Integración completa con la API de MyAnimeList (Jikan)
+- **Hero Banner** featuring a random anime every time you open the app
+- Dynamic sections: Currently Airing, Top Rated, Upcoming Season
+- Filters by type (TV, Movie, OVA) and day of the week
+- Collection mini-stats directly on the Home screen
 
-### 📝 Gestión de tu lista
-- **3 modos de visualización**: Grilla, Lista y Tarjetas
-- Estados personalizables: Viendo, Completado, Planeado, Pendiente, Abandonado
-- Sistema de prioridades para animes planeados (Alta/Media/Baja)
-- Seguimiento de episodios con barra de progreso
-- Botón +1 para marcar episodios al instante
-- Fechas de inicio y fin personalizables
+### 🔍 Advanced Search
 
-### 🎯 Detalles completos
-- 5 tabs de información: General, Personajes, Episodios, Productores, Recomendaciones
-- Galería de imágenes y videos (openings, endings, trailers)
-- Lista de episodios con sinopsis individual
-- Personajes con seiyuus (actores de voz)
-- Foro de discusión de la comunidad MAL
+- Search for anime, manga, characters, studios, and more
+- Genre filters with over 40 categories
+- Paginated results with progressive loading
+- Full integration with the MyAnimeList API through Jikan
 
-### ⭐ Puntuación y reseñas
-- Califica tus animes de 0 a 10 (con pasos de 0.5)
-- Escribe opiniones personales
-- Lleva registro de cuántas veces has visto cada anime
-- Compara tu puntuación con el promedio de MyAnimeList
+### 📝 Anime List Management
 
-### 📊 Perfil y estadísticas
-- Panel de estadísticas: total de animes, completados, episodios vistos
-- Género favorito automático
-- Top 5 animes personalizables con insignias especiales
-- Avatar y biografía personalizados
-- Sincronización automática con Firebase
+- **3 display modes**: Grid, List, and Cards
+- Custom statuses: Watching, Completed, Planned, On Hold, Dropped
+- Priority system for planned anime (High / Medium / Low)
+- Episode tracking with progress bars
+- +1 button for quickly marking watched episodes
+- Custom start and finish dates
 
-### 🏆 Sistema de logros
-- 10 logros desbloqueables (más por venir)
-- 4 niveles de rareza: Normal, Rare, Epic, Legendary
-- Insignias especiales: Pionero, Maratonista, Coleccionista, y más
+### 🎯 Detailed Information
 
-### 🎨 Compartir en redes
-- Genera **Story Cards** personalizadas al instante
-- Imagen optimizada para Instagram, WhatsApp, Twitter
-- Diseño elegante con tus datos y puntuación
-- Comparte tu progreso con un toque
+- 5 information tabs: Overview, Characters, Episodes, Producers, Recommendations
+- Image and video gallery (trailers, openings, endings)
+- Episode list with individual synopses
+- Character information with voice actors
+- Community discussion integration
 
-### 🎨 Temas y personalización
-- 4 temas disponibles: Sistema, Claro, Oscuro, Japonés
-- Material 3 con paleta dinámica
-- Interfaz fluida con animaciones suaves
-- Modo offline con datos sincronizados
+### ⭐ Ratings and Reviews
 
-### 🔔 Novedades y actualizaciones
-- Changelog integrado en la app
-- Notificaciones de nuevas versiones
-- Historial completo de cambios
+- Rate anime from 0 to 10 (0.5 increments)
+- Write personal reviews and notes
+- Track rewatch counts
+- Compare your score with the MyAnimeList average
+
+### 📊 Profile and Statistics
+
+- Statistics dashboard with total anime, completed titles, and watched episodes
+- Automatically detected favorite genre
+- Customizable Top 5 anime showcase
+- Personalized avatar and biography
+- Automatic Firebase synchronization
+
+### 🏆 Achievement System
+
+- 10 unlockable achievements (more coming soon)
+- 4 rarity levels: Normal, Rare, Epic, Legendary
+- Special badges: Pioneer, Marathoner, Collector, and more
+
+### 🎨 Social Sharing
+
+- Generate personalized **Story Cards** instantly
+- Optimized for Instagram, WhatsApp, Twitter/X, and other platforms
+- Elegant design featuring your anime data and ratings
+- Share your progress with a single tap
+
+### 🎨 Themes and Customization
+
+- 4 available themes: System, Light, Dark, Japanese
+- Material 3 with dynamic color support
+- Smooth and fluid animations
+- Offline mode with synchronized data
+
+### 🔔 Updates and Changelog
+
+- Built-in changelog
+- New version notifications
+- Complete update history
 
 ---
 
-## 🛠 Stack tecnológico
+## 🛠 Tech Stack
 
-**SeijakuList** está desarrollado con las tecnologías modernas de Android:
+**Seijaku List** is built with modern Android technologies:
 
-- **Lenguaje**: Kotlin 2.0
+- **Language**: Kotlin 2.0
 - **UI**: Jetpack Compose + Material 3
-- **Arquitectura**: MVVM + Clean Architecture
-- **Base de datos local**: Room (SQLite)
+- **Architecture**: MVVM + Clean Architecture
+- **Local Database**: Room (SQLite)
 - **Backend**: Firebase (Auth, Firestore, Storage)
-- **API**: Jikan v4 (MyAnimeList)
-- **Navegación**: Navigation Compose con shared element transitions
-- **Imágenes**: Coil con caché optimizado
-- **Animaciones**: Lottie + Compose Animations
+- **API**: Jikan v4 (MyAnimeList) / AniList (Migration in Progress)
+- **Navigation**: Navigation Compose with Shared Element Transitions
+- **Images**: Coil with optimized caching
+- **Animations**: Lottie + Compose Animations
 
-[📖 Ver documentación técnica completa →](README_TECHNICAL.md)
+[📖 View Full Technical Documentation →](README_TECHNICAL.md)
 
 ---
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto es de código abierto. Consulta el archivo [LICENSE](LICENSE) para más información.
+This project is open source. See the [LICENSE](LICENSE) file for more information.
 
 ---
 
 <p align="center">
-  Hecho con ❤️ por <strong>Pedro Bustamante</strong>
+  Made with ❤️ by <strong>Pedro Bustamante</strong>
 </p>
