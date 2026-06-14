@@ -106,7 +106,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.yumedev.seijakulist.ui.components.TitleWithPadding
 import com.yumedev.seijakulist.ui.components.confirm_dialog.ConfirmChangePlannedDialog
-import com.yumedev.seijakulist.ui.screens.detail.RatingBar
+import com.yumedev.seijakulist.ui.screens.detail.components.shared.RatingBar
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular

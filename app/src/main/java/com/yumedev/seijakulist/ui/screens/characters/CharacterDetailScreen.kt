@@ -76,7 +76,7 @@ import coil.size.Size
 import com.yumedev.seijakulist.domain.models.CharacterDetail
 import com.yumedev.seijakulist.domain.models.VoiceActorDomain
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
-import com.yumedev.seijakulist.ui.screens.detail.SectionHeader
+import com.yumedev.seijakulist.ui.screens.detail.components.shared.SectionHeader
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular

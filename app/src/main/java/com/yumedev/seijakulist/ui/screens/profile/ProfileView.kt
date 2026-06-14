@@ -54,7 +54,6 @@ import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.yumedev.seijakulist.ui.screens.detail.SectionHeader
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.ui.draw.alpha
