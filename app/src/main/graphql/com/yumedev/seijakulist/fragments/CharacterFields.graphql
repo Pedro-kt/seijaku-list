@@ -1,0 +1,15 @@
+fragment CharacterFields on Character {
+  id
+  idMal
+  name {
+    full
+    native
+    alternative
+  }
+  image {
+    large
+    medium
+  }
+  description
+  favourites
+}

@@ -1,0 +1,63 @@
+fragment MediaFields on Media {
+  id
+  idMal
+  title {
+    romaji
+    english
+    native
+  }
+  coverImage {
+    large
+    extraLarge
+  }
+  bannerImage
+  format
+  type
+  status
+  description
+  startDate {
+    year
+    month
+    day
+  }
+  endDate {
+    year
+    month
+    day
+  }
+  season
+  seasonYear
+  episodes
+  duration
+  source
+  averageScore
+  meanScore
+  popularity
+  trending
+  favourites
+  genres
+  synonyms
+  isAdult
+  studios(isMain: true) {
+    nodes {
+      id
+      name
+    }
+  }
+  tags {
+    id
+    name
+    rank
+    isMediaSpoiler
+  }
+  trailer {
+    id
+    site
+  }
+  nextAiringEpisode {
+    id
+    airingAt
+    timeUntilAiring
+    episode
+  }
+}

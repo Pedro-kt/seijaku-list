@@ -1,0 +1,24 @@
+query GetCharacterDetails($id: Int, $idMal: Int) {
+  Character(id: $id, idMal: $idMal) {
+    ...CharacterFields
+
+    media(page: 1, perPage: 25, sort: POPULARITY_DESC) {
+      edges {
+        node {
+          id
+          idMal
+          type
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+          }
+          format
+          status
+        }
+      }
+    }
+  }
+}

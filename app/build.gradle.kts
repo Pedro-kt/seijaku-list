@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrainsKotlinSerialization)
     id("com.google.gms.google-services")
+    alias(libs.plugins.apollo)
 }
 
 android {
@@ -50,6 +51,15 @@ android {
     }
 }
 
+apollo {
+    service("anilist") {
+        packageName.set("com.yumedev.seijakulist.data.remote.graphql")
+        srcDir("src/main/graphql")
+        schemaFile.set(file("src/main/graphql/schema.graphqls"))
+        generateKotlinModels.set(true)
+    }
+}
+
 dependencies {
     // dependencias originales
     implementation(libs.androidx.core.ktx)
@@ -65,6 +75,13 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.gson)
+
+    // Apollo GraphQL para AniList
+    implementation(libs.apollo.runtime)
+    implementation(libs.apollo.normalized.cache)
+    implementation(libs.apollo.normalized.cache.sqlite)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
 
     // Room
     implementation(libs.room.runtime)

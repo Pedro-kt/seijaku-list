@@ -1,0 +1,382 @@
+# AniList GraphQL Schema (Simplified for SeijakuList)
+# Full schema: https://anilist.github.io/ApiV2-GraphQL-Docs/
+
+schema {
+  query: Query
+}
+
+type Query {
+  Page(page: Int, perPage: Int): Page
+  Media(id: Int, idMal: Int, type: MediaType): Media
+  Character(id: Int, idMal: Int): Character
+}
+
+type Page {
+  pageInfo: PageInfo
+  media(
+    id: Int
+    idMal: Int
+    search: String
+    type: MediaType
+    format: MediaFormat
+    status: MediaStatus
+    genre: String
+    season: MediaSeason
+    seasonYear: Int
+    sort: [MediaSort]
+  ): [Media]
+  characters(sort: [CharacterSort]): [Character]
+}
+
+type PageInfo {
+  total: Int
+  currentPage: Int
+  lastPage: Int
+  hasNextPage: Boolean
+  perPage: Int
+}
+
+type Media {
+  id: Int!
+  idMal: Int
+  title: MediaTitle
+  type: MediaType
+  format: MediaFormat
+  status: MediaStatus
+  description: String
+  startDate: FuzzyDate
+  endDate: FuzzyDate
+  season: MediaSeason
+  seasonYear: Int
+  episodes: Int
+  duration: Int
+  source: MediaSource
+  coverImage: MediaCoverImage
+  bannerImage: String
+  genres: [String]
+  synonyms: [String]
+  averageScore: Int
+  meanScore: Int
+  popularity: Int
+  trending: Int
+  favourites: Int
+  tags: [MediaTag]
+  relations: MediaConnection
+  characters(page: Int, perPage: Int, sort: [CharacterSort]): CharacterConnection
+  studios(isMain: Boolean): StudioConnection
+  isAdult: Boolean
+  nextAiringEpisode: AiringSchedule
+  airingSchedule(page: Int, perPage: Int): AiringScheduleConnection
+  streamingEpisodes: [MediaStreamingEpisode]
+  trailer: MediaTrailer
+  externalLinks: [MediaExternalLink]
+  rankings: [MediaRank]
+  stats: MediaStats
+  recommendations(page: Int, perPage: Int, sort: [RecommendationSort]): RecommendationConnection
+  countryOfOrigin: String
+}
+
+type MediaTitle {
+  romaji: String
+  english: String
+  native: String
+}
+
+type FuzzyDate {
+  year: Int
+  month: Int
+  day: Int
+}
+
+type MediaCoverImage {
+  large: String
+  extraLarge: String
+  medium: String
+}
+
+type MediaTag {
+  id: Int!
+  name: String!
+  rank: Int
+  isMediaSpoiler: Boolean
+}
+
+type MediaConnection {
+  edges: [MediaEdge]
+}
+
+type MediaEdge {
+  node: Media
+  relationType: MediaRelation
+}
+
+type CharacterConnection {
+  edges: [CharacterEdge]
+}
+
+type CharacterEdge {
+  node: Character
+  role: CharacterRole
+  voiceActors(language: StaffLanguage): [Staff]
+}
+
+type Character {
+  id: Int!
+  idMal: Int
+  name: CharacterName
+  image: CharacterImage
+  description: String
+  favourites: Int
+  media(page: Int, perPage: Int, sort: [MediaSort]): MediaConnection
+}
+
+type CharacterName {
+  full: String
+  native: String
+  alternative: [String]
+}
+
+type CharacterImage {
+  large: String
+  medium: String
+}
+
+type Staff {
+  id: Int!
+  name: StaffName
+  image: StaffImage
+  language: StaffLanguage
+}
+
+type StaffName {
+  full: String
+  native: String
+}
+
+type StaffImage {
+  large: String
+  medium: String
+}
+
+type StudioConnection {
+  nodes: [Studio]
+}
+
+type Studio {
+  id: Int!
+  name: String!
+}
+
+type AiringSchedule {
+  id: Int!
+  airingAt: Int!
+  timeUntilAiring: Int!
+  episode: Int!
+}
+
+type AiringScheduleConnection {
+  nodes: [AiringSchedule]
+}
+
+type MediaStreamingEpisode {
+  title: String
+  thumbnail: String
+  url: String
+  site: String
+}
+
+type MediaTrailer {
+  id: String
+  site: String
+}
+
+type MediaExternalLink {
+  site: String!
+  url: String!
+}
+
+type MediaRank {
+  id: Int!
+  rank: Int!
+  type: MediaRankType!
+  format: MediaFormat
+  year: Int
+  season: MediaSeason
+  allTime: Boolean
+  context: String!
+}
+
+type MediaStats {
+  scoreDistribution: [ScoreDistribution]
+  statusDistribution: [StatusDistribution]
+}
+
+type ScoreDistribution {
+  score: Int
+  amount: Int
+}
+
+type StatusDistribution {
+  status: MediaListStatus
+  amount: Int
+}
+
+type RecommendationConnection {
+  nodes: [Recommendation]
+}
+
+type Recommendation {
+  id: Int
+  rating: Int
+  mediaRecommendation: Media
+}
+
+enum MediaType {
+  ANIME
+  MANGA
+}
+
+enum MediaFormat {
+  TV
+  TV_SHORT
+  MOVIE
+  SPECIAL
+  OVA
+  ONA
+  MUSIC
+}
+
+enum MediaStatus {
+  FINISHED
+  RELEASING
+  NOT_YET_RELEASED
+  CANCELLED
+  HIATUS
+}
+
+enum MediaSeason {
+  WINTER
+  SPRING
+  SUMMER
+  FALL
+}
+
+enum MediaSource {
+  ORIGINAL
+  MANGA
+  LIGHT_NOVEL
+  VISUAL_NOVEL
+  VIDEO_GAME
+  OTHER
+  NOVEL
+  DOUJINSHI
+  ANIME
+  WEB_NOVEL
+  LIVE_ACTION
+  GAME
+  COMIC
+  MULTIMEDIA_PROJECT
+  PICTURE_BOOK
+}
+
+enum MediaSort {
+  ID
+  ID_DESC
+  TITLE_ROMAJI
+  TITLE_ROMAJI_DESC
+  TITLE_ENGLISH
+  TITLE_ENGLISH_DESC
+  TITLE_NATIVE
+  TITLE_NATIVE_DESC
+  TYPE
+  TYPE_DESC
+  FORMAT
+  FORMAT_DESC
+  START_DATE
+  START_DATE_DESC
+  END_DATE
+  END_DATE_DESC
+  SCORE
+  SCORE_DESC
+  POPULARITY
+  POPULARITY_DESC
+  TRENDING
+  TRENDING_DESC
+  EPISODES
+  EPISODES_DESC
+  DURATION
+  DURATION_DESC
+  STATUS
+  STATUS_DESC
+  UPDATED_AT
+  UPDATED_AT_DESC
+  SEARCH_MATCH
+  FAVOURITES
+  FAVOURITES_DESC
+}
+
+enum CharacterRole {
+  MAIN
+  SUPPORTING
+  BACKGROUND
+}
+
+enum CharacterSort {
+  ID
+  ID_DESC
+  ROLE
+  ROLE_DESC
+  SEARCH_MATCH
+  FAVOURITES
+  FAVOURITES_DESC
+}
+
+enum StaffLanguage {
+  JAPANESE
+  ENGLISH
+  KOREAN
+  ITALIAN
+  SPANISH
+  PORTUGUESE
+  FRENCH
+  GERMAN
+  HEBREW
+  HUNGARIAN
+}
+
+enum MediaRelation {
+  ADAPTATION
+  PREQUEL
+  SEQUEL
+  PARENT
+  SIDE_STORY
+  CHARACTER
+  SUMMARY
+  ALTERNATIVE
+  SPIN_OFF
+  OTHER
+  SOURCE
+  COMPILATION
+  CONTAINS
+}
+
+enum MediaRankType {
+  RATED
+  POPULAR
+}
+
+enum MediaListStatus {
+  CURRENT
+  PLANNING
+  COMPLETED
+  DROPPED
+  PAUSED
+  REPEATING
+}
+
+enum RecommendationSort {
+  ID
+  ID_DESC
+  RATING
+  RATING_DESC
+}

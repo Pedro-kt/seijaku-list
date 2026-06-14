@@ -4,4 +4,5 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.20-2.0.1" apply false
     alias(libs.plugins.compose.compiler) apply false
     id("com.google.gms.google-services") version "4.4.2" apply false
+    alias(libs.plugins.apollo) apply false
 }

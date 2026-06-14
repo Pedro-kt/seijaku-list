@@ -1,0 +1,101 @@
+query GetAnimeDetails($id: Int, $idMal: Int) {
+  Media(id: $id, idMal: $idMal, type: ANIME) {
+    ...MediaFields
+
+    # Additional fields for detail view
+    countryOfOrigin
+
+    relations {
+      edges {
+        relationType
+        node {
+          id
+          idMal
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+          }
+          format
+          status
+        }
+      }
+    }
+
+    characters(page: 1, perPage: 25, sort: [ROLE, FAVOURITES_DESC]) {
+      edges {
+        role
+        voiceActors(language: JAPANESE) {
+          id
+          name {
+            full
+            native
+          }
+          image {
+            large
+          }
+          language
+        }
+        node {
+          ...CharacterFields
+        }
+      }
+    }
+
+    recommendations(page: 1, perPage: 10, sort: RATING_DESC) {
+      nodes {
+        id
+        rating
+        mediaRecommendation {
+          id
+          idMal
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+          }
+          format
+          averageScore
+        }
+      }
+    }
+
+    externalLinks {
+      site
+      url
+    }
+
+    streamingEpisodes {
+      title
+      thumbnail
+      url
+      site
+    }
+
+    rankings {
+      id
+      rank
+      type
+      format
+      year
+      season
+      allTime
+      context
+    }
+
+    stats {
+      scoreDistribution {
+        score
+        amount
+      }
+      statusDistribution {
+        status
+        amount
+      }
+    }
+  }
+}
