@@ -31,16 +31,10 @@ class AnimeCharacterDetailViewModel @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage
 
     private val animeId: Int = savedStateHandle["animeId"] ?: 0
-    private var isDataLoaded = false
-
-    init {
-        if (!isDataLoaded && animeId != 0) {
-            loadAnimeCharacters(animeId)
-            isDataLoaded = true
-        }
-    }
 
     fun loadAnimeCharacters(animeId: Int) {
+        // Evitar recargar si ya se cargaron los datos
+        if (_characters.value.isNotEmpty()) return
         viewModelScope.launch {
             _isLoading.value = true
             try {

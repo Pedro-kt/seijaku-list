@@ -20,7 +20,6 @@ import com.yumedev.seijakulist.domain.models.AnimeEpisodeDetail
 import com.yumedev.seijakulist.domain.models.AnimePicture
 import com.yumedev.seijakulist.domain.models.AnimeRecommendation
 import com.yumedev.seijakulist.domain.models.AnimeVideos
-import com.yumedev.seijakulist.domain.models.ForumTopic
 import com.yumedev.seijakulist.domain.usecase.GetAnimeDetailUseCase
 import com.yumedev.seijakulist.common.RequestThrottler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -87,11 +86,6 @@ class AnimeDetailViewModel @Inject constructor(
     val recommendations: StateFlow<List<AnimeRecommendation>> = _recommendations.asStateFlow()
     private val _isRecommendationsLoading = MutableStateFlow(false)
     val isRecommendationsLoading: StateFlow<Boolean> = _isRecommendationsLoading.asStateFlow()
-
-    private val _forumTopics = MutableStateFlow<List<ForumTopic>>(emptyList())
-    val forumTopics: StateFlow<List<ForumTopic>> = _forumTopics.asStateFlow()
-    private val _isForumLoading = MutableStateFlow(false)
-    val isForumLoading: StateFlow<Boolean> = _isForumLoading.asStateFlow()
 
     private var currentEpisodesPage = 1
 
@@ -256,24 +250,6 @@ class AnimeDetailViewModel @Inject constructor(
                 _recommendations.value = emptyList()
             } finally {
                 _isRecommendationsLoading.value = false
-            }
-        }
-    }
-
-    fun loadForumTopics(animeId: Int) {
-        if (_forumTopics.value.isNotEmpty()) return
-        _isForumLoading.value = true
-        viewModelScope.launch {
-            try {
-                val topics = requestThrottler.throttle {
-                    animeRepository.getAnimeForumTopics(animeId)
-                } ?: emptyList()
-                _forumTopics.value = topics
-            } catch (e: Exception) {
-                Log.e("AnimeDetailVM", "Error al cargar foro: ${e.localizedMessage}")
-                _forumTopics.value = emptyList()
-            } finally {
-                _isForumLoading.value = false
             }
         }
     }
