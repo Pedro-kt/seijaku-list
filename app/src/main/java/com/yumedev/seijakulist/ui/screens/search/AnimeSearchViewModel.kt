@@ -307,6 +307,8 @@ class AnimeSearchViewModel @Inject constructor(
             "Manga" -> "manga"
             "Novel" -> "novel"
             "One Shot" -> "one_shot"
+            "Manhwa" -> "manga"  // Manhwa es técnicamente manga coreano, se busca como manga
+            "Manhua" -> "manga"  // Manhua es manga chino, se busca como manga
             else -> format.lowercase()
         }
     }

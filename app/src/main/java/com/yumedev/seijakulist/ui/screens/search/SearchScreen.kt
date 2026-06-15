@@ -173,7 +173,10 @@ private val contentTypeFilters = listOf(
 )
 
 // ─── Formatos de anime ───────────────────────────────────────────────────────
-private val formatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", "Música")
+private val animeFormatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", "Música")
+
+// ─── Formatos de manga ───────────────────────────────────────────────────────
+private val mangaFormatFilters = listOf("Manga", "Novel", "One Shot", "Manhwa", "Manhua")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PANTALLA PRINCIPAL
@@ -472,6 +475,7 @@ fun SearchScreen(
             selectedQuick = selectedQuick,
             selectedFormat = selectedFormat,
             selectedGenreId = selectedGenreId,
+            selectedFilter = selectedFilter ?: "Anime",
             onQuickFilterSelected = { filter ->
                 viewModel.onQuickFilterSelected(if (selectedQuick == filter) null else filter)
             },
@@ -548,10 +552,10 @@ private fun SearchDiscoveryView(
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // SECCIÓN 2 — Formatos de anime
+        // SECCIÓN 2 — Formatos (anime o manga)
         // ═══════════════════════════════════════════════════════════════════
         AnimatedVisibility(
-            visible = selectedFilter == "Anime",
+            visible = selectedFilter == "Anime" || selectedFilter == "Manga",
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
@@ -562,7 +566,8 @@ private fun SearchDiscoveryView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
-                    items(formatFilters) { format ->
+                    val filters = if (selectedFilter == "Manga") mangaFormatFilters else animeFormatFilters
+                    items(filters) { format ->
                         FormatChip(
                             label = format,
                             isActive = selectedFormat == format,
@@ -580,7 +585,11 @@ private fun SearchDiscoveryView(
 
         SectionHeader(title = "Géneros populares")
 
-        val displayGenres = PopularGenres.popularGenres
+        val displayGenres = if (selectedFilter == "Manga") {
+            PopularGenres.popularMangaGenres
+        } else {
+            PopularGenres.popularGenres
+        }
         val chunked = displayGenres.chunked(2)
 
         Column(
@@ -1494,12 +1503,19 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard, isManga
 @Composable
 private fun TypePill(type: String) {
     val (color, displayText) = when (type) {
+        // Formatos de anime
         "TV" -> Color(0xFF6366F1) to "TV"
         "Movie" -> Color(0xFFEC4899) to "Movie"
         "OVA" -> Color(0xFF8B5CF6) to "OVA"
         "ONA" -> Color(0xFF14B8A6) to "ONA"
         "Special" -> Color(0xFFF59E0B) to "Special"
         "Music" -> Color(0xFF06B6D4) to "Music"
+        // Formatos de manga
+        "MANGA" -> Color(0xFF10B981) to "Manga"
+        "NOVEL" -> Color(0xFF8B5CF6) to "Novel"
+        "ONE_SHOT" -> Color(0xFFF59E0B) to "One Shot"
+        "MANHWA" -> Color(0xFF3B82F6) to "Manhwa"
+        "MANHUA" -> Color(0xFFEC4899) to "Manhua"
         else -> MaterialTheme.colorScheme.tertiary to type
     }
     Surface(
@@ -1637,12 +1653,19 @@ private fun EpisodesPill(episodes: String) {
 @Composable
 private fun TypeBadge(type: String) {
     val (color, displayText) = when (type) {
+        // Formatos de anime
         "TV" -> Color(0xFF6366F1) to "TV"
         "Movie" -> Color(0xFFEC4899) to "Movie"
         "OVA" -> Color(0xFF8B5CF6) to "OVA"
         "ONA" -> Color(0xFF14B8A6) to "ONA"
         "Special" -> Color(0xFFF59E0B) to "Special"
         "Music" -> Color(0xFF06B6D4) to "Music"
+        // Formatos de manga
+        "MANGA" -> Color(0xFF10B981) to "Manga"
+        "NOVEL" -> Color(0xFF8B5CF6) to "Novel"
+        "ONE_SHOT" -> Color(0xFFF59E0B) to "One Shot"
+        "MANHWA" -> Color(0xFF3B82F6) to "Manhwa"
+        "MANHUA" -> Color(0xFFEC4899) to "Manhua"
         else -> MaterialTheme.colorScheme.tertiary to type
     }
     Surface(
@@ -2007,6 +2030,7 @@ private fun FiltersBottomSheet(
     selectedQuick: String?,
     selectedFormat: String?,
     selectedGenreId: String?,
+    selectedFilter: String = "Anime",
     onQuickFilterSelected: (String) -> Unit,
     onFormatSelected: (String) -> Unit,
     onGenreSelected: (String) -> Unit,
@@ -2117,7 +2141,8 @@ private fun FiltersBottomSheet(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 20.dp)
                 ) {
-                    items(formatFilters) { format ->
+                    val filters = if (selectedFilter == "Manga") mangaFormatFilters else animeFormatFilters
+                    items(filters) { format ->
                         FormatChip(
                             label = format,
                             isActive = selectedFormat == format,
