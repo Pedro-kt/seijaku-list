@@ -1,9 +1,57 @@
-query GetCharacterDetails($id: Int, $idMal: Int) {
-  Character(id: $id, idMal: $idMal) {
+query GetCharacterDetails($id: Int) {
+  Character(id: $id) {
     ...CharacterFields
 
-    media(page: 1, perPage: 25, sort: POPULARITY_DESC) {
+    # Todas las apariciones del personaje en anime/manga
+    media(page: 1, perPage: 50, sort: [POPULARITY_DESC, ID_DESC]) {
+      pageInfo {
+        total
+        perPage
+        currentPage
+        lastPage
+        hasNextPage
+      }
       edges {
+        id
+        characterRole
+        characterName
+        roleNotes
+        dubGroup
+        staffRole
+        # Voice actors para esta aparición específica
+        voiceActorRoles(sort: [RELEVANCE, ID]) {
+          roleNotes
+          dubGroup
+          voiceActor {
+            id
+            name {
+              full
+              native
+              alternative
+              userPreferred
+            }
+            image {
+              large
+              medium
+            }
+            description(asHtml: false)
+            languageV2
+            gender
+            dateOfBirth {
+              year
+              month
+              day
+            }
+            age
+            yearsActive
+            homeTown
+            bloodType
+            primaryOccupations
+            favourites
+            siteUrl
+            isFavourite
+          }
+        }
         node {
           id
           idMal
@@ -11,12 +59,43 @@ query GetCharacterDetails($id: Int, $idMal: Int) {
           title {
             romaji
             english
+            native
+            userPreferred
           }
           coverImage {
             large
+            extraLarge
+            medium
+            color
           }
+          bannerImage
           format
           status
+          description(asHtml: false)
+          season
+          seasonYear
+          episodes
+          chapters
+          volumes
+          averageScore
+          meanScore
+          popularity
+          trending
+          favourites
+          genres
+          startDate {
+            year
+            month
+            day
+          }
+          endDate {
+            year
+            month
+            day
+          }
+          isAdult
+          siteUrl
+          isFavourite
         }
       }
     }

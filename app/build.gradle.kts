@@ -55,7 +55,7 @@ apollo {
     service("anilist") {
         packageName.set("com.yumedev.seijakulist.data.remote.graphql")
         srcDir("src/main/graphql")
-        schemaFile.set(file("src/main/graphql/schema.graphqls"))
+        schemaFile.set(file("src/main/graphql/schema.json"))
         generateKotlinModels.set(true)
     }
 }

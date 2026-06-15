@@ -5,16 +5,19 @@ fragment MediaFields on Media {
     romaji
     english
     native
+    userPreferred
   }
   coverImage {
     large
     extraLarge
+    medium
+    color
   }
   bannerImage
   format
   type
   status
-  description
+  description(asHtml: false)
   startDate {
     year
     month
@@ -27,9 +30,14 @@ fragment MediaFields on Media {
   }
   season
   seasonYear
+  seasonInt
   episodes
   duration
+  countryOfOrigin
+  isLicensed
   source
+  hashtag
+  updatedAt
   averageScore
   meanScore
   popularity
@@ -38,26 +46,72 @@ fragment MediaFields on Media {
   genres
   synonyms
   isAdult
-  studios(isMain: true) {
-    nodes {
-      id
-      name
+  isFavourite
+  isLocked
+
+  # Studios - traer todos (main y non-main)
+  studios {
+    edges {
+      isMain
+      node {
+        id
+        name
+        isAnimationStudio
+        siteUrl
+        isFavourite
+      }
     }
   }
+
+  # Tags - información completa
   tags {
     id
     name
+    description
+    category
     rank
+    isGeneralSpoiler
     isMediaSpoiler
+    isAdult
   }
+
+  # Trailer
   trailer {
     id
     site
+    thumbnail
   }
+
+  # Next airing episode
   nextAiringEpisode {
     id
     airingAt
     timeUntilAiring
     episode
+    mediaId
+  }
+
+  # Rankings
+  rankings {
+    id
+    rank
+    type
+    format
+    year
+    season
+    allTime
+    context
+  }
+
+  # Media stats
+  stats {
+    scoreDistribution {
+      score
+      amount
+    }
+    statusDistribution {
+      status
+      amount
+    }
   }
 }
