@@ -418,7 +418,8 @@ class AnimeSearchViewModel @Inject constructor(
         _state.update {
             it.copy(
                 searchQuery = query,
-                selectedFilter = "Anime",
+                // Mantener el filtro actual seleccionado (Anime, Manga o Personajes)
+                selectedFilter = it.selectedFilter ?: "Anime",
                 selectedGenreId = null,
                 selectedQuickFilter = null,
                 selectedFormat = null
