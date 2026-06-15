@@ -1,10 +1,3 @@
-> [!WARNING]
-> **Seijaku List is currently migrating from Jikan API to AniList.**
->
-> The migration is required because the public Jikan API will be discontinued in October 2026.
->
-> During this transition period, some features may be temporarily affected while providers and integrations are being updated.
-
 <p align="center">
   <img src="./images/seijaku_list_banner.png" alt="SeijakuList Banner" width="100%"/>
 </p>
