@@ -954,6 +954,64 @@ class AnimeAniListRepository @Inject constructor(
     }
 
     /**
+     * Obtiene anime populares
+     *
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard
+     */
+    suspend fun getAnimePopular(
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(page),
+                perPage = Optional.present(perPage),
+                sort = Optional.present(listOf(MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
+        return media.map { it.toAnimeCard() }
+    }
+
+    /**
+     * Obtiene anime de la temporada actual
+     *
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard
+     */
+    suspend fun getCurrentSeasonAnime(
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val calendar = java.util.Calendar.getInstance()
+        val currentYear = calendar.get(java.util.Calendar.YEAR)
+        val currentMonth = calendar.get(java.util.Calendar.MONTH) + 1 // Calendar.MONTH es 0-indexed
+
+        val currentSeason = when (currentMonth) {
+            12, 1, 2 -> MediaSeason.WINTER
+            3, 4, 5 -> MediaSeason.SPRING
+            6, 7, 8 -> MediaSeason.SUMMER
+            9, 10, 11 -> MediaSeason.FALL
+            else -> MediaSeason.WINTER
+        }
+
+        return getSeasonalAnime(
+            season = currentSeason,
+            year = currentYear,
+            page = page,
+            perPage = perPage
+        )
+    }
+
+    /**
      * Obtiene un anime aleatorio
      *
      * Implementación: Selecciona un anime aleatorio de las primeras páginas de populares
