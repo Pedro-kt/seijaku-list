@@ -1,0 +1,24 @@
+query SearchCharacters(
+  $page: Int = 1,
+  $perPage: Int = 20,
+  $search: String,
+  $sort: [CharacterSort] = [FAVOURITES_DESC],
+  $isBirthday: Boolean
+) {
+  Page(page: $page, perPage: $perPage) {
+    pageInfo {
+      total
+      currentPage
+      lastPage
+      hasNextPage
+      perPage
+    }
+    characters(
+      search: $search,
+      sort: $sort,
+      isBirthday: $isBirthday
+    ) {
+      ...CharacterFields
+    }
+  }
+}

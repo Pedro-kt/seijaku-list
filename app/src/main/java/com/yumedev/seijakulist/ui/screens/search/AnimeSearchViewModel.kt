@@ -91,11 +91,15 @@ class AnimeSearchViewModel @Inject constructor(
         _state.update {
             it.copy(
                 searchQuery = newQuery,
-                // Mantener el filtro seleccionado actual (Anime o Manga) o usar "Anime" por defecto
-                selectedFilter = if (it.selectedFilter == "Manga" || it.selectedFilter == "Anime") it.selectedFilter else "Anime",
+                // Mantener el filtro seleccionado actual (Anime, Manga o Personajes)
+                selectedFilter = when (it.selectedFilter) {
+                    "Anime", "Manga", "Personajes" -> it.selectedFilter
+                    else -> "Anime" // Por defecto si no hay filtro válido
+                },
                 selectedGenreId = null,
                 selectedQuickFilter = null,
                 animeList = if (newQuery.isBlank()) emptyList() else it.animeList,
+                characterList = if (newQuery.isBlank()) emptyList() else it.characterList,
                 previewResults = if (newQuery.isBlank()) emptyList() else it.previewResults
             )
         }
@@ -134,9 +138,23 @@ class AnimeSearchViewModel @Inject constructor(
                 selectedGenreId = null, // Clear genre when changing filter type
                 selectedQuickFilter = null,
                 selectedFormat = null,
+                selectedCharacterSort = if (filter == "Personajes") "Populares" else null, // Set default sort for characters
                 // Update mediaType when switching between Anime and Manga
                 mediaType = if (filter == "Anime" || filter == "Manga") filter else it.mediaType
             )
+        }
+    }
+
+    fun onCharacterSortSelected(sort: String?) {
+        _state.update {
+            it.copy(
+                selectedCharacterSort = sort,
+                searchQuery = ""
+            )
+        }
+        // Si hay un filtro seleccionado, re-ejecutar la búsqueda
+        if (sort != null) {
+            performSearchOrFilter()
         }
     }
 
@@ -154,7 +172,8 @@ class AnimeSearchViewModel @Inject constructor(
     fun clearSearch() {
         _state.value = SearchState(
             recentSearches = _state.value.recentSearches,
-            trendingAnimes = _state.value.trendingAnimes
+            trendingAnimes = _state.value.trendingAnimes,
+            selectedFilter = _state.value.selectedFilter // Maintain current filter tab
         )
         loadedAnimeIds.clear()
     }
@@ -241,10 +260,16 @@ class AnimeSearchViewModel @Inject constructor(
 
     /**
      * Centralized search logic - used by both performSearchOrFilter and loadMoreAnimes
-     * Eliminates 70+ lines of duplication
+     * Now supports characters in addition to anime/manga
      */
     private suspend fun fetchSearchResults(page: Int): List<AnimeCard> {
         val currentState = _state.value
+
+        // Special case: Character search returns empty AnimeCard list (characters are fetched separately)
+        if (currentState.selectedFilter == "Personajes") {
+            fetchCharacterResults(page)
+            return emptyList()
+        }
 
         return when {
             // 1. Si hay un quick filter seleccionado
@@ -293,6 +318,57 @@ class AnimeSearchViewModel @Inject constructor(
                 }
             }
             else -> emptyList()
+        }
+    }
+
+    /**
+     * Fetches character search results based on current filters
+     */
+    private suspend fun fetchCharacterResults(page: Int) {
+        val currentState = _state.value
+
+        try {
+            val sort = when (currentState.selectedCharacterSort) {
+                "Populares" -> com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC
+                "Relevancia" -> com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.RELEVANCE
+                "Favoritos" -> com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC
+                "Cumpleaños" -> com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC
+                else -> com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC
+            }
+
+            val isBirthday = currentState.selectedCharacterSort == "Cumpleaños"
+
+            val characters = animeAniListRepository.searchCharacters(
+                query = if (currentState.searchQuery.isNotBlank()) currentState.searchQuery else null,
+                page = page,
+                sort = sort,
+                isBirthday = if (isBirthday) true else null
+            )
+
+            // Update character list in state
+            if (page == 1) {
+                _state.update {
+                    it.copy(
+                        characterList = characters,
+                        hasMorePages = characters.size >= PAGE_SIZE
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        characterList = it.characterList + characters,
+                        hasMorePages = characters.size >= PAGE_SIZE
+                    )
+                }
+            }
+
+            // Save search to history if searching by name
+            if (currentState.searchQuery.isNotBlank() && page == 1) {
+                saveSearchToHistory(currentState.searchQuery)
+            }
+        } catch (e: Exception) {
+            Log.e("AnimeSearchVM", "Error fetching characters: ${e.message}")
+            throw e
         }
     }
 
@@ -366,20 +442,31 @@ class AnimeSearchViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val currentFilter = _state.value.selectedFilter
-                val results = when (currentFilter) {
+
+                when (currentFilter) {
+                    "Personajes" -> {
+                        // Vista previa de personajes
+                        val characterResults = animeAniListRepository.searchCharacters(
+                            query = query,
+                            page = 1,
+                            perPage = PREVIEW_ITEMS_COUNT
+                        )
+                        _state.update { it.copy(characterPreviewResults = characterResults) }
+                    }
                     "Manga" -> {
                         val formatType = selectedFormat?.let { mapMangaFormatToType(it) }
-                        getMangaSearchAniListUseCase(query = query, page = 1, type = formatType)
+                        val results = getMangaSearchAniListUseCase(query = query, page = 1, type = formatType)
+                        _state.update { it.copy(previewResults = results.take(PREVIEW_ITEMS_COUNT)) }
                     }
                     else -> { // "Anime" o cualquier otro
                         val formatType = selectedFormat?.let { mapFormatToType(it) }
-                        getAnimeSearchAniListUseCase(query = query, page = 1, type = formatType)
+                        val results = getAnimeSearchAniListUseCase(query = query, page = 1, type = formatType)
+                        _state.update { it.copy(previewResults = results.take(PREVIEW_ITEMS_COUNT)) }
                     }
                 }
-                _state.update { it.copy(previewResults = results.take(PREVIEW_ITEMS_COUNT)) }
             } catch (e: Exception) {
                 Log.e("AnimeSearchVM", "Error en vista previa: ${e.message}")
-                _state.update { it.copy(previewResults = emptyList()) }
+                _state.update { it.copy(previewResults = emptyList(), characterPreviewResults = emptyList()) }
             }
         }
     }

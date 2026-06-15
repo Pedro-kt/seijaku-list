@@ -1,6 +1,7 @@
 package com.yumedev.seijakulist.ui.screens.search
 
 import com.yumedev.seijakulist.domain.models.AnimeCard
+import com.yumedev.seijakulist.domain.models.CharacterCard
 
 /**
  * Consolidated state for SearchScreen
@@ -16,9 +17,14 @@ data class SearchState(
     val selectedFormat: String? = null,
     val mediaType: String = "Anime", // Tracks whether we're searching Anime or Manga (persists when filter changes to "Géneros")
 
+    // Character search filters
+    val selectedCharacterSort: String? = "Populares", // "Populares", "Relevancia", "Favoritos", "Cumpleaños"
+
     // Search results
     val animeList: List<AnimeCard> = emptyList(),
     val previewResults: List<AnimeCard> = emptyList(),
+    val characterList: List<CharacterCard> = emptyList(),
+    val characterPreviewResults: List<CharacterCard> = emptyList(),
 
     // Loading states
     val isLoading: Boolean = false,
@@ -40,6 +46,7 @@ data class SearchState(
         get() = selectedQuickFilter != null ||
                 selectedFormat != null ||
                 selectedGenreId != null ||
+                selectedCharacterSort != null ||
                 searchQuery.isNotBlank()
 
     /**
@@ -47,6 +54,7 @@ data class SearchState(
      */
     val canPerformSearch: Boolean
         get() = selectedQuickFilter != null ||
-                (searchQuery.isNotBlank() && (selectedFilter == "Anime" || selectedFilter == "Manga")) ||
-                selectedGenreId != null // Genre search (works with both Anime and Manga)
+                (searchQuery.isNotBlank() && (selectedFilter == "Anime" || selectedFilter == "Manga" || selectedFilter == "Personajes")) ||
+                selectedGenreId != null || // Genre search (works with both Anime and Manga)
+                (selectedFilter == "Personajes" && selectedCharacterSort != null) // Character filters
 }

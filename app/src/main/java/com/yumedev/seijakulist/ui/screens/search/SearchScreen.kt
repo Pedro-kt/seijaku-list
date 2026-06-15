@@ -162,6 +162,14 @@ private val quickFilters = listOf(
     QuickFilter("Populares", Icons.Default.LocalFireDepartment, "popular"),
 )
 
+// ─── Filtros de personajes ────────────────────────────────────────────────────
+private val characterSortFilters = listOf(
+    "Populares" to Icons.Default.LocalFireDepartment,
+    "Favoritos" to Icons.Default.Favorite,
+    "Relevancia" to Icons.Default.Star,
+    "Cumpleaños" to Icons.Default.CalendarToday
+)
+
 // ─── Tipos de contenido (filtros de categoría) ──────────────────────────────
 private val contentTypeFilters = listOf(
     "Anime" to Icons.Default.Tv,
@@ -259,6 +267,8 @@ fun SearchScreen(
                 selectedFilter = selectedFilter,
                 selectedQuick = selectedQuick,
                 selectedFormat = selectedFormat,
+                selectedCharacterSort = viewModel.state.collectAsState().value.selectedCharacterSort,
+                viewModel = viewModel,
                 onFilterSelected = { filter ->
                     if (filter == "Géneros") openBottomSheet = true
                     else {
@@ -416,16 +426,20 @@ fun SearchScreen(
                 isLoadingMore = isLoadingMore,
                 errorMessage = errorMessage,
                 animeList = animeList,
+                characterList = viewModel.state.collectAsState().value.characterList,
+                characterPreviewResults = viewModel.state.collectAsState().value.characterPreviewResults,
                 searchQuery = searchQuery,
                 navController = navController,
                 selectedFilter = selectedFilter,
                 selectedQuick = selectedQuick,
                 selectedFormat = selectedFormat,
                 selectedGenreId = selectedGenreId,
+                selectedCharacterSort = viewModel.state.collectAsState().value.selectedCharacterSort,
                 onFilterSelected = { filter ->
                     if (filter == "Géneros") openBottomSheet = true
                     else viewModel.onFilterSelected(if (selectedFilter == filter) null else filter)
                 },
+                onCharacterSortSelected = viewModel::onCharacterSortSelected,
                 onClearAllFilters = viewModel::clearAllFilters,
                 onLoadMore = viewModel::loadMoreAnimes,
                 recentSearches = recentSearches,
@@ -503,6 +517,8 @@ private fun SearchDiscoveryView(
     selectedFilter: String?,
     selectedQuick: String?,
     selectedFormat: String?,
+    selectedCharacterSort: String?,
+    viewModel: AnimeSearchViewModel,
     onFilterSelected: (String) -> Unit,
     onQuickFilterTap: (QuickFilter) -> Unit,
     onFormatSelected: (String) -> Unit,
@@ -552,6 +568,36 @@ private fun SearchDiscoveryView(
         }
 
         // ═══════════════════════════════════════════════════════════════════
+        // SECCIÓN 1b — Character Filters (solo para Personajes)
+        // ═══════════════════════════════════════════════════════════════════
+        AnimatedVisibility(
+            visible = selectedFilter == "Personajes",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column {
+                SectionHeader(title = "Acceso rápido")
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    items(characterSortFilters) { (label, icon) ->
+                        val isActive = selectedCharacterSort == label
+                        QuickFilterChip(
+                            label = label,
+                            icon = icon,
+                            isActive = isActive,
+                            onClick = {
+                                viewModel.onCharacterSortSelected(if (isActive) null else label)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
         // SECCIÓN 2 — Formatos (anime o manga)
         // ═══════════════════════════════════════════════════════════════════
         AnimatedVisibility(
@@ -579,40 +625,48 @@ private fun SearchDiscoveryView(
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // SECCIÓN 3 — Géneros populares (grid 2 cols con gradiente)
+        // SECCIÓN 3 — Géneros populares (solo para Anime y Manga)
         // ═══════════════════════════════════════════════════════════════════
-        Spacer(modifier = Modifier.height(12.dp))
-
-        SectionHeader(title = "Géneros populares")
-
-        val displayGenres = if (selectedFilter == "Manga") {
-            PopularGenres.popularMangaGenres
-        } else {
-            PopularGenres.popularGenres
-        }
-        val chunked = displayGenres.chunked(2)
-
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        AnimatedVisibility(
+            visible = selectedFilter == "Anime" || selectedFilter == "Manga",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
         ) {
-            chunked.forEachIndexed { _, rowGenres ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxWidth()
+            Column {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                SectionHeader(title = "Géneros populares")
+
+                val displayGenres = if (selectedFilter == "Manga") {
+                    PopularGenres.popularMangaGenres
+                } else {
+                    PopularGenres.popularGenres
+                }
+                val chunked = displayGenres.chunked(2)
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    rowGenres.forEach { genre ->
-                        val genreTheme = GenreThemeMapper.getThemeForGenre(genre.name)
-                        DiscoveryGenreCard(
-                            genre = genre,
-                            startColor = genreTheme.startColor,
-                            endColor = genreTheme.endColor,
-                            icon = genreTheme.icon,
-                            onClick = { onGenreDirectTap(genre.malId.toString()) },
-                            modifier = Modifier.weight(1f)
-                        )
+                    chunked.forEachIndexed { _, rowGenres ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            rowGenres.forEach { genre ->
+                                val genreTheme = GenreThemeMapper.getThemeForGenre(genre.name)
+                                DiscoveryGenreCard(
+                                    genre = genre,
+                                    startColor = genreTheme.startColor,
+                                    endColor = genreTheme.endColor,
+                                    icon = genreTheme.icon,
+                                    onClick = { onGenreDirectTap(genre.malId.toString()) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            if (rowGenres.size == 1) Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
-                    if (rowGenres.size == 1) Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -819,13 +873,17 @@ private fun SearchContent(
     isLoadingMore: Boolean,
     errorMessage: String?,
     animeList: List<AnimeCard>,
+    characterList: List<com.yumedev.seijakulist.domain.models.CharacterCard> = emptyList(),
+    characterPreviewResults: List<com.yumedev.seijakulist.domain.models.CharacterCard> = emptyList(),
     searchQuery: String,
     navController: NavController,
     selectedFilter: String?,
     selectedQuick: String?,
     selectedFormat: String?,
     selectedGenreId: String?,
+    selectedCharacterSort: String? = null,
     onFilterSelected: (String) -> Unit,
+    onCharacterSortSelected: (String?) -> Unit = {},
     onClearAllFilters: () -> Unit,
     onLoadMore: () -> Unit = {},
     recentSearches: List<String> = emptyList(),
@@ -839,7 +897,10 @@ private fun SearchContent(
     onRemoveGenre: () -> Unit = {}
 ) {
     val hasActiveFilters = selectedQuick != null || selectedFormat != null || selectedGenreId != null
-    val showPreview = previewResults.isNotEmpty() && searchQuery.isNotBlank() && animeList.isEmpty()
+    val showPreview = (previewResults.isNotEmpty() || characterPreviewResults.isNotEmpty()) &&
+                      searchQuery.isNotBlank() &&
+                      animeList.isEmpty() &&
+                      characterList.isEmpty()
     when {
         isLoading -> Box(
             modifier = Modifier.fillMaxSize(),
@@ -848,14 +909,15 @@ private fun SearchContent(
 
         errorMessage != null -> NoInternetScreen(onRetryClick = {})
 
-        animeList.isNotEmpty() -> {
+        animeList.isNotEmpty() || characterList.isNotEmpty() -> {
             val listState = rememberLazyListState()
+            val itemCount = if (selectedFilter == "Personajes") characterList.size else animeList.size
 
             // Improved pagination trigger - prevents duplicate calls
             LaunchedEffect(listState) {
                 snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
                     .collect { lastVisibleIndex ->
-                        if (lastVisibleIndex != null && lastVisibleIndex >= animeList.size - 3 && !isLoadingMore) {
+                        if (lastVisibleIndex != null && lastVisibleIndex >= itemCount - 3 && !isLoadingMore) {
                             onLoadMore()
                         }
                     }
@@ -872,6 +934,27 @@ private fun SearchContent(
                     selectedFilter = selectedFilter,
                     onFilterSelected = onFilterSelected
                 )
+            }
+
+            // ── Filtros de personajes (si está seleccionado) ────────────
+            if (selectedFilter == "Personajes") {
+                item {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        items(characterSortFilters) { (label, icon) ->
+                            QuickFilterChip(
+                                label = label,
+                                icon = icon,
+                                isActive = selectedCharacterSort == label,
+                                onClick = {
+                                    onCharacterSortSelected(if (selectedCharacterSort == label) null else label)
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             // ── Chips de filtros activos removibles ─────────────────
@@ -897,7 +980,7 @@ private fun SearchContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${animeList.size}+ resultados encontrados",
+                            text = "$itemCount+ resultados encontrados",
                             fontFamily = PoppinsRegular,
                             fontSize = 14.asp(),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -924,7 +1007,7 @@ private fun SearchContent(
             } else {
                 item {
                     Text(
-                        text = "${animeList.size}+ resultados encontrados",
+                        text = "$itemCount+ resultados encontrados",
                         fontFamily = PoppinsRegular,
                         fontSize = 14.asp(),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -932,11 +1015,22 @@ private fun SearchContent(
                     )
                 }
             }
-            items(animeList, key = { it.malId }) { anime ->
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    AnimeCardItem(navController = navController, anime = anime, isManga = selectedFilter == "Manga")
+
+            // ── Mostrar personajes o anime/manga según el filtro ────────
+            if (selectedFilter == "Personajes") {
+                items(characterList, key = { it.characterId }) { character ->
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        CharacterCardItem(navController = navController, character = character)
+                    }
+                }
+            } else {
+                items(animeList, key = { it.malId }) { anime ->
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        AnimeCardItem(navController = navController, anime = anime, isManga = selectedFilter == "Manga")
+                    }
                 }
             }
+
             if (isLoadingMore) {
                 item {
                     Box(
@@ -975,30 +1069,53 @@ private fun SearchContent(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
-                previewResults.forEach { anime ->
-                    PreviewAnimeCard(
-                        anime = anime,
-                        navController = navController,
-                        isManga = selectedFilter == "Manga",
-                        onClick = {
-                            onPerformSearch()
-                        }
-                    )
-                }
-
-                // Botón para ver todos los resultados
-                if (previewResults.size >= 4) {
-                    OutlinedButton(
-                        onClick = onPerformSearch,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = "Ver todos los resultados",
-                            fontFamily = PoppinsBold,
-                            fontSize = 14.asp()
+                // Mostrar vista previa de personajes o anime/manga según el filtro
+                if (selectedFilter == "Personajes") {
+                    characterPreviewResults.forEach { character ->
+                        PreviewCharacterCard(
+                            character = character,
+                            navController = navController,
+                            onClick = { onPerformSearch() }
                         )
+                    }
+                    // Botón para ver todos los resultados de personajes
+                    if (characterPreviewResults.size >= 4) {
+                        OutlinedButton(
+                            onClick = onPerformSearch,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Ver todos los resultados",
+                                fontFamily = PoppinsBold,
+                                fontSize = 14.asp()
+                            )
+                        }
+                    }
+                } else {
+                    previewResults.forEach { anime ->
+                        PreviewAnimeCard(
+                            anime = anime,
+                            navController = navController,
+                            isManga = selectedFilter == "Manga",
+                            onClick = { onPerformSearch() }
+                        )
+                    }
+                    // Botón para ver todos los resultados de anime/manga
+                    if (previewResults.size >= 4) {
+                        OutlinedButton(
+                            onClick = onPerformSearch,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "Ver todos los resultados",
+                                fontFamily = PoppinsBold,
+                                fontSize = 14.asp()
+                            )
+                        }
                     }
                 }
             }
@@ -1239,6 +1356,99 @@ private fun PreviewAnimeCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// TARJETA DE VISTA PREVIA DE PERSONAJE — VERSIÓN COMPACTA
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun PreviewCharacterCard(
+    character: com.yumedev.seijakulist.domain.models.CharacterCard,
+    navController: NavController,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
+            }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Imagen pequeña
+        AsyncImage(
+            model = character.imageUrl,
+            contentDescription = "Imagen de ${character.name}",
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
+
+        // Info
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = character.name,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 14.asp(),
+                fontFamily = PoppinsBold
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Favoritos
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Favoritos",
+                        tint = Color(0xFFE91E63),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = "${character.favourites}",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        fontSize = 12.asp(),
+                        fontFamily = PoppinsRegular
+                    )
+                }
+
+                if (character.gender != null) {
+                    Text(
+                        text = "•",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        fontSize = 12.asp()
+                    )
+
+                    Text(
+                        text = character.gender,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        fontSize = 12.asp(),
+                        fontFamily = PoppinsRegular
+                    )
+                }
+            }
+        }
+
+        // Flecha
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = "Ver detalles",
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TARJETA DE ANIME — VERSIÓN COMPLETA (resultados de búsqueda)
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
@@ -1365,6 +1575,179 @@ fun AnimeCardItem(
                                 contentDescription = "Añadir a lista",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(22.adp())
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TARJETA DE PERSONAJE — VERSIÓN COMPLETA (resultados de búsqueda)
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+fun CharacterCardItem(
+    navController: NavController,
+    character: com.yumedev.seijakulist.domain.models.CharacterCard
+) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "card_scale"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { isPressed = true; tryAwaitRelease(); isPressed = false },
+                    onTap = { navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}") }
+                )
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.adp())
+        ) {
+            // ── Cover del personaje ──────────────────────────────────
+            AsyncImage(
+                model = character.imageUrl,
+                contentDescription = "Imagen de ${character.name}",
+                modifier = Modifier
+                    .width(100.adp())
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            // ── Info del personaje ──────────────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    // 1. Nombre del personaje
+                    Text(
+                        text = character.name,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16.asp(),
+                        fontFamily = PoppinsBold,
+                        lineHeight = 20.asp(),
+                        letterSpacing = 0.sp
+                    )
+
+                    // 2. Nombre nativo (japonés)
+                    if (character.nameNative != null && character.nameNative != character.name) {
+                        Text(
+                            text = character.nameNative,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            fontSize = 13.asp(),
+                            fontFamily = PoppinsRegular
+                        )
+                    }
+
+                    // 3. Gender + Age
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        character.gender?.let { gender ->
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = gender,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 10.asp()
+                                )
+                            }
+                        }
+
+                        character.age?.let { age ->
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+                            ) {
+                                Text(
+                                    text = age,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 10.asp()
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 4. Bottom: Favoritos + Icono
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Favoritos
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Favoritos",
+                            tint = Color(0xFFE91E63),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "${character.favourites}",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            fontSize = 12.asp(),
+                            fontFamily = PoppinsBold
+                        )
+                    }
+
+                    // Botón de acción
+                    Surface(
+                        onClick = {
+                            navController.navigate("${AppDestinations.CHARACTER_DETAIL_ROUTE}/${character.characterId}")
+                        },
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        modifier = Modifier.size(42.adp())
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "Ver detalles",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.adp())
                             )
                         }
                     }
