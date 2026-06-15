@@ -1316,4 +1316,81 @@ class AnimeAniListRepository @Inject constructor(
         val minute = calendar.get(java.util.Calendar.MINUTE)
         return String.format("%02d:%02d", hour, minute)
     }
+
+    // ========== CHARACTER SEARCH METHODS ==========
+
+    /**
+     * Busca personajes por nombre
+     *
+     * @param query Texto de búsqueda (nombre del personaje)
+     * @param page Número de página (default: 1)
+     * @param perPage Elementos por página (default: 20)
+     * @param sort Ordenamiento (default: FAVOURITES_DESC)
+     * @param isBirthday Filtrar personajes que cumplen años hoy
+     * @return Lista de CharacterCard
+     */
+    suspend fun searchCharacters(
+        query: String? = null,
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE,
+        sort: com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort =
+            com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC,
+        isBirthday: Boolean? = null
+    ): List<com.yumedev.seijakulist.domain.models.CharacterCard> {
+        val response = apolloClient.query(
+            com.yumedev.seijakulist.data.remote.graphql.SearchCharactersQuery(
+                page = com.apollographql.apollo.api.Optional.present(page),
+                perPage = com.apollographql.apollo.api.Optional.present(perPage),
+                search = com.apollographql.apollo.api.Optional.presentIfNotNull(query),
+                sort = com.apollographql.apollo.api.Optional.present(listOf(sort)),
+                isBirthday = com.apollographql.apollo.api.Optional.presentIfNotNull(isBirthday)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val characters = response.data?.Page?.characters?.filterNotNull() ?: emptyList()
+        return characters.map { com.yumedev.seijakulist.data.mapper.toCharacterCard(it) }
+    }
+
+    /**
+     * Obtiene personajes populares (ordenados por favoritos)
+     *
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de CharacterCard
+     */
+    suspend fun getPopularCharacters(
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<com.yumedev.seijakulist.domain.models.CharacterCard> {
+        return searchCharacters(
+            query = null,
+            page = page,
+            perPage = perPage,
+            sort = com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC
+        )
+    }
+
+    /**
+     * Obtiene personajes que cumplen años hoy
+     *
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de CharacterCard
+     */
+    suspend fun getBirthdayCharacters(
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<com.yumedev.seijakulist.domain.models.CharacterCard> {
+        return searchCharacters(
+            query = null,
+            page = page,
+            perPage = perPage,
+            sort = com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC,
+            isBirthday = true
+        )
+    }
 }
