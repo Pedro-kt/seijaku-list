@@ -209,6 +209,7 @@ fun SearchScreen(
     val recentSearches by viewModel.recentSearches.collectAsState() // búsquedas recientes
     val trendingAnimes by viewModel.trendingAnimes.collectAsState() // tendencias dinámicas anime
     val trendingMangas by viewModel.trendingMangas.collectAsState() // tendencias dinámicas manga
+    val trendingCharacters by viewModel.trendingCharacters.collectAsState() // tendencias dinámicas characters
     val previewResults by viewModel.previewResults.collectAsState() // vista previa de resultados
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -218,10 +219,11 @@ fun SearchScreen(
     var openBottomSheet by remember { mutableStateOf(false) }
     var openFiltersSheet by remember { mutableStateOf(false) }
 
-    // Lazy load trending animes and mangas when screen opens
+    // Lazy load trending animes, mangas and characters when screen opens
     LaunchedEffect(Unit) {
         viewModel.loadTrendingAnimes()
         viewModel.loadTrendingMangas()
+        viewModel.loadTrendingCharacters()
     }
 
     // Auto-expand cuando se navega desde el Home y forzar teclado
@@ -447,6 +449,7 @@ fun SearchScreen(
                 recentSearches = recentSearches,
                 trendingAnimes = trendingAnimes,
                 trendingMangas = trendingMangas,
+                trendingCharacters = trendingCharacters,
                 previewResults = previewResults,
                 onRecentSearchClick = viewModel::onRecentSearchClicked,
                 onDeleteRecentSearch = viewModel::deleteRecentSearch,
@@ -892,6 +895,7 @@ private fun SearchContent(
     recentSearches: List<String> = emptyList(),
     trendingAnimes: List<AnimeCard> = emptyList(),
     trendingMangas: List<AnimeCard> = emptyList(),
+    trendingCharacters: List<com.yumedev.seijakulist.domain.models.CharacterCard> = emptyList(),
     previewResults: List<AnimeCard> = emptyList(),
     onRecentSearchClick: (String) -> Unit = {},
     onDeleteRecentSearch: (String) -> Unit = {},
@@ -1132,6 +1136,7 @@ private fun SearchContent(
                 recentSearches = recentSearches,
                 trendingAnimes = trendingAnimes,
                 trendingMangas = trendingMangas,
+                trendingCharacters = trendingCharacters,
                 onSearchClick = onRecentSearchClick,
                 onDeleteSearch = onDeleteRecentSearch,
                 navController = navController
@@ -1148,6 +1153,7 @@ private fun EmptySearchState(
     recentSearches: List<String> = emptyList(),
     trendingAnimes: List<AnimeCard> = emptyList(),
     trendingMangas: List<AnimeCard> = emptyList(),
+    trendingCharacters: List<com.yumedev.seijakulist.domain.models.CharacterCard> = emptyList(),
     onSearchClick: (String) -> Unit = {},
     onDeleteSearch: (String) -> Unit = {},
     selectedFilter: String? = null,
@@ -1203,6 +1209,19 @@ private fun EmptySearchState(
                     anime = manga,
                     navController = navController,
                     isManga = true,
+                    onClick = {}
+                )
+            }
+        }
+
+        // -------- TRENDING CHARACTERS --------
+        if (trendingCharacters.isNotEmpty() && selectedFilter == "Personajes") {
+            SectionHeader(title = "Tendencias")
+
+            trendingCharacters.forEach { character ->
+                PreviewCharacterCard(
+                    character = character,
+                    navController = navController,
                     onClick = {}
                 )
             }

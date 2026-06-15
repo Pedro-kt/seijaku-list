@@ -108,6 +108,29 @@ class AnimeSearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Lazy load trending characters (called when SearchScreen opens)
+     */
+    fun loadTrendingCharacters() {
+        // Only load if not already loaded
+        if (_state.value.trendingCharacters.isNotEmpty()) return
+
+        viewModelScope.launch {
+            try {
+                val trendingCharacters = animeAniListRepository.searchCharacters(
+                    sort = com.yumedev.seijakulist.data.remote.graphql.type.CharacterSort.FAVOURITES_DESC,
+                    page = 1,
+                    perPage = 4
+                )
+                _state.update { it.copy(trendingCharacters = trendingCharacters) }
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error al cargar tendencias de personajes: ${e.message}")
+                // No usar fallback, simplemente dejar vacío
+                _state.update { it.copy(trendingCharacters = emptyList()) }
+            }
+        }
+    }
+
     // --- ACCIONES ---
 
     fun onSearchQueryChanged(newQuery: String) {
@@ -578,6 +601,9 @@ class AnimeSearchViewModel @Inject constructor(
     }
     val trendingMangas: StateFlow<List<AnimeCard>> get() = MutableStateFlow<List<AnimeCard>>(emptyList()).also {
         viewModelScope.launch { state.collect { s -> it.value = s.trendingMangas } }
+    }
+    val trendingCharacters: StateFlow<List<com.yumedev.seijakulist.domain.models.CharacterCard>> get() = MutableStateFlow<List<com.yumedev.seijakulist.domain.models.CharacterCard>>(emptyList()).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.trendingCharacters } }
     }
     val previewResults: StateFlow<List<AnimeCard>> get() = MutableStateFlow<List<AnimeCard>>(emptyList()).also {
         viewModelScope.launch { state.collect { s -> it.value = s.previewResults } }

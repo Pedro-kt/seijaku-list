@@ -38,7 +38,8 @@ data class SearchState(
     // Discovery data
     val recentSearches: List<String> = emptyList(),
     val trendingAnimes: List<AnimeCard> = emptyList(),
-    val trendingMangas: List<AnimeCard> = emptyList()
+    val trendingMangas: List<AnimeCard> = emptyList(),
+    val trendingCharacters: List<CharacterCard> = emptyList()
 ) {
     /**
      * Check if any filters are active
