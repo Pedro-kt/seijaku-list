@@ -16,7 +16,10 @@ import com.yumedev.seijakulist.data.remote.graphql.type.MediaStatus
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.models.AnimeCharactersDetail
 import com.yumedev.seijakulist.domain.models.AnimeDetail
+import com.yumedev.seijakulist.domain.models.AnimeRelationDomain
 import com.yumedev.seijakulist.domain.models.CharacterDetail
+import com.yumedev.seijakulist.domain.models.MangaRelationDomain
+import com.yumedev.seijakulist.domain.models.VoiceActorDomain
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -146,7 +149,53 @@ class AnimeAniListRepository @Inject constructor(
 
         val charFields = character.characterFields
 
-        return CharacterDetail(
+        // Mapear voice actors
+        val voiceActors = character.media?.edges?.filterNotNull()
+            ?.flatMap { edge ->
+                edge.voiceActorRoles?.filterNotNull()?.mapNotNull { voiceActorRole ->
+                    val actor = voiceActorRole.voiceActor ?: return@mapNotNull null
+                    VoiceActorDomain(
+                        personId = actor.id,
+                        name = actor.name?.full ?: actor.name?.native ?: "",
+                        imageUrl = actor.image?.large ?: actor.image?.medium ?: "",
+                        language = actor.languageV2 ?: ""
+                    )
+                } ?: emptyList()
+            }
+            ?.distinctBy { it.personId } // Eliminar duplicados
+            ?: emptyList()
+
+        // Mapear relaciones de anime y manga
+        val mediaEdges = character.media?.edges?.filterNotNull() ?: emptyList()
+        val animeRelations = mediaEdges
+            .filter { edge -> edge.node?.type?.name == "ANIME" }
+            .mapNotNull { edge ->
+                val node = edge.node ?: return@mapNotNull null
+                AnimeRelationDomain(
+                    malId = node.idMal ?: 0,
+                    title = node.title?.romaji ?: node.title?.english ?: node.title?.native ?: "",
+                    imageUrl = node.coverImage?.large ?: node.coverImage?.medium ?: "",
+                    role = when (edge.characterRole?.name) {
+                        "MAIN" -> "Principal"
+                        "SUPPORTING" -> "Secundario"
+                        "BACKGROUND" -> "Trasfondo"
+                        else -> edge.characterRole?.name ?: ""
+                    }
+                )
+            }
+
+        val mangaRelations = mediaEdges
+            .filter { edge -> edge.node?.type?.name == "MANGA" }
+            .mapNotNull { edge ->
+                val node = edge.node ?: return@mapNotNull null
+                MangaRelationDomain(
+                    malId = node.idMal ?: 0,
+                    title = node.title?.romaji ?: node.title?.english ?: node.title?.native ?: "",
+                    imageUrl = node.coverImage?.large ?: node.coverImage?.medium ?: ""
+                )
+            }
+
+        val result = CharacterDetail(
             characterId = charFields.id,
             nameCharacter = charFields.name?.full ?: charFields.name?.native ?: "",
             nameKanjiCharacter = charFields.name?.native ?: "",
@@ -154,10 +203,18 @@ class AnimeAniListRepository @Inject constructor(
             images = charFields.image?.large ?: "",
             favorites = charFields.favourites ?: 0,
             nicknames = charFields.name?.alternative?.filterNotNull() ?: emptyList(),
-            voiceActors = emptyList(), // TODO: Implementar mapping de voice actors
-            animeRelations = emptyList(), // TODO: Implementar mapping de anime relations
-            mangaRelations = emptyList() // TODO: Implementar mapping de manga relations
+            voiceActors = voiceActors,
+            animeRelations = animeRelations,
+            mangaRelations = mangaRelations
         )
+
+        android.util.Log.d("AniListRepo", "Character loaded: ${result.nameCharacter}")
+        android.util.Log.d("AniListRepo", "Voice Actors: ${voiceActors.size}")
+        android.util.Log.d("AniListRepo", "Anime Relations: ${animeRelations.size}")
+        android.util.Log.d("AniListRepo", "Manga Relations: ${mangaRelations.size}")
+        android.util.Log.d("AniListRepo", "Media edges total: ${mediaEdges.size}")
+
+        return result
     }
 
     /**
@@ -415,6 +472,52 @@ class AnimeAniListRepository @Inject constructor(
 
         val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
         return media.map { it.toAnimeCard() }
+    }
+
+    /**
+     * Obtiene episodios de streaming de un anime
+     *
+     * AniList proporciona streamingEpisodes que son enlaces a sitios de streaming.
+     * No incluye información tan detallada como Jikan (score, filler, recap, etc).
+     *
+     * @param animeId ID de AniList (opcional)
+     * @param malId MyAnimeList ID (opcional, usado como fallback)
+     * @return Lista de AnimeEpisode mapeados desde streamingEpisodes
+     */
+    suspend fun getAnimeEpisodesById(animeId: Int? = null, malId: Int? = null): List<com.yumedev.seijakulist.domain.models.AnimeEpisode> {
+        if (animeId == null && malId == null) {
+            throw IllegalArgumentException("Se requiere animeId o malId")
+        }
+
+        val response = apolloClient.query(
+            GetAnimeDetailsQuery(
+                id = Optional.presentIfNotNull(animeId),
+                idMal = Optional.presentIfNotNull(malId)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Media
+            ?: throw Exception("No se encontró anime con ID: $animeId / MAL ID: $malId")
+
+        // Mapear streamingEpisodes a AnimeEpisode
+        return media.streamingEpisodes?.filterNotNull()?.mapIndexed { index, ep ->
+            com.yumedev.seijakulist.domain.models.AnimeEpisode(
+                malId = index + 1, // Usar el índice como ID ya que AniList no proporciona IDs de episodios
+                url = ep.url,
+                title = ep.title,
+                titleJapanese = null, // AniList no proporciona título japonés en streamingEpisodes
+                titleRomanji = null, // AniList no proporciona título romanizado en streamingEpisodes
+                aired = null, // AniList no proporciona fecha de emisión en streamingEpisodes
+                score = null, // AniList no proporciona score de episodios
+                filler = null, // AniList no proporciona información de filler
+                recap = null, // AniList no proporciona información de recap
+                forumUrl = null // AniList no proporciona forum URL
+            )
+        } ?: emptyList()
     }
 
     /**

@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
  * Estructura modular:
  * - Header hero con imagen y información principal
  * - Sistema de tabs para organizar el contenido
- * - Tabs: Overview, Characters, Episodes, Production
+ * - Tabs: Overview, Characters, Production
  * - FAB para añadir/editar en lista
  * - Bottom sheet para gestionar lista
  */
@@ -48,10 +48,8 @@ fun AnimeDetailScreen(
     animeId: Int?,
     initialTab: Int = 0,
     openSheet: Boolean = false,
-    animeDetailViewModel: AnimeDetailViewModel = hiltViewModel(),
+    animeDetailViewModel: AnimeDetailAniListViewModel = hiltViewModel(),
     animeCharacterDetailViewModel: AnimeCharacterDetailViewModel = hiltViewModel(),
-    animeThemesViewModel: AnimeThemesViewModel = hiltViewModel(),
-    producerDetailViewModel: ProducerDetailViewModel = hiltViewModel(),
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
@@ -63,10 +61,6 @@ fun AnimeDetailScreen(
     val animeCharactersDetail by animeCharacterDetailViewModel.characters.collectAsState()
     val characterIsLoading by animeCharacterDetailViewModel.isLoading.collectAsState()
     val characterErrorMessage by animeCharacterDetailViewModel.errorMessage.collectAsState()
-
-    val animeEpisodes by animeDetailViewModel.animeEpisodes.collectAsState()
-    val isEpisodesLoading by animeDetailViewModel.isEpisodesLoading.collectAsState()
-    val hasMoreEpisodes by animeDetailViewModel.hasMoreEpisodes.collectAsState()
 
     val isAdded by animeDetailViewModel.isAdded.collectAsState()
     val existingAnime by animeDetailViewModel.existingAnime.collectAsState()
@@ -85,13 +79,6 @@ fun AnimeDetailScreen(
         derivedStateOf { lazyListState.firstVisibleItemIndex >= 1 }
     }
 
-    // Initialize data
-    LaunchedEffect(animeId) {
-        if (animeId != null) {
-            animeThemesViewModel.animeThemes(animeId)
-        }
-    }
-
     // Handle open sheet parameter
     LaunchedEffect(openSheet, isLoading) {
         if (openSheet && !isLoading && animeDetail != null) {
@@ -103,8 +90,7 @@ fun AnimeDetailScreen(
     LaunchedEffect(initialTab) {
         selectedTab = when (initialTab) {
             1 -> AnimeDetailTab.CHARACTERS
-            2 -> AnimeDetailTab.EPISODES
-            3 -> AnimeDetailTab.PRODUCTION
+            2 -> AnimeDetailTab.PRODUCTION
             else -> AnimeDetailTab.OVERVIEW
         }
     }
@@ -242,9 +228,7 @@ fun AnimeDetailScreen(
                                         LaunchedEffect(Unit) {
                                             if (animeCharactersDetail.isEmpty() && !characterIsLoading) {
                                                 animeId?.let {
-                                                    animeCharacterDetailViewModel.loadAnimeCharacters(
-                                                        it
-                                                    )
+                                                    animeCharacterDetailViewModel.loadAnimeCharacters(it)
                                                 }
                                             }
                                         }
@@ -253,29 +237,6 @@ fun AnimeDetailScreen(
                                             isLoading = characterIsLoading,
                                             errorMessage = characterErrorMessage,
                                             navController = navController
-                                        )
-                                    }
-
-                                    AnimeDetailTab.EPISODES -> {
-                                        LaunchedEffect(Unit) {
-                                            if (animeEpisodes.isEmpty() && !isEpisodesLoading) {
-                                                animeId?.let {
-                                                    animeDetailViewModel.loadAnimeEpisodes(it, false)
-                                                }
-                                            }
-                                        }
-                                        EpisodesTab(
-                                            episodes = animeEpisodes,
-                                            isLoading = isEpisodesLoading,
-                                            hasMore = hasMoreEpisodes,
-                                            onLoadMore = {
-                                                animeId?.let {
-                                                    animeDetailViewModel.loadAnimeEpisodes(it, true)
-                                                }
-                                            },
-                                            onEpisodeClick = { episode ->
-                                                // TODO: Mostrar detalles del episodio
-                                            }
                                         )
                                     }
 
