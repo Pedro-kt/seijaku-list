@@ -76,6 +76,7 @@ import androidx.navigation.compose.composable
 import androidx.compose.runtime.collectAsState
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.detail.AnimeDetailScreen
+import com.yumedev.seijakulist.ui.screens.detail.MangaDetailScreen
 import com.yumedev.seijakulist.ui.screens.search.SearchScreen
 import com.yumedev.seijakulist.ui.theme.SeijakuListTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -353,6 +354,28 @@ fun AppNavigation(
                 )
             } else {
                 Text("Error: anime no encontrado")
+            }
+        }
+        composable(
+            arguments = listOf(
+                navArgument("mangaId") { type = NavType.IntType },
+                navArgument("tab") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
+            ),
+            route = "${AppDestinations.MANGA_DETAIL_ROUTE}/{${AppDestinations.MANGA_ID_KEY}}?tab={tab}"
+        ) { backStackEntry ->
+            val mangaId = backStackEntry.arguments?.getInt(AppDestinations.MANGA_ID_KEY)
+            val initialTab = backStackEntry.arguments?.getInt("tab") ?: 0
+            if (mangaId != null) {
+                MangaDetailScreen(
+                    navController = navController,
+                    mangaId = mangaId,
+                    initialTab = initialTab
+                )
+            } else {
+                Text("Error: manga no encontrado")
             }
         }
         composable(

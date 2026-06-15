@@ -925,7 +925,7 @@ private fun SearchContent(
             }
             items(animeList, key = { it.malId }) { anime ->
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    AnimeCardItem(navController = navController, anime = anime)
+                    AnimeCardItem(navController = navController, anime = anime, isManga = selectedFilter == "Manga")
                 }
             }
             if (isLoadingMore) {
@@ -970,6 +970,7 @@ private fun SearchContent(
                     PreviewAnimeCard(
                         anime = anime,
                         navController = navController,
+                        isManga = selectedFilter == "Manga",
                         onClick = {
                             onPerformSearch()
                         }
@@ -1123,16 +1124,35 @@ private fun SearchItemRow(
 // ─────────────────────────────────────────────────────────────────────────────
 // TARJETA DE VISTA PREVIA — VERSIÓN COMPACTA
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Helper function to navigate to detail screen (anime or manga)
+ */
+private fun navigateToDetail(navController: NavController, malId: Int, isManga: Boolean, openSheet: Boolean = false) {
+    val route = if (isManga) {
+        "${AppDestinations.MANGA_DETAIL_ROUTE}/$malId"
+    } else {
+        if (openSheet) {
+            "${AppDestinations.ANIME_DETAIL_ROUTE}/$malId?openSheet=true"
+        } else {
+            "${AppDestinations.ANIME_DETAIL_ROUTE}/$malId"
+        }
+    }
+    navController.navigate(route)
+}
+
 @Composable
 private fun PreviewAnimeCard(
     anime: AnimeCard,
     navController: NavController,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isManga: Boolean = false
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+            .clickable {
+                navigateToDetail(navController, anime.malId, isManga)
+            }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -1215,7 +1235,8 @@ private fun PreviewAnimeCard(
 @Composable
 fun AnimeCardItem(
     navController: NavController,
-    anime: AnimeCard
+    anime: AnimeCard,
+    isManga: Boolean = false
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
@@ -1236,7 +1257,7 @@ fun AnimeCardItem(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = { isPressed = true; tryAwaitRelease(); isPressed = false },
-                    onTap = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+                    onTap = { navigateToDetail(navController, anime.malId, isManga) }
                 )
             },
         colors = CardDefaults.cardColors(
@@ -1320,7 +1341,7 @@ fun AnimeCardItem(
                     }
                     Surface(
                         onClick = {
-                            navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}?openSheet=true")
+                            navigateToDetail(navController, anime.malId, isManga, openSheet = !isManga)
                         },
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
@@ -1348,7 +1369,7 @@ fun AnimeCardItem(
 // TARJETA MINIMAL (variante compacta para otras pantallas)
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
+fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard, isManga: Boolean = false) {
     var isPressed by remember { mutableStateOf(false) }
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
@@ -1363,7 +1384,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = { isPressed = true; tryAwaitRelease(); isPressed = false },
-                    onTap = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+                    onTap = { navigateToDetail(navController, anime.malId, isManga) }
                 )
             },
         colors = CardDefaults.cardColors(

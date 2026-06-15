@@ -11,6 +11,7 @@ import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
 import com.yumedev.seijakulist.data.repository.SearchHistoryRepository
 import com.yumedev.seijakulist.domain.models.AnimeCard
 import com.yumedev.seijakulist.domain.usecase.anilist.GetAnimeSearchAniListUseCase
+import com.yumedev.seijakulist.domain.usecase.anilist.GetMangaSearchAniListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,7 @@ private const val PAGE_SIZE = 25
 @HiltViewModel
 class AnimeSearchViewModel @Inject constructor(
     private val getAnimeSearchAniListUseCase: GetAnimeSearchAniListUseCase,
+    private val getMangaSearchAniListUseCase: GetMangaSearchAniListUseCase,
     private val animeAniListRepository: AnimeAniListRepository,
     private val animeLocalRepository: AnimeLocalRepository,
     private val firestoreAnimeRepository: FirestoreAnimeRepository,
@@ -89,7 +91,8 @@ class AnimeSearchViewModel @Inject constructor(
         _state.update {
             it.copy(
                 searchQuery = newQuery,
-                selectedFilter = "Anime",
+                // Mantener el filtro seleccionado actual (Anime o Manga) o usar "Anime" por defecto
+                selectedFilter = if (it.selectedFilter == "Manga" || it.selectedFilter == "Anime") it.selectedFilter else "Anime",
                 selectedGenreId = null,
                 selectedQuickFilter = null,
                 animeList = if (newQuery.isBlank()) emptyList() else it.animeList,
@@ -255,7 +258,7 @@ class AnimeSearchViewModel @Inject constructor(
                     else -> emptyList()
                 }
             }
-            // 2. Si hay búsqueda de texto (con o sin formato)
+            // 2. Si hay búsqueda de texto de ANIME (con o sin formato)
             currentState.searchQuery.isNotBlank() && currentState.selectedFilter == "Anime" -> {
                 // Guardar la búsqueda en el historial solo en la primera página
                 if (page == 1) {
@@ -263,6 +266,15 @@ class AnimeSearchViewModel @Inject constructor(
                 }
                 val formatType = currentState.selectedFormat?.let { mapFormatToType(it) }
                 getAnimeSearchAniListUseCase(query = currentState.searchQuery, page = page, type = formatType)
+            }
+            // 2b. Si hay búsqueda de texto de MANGA
+            currentState.searchQuery.isNotBlank() && currentState.selectedFilter == "Manga" -> {
+                // Guardar la búsqueda en el historial solo en la primera página
+                if (page == 1) {
+                    saveSearchToHistory(currentState.searchQuery)
+                }
+                val formatType = currentState.selectedFormat?.let { mapMangaFormatToType(it) }
+                getMangaSearchAniListUseCase(query = currentState.searchQuery, page = page, type = formatType)
             }
             // 3. Si es filtro por género
             currentState.selectedFilter == "Géneros" && currentState.selectedGenreId != null -> {
@@ -276,7 +288,7 @@ class AnimeSearchViewModel @Inject constructor(
         }
     }
 
-    // Mapea los formatos de UI a los tipos de la API
+    // Mapea los formatos de UI a los tipos de la API (para anime)
     private fun mapFormatToType(format: String): String {
         return when (format) {
             "TV" -> "tv"
@@ -285,6 +297,16 @@ class AnimeSearchViewModel @Inject constructor(
             "ONA" -> "ona"
             "Especial" -> "special"
             "Música" -> "music"
+            else -> format.lowercase()
+        }
+    }
+
+    // Mapea los formatos de UI a los tipos de la API (para manga)
+    private fun mapMangaFormatToType(format: String): String {
+        return when (format) {
+            "Manga" -> "manga"
+            "Novel" -> "novel"
+            "One Shot" -> "one_shot"
             else -> format.lowercase()
         }
     }
@@ -333,8 +355,17 @@ class AnimeSearchViewModel @Inject constructor(
     private fun fetchPreviewResults(query: String, selectedFormat: String?) {
         viewModelScope.launch {
             try {
-                val formatType = selectedFormat?.let { mapFormatToType(it) }
-                val results = getAnimeSearchAniListUseCase(query = query, page = 1, type = formatType)
+                val currentFilter = _state.value.selectedFilter
+                val results = when (currentFilter) {
+                    "Manga" -> {
+                        val formatType = selectedFormat?.let { mapMangaFormatToType(it) }
+                        getMangaSearchAniListUseCase(query = query, page = 1, type = formatType)
+                    }
+                    else -> { // "Anime" o cualquier otro
+                        val formatType = selectedFormat?.let { mapFormatToType(it) }
+                        getAnimeSearchAniListUseCase(query = query, page = 1, type = formatType)
+                    }
+                }
                 _state.update { it.copy(previewResults = results.take(PREVIEW_ITEMS_COUNT)) }
             } catch (e: Exception) {
                 Log.e("AnimeSearchVM", "Error en vista previa: ${e.message}")
