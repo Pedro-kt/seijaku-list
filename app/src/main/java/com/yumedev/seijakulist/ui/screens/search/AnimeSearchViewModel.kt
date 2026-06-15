@@ -75,12 +75,35 @@ class AnimeSearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val popularAnimes = animeAniListRepository.getAnimePopular(page = 1)
-                _state.update { it.copy(trendingAnimes = popularAnimes.take(3).map { anime -> anime.title }) }
+                val trendingAnimes = animeAniListRepository.getTrendingAnime(page = 1)
+                _state.update { it.copy(trendingAnimes = trendingAnimes.take(4)) }
             } catch (e: Exception) {
                 Log.e("AnimeSearchVM", "Error al cargar tendencias: ${e.message}")
-                // Fallback a tendencias estáticas si falla la API
-                _state.update { it.copy(trendingAnimes = listOf("Naruto", "Jujutsu Kaisen", "One Piece")) }
+                // No usar fallback, simplemente dejar vacío
+                _state.update { it.copy(trendingAnimes = emptyList()) }
+            }
+        }
+    }
+
+    /**
+     * Lazy load trending mangas (called when SearchScreen opens)
+     */
+    fun loadTrendingMangas() {
+        // Only load if not already loaded
+        if (_state.value.trendingMangas.isNotEmpty()) return
+
+        viewModelScope.launch {
+            try {
+                val trendingMangas = animeAniListRepository.searchMangaAdvanced(
+                    sort = listOf(com.yumedev.seijakulist.data.remote.graphql.type.MediaSort.TRENDING_DESC),
+                    page = 1,
+                    perPage = 4
+                )
+                _state.update { it.copy(trendingMangas = trendingMangas) }
+            } catch (e: Exception) {
+                Log.e("AnimeSearchVM", "Error al cargar tendencias de manga: ${e.message}")
+                // No usar fallback, simplemente dejar vacío
+                _state.update { it.copy(trendingMangas = emptyList()) }
             }
         }
     }
@@ -550,8 +573,11 @@ class AnimeSearchViewModel @Inject constructor(
     val recentSearches: StateFlow<List<String>> get() = MutableStateFlow<List<String>>(emptyList()).also {
         viewModelScope.launch { state.collect { s -> it.value = s.recentSearches } }
     }
-    val trendingAnimes: StateFlow<List<String>> get() = MutableStateFlow<List<String>>(emptyList()).also {
+    val trendingAnimes: StateFlow<List<AnimeCard>> get() = MutableStateFlow<List<AnimeCard>>(emptyList()).also {
         viewModelScope.launch { state.collect { s -> it.value = s.trendingAnimes } }
+    }
+    val trendingMangas: StateFlow<List<AnimeCard>> get() = MutableStateFlow<List<AnimeCard>>(emptyList()).also {
+        viewModelScope.launch { state.collect { s -> it.value = s.trendingMangas } }
     }
     val previewResults: StateFlow<List<AnimeCard>> get() = MutableStateFlow<List<AnimeCard>>(emptyList()).also {
         viewModelScope.launch { state.collect { s -> it.value = s.previewResults } }

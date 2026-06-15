@@ -207,7 +207,8 @@ fun SearchScreen(
     val selectedQuick by viewModel.selectedQuickFilter.collectAsState() // nuevo estado en VM
     val selectedFormat by viewModel.selectedFormat.collectAsState() // formato seleccionado
     val recentSearches by viewModel.recentSearches.collectAsState() // búsquedas recientes
-    val trendingAnimes by viewModel.trendingAnimes.collectAsState() // tendencias dinámicas
+    val trendingAnimes by viewModel.trendingAnimes.collectAsState() // tendencias dinámicas anime
+    val trendingMangas by viewModel.trendingMangas.collectAsState() // tendencias dinámicas manga
     val previewResults by viewModel.previewResults.collectAsState() // vista previa de resultados
 
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -217,9 +218,10 @@ fun SearchScreen(
     var openBottomSheet by remember { mutableStateOf(false) }
     var openFiltersSheet by remember { mutableStateOf(false) }
 
-    // Lazy load trending animes when screen opens
+    // Lazy load trending animes and mangas when screen opens
     LaunchedEffect(Unit) {
         viewModel.loadTrendingAnimes()
+        viewModel.loadTrendingMangas()
     }
 
     // Auto-expand cuando se navega desde el Home y forzar teclado
@@ -443,7 +445,8 @@ fun SearchScreen(
                 onClearAllFilters = viewModel::clearAllFilters,
                 onLoadMore = viewModel::loadMoreAnimes,
                 recentSearches = recentSearches,
-                trendingSearches = trendingAnimes,
+                trendingAnimes = trendingAnimes,
+                trendingMangas = trendingMangas,
                 previewResults = previewResults,
                 onRecentSearchClick = viewModel::onRecentSearchClicked,
                 onDeleteRecentSearch = viewModel::deleteRecentSearch,
@@ -887,7 +890,8 @@ private fun SearchContent(
     onClearAllFilters: () -> Unit,
     onLoadMore: () -> Unit = {},
     recentSearches: List<String> = emptyList(),
-    trendingSearches: List<String> = emptyList(),
+    trendingAnimes: List<AnimeCard> = emptyList(),
+    trendingMangas: List<AnimeCard> = emptyList(),
     previewResults: List<AnimeCard> = emptyList(),
     onRecentSearchClick: (String) -> Unit = {},
     onDeleteRecentSearch: (String) -> Unit = {},
@@ -1126,9 +1130,11 @@ private fun SearchContent(
                 selectedFilter = selectedFilter,
                 onFilterSelected = onFilterSelected,
                 recentSearches = recentSearches,
-                trendingSearches = trendingSearches,
+                trendingAnimes = trendingAnimes,
+                trendingMangas = trendingMangas,
                 onSearchClick = onRecentSearchClick,
-                onDeleteSearch = onDeleteRecentSearch
+                onDeleteSearch = onDeleteRecentSearch,
+                navController = navController
             )
         }
     }
@@ -1140,11 +1146,13 @@ private fun SearchContent(
 @Composable
 private fun EmptySearchState(
     recentSearches: List<String> = emptyList(),
-    trendingSearches: List<String> = emptyList(),
+    trendingAnimes: List<AnimeCard> = emptyList(),
+    trendingMangas: List<AnimeCard> = emptyList(),
     onSearchClick: (String) -> Unit = {},
     onDeleteSearch: (String) -> Unit = {},
     selectedFilter: String? = null,
-    onFilterSelected: (String) -> Unit = {}
+    onFilterSelected: (String) -> Unit = {},
+    navController: NavController
 ) {
     Column(
         modifier = Modifier
@@ -1172,16 +1180,30 @@ private fun EmptySearchState(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // -------- TRENDING --------
-        if (trendingSearches.isNotEmpty()) {
+        // -------- TRENDING ANIME --------
+        if (trendingAnimes.isNotEmpty() && selectedFilter == "Anime") {
             SectionHeader(title = "Tendencias")
 
-            trendingSearches.forEachIndexed { index, query ->
-                SearchItemRow(
-                    text = "${index + 1}. $query",
-                    icon = Icons.Default.LocalFireDepartment,
-                    highlight = true,
-                    onClick = { onSearchClick(query) }
+            trendingAnimes.forEach { anime ->
+                PreviewAnimeCard(
+                    anime = anime,
+                    navController = navController,
+                    isManga = false,
+                    onClick = {}
+                )
+            }
+        }
+
+        // -------- TRENDING MANGA --------
+        if (trendingMangas.isNotEmpty() && selectedFilter == "Manga") {
+            SectionHeader(title = "Tendencias")
+
+            trendingMangas.forEach { manga ->
+                PreviewAnimeCard(
+                    anime = manga,
+                    navController = navController,
+                    isManga = true,
+                    onClick = {}
                 )
             }
         }
