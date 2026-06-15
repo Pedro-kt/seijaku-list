@@ -166,14 +166,17 @@ private val quickFilters = listOf(
 private val contentTypeFilters = listOf(
     "Anime" to Icons.Default.Tv,
     "Manga" to Icons.AutoMirrored.Filled.MenuBook,
-    "Géneros" to Icons.Default.Category,
+    // "Géneros" removed - genres are now shown in discovery section based on selected media type
     "Personajes" to Icons.Default.Person,
     "Staff" to Icons.Default.Groups,
     "Estudios" to Icons.Default.Business,
 )
 
 // ─── Formatos de anime ───────────────────────────────────────────────────────
-private val formatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", "Música")
+private val animeFormatFilters = listOf("TV", "Película", "OVA", "ONA", "Especial", "Música")
+
+// ─── Formatos de manga ───────────────────────────────────────────────────────
+private val mangaFormatFilters = listOf("Manga", "Novel", "One Shot", "Manhwa", "Manhua")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PANTALLA PRINCIPAL
@@ -273,7 +276,7 @@ fun SearchScreen(
                 },
                 onGenreDirectTap = { genreId ->
                     viewModel.onGenreSelected(genreId)
-                    viewModel.onFilterSelected("Géneros")
+                    // No need to change filter - it stays as "Anime" or "Manga"
                     viewModel.performSearchOrFilter()
                     expanded = true
                 }
@@ -472,6 +475,7 @@ fun SearchScreen(
             selectedQuick = selectedQuick,
             selectedFormat = selectedFormat,
             selectedGenreId = selectedGenreId,
+            selectedFilter = selectedFilter ?: "Anime",
             onQuickFilterSelected = { filter ->
                 viewModel.onQuickFilterSelected(if (selectedQuick == filter) null else filter)
             },
@@ -548,10 +552,10 @@ private fun SearchDiscoveryView(
         }
 
         // ═══════════════════════════════════════════════════════════════════
-        // SECCIÓN 2 — Formatos de anime
+        // SECCIÓN 2 — Formatos (anime o manga)
         // ═══════════════════════════════════════════════════════════════════
         AnimatedVisibility(
-            visible = selectedFilter == "Anime",
+            visible = selectedFilter == "Anime" || selectedFilter == "Manga",
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
@@ -562,7 +566,8 @@ private fun SearchDiscoveryView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
-                    items(formatFilters) { format ->
+                    val filters = if (selectedFilter == "Manga") mangaFormatFilters else animeFormatFilters
+                    items(filters) { format ->
                         FormatChip(
                             label = format,
                             isActive = selectedFormat == format,
@@ -580,7 +585,11 @@ private fun SearchDiscoveryView(
 
         SectionHeader(title = "Géneros populares")
 
-        val displayGenres = PopularGenres.popularGenres
+        val displayGenres = if (selectedFilter == "Manga") {
+            PopularGenres.popularMangaGenres
+        } else {
+            PopularGenres.popularGenres
+        }
         val chunked = displayGenres.chunked(2)
 
         Column(
@@ -925,7 +934,7 @@ private fun SearchContent(
             }
             items(animeList, key = { it.malId }) { anime ->
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    AnimeCardItem(navController = navController, anime = anime)
+                    AnimeCardItem(navController = navController, anime = anime, isManga = selectedFilter == "Manga")
                 }
             }
             if (isLoadingMore) {
@@ -970,6 +979,7 @@ private fun SearchContent(
                     PreviewAnimeCard(
                         anime = anime,
                         navController = navController,
+                        isManga = selectedFilter == "Manga",
                         onClick = {
                             onPerformSearch()
                         }
@@ -1123,16 +1133,35 @@ private fun SearchItemRow(
 // ─────────────────────────────────────────────────────────────────────────────
 // TARJETA DE VISTA PREVIA — VERSIÓN COMPACTA
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Helper function to navigate to detail screen (anime or manga)
+ */
+private fun navigateToDetail(navController: NavController, malId: Int, isManga: Boolean, openSheet: Boolean = false) {
+    val route = if (isManga) {
+        "${AppDestinations.MANGA_DETAIL_ROUTE}/$malId"
+    } else {
+        if (openSheet) {
+            "${AppDestinations.ANIME_DETAIL_ROUTE}/$malId?openSheet=true"
+        } else {
+            "${AppDestinations.ANIME_DETAIL_ROUTE}/$malId"
+        }
+    }
+    navController.navigate(route)
+}
+
 @Composable
 private fun PreviewAnimeCard(
     anime: AnimeCard,
     navController: NavController,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isManga: Boolean = false
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+            .clickable {
+                navigateToDetail(navController, anime.malId, isManga)
+            }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -1215,7 +1244,8 @@ private fun PreviewAnimeCard(
 @Composable
 fun AnimeCardItem(
     navController: NavController,
-    anime: AnimeCard
+    anime: AnimeCard,
+    isManga: Boolean = false
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
@@ -1236,7 +1266,7 @@ fun AnimeCardItem(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = { isPressed = true; tryAwaitRelease(); isPressed = false },
-                    onTap = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+                    onTap = { navigateToDetail(navController, anime.malId, isManga) }
                 )
             },
         colors = CardDefaults.cardColors(
@@ -1320,7 +1350,7 @@ fun AnimeCardItem(
                     }
                     Surface(
                         onClick = {
-                            navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}?openSheet=true")
+                            navigateToDetail(navController, anime.malId, isManga, openSheet = !isManga)
                         },
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
@@ -1348,7 +1378,7 @@ fun AnimeCardItem(
 // TARJETA MINIMAL (variante compacta para otras pantallas)
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
+fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard, isManga: Boolean = false) {
     var isPressed by remember { mutableStateOf(false) }
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
@@ -1363,7 +1393,7 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = { isPressed = true; tryAwaitRelease(); isPressed = false },
-                    onTap = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}") }
+                    onTap = { navigateToDetail(navController, anime.malId, isManga) }
                 )
             },
         colors = CardDefaults.cardColors(
@@ -1473,12 +1503,19 @@ fun AnimeCardItemMinimal(navController: NavController, anime: AnimeCard) {
 @Composable
 private fun TypePill(type: String) {
     val (color, displayText) = when (type) {
+        // Formatos de anime
         "TV" -> Color(0xFF6366F1) to "TV"
         "Movie" -> Color(0xFFEC4899) to "Movie"
         "OVA" -> Color(0xFF8B5CF6) to "OVA"
         "ONA" -> Color(0xFF14B8A6) to "ONA"
         "Special" -> Color(0xFFF59E0B) to "Special"
         "Music" -> Color(0xFF06B6D4) to "Music"
+        // Formatos de manga
+        "MANGA" -> Color(0xFF10B981) to "Manga"
+        "NOVEL" -> Color(0xFF8B5CF6) to "Novel"
+        "ONE_SHOT" -> Color(0xFFF59E0B) to "One Shot"
+        "MANHWA" -> Color(0xFF3B82F6) to "Manhwa"
+        "MANHUA" -> Color(0xFFEC4899) to "Manhua"
         else -> MaterialTheme.colorScheme.tertiary to type
     }
     Surface(
@@ -1616,12 +1653,19 @@ private fun EpisodesPill(episodes: String) {
 @Composable
 private fun TypeBadge(type: String) {
     val (color, displayText) = when (type) {
+        // Formatos de anime
         "TV" -> Color(0xFF6366F1) to "TV"
         "Movie" -> Color(0xFFEC4899) to "Movie"
         "OVA" -> Color(0xFF8B5CF6) to "OVA"
         "ONA" -> Color(0xFF14B8A6) to "ONA"
         "Special" -> Color(0xFFF59E0B) to "Special"
         "Music" -> Color(0xFF06B6D4) to "Music"
+        // Formatos de manga
+        "MANGA" -> Color(0xFF10B981) to "Manga"
+        "NOVEL" -> Color(0xFF8B5CF6) to "Novel"
+        "ONE_SHOT" -> Color(0xFFF59E0B) to "One Shot"
+        "MANHWA" -> Color(0xFF3B82F6) to "Manhwa"
+        "MANHUA" -> Color(0xFFEC4899) to "Manhua"
         else -> MaterialTheme.colorScheme.tertiary to type
     }
     Surface(
@@ -1986,6 +2030,7 @@ private fun FiltersBottomSheet(
     selectedQuick: String?,
     selectedFormat: String?,
     selectedGenreId: String?,
+    selectedFilter: String = "Anime",
     onQuickFilterSelected: (String) -> Unit,
     onFormatSelected: (String) -> Unit,
     onGenreSelected: (String) -> Unit,
@@ -2096,7 +2141,8 @@ private fun FiltersBottomSheet(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(horizontal = 20.dp)
                 ) {
-                    items(formatFilters) { format ->
+                    val filters = if (selectedFilter == "Manga") mangaFormatFilters else animeFormatFilters
+                    items(filters) { format ->
                         FormatChip(
                             label = format,
                             isActive = selectedFormat == format,

@@ -5,8 +5,10 @@ import com.apollographql.apollo.api.Optional
 import com.yumedev.seijakulist.data.mapper.toAnimeCard
 import com.yumedev.seijakulist.data.mapper.toAnimeCharactersDetail
 import com.yumedev.seijakulist.data.mapper.toAnimeDetail
+import com.yumedev.seijakulist.data.mapper.toMangaDetail
 import com.yumedev.seijakulist.data.remote.graphql.GetAnimeDetailsQuery
 import com.yumedev.seijakulist.data.remote.graphql.GetCharacterDetailsQuery
+import com.yumedev.seijakulist.data.remote.graphql.GetMangaDetailsQuery
 import com.yumedev.seijakulist.data.remote.graphql.GetSeasonalAnimeQuery
 import com.yumedev.seijakulist.data.remote.graphql.SearchAnimeQuery
 import com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat
@@ -590,6 +592,81 @@ class AnimeAniListRepository @Inject constructor(
         return media.map { it.toAnimeCard() }
     }
 
+    // ========== MANGA SEARCH METHODS ==========
+
+    /**
+     * Busca manga por query de búsqueda
+     *
+     * @param query Texto de búsqueda
+     * @param page Número de página (default: 1)
+     * @param perPage Elementos por página (default: 20)
+     * @return Lista de AnimeCard (reutilizamos AnimeCard para manga)
+     */
+    suspend fun searchManga(
+        query: String,
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(page),
+                perPage = Optional.present(perPage),
+                search = Optional.present(query),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                sort = Optional.present(listOf(MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
+        return media.map { it.toAnimeCard() }
+    }
+
+    /**
+     * Búsqueda avanzada de manga con múltiples filtros
+     *
+     * @param query Texto de búsqueda (opcional)
+     * @param format Formato (opcional) - MANGA, ONE_SHOT, NOVEL, etc.
+     * @param status Estado (opcional)
+     * @param genre Género (opcional)
+     * @param sort Ordenamiento (opcional)
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard (reutilizamos para manga)
+     */
+    suspend fun searchMangaAdvanced(
+        query: String? = null,
+        format: MediaFormat? = null,
+        status: MediaStatus? = null,
+        genre: String? = null,
+        sort: List<MediaSort> = listOf(MediaSort.POPULARITY_DESC),
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(page),
+                perPage = Optional.present(perPage),
+                search = Optional.presentIfNotNull(query),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                format = Optional.presentIfNotNull(format),
+                status = Optional.presentIfNotNull(status),
+                genre = Optional.presentIfNotNull(genre),
+                sort = Optional.present(sort)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
+        return media.map { it.toAnimeCard() }
+    }
+
     // ========== HERO SECTION METHODS ==========
 
     /**
@@ -1035,6 +1112,118 @@ class AnimeAniListRepository @Inject constructor(
         val media = response.data?.Page?.media?.filterNotNull()?.randomOrNull() ?: return null
         return media.toAnimeCard()
     }
+
+    // ========== MANGA DETAIL METHODS ==========
+
+    /**
+     * Obtiene detalles de un manga por ID
+     *
+     * @param mangaId ID de AniList (si está disponible)
+     * @param malId MyAnimeList ID (fallback si no hay AniList ID)
+     * @return MangaDetail con información completa
+     */
+    suspend fun getMangaDetailsById(mangaId: Int? = null, malId: Int? = null): com.yumedev.seijakulist.domain.models.MangaDetail {
+        if (mangaId == null && malId == null) {
+            throw IllegalArgumentException("Se requiere mangaId o malId")
+        }
+
+        val response = apolloClient.query(
+            GetMangaDetailsQuery(
+                id = Optional.presentIfNotNull(mangaId),
+                idMal = Optional.presentIfNotNull(malId)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Media
+            ?: throw Exception("No se encontró manga con ID: $mangaId / MAL ID: $malId")
+
+        return media.toMangaDetail()
+    }
+
+    /**
+     * Obtiene personajes de un manga
+     *
+     * @param mangaId ID de AniList
+     * @param malId MyAnimeList ID (alternativo)
+     * @return Lista de AnimeCharactersDetail (reutilizamos para manga)
+     */
+    suspend fun getMangaCharactersById(mangaId: Int? = null, malId: Int? = null): List<AnimeCharactersDetail> {
+        if (mangaId == null && malId == null) {
+            throw IllegalArgumentException("Se requiere mangaId o malId")
+        }
+
+        val response = apolloClient.query(
+            GetMangaDetailsQuery(
+                id = Optional.presentIfNotNull(mangaId),
+                idMal = Optional.presentIfNotNull(malId)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val characters = response.data?.Media?.characters?.edges?.filterNotNull() ?: emptyList()
+        return characters.map { edge ->
+            val character = edge.node?.characterFields ?: return@map null
+            AnimeCharactersDetail(
+                idCharacter = character.id,
+                nameCharacter = character.name?.full ?: character.name?.native ?: "Desconocido",
+                imageCharacter = com.yumedev.seijakulist.data.remote.models.ImagesCharactersDto(
+                    jpg = com.yumedev.seijakulist.data.remote.models.CharacterJpgDto(character.image?.large),
+                    webp = com.yumedev.seijakulist.data.remote.models.CharacterWebpDto(character.image?.large)
+                ),
+                role = when (edge.role?.name) {
+                    "MAIN" -> "Main"
+                    "SUPPORTING" -> "Supporting"
+                    "BACKGROUND" -> "Background"
+                    else -> edge.role?.name ?: "Unknown"
+                }
+            )
+        }.filterNotNull()
+    }
+
+    /**
+     * Obtiene recomendaciones para un manga
+     *
+     * @param mangaId ID de AniList
+     * @param malId MyAnimeList ID (alternativo)
+     * @return Lista de recomendaciones (como AnimeCard para reutilizar UI)
+     */
+    suspend fun getMangaRecommendations(mangaId: Int? = null, malId: Int? = null): List<com.yumedev.seijakulist.domain.models.AnimeRecommendation> {
+        if (mangaId == null && malId == null) {
+            throw IllegalArgumentException("Se requiere mangaId o malId")
+        }
+
+        val response = apolloClient.query(
+            GetMangaDetailsQuery(
+                id = Optional.presentIfNotNull(mangaId),
+                idMal = Optional.presentIfNotNull(malId)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val recommendations = response.data?.Media?.recommendations?.nodes?.filterNotNull() ?: emptyList()
+
+        return recommendations.mapNotNull { rec ->
+            val media = rec.mediaRecommendation ?: return@mapNotNull null
+            com.yumedev.seijakulist.domain.models.AnimeRecommendation(
+                malId = media.idMal ?: 0,
+                title = media.title?.romaji ?: media.title?.english ?: media.title?.native ?: "",
+                image = media.coverImage?.large ?: media.coverImage?.extraLarge ?: "",
+                votes = rec.rating ?: 0
+            )
+        }
+    }
+
+    // ========== SCHEDULE METHODS ==========
 
     /**
      * Obtiene anime que se emiten en un rango de tiempo específico

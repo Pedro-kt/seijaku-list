@@ -14,6 +14,7 @@ data class SearchState(
     val selectedGenreId: String? = null,
     val selectedQuickFilter: String? = null,
     val selectedFormat: String? = null,
+    val mediaType: String = "Anime", // Tracks whether we're searching Anime or Manga (persists when filter changes to "Géneros")
 
     // Search results
     val animeList: List<AnimeCard> = emptyList(),
@@ -46,6 +47,6 @@ data class SearchState(
      */
     val canPerformSearch: Boolean
         get() = selectedQuickFilter != null ||
-                (searchQuery.isNotBlank() && selectedFilter == "Anime") ||
-                (selectedFilter == "Géneros" && selectedGenreId != null)
+                (searchQuery.isNotBlank() && (selectedFilter == "Anime" || selectedFilter == "Manga")) ||
+                selectedGenreId != null // Genre search (works with both Anime and Manga)
 }

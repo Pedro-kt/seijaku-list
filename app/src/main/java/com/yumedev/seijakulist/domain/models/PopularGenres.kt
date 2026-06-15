@@ -36,7 +36,7 @@ object PopularGenres {
     )
 
     /**
-     * List of most popular genres for discovery cards
+     * List of most popular genres for anime discovery cards
      * Displayed prominently in SearchScreen
      */
     val popularGenres = listOf(
@@ -54,6 +54,27 @@ object PopularGenres {
         allGenres.first { it.malId == 16 },  // Sports
         allGenres.first { it.malId == 17 },  // Supernatural
         allGenres.first { it.malId == 18 }   // Thriller
+    )
+
+    /**
+     * List of most popular genres for manga discovery cards
+     * Manga tends to have different popular genres than anime
+     */
+    val popularMangaGenres = listOf(
+        allGenres.first { it.malId == 1 },   // Action
+        allGenres.first { it.malId == 2 },   // Adventure
+        allGenres.first { it.malId == 3 },   // Comedy
+        allGenres.first { it.malId == 4 },   // Drama
+        allGenres.first { it.malId == 6 },   // Fantasy
+        allGenres.first { it.malId == 7 },   // Horror
+        allGenres.first { it.malId == 11 },  // Mystery
+        allGenres.first { it.malId == 12 },  // Psychological
+        allGenres.first { it.malId == 13 },  // Romance
+        allGenres.first { it.malId == 14 },  // Sci-Fi
+        allGenres.first { it.malId == 15 },  // Slice of Life
+        allGenres.first { it.malId == 17 },  // Supernatural
+        allGenres.first { it.malId == 18 },  // Thriller
+        allGenres.first { it.malId == 5 }    // Ecchi (más popular en manga)
     )
 
     /**
