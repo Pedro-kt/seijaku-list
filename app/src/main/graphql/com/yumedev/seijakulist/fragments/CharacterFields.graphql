@@ -1,0 +1,30 @@
+fragment CharacterFields on Character {
+  id
+  name {
+    full
+    native
+    alternative
+    first
+    middle
+    last
+    userPreferred
+  }
+  image {
+    large
+    medium
+  }
+  description
+  gender
+  dateOfBirth {
+    year
+    month
+    day
+  }
+  age
+  bloodType
+  isFavourite
+  isFavouriteBlocked
+  siteUrl
+  favourites
+  modNotes
+}

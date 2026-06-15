@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.People
@@ -30,7 +29,6 @@ import com.yumedev.seijakulist.ui.theme.adp
 enum class AnimeDetailTab {
     OVERVIEW,
     CHARACTERS,
-    EPISODES,
     PRODUCTION
 }
 
@@ -46,7 +44,6 @@ fun AnimeDetailTabSelector(
     val tabs = listOf(
         AnimeDetailTab.OVERVIEW to Icons.Default.Description,
         AnimeDetailTab.CHARACTERS to Icons.Default.People,
-        AnimeDetailTab.EPISODES to Icons.AutoMirrored.Filled.List,
         AnimeDetailTab.PRODUCTION to Icons.Default.Business
     )
 

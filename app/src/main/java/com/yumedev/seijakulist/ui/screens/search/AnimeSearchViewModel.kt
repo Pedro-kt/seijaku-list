@@ -5,13 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.data.local.entities.SearchHistoryEntity
-import com.yumedev.seijakulist.data.remote.models.SearchAnimeResponse
+import com.yumedev.seijakulist.data.repository.AnimeAniListRepository
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
-import com.yumedev.seijakulist.data.repository.AnimeRepository
 import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
 import com.yumedev.seijakulist.data.repository.SearchHistoryRepository
 import com.yumedev.seijakulist.domain.models.AnimeCard
-import com.yumedev.seijakulist.domain.usecase.GetAnimeSearchUseCase
+import com.yumedev.seijakulist.domain.usecase.anilist.GetAnimeSearchAniListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,8 +28,8 @@ private const val PAGE_SIZE = 25
 
 @HiltViewModel
 class AnimeSearchViewModel @Inject constructor(
-    private val getAnimeSearchUseCase: GetAnimeSearchUseCase,
-    private val animeRepository: AnimeRepository,
+    private val getAnimeSearchAniListUseCase: GetAnimeSearchAniListUseCase,
+    private val animeAniListRepository: AnimeAniListRepository,
     private val animeLocalRepository: AnimeLocalRepository,
     private val firestoreAnimeRepository: FirestoreAnimeRepository,
     private val searchHistoryRepository: SearchHistoryRepository
@@ -74,7 +73,7 @@ class AnimeSearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val popularAnimes = animeRepository.getAnimePopular(page = 1)
+                val popularAnimes = animeAniListRepository.getAnimePopular(page = 1)
                 _state.update { it.copy(trendingAnimes = popularAnimes.take(3).map { anime -> anime.title }) }
             } catch (e: Exception) {
                 Log.e("AnimeSearchVM", "Error al cargar tendencias: ${e.message}")
@@ -246,21 +245,13 @@ class AnimeSearchViewModel @Inject constructor(
             // 1. Si hay un quick filter seleccionado
             currentState.selectedQuickFilter != null -> {
                 when (currentState.selectedQuickFilter) {
-                    "airing" -> animeRepository.getAnimeAiring(page = page)
-                    "trending", "top" -> {
-                        val response = animeRepository.searchTopAnimes(page = page)
-                        mapSearchResponseToCards(response)
-                    }
-                    "upcoming" -> {
-                        val response = animeRepository.searchAnimeSeasonUpcoming(page = page)
-                        mapSearchResponseToCards(response)
-                    }
-                    "season" -> {
-                        val response = animeRepository.searchAnimeSeasonNow(page = page)
-                        mapSearchResponseToCards(response)
-                    }
-                    "new" -> animeRepository.getAnimeNew(page = page)
-                    "popular" -> animeRepository.getAnimePopular(page = page)
+                    "airing" -> animeAniListRepository.getAiringAnime(page = page)
+                    "trending" -> animeAniListRepository.getTrendingAnime(page = page)
+                    "top" -> animeAniListRepository.getTopAnime(page = page)
+                    "upcoming" -> animeAniListRepository.getUpcomingAnime(page = page)
+                    "season" -> animeAniListRepository.getCurrentSeasonAnime(page = page)
+                    "new" -> animeAniListRepository.getAnimeNew(page = page)
+                    "popular" -> animeAniListRepository.getAnimePopular(page = page)
                     else -> emptyList()
                 }
             }
@@ -271,11 +262,15 @@ class AnimeSearchViewModel @Inject constructor(
                     saveSearchToHistory(currentState.searchQuery)
                 }
                 val formatType = currentState.selectedFormat?.let { mapFormatToType(it) }
-                getAnimeSearchUseCase(query = currentState.searchQuery, page = page, type = formatType)
+                getAnimeSearchAniListUseCase(query = currentState.searchQuery, page = page, type = formatType)
             }
             // 3. Si es filtro por género
             currentState.selectedFilter == "Géneros" && currentState.selectedGenreId != null -> {
-                animeRepository.getAnimeByGenre(currentState.selectedGenreId)
+                // Convertir malId a nombre de género para AniList
+                val genreName = com.yumedev.seijakulist.domain.models.PopularGenres.getGenreById(
+                    currentState.selectedGenreId.toIntOrNull() ?: 0
+                )?.name ?: currentState.selectedGenreId
+                animeAniListRepository.getAnimeByGenre(genreName, page = page)
             }
             else -> emptyList()
         }
@@ -291,24 +286,6 @@ class AnimeSearchViewModel @Inject constructor(
             "Especial" -> "special"
             "Música" -> "music"
             else -> format.lowercase()
-        }
-    }
-
-    // Helper method to map SearchAnimeResponse to List<AnimeCard>
-    private fun mapSearchResponseToCards(response: SearchAnimeResponse): List<AnimeCard> {
-        return response.data.mapNotNull { animeDto ->
-            if (animeDto == null) return@mapNotNull null
-            AnimeCard(
-                malId = animeDto.malId,
-                title = animeDto.title ?: "Título predeterminado",
-                images = animeDto.images?.webp?.largeImageUrl ?: "URL de imagen predeterminada",
-                score = animeDto.score ?: 0.0f,
-                status = animeDto.status ?: "Sin estado",
-                genres = animeDto.genres ?: emptyList(),
-                year = (animeDto.year ?: "N/A").toString(),
-                episodes = (animeDto.episodes ?: "N/A").toString(),
-                type = animeDto.type ?: "TV"
-            )
         }
     }
 
@@ -357,7 +334,7 @@ class AnimeSearchViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val formatType = selectedFormat?.let { mapFormatToType(it) }
-                val results = getAnimeSearchUseCase(query = query, page = 1, type = formatType)
+                val results = getAnimeSearchAniListUseCase(query = query, page = 1, type = formatType)
                 _state.update { it.copy(previewResults = results.take(PREVIEW_ITEMS_COUNT)) }
             } catch (e: Exception) {
                 Log.e("AnimeSearchVM", "Error en vista previa: ${e.message}")

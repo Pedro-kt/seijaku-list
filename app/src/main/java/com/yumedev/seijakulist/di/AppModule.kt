@@ -1,7 +1,7 @@
 package com.yumedev.seijakulist.di
 
-import com.yumedev.seijakulist.data.remote.api.JikanApiService
-import com.yumedev.seijakulist.domain.usecase.GetAnimeCharactersDetailUseCase
+import com.apollographql.apollo.ApolloClient
+import com.yumedev.seijakulist.data.remote.api.AniListApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,32 +10,21 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
-//El app module dice a Hilt como construir el retrofit y la jikanApiService
-//Esto es el modulo de Hilt
-
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val BASE_URL: String = "https://api.jikan.moe/v4/"
-
+    // Apollo GraphQL Client para AniList API
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
-
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
+    fun provideAniListApiClient(): AniListApiClient {
+        return AniListApiClient()
     }
 
     @Provides
     @Singleton
-    fun provideJikanApiService(retrofit: Retrofit): JikanApiService {
-
-        return retrofit.create(JikanApiService::class.java)
-
+    fun provideApolloClient(apiClient: AniListApiClient): ApolloClient {
+        return apiClient.apolloClient
     }
 
 }

@@ -95,17 +95,10 @@ fun CharacterDetailScreen(
     navController: NavController,
     characterId: Int,
     characterDetailViewModel: CharacterDetailViewModel = hiltViewModel(),
-    characterPictureViewModel: CharacterPictureViewModel = hiltViewModel()
 ) {
     val characterDetail   by characterDetailViewModel.characterDetail.collectAsState()
     val characterLoading  by characterDetailViewModel.isLoading.collectAsState()
     val characterError    by characterDetailViewModel.errorMessage.collectAsState()
-    val characterPictures by characterPictureViewModel.characterPictures.collectAsState()
-    val picturesLoading   by characterPictureViewModel.isLoadingPicture.collectAsState()
-    val picturesError     by characterPictureViewModel.errorMessagePicture.collectAsState()
-
-    val isLoading  = characterLoading || picturesLoading
-    val errorMsg   = characterError ?: picturesError
 
     var expanded         by rememberSaveable { mutableStateOf(false) }
     var showImageDialog  by remember { mutableStateOf(false) }
@@ -115,10 +108,13 @@ fun CharacterDetailScreen(
 
     LaunchedEffect(characterId) {
         characterDetailViewModel.loadCharacterDetail(characterId)
-        characterPictureViewModel.loadCharacterPictures(characterId)
     }
-    LaunchedEffect(isLoading) {
-        if (!isLoading) { delay(120); contentVisible = true }
+
+    LaunchedEffect(characterDetail.characterId) {
+        if (characterDetail.characterId != 0) {
+            delay(100)
+            contentVisible = true
+        }
     }
 
     val parsedDescription = remember(characterDetail.descriptionCharacter) {
@@ -127,8 +123,33 @@ fun CharacterDetailScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            isLoading -> CharacterLoadingState()
-            errorMsg != null -> CharacterErrorState(errorMsg)
+            characterLoading && characterDetail.characterId == 0 -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            characterError != null && characterDetail.characterId == 0 -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = characterError ?: "Error desconocido",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontFamily = PoppinsRegular,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        )
+                    }
+                }
+            }
             else -> {
                 LazyColumn(
                     state = listState,
@@ -166,21 +187,6 @@ fun CharacterDetailScreen(
                                     text     = parsedDescription.cleanDescription,
                                     expanded = expanded,
                                     onToggle = { expanded = !expanded }
-                                )
-                            }
-                        }
-                    }
-
-                    if (characterPictures.isNotEmpty()) {
-                        item {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            AnimatedSection(contentVisible, delayMs = 180L) {
-                                CharacterGallerySection(
-                                    pictures = characterPictures,
-                                    onImageClick = { url ->
-                                        selectedImageUrl = url
-                                        showImageDialog = true
-                                    }
                                 )
                             }
                         }

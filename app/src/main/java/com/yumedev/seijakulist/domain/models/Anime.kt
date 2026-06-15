@@ -5,4 +5,5 @@ data class Anime(
     val title: String,
     val image: String,
     val score: Float,
+    val airingSchedule: AiringScheduleInfo? = null
 )

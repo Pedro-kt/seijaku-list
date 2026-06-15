@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -219,21 +221,47 @@ private fun AnimeSectionCard(
             }
         }
 
-        // Título en la parte inferior
-        Text(
-            text = anime.title,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            style = TextStyle(
-                fontFamily = PoppinsMedium,
-                fontSize = 13.asp(),
-                lineHeight = 17.asp(),
-                color = Color.White
-            ),
+        // Contenido inferior (título + schedule info)
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(horizontal = 10.dp, vertical = 10.dp)
-        )
+        ) {
+            // Información de schedule (si existe)
+            anime.airingSchedule?.let { schedule ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AccessTime,
+                        contentDescription = null,
+                        tint = Color(0xFF4FC3F7),
+                        modifier = Modifier.size(11.dp)
+                    )
+                    Text(
+                        text = "${schedule.formattedTime} | Ep.${schedule.episode}",
+                        color = Color(0xFF4FC3F7),
+                        fontSize = 10.asp(),
+                        fontFamily = PoppinsBold
+                    )
+                }
+            }
+
+            // Título
+            Text(
+                text = anime.title,
+                maxLines = if (anime.airingSchedule != null) 1 else 2,
+                overflow = TextOverflow.Ellipsis,
+                style = TextStyle(
+                    fontFamily = PoppinsMedium,
+                    fontSize = 13.asp(),
+                    lineHeight = 17.asp(),
+                    color = Color.White
+                )
+            )
+        }
     }
 }
 @Composable

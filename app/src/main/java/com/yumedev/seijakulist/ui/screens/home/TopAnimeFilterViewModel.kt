@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.common.RequestThrottler
 import com.yumedev.seijakulist.domain.models.Anime
-import com.yumedev.seijakulist.domain.usecase.GetTopAnimeFilterUseCase
+import com.yumedev.seijakulist.domain.usecase.anilist.GetTopAnimeFilterAniListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TopAnimeFilterViewModel @Inject constructor(
-    private val getTopAnimeFilterUseCase: GetTopAnimeFilterUseCase,
+    private val getTopAnimeFilterAniListUseCase: GetTopAnimeFilterAniListUseCase,
     private val requestThrottler: RequestThrottler
 ) : ViewModel() {
     private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
@@ -41,7 +41,7 @@ class TopAnimeFilterViewModel @Inject constructor(
             _isLoading.value = true
 
             val result = requestThrottler.throttle {
-                getTopAnimeFilterUseCase.invoke(filter)
+                getTopAnimeFilterAniListUseCase.invoke(filter)
             }
 
             if (result != null) {

@@ -1,0 +1,250 @@
+query GetAnimeDetails($id: Int, $idMal: Int) {
+  Media(id: $id, idMal: $idMal, type: ANIME) {
+    ...MediaFields
+
+    # Relaciones completas (sequels, prequels, spin-offs, etc.)
+    relations {
+      edges {
+        id
+        relationType
+        node {
+          id
+          idMal
+          title {
+            romaji
+            english
+            native
+            userPreferred
+          }
+          coverImage {
+            large
+            extraLarge
+            medium
+            color
+          }
+          bannerImage
+          format
+          type
+          status
+          description(asHtml: false)
+          season
+          seasonYear
+          episodes
+          averageScore
+          meanScore
+          popularity
+          genres
+          siteUrl
+          isFavourite
+        }
+      }
+    }
+
+    # Personajes con TODOS los detalles y voice actors
+    characters(page: 1, perPage: 50, sort: [ROLE, RELEVANCE, FAVOURITES_DESC]) {
+      pageInfo {
+        total
+        perPage
+        currentPage
+        lastPage
+        hasNextPage
+      }
+      edges {
+        id
+        role
+        name
+        voiceActorRoles(sort: [RELEVANCE, ID]) {
+          roleNotes
+          dubGroup
+          voiceActor {
+            id
+            name {
+              full
+              native
+              alternative
+              userPreferred
+            }
+            image {
+              large
+              medium
+            }
+            description(asHtml: false)
+            languageV2
+            gender
+            dateOfBirth {
+              year
+              month
+              day
+            }
+            age
+            yearsActive
+            homeTown
+            bloodType
+            primaryOccupations
+            favourites
+            siteUrl
+            isFavourite
+          }
+        }
+        node {
+          ...CharacterFields
+        }
+      }
+    }
+
+    # Staff (directores, escritores, animadores, etc.)
+    staff(page: 1, perPage: 25, sort: [RELEVANCE, ID]) {
+      pageInfo {
+        total
+        perPage
+        currentPage
+        lastPage
+        hasNextPage
+      }
+      edges {
+        id
+        role
+        node {
+          id
+          name {
+            full
+            native
+            alternative
+            userPreferred
+          }
+          image {
+            large
+            medium
+          }
+          description(asHtml: false)
+          languageV2
+          gender
+          dateOfBirth {
+            year
+            month
+            day
+          }
+          age
+          yearsActive
+          homeTown
+          bloodType
+          primaryOccupations
+          favourites
+          siteUrl
+          isFavourite
+        }
+      }
+    }
+
+    # Recomendaciones
+    recommendations(page: 1, perPage: 25, sort: [RATING_DESC, ID]) {
+      pageInfo {
+        total
+        perPage
+        currentPage
+        lastPage
+        hasNextPage
+      }
+      nodes {
+        id
+        rating
+        userRating
+        mediaRecommendation {
+          id
+          idMal
+          title {
+            romaji
+            english
+            native
+            userPreferred
+          }
+          coverImage {
+            large
+            extraLarge
+            medium
+            color
+          }
+          bannerImage
+          format
+          type
+          status
+          description(asHtml: false)
+          season
+          seasonYear
+          episodes
+          averageScore
+          meanScore
+          popularity
+          genres
+          isAdult
+          siteUrl
+          isFavourite
+        }
+        user {
+          id
+          name
+          avatar {
+            large
+            medium
+          }
+        }
+      }
+    }
+
+    # Enlaces externos (Crunchyroll, Netflix, etc.)
+    externalLinks {
+      id
+      site
+      url
+      type
+      language
+      color
+      icon
+      notes
+      isDisabled
+    }
+
+    # Episodios de streaming
+    streamingEpisodes {
+      title
+      thumbnail
+      url
+      site
+    }
+
+    # Reviews
+    reviews(page: 1, perPage: 10, sort: [RATING_DESC, ID]) {
+      pageInfo {
+        total
+        perPage
+        currentPage
+        lastPage
+        hasNextPage
+      }
+      nodes {
+        id
+        userId
+        mediaId
+        mediaType
+        summary
+        body(asHtml: false)
+        rating
+        ratingAmount
+        userRating
+        score
+        private
+        siteUrl
+        createdAt
+        updatedAt
+        user {
+          id
+          name
+          avatar {
+            large
+            medium
+          }
+        }
+      }
+    }
+  }
+}

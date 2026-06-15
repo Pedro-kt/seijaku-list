@@ -14,4 +14,16 @@ data class AnimeCard(
     val genres: List<GenreDto?>,
     val year: String,
     val episodes: String,
+    val airingSchedule: AiringScheduleInfo? = null
+)
+
+/**
+ * Información de horario de emisión para anime en broadcasting
+ */
+data class AiringScheduleInfo(
+    val airingAt: Long,           // Timestamp Unix (segundos)
+    val episode: Int,              // Número del episodio que se emitirá
+    val timeUntilAiring: Long,     // Segundos hasta la emisión
+    val dayOfWeek: String,         // Día de la semana (ej: "Monday", "Tuesday")
+    val formattedTime: String      // Hora formateada (ej: "15:30")
 )
