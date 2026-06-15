@@ -10,8 +10,12 @@ class SearchHistoryRepository @Inject constructor(
 ) {
 
     suspend fun insertSearch(search: SearchHistoryEntity) {
+        // Eliminar búsquedas duplicadas del mismo query antes de insertar
+        searchHistoryDao.deleteSearchByQuery(search.query)
+        // Insertar la nueva búsqueda
         searchHistoryDao.insertSearch(search)
-        searchHistoryDao.deleteOldSearches() // Mantener solo las últimas 5
+        // Mantener solo las últimas 5 búsquedas
+        searchHistoryDao.deleteOldSearches()
     }
 
     fun getRecentSearches(): Flow<List<SearchHistoryEntity>> {

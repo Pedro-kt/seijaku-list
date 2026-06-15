@@ -131,10 +131,12 @@ class AnimeSearchViewModel @Inject constructor(
     }
 
     fun onFilterSelected(filter: String?) {
+        val currentQuery = _state.value.searchQuery
         _state.update {
             it.copy(
                 selectedFilter = filter,
-                searchQuery = "",
+                // Mantener la query actual, no limpiarla
+                searchQuery = it.searchQuery,
                 selectedGenreId = null, // Clear genre when changing filter type
                 selectedQuickFilter = null,
                 selectedFormat = null,
@@ -142,6 +144,11 @@ class AnimeSearchViewModel @Inject constructor(
                 // Update mediaType when switching between Anime and Manga
                 mediaType = if (filter == "Anime" || filter == "Manga") filter else it.mediaType
             )
+        }
+
+        // Si hay una query activa, buscar automáticamente con el nuevo filtro
+        if (currentQuery.isNotBlank()) {
+            performSearchOrFilter()
         }
     }
 
