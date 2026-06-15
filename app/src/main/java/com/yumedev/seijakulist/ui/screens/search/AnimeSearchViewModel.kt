@@ -133,7 +133,9 @@ class AnimeSearchViewModel @Inject constructor(
                 searchQuery = "",
                 selectedGenreId = if (filter != "Géneros") null else it.selectedGenreId,
                 selectedQuickFilter = null,
-                selectedFormat = null
+                selectedFormat = null,
+                // Update mediaType when switching between Anime and Manga
+                mediaType = if (filter == "Anime" || filter == "Manga") filter else it.mediaType
             )
         }
     }
@@ -282,7 +284,13 @@ class AnimeSearchViewModel @Inject constructor(
                 val genreName = com.yumedev.seijakulist.domain.models.PopularGenres.getGenreById(
                     currentState.selectedGenreId.toIntOrNull() ?: 0
                 )?.name ?: currentState.selectedGenreId
-                animeAniListRepository.getAnimeByGenre(genreName, page = page)
+
+                // Use mediaType to determine if we should search anime or manga by genre
+                if (currentState.mediaType == "Manga") {
+                    animeAniListRepository.searchMangaAdvanced(genre = genreName, page = page)
+                } else {
+                    animeAniListRepository.getAnimeByGenre(genreName, page = page)
+                }
             }
             else -> emptyList()
         }
