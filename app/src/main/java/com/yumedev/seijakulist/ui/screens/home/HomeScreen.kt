@@ -148,6 +148,10 @@ import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
 import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 import kotlinx.coroutines.launch
+import com.yumedev.seijakulist.ui.screens.home.anilist.AiringAnimeAniListViewModel
+import com.yumedev.seijakulist.ui.screens.home.anilist.TopAnimeAniListViewModel
+import com.yumedev.seijakulist.ui.screens.home.anilist.AnimeSeasonUpcomingAniListViewModel
+import com.yumedev.seijakulist.ui.screens.home.anilist.HeroCarouselAniListViewModel
 
 
 // HomeScreen con UI mejorada
@@ -157,9 +161,9 @@ fun HomeScreen(
     navController: NavController,
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
-    seasonNowViewModel: AnimeSeasonNowViewModel = hiltViewModel(),
-    topAnimesViewModel: TopAnimeViewModel = hiltViewModel(),
-    seasonUpcomingViewModel: AnimeSeasonUpcomingViewModel = hiltViewModel(),
+    airingAnimeViewModel: AiringAnimeAniListViewModel = hiltViewModel(),
+    topAnimesViewModel: TopAnimeAniListViewModel = hiltViewModel(),
+    seasonUpcomingViewModel: AnimeSeasonUpcomingAniListViewModel = hiltViewModel(),
     //animeRandomViewModel: AnimeRandomViewModel = hiltViewModel(),
     //characterRandomViewModel: CharacterRandomViewModel = hiltViewModel(),
     animeScheduleViewModel: AnimeScheduleViewModel = hiltViewModel(),
@@ -167,7 +171,7 @@ fun HomeScreen(
     seasonUpcomingFilterViewModel: AnimeSeasonUpcomingFilterViewModel = hiltViewModel(),
     profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel(),
     localAnimeIdsViewModel: LocalAnimeIdsViewModel = hiltViewModel(),
-    heroCarouselViewModel: HeroCarouselViewModel = hiltViewModel(),
+    heroCarouselViewModel: HeroCarouselAniListViewModel = hiltViewModel(),
     onScrollChanged: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -181,10 +185,10 @@ fun HomeScreen(
         }
     }
 
-    // Estados
-    val animeSeasonNow by seasonNowViewModel.animeList.collectAsState()
-    val animeSeasonNowIsLoading by seasonNowViewModel.isLoading.collectAsState()
-    val animeSeasonNowError by seasonNowViewModel.isError.collectAsState()
+    // Estados - Usando AniList ViewModels
+    val animeSeasonNow by airingAnimeViewModel.animeList.collectAsState()
+    val animeSeasonNowIsLoading by airingAnimeViewModel.isLoading.collectAsState()
+    val animeSeasonNowError by airingAnimeViewModel.isError.collectAsState()
 
     val topAnimes by topAnimesViewModel.animeList.collectAsState()
     val topAnimeError by topAnimesViewModel.isError.collectAsState()
@@ -287,8 +291,8 @@ fun HomeScreen(
             NoInternetScreen(
                 onRetryClick = {
                     topAnimesViewModel.topAnime()
-                    seasonNowViewModel.AnimesSeasonNow()
-                    seasonUpcomingViewModel.AnimesSeasonUpcoming()
+                    airingAnimeViewModel.loadAiringAnime()
+                    seasonUpcomingViewModel.loadUpcomingAnime()
                     heroCarouselViewModel.retry()
                     //animeRandomViewModel.loadRandomAnime()
                     //characterRandomViewModel.loadCharacterRandom()
@@ -338,9 +342,9 @@ fun HomeScreen(
                             listState = listState,
                             isRefreshing = animeSeasonNowIsLoading,
                             onRefresh = {
-                                seasonNowViewModel.AnimesSeasonNow()
+                                airingAnimeViewModel.loadAiringAnime()
                                 topAnimesViewModel.topAnime()
-                                seasonUpcomingViewModel.AnimesSeasonUpcoming()
+                                seasonUpcomingViewModel.loadUpcomingAnime()
                                 heroCarouselViewModel.retry()
                             },
                             sharedTransitionScope = sharedTransitionScope,
