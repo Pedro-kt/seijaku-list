@@ -6,8 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.data.local.entities.AnimeEntity
 import com.yumedev.seijakulist.data.mapper.local.toAnimeEntity
 import com.yumedev.seijakulist.data.repository.AnimeLocalRepository
-import com.yumedev.seijakulist.data.repository.AnimeRepository
+import com.yumedev.seijakulist.data.repository.AnimeAniListRepository
 import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
+import com.yumedev.seijakulist.domain.usecase.anilist.GetAnimeDetailAniListUseCase
 import com.yumedev.seijakulist.util.UserAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,7 @@ import javax.inject.Inject
 class MyAnimeListViewModel @Inject constructor(
     private val animeLocalRepository: AnimeLocalRepository,
     private val firestoreAnimeRepository: FirestoreAnimeRepository,
-    private val animeRepository: AnimeRepository
+    private val getAnimeDetailAniListUseCase: GetAnimeDetailAniListUseCase
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -153,7 +154,7 @@ class MyAnimeListViewModel @Inject constructor(
     }
 
     /**
-     * Enriquece con datos completos de la API de Jikan los animes que vinieron de Firestore
+     * Enriquece con datos completos de la API de AniList los animes que vinieron de Firestore
      * con datos básicos (synopsis == null). Hace máximo 2 peticiones por segundo.
      */
     private suspend fun enrichMissingDetails() {
@@ -162,20 +163,19 @@ class MyAnimeListViewModel @Inject constructor(
             val incomplete = allAnimes.filter { it.synopsis == null }
             if (incomplete.isEmpty()) return
 
-            Log.d("MyAnimeListVM", "Enriqueciendo ${incomplete.size} anime(s) con detalles de la API...")
+            Log.d("MyAnimeListVM", "Enriqueciendo ${incomplete.size} anime(s) con detalles de AniList API...")
 
             incomplete.chunked(2).forEach { batch ->
                 batch.forEach { anime ->
                     try {
-                        val detail = animeRepository.getAnimeDetailsById(anime.malId)
+                        // Usar AniList para obtener detalles
+                        val detail = getAnimeDetailAniListUseCase(anime.malId)
 
                         val genresString = detail.genres
-                            .mapNotNull { it?.name }
                             .joinToString(", ")
                             .ifBlank { anime.genres }
 
                         val studiosString = detail.studios
-                            .mapNotNull { it?.nameStudio }
                             .joinToString(", ")
 
                         val enriched = anime.copy(
@@ -183,7 +183,7 @@ class MyAnimeListViewModel @Inject constructor(
                             imageUrl = detail.images
                                 .takeIf { it.isNotBlank() && it != "URL de imagen predeterminada" }
                                 ?: anime.imageUrl,
-                            totalEpisodes = if (detail.episodes > 0) detail.episodes else anime.totalEpisodes,
+                            totalEpisodes = detail.episodes,
                             genres = genresString,
                             synopsis = detail.synopsis,
                             titleEnglish = detail.titleEnglish,
@@ -194,7 +194,7 @@ class MyAnimeListViewModel @Inject constructor(
                             typeAnime = detail.typeAnime,
                             duration = detail.duration,
                             season = detail.season,
-                            year = detail.year?.toString()?.takeIf { it != "No encontrado" },
+                            year = detail.year.toString().takeIf { it != "No encontrado" },
                             status = detail.status,
                             aired = detail.aired,
                             rank = detail.rank,

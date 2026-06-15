@@ -3,8 +3,10 @@ package com.yumedev.seijakulist.ui.screens.viewmore
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.yumedev.seijakulist.data.repository.AnimeRepository
+import com.yumedev.seijakulist.data.repository.AnimeAniListRepository
 import com.yumedev.seijakulist.domain.models.Anime
+import com.yumedev.seijakulist.domain.usecase.anilist.GetTopAnimeFilterAniListUseCase
+import com.yumedev.seijakulist.domain.usecase.anilist.GetAnimeSeasonUpcomingFilterAniListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ViewMoreViewModel @Inject constructor(
-    private val animeRepository: AnimeRepository
+    private val animeAniListRepository: AnimeAniListRepository,
+    private val getTopAnimeFilterAniListUseCase: GetTopAnimeFilterAniListUseCase,
+    private val getAnimeSeasonUpcomingFilterAniListUseCase: GetAnimeSeasonUpcomingFilterAniListUseCase
 ) : ViewModel() {
 
     private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
@@ -97,42 +101,65 @@ class ViewMoreViewModel @Inject constructor(
     }
 
     private suspend fun fetchAnimes(section: String, filter: String?, page: Int): List<Anime> {
-        val response = when (section) {
+        val animeCards = when (section) {
             "season_now" -> {
                 if (filter != null) {
-                    animeRepository.searchAnimeSchedule(filter, page)
+                    // Filtrar temporada actual por formato
+                    val format = mapFilterToMediaFormat(filter)
+                    animeAniListRepository.searchAnimeAdvanced(
+                        format = format,
+                        sort = listOf(
+                            com.yumedev.seijakulist.data.remote.graphql.type.MediaSort.POPULARITY_DESC
+                        ),
+                        page = page,
+                        perPage = 25
+                    )
                 } else {
-                    animeRepository.searchAnimeSeasonNow(page)
+                    animeAniListRepository.getCurrentSeasonAnime(page = page)
                 }
             }
             "top_anime" -> {
                 if (filter != null) {
-                    animeRepository.searchTopAnimeFilter(filter, page)
+                    // Usar UseCase para top anime con filtro
+                    return getTopAnimeFilterAniListUseCase.invoke(filter, page)
                 } else {
-                    animeRepository.searchTopAnimes(page)
+                    animeAniListRepository.getTopAnime(page = page)
                 }
             }
             "season_upcoming" -> {
                 if (filter != null) {
-                    animeRepository.searchAnimeSeasonUpcomingFilter(filter, page)
+                    // Usar UseCase para upcoming anime con filtro
+                    return getAnimeSeasonUpcomingFilterAniListUseCase.invoke(filter, page)
                 } else {
-                    animeRepository.searchAnimeSeasonUpcoming(page)
+                    animeAniListRepository.getUpcomingAnime(page = page)
                 }
             }
             else -> return emptyList()
         }
 
-        val animeDtoList = response.data ?: emptyList()
-
-        return animeDtoList.map { dto ->
+        // Convertir AnimeCard a Anime
+        return animeCards.map { card ->
             Anime(
-                malId = dto!!.malId,
-                title = dto.title ?: "Título predeterminado",
-                image = dto.images?.webp?.largeImageUrl
-                    ?: dto.images?.jpg?.largeImageUrl
-                    ?: "URL de imagen predeterminada",
-                score = dto.score ?: 0.0f
+                malId = card.malId,
+                title = card.title,
+                image = card.images,
+                score = card.score
             )
+        }
+    }
+
+    /**
+     * Mapea el filtro string a MediaFormat de AniList
+     */
+    private fun mapFilterToMediaFormat(filter: String): com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat? {
+        return when (filter.lowercase()) {
+            "tv" -> com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat.TV
+            "movie" -> com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat.MOVIE
+            "ova" -> com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat.OVA
+            "ona" -> com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat.ONA
+            "special" -> com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat.SPECIAL
+            "music" -> com.yumedev.seijakulist.data.remote.graphql.type.MediaFormat.MUSIC
+            else -> null
         }
     }
 }

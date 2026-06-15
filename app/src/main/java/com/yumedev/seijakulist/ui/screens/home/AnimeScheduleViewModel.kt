@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.common.RequestThrottler
 import com.yumedev.seijakulist.domain.models.Anime
-import com.yumedev.seijakulist.domain.usecase.GetAnimeScheduleUseCase
+import com.yumedev.seijakulist.domain.usecase.anilist.GetAiringScheduleByDayAniListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AnimeScheduleViewModel @Inject constructor(
-    private val getAnimeScheduleUseCase: GetAnimeScheduleUseCase,
+    private val getAiringScheduleByDayAniListUseCase: GetAiringScheduleByDayAniListUseCase,
     private val requestThrottler: RequestThrottler
 ) : ViewModel() {
     private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
@@ -41,7 +41,7 @@ class AnimeScheduleViewModel @Inject constructor(
             _isLoading.value = true
 
             val result = requestThrottler.throttle {
-                getAnimeScheduleUseCase.invoke(day)
+                getAiringScheduleByDayAniListUseCase.invoke(day)
             }
 
             if (result != null) {

@@ -1035,4 +1035,96 @@ class AnimeAniListRepository @Inject constructor(
         val media = response.data?.Page?.media?.filterNotNull()?.randomOrNull() ?: return null
         return media.toAnimeCard()
     }
+
+    /**
+     * Obtiene anime que se emiten en un rango de tiempo específico
+     * Útil para obtener anime que se emiten en un día específico
+     *
+     * @param airingAtGreater Timestamp Unix del inicio del rango (en segundos)
+     * @param airingAtLesser Timestamp Unix del fin del rango (en segundos)
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard con información de schedule
+     */
+    suspend fun getAiringScheduleByTimeRange(
+        airingAtGreater: Int,
+        airingAtLesser: Int,
+        page: Int = 1,
+        perPage: Int = 50
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            com.yumedev.seijakulist.data.remote.graphql.GetAiringScheduleByDayQuery(
+                airingAt_greater = airingAtGreater,
+                airingAt_lesser = airingAtLesser,
+                page = Optional.present(page),
+                perPage = Optional.present(perPage)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val schedules = response.data?.Page?.airingSchedules?.filterNotNull() ?: emptyList()
+
+        return schedules.mapNotNull { schedule ->
+            val media = schedule.media ?: return@mapNotNull null
+
+            // Crear AiringScheduleInfo
+            val airingScheduleInfo = com.yumedev.seijakulist.domain.models.AiringScheduleInfo(
+                airingAt = schedule.airingAt.toLong(),
+                episode = schedule.episode,
+                timeUntilAiring = schedule.timeUntilAiring.toLong(),
+                dayOfWeek = getDayOfWeekFromTimestamp(schedule.airingAt.toLong()),
+                formattedTime = getFormattedTimeFromTimestamp(schedule.airingAt.toLong())
+            )
+
+            AnimeCard(
+                malId = media.idMal ?: 0,
+                title = media.title?.romaji ?: media.title?.english ?: media.title?.native ?: "",
+                images = media.coverImage?.large ?: media.coverImage?.medium ?: "",
+                score = (media.averageScore ?: 0) / 10.0f,
+                status = media.status?.name ?: "",
+                type = media.format?.name ?: "",
+                genres = media.genres?.filterNotNull()?.map { genre ->
+                    com.yumedev.seijakulist.data.remote.models.GenreDto(
+                        malId = 0,
+                        name = genre
+                    )
+                } ?: emptyList(),
+                year = media.seasonYear?.toString() ?: "",
+                episodes = media.episodes?.toString() ?: "",
+                airingSchedule = airingScheduleInfo
+            )
+        }
+    }
+
+    /**
+     * Convierte un timestamp Unix a día de la semana
+     */
+    private fun getDayOfWeekFromTimestamp(timestamp: Long): String {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.timeInMillis = timestamp * 1000L
+        return when (calendar.get(java.util.Calendar.DAY_OF_WEEK)) {
+            java.util.Calendar.SUNDAY -> "Sunday"
+            java.util.Calendar.MONDAY -> "Monday"
+            java.util.Calendar.TUESDAY -> "Tuesday"
+            java.util.Calendar.WEDNESDAY -> "Wednesday"
+            java.util.Calendar.THURSDAY -> "Thursday"
+            java.util.Calendar.FRIDAY -> "Friday"
+            java.util.Calendar.SATURDAY -> "Saturday"
+            else -> ""
+        }
+    }
+
+    /**
+     * Convierte un timestamp Unix a hora formateada (HH:mm)
+     */
+    private fun getFormattedTimeFromTimestamp(timestamp: Long): String {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.timeInMillis = timestamp * 1000L
+        val hour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(java.util.Calendar.MINUTE)
+        return String.format("%02d:%02d", hour, minute)
+    }
 }

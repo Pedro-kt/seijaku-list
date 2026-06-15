@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.common.RequestThrottler
 import com.yumedev.seijakulist.domain.models.Anime
-import com.yumedev.seijakulist.domain.usecase.GetAnimeSeasonUpcomingFilterUseCase
+import com.yumedev.seijakulist.domain.usecase.anilist.GetAnimeSeasonUpcomingFilterAniListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AnimeSeasonUpcomingFilterViewModel @Inject constructor(
-    private val getAnimeSeasonUpcomingFilterUseCase: GetAnimeSeasonUpcomingFilterUseCase,
+    private val getAnimeSeasonUpcomingFilterAniListUseCase: GetAnimeSeasonUpcomingFilterAniListUseCase,
     private val requestThrottler: RequestThrottler
 ) : ViewModel() {
 
@@ -42,7 +42,7 @@ class AnimeSeasonUpcomingFilterViewModel @Inject constructor(
             _isLoading.value = true
 
             val result = requestThrottler.throttle {
-                getAnimeSeasonUpcomingFilterUseCase.invoke(filter)
+                getAnimeSeasonUpcomingFilterAniListUseCase.invoke(filter)
             }
 
             if (result != null) {
