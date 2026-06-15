@@ -166,7 +166,7 @@ private val quickFilters = listOf(
 private val contentTypeFilters = listOf(
     "Anime" to Icons.Default.Tv,
     "Manga" to Icons.AutoMirrored.Filled.MenuBook,
-    "Géneros" to Icons.Default.Category,
+    // "Géneros" removed - genres are now shown in discovery section based on selected media type
     "Personajes" to Icons.Default.Person,
     "Staff" to Icons.Default.Groups,
     "Estudios" to Icons.Default.Business,
@@ -276,7 +276,7 @@ fun SearchScreen(
                 },
                 onGenreDirectTap = { genreId ->
                     viewModel.onGenreSelected(genreId)
-                    viewModel.onFilterSelected("Géneros")
+                    // No need to change filter - it stays as "Anime" or "Manga"
                     viewModel.performSearchOrFilter()
                     expanded = true
                 }

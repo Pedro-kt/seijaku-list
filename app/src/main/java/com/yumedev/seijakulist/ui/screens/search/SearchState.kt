@@ -48,5 +48,5 @@ data class SearchState(
     val canPerformSearch: Boolean
         get() = selectedQuickFilter != null ||
                 (searchQuery.isNotBlank() && (selectedFilter == "Anime" || selectedFilter == "Manga")) ||
-                (selectedFilter == "Géneros" && selectedGenreId != null)
+                selectedGenreId != null // Genre search (works with both Anime and Manga)
 }

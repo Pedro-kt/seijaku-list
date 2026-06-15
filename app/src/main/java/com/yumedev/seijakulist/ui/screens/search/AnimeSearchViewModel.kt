@@ -131,7 +131,7 @@ class AnimeSearchViewModel @Inject constructor(
             it.copy(
                 selectedFilter = filter,
                 searchQuery = "",
-                selectedGenreId = if (filter != "Géneros") null else it.selectedGenreId,
+                selectedGenreId = null, // Clear genre when changing filter type
                 selectedQuickFilter = null,
                 selectedFormat = null,
                 // Update mediaType when switching between Anime and Manga
@@ -278,8 +278,8 @@ class AnimeSearchViewModel @Inject constructor(
                 val formatType = currentState.selectedFormat?.let { mapMangaFormatToType(it) }
                 getMangaSearchAniListUseCase(query = currentState.searchQuery, page = page, type = formatType)
             }
-            // 3. Si es filtro por género
-            currentState.selectedFilter == "Géneros" && currentState.selectedGenreId != null -> {
+            // 3. Si hay un género seleccionado (sin búsqueda de texto)
+            currentState.selectedGenreId != null && currentState.searchQuery.isBlank() -> {
                 // Convertir malId a nombre de género para AniList
                 val genreName = com.yumedev.seijakulist.domain.models.PopularGenres.getGenreById(
                     currentState.selectedGenreId.toIntOrNull() ?: 0
