@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import android.widget.Toast
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -1444,93 +1445,221 @@ private fun AnimeStatsRow(
     animeDetail: AnimeDetail?,
     modifier: Modifier = Modifier
 ) {
+    // Lista de estadísticas con su índice para animaciones escalonadas
+    val stats = remember(animeDetail) {
+        buildList {
+            animeDetail?.let {
+                if (it.score != null && it.score > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.Star,
+                            value = String.format("%.1f", it.score),
+                            label = "Score",
+                            type = StatType.SCORE
+                        )
+                    )
+                }
+                if (it.episodes != null && it.episodes > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.Tv,
+                            value = "${it.episodes}",
+                            label = "Episodios",
+                            type = StatType.EPISODES
+                        )
+                    )
+                }
+                if (it.rank != null && it.rank > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.EmojiEvents,
+                            value = "#${it.rank}",
+                            label = "Ranking",
+                            type = StatType.RANK
+                        )
+                    )
+                }
+                if (it.scoreBy != null && it.scoreBy > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.People,
+                            value = formatNumber(it.scoreBy),
+                            label = "Usuarios",
+                            type = StatType.USERS
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Score
-        if (animeDetail?.score != null && animeDetail.score > 0) {
+        stats.forEachIndexed { index, stat ->
             AnimeStatCard(
-                icon = Icons.Default.Star,
-                value = String.format("%.1f", animeDetail.score),
-                label = "Score",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Episodes
-        if (animeDetail?.episodes != null && animeDetail.episodes > 0) {
-            AnimeStatCard(
-                icon = Icons.Default.Tv,
-                value = "${animeDetail.episodes}",
-                label = "Episodios",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Rank
-        if (animeDetail?.rank != null && animeDetail.rank > 0) {
-            AnimeStatCard(
-                icon = Icons.Default.EmojiEvents,
-                value = "#${animeDetail.rank}",
-                label = "Ranking",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Scored By
-        if (animeDetail?.scoreBy != null && animeDetail.scoreBy > 0) {
-            AnimeStatCard(
-                icon = Icons.Default.People,
-                value = formatNumber(animeDetail.scoreBy),
-                label = "Usuarios",
+                statData = stat,
+                index = index,
+                statsCount = stats.size,
                 modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
+// Clase de datos para las estadísticas
+private data class StatData(
+    val icon: ImageVector,
+    val value: String,
+    val label: String,
+    val type: StatType
+)
+
+// Enum para tipos de estadísticas con colores específicos
+private enum class StatType {
+    SCORE, EPISODES, RANK, USERS
+}
+
 @Composable
 private fun AnimeStatCard(
-    icon: ImageVector,
-    value: String,
-    label: String,
+    statData: StatData,
+    index: Int,
+    statsCount: Int,
     modifier: Modifier = Modifier
 ) {
+    // Estados de animación
+    var isPressed by remember { mutableStateOf(false) }
+
+    // Animación de entrada escalonada (más sutil)
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "scale"
+    )
+
+    // Animación de aparición
+    val animatedAlpha by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(
+            durationMillis = 350,
+            delayMillis = index * 60,
+            easing = FastOutSlowInEasing
+        ),
+        label = "alpha"
+    )
+
+    val animatedOffset by animateFloatAsState(
+        targetValue = 0f,
+        animationSpec = tween(
+            durationMillis = 450,
+            delayMillis = index * 60,
+            easing = FastOutSlowInEasing
+        ),
+        label = "offset"
+    )
+
+    // Color de acento más sutil
+    val accentColor = when (statData.type) {
+        StatType.SCORE -> MaterialTheme.colorScheme.primary
+        StatType.EPISODES -> MaterialTheme.colorScheme.tertiary
+        StatType.RANK -> MaterialTheme.colorScheme.secondary
+        StatType.USERS -> MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+    }
+
+    // Ajustar tamaños según cantidad de stats
+    val labelFontSize = when (statsCount) {
+        1, 2 -> 10.sp
+        3 -> 9.sp
+        else -> 9.sp // 4 o más - reducido para que quepa
+    }
+
+    val valueFontSize = when (statsCount) {
+        1 -> 22.sp
+        2 -> 20.sp
+        3 -> 18.sp
+        else -> 15.sp // 4 o más - reducido para que quepa
+    }
+
+    val horizontalPadding = when (statsCount) {
+        1, 2 -> 16.dp
+        3 -> 10.dp
+        else -> 4.dp // 4 o más - muy reducido para que quepa
+    }
+
+    val verticalPadding = when (statsCount) {
+        1, 2 -> 12.dp
+        else -> 10.dp
+    }
+
+    val letterSpacing = when (statsCount) {
+        1, 2 -> 0.8.sp
+        3 -> 0.6.sp
+        else -> 0.3.sp // 4 o más - muy reducido para que quepa
+    }
+
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                alpha = animatedAlpha
+                translationY = animatedOffset * 12f
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 4.dp
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(horizontal = horizontalPadding, vertical = verticalPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
-            )
+            // Etiqueta destacada arriba
             Text(
-                text = value,
+                text = statData.label.uppercase(),
                 fontFamily = PoppinsBold,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = labelFontSize,
+                color = accentColor,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = letterSpacing,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
             )
+
+            // Valor principal grande
             Text(
-                text = label,
-                fontFamily = PoppinsRegular,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = statData.value,
+                fontFamily = PoppinsBold,
+                fontSize = valueFontSize,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.4).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
             )
         }
     }
