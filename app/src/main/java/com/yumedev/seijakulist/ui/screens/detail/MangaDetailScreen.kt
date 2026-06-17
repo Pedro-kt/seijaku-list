@@ -1006,27 +1006,44 @@ private fun MangaInfoTab(
             MangaInfoRow("Valoraciones", "${mangaDetail.scoreBy} usuarios")
         }
 
-        // Serializations
+        // Serializations - en formato pill con colores
         if (!mangaDetail?.serializations.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             MangaInfoCard(title = "Publicado en") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    mangaDetail.serializations.forEach { serialization ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Newspaper,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
+                // Paleta de colores para los chips
+                val chipColors = listOf(
+                    Color(0xFF2196F3), // Azul
+                    Color(0xFF9C27B0), // Púrpura
+                    Color(0xFF00BCD4), // Cian
+                    Color(0xFFFF5722), // Naranja rojizo
+                    Color(0xFF4CAF50), // Verde
+                    Color(0xFFFF9800), // Naranja
+                    Color(0xFFE91E63), // Rosa
+                    Color(0xFF009688)  // Teal
+                )
+
+                androidx.compose.foundation.layout.FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    mangaDetail.serializations.forEachIndexed { index, serialization ->
+                        val chipColor = chipColors[index % chipColors.size]
+
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = chipColor.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                chipColor.copy(alpha = 0.5f)
                             )
+                        ) {
                             Text(
                                 text = serialization.name,
-                                fontFamily = PoppinsMedium,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontFamily = PoppinsBold,
+                                fontSize = 12.sp,
+                                color = chipColor,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                             )
                         }
                     }
@@ -1241,35 +1258,60 @@ private fun MangaInfoRow(
     value: String,
     modifier: Modifier = Modifier
 ) {
+    val gradientColors = listOf(
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    )
+
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = gradientColors,
+                        startX = 0f,
+                        endX = 400f // El gradiente termina rápido, antes del texto
+                    )
+                )
+                .padding(horizontal = 20.dp, vertical = 14.dp)
         ) {
-            Text(
-                text = label,
-                fontFamily = PoppinsMedium,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = value,
-                fontFamily = PoppinsBold,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Label - lado izquierdo
+                Text(
+                    text = label,
+                    fontFamily = PoppinsMedium,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Value - lado derecho con énfasis
+                Text(
+                    text = value,
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
         }
     }
 }
