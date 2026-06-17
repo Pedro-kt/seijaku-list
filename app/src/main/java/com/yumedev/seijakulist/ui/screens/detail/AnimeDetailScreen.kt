@@ -1968,9 +1968,9 @@ private fun AnimeCharactersTab(
             }
             else -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    columns = GridCells.Fixed(3),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.heightIn(max = 2000.dp),
                     userScrollEnabled = false
                 ) {
@@ -2185,21 +2185,28 @@ private fun AnimeCharacterCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Colores según el rol
+    val roleColor = when (character.role.lowercase()) {
+        "main" -> Color(0xFFFF5722) // Naranja rojizo - protagonista
+        "supporting" -> Color(0xFF2196F3) // Azul - soporte
+        else -> Color(0xFF9E9E9E) // Gris - otro
+    }
+
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column {
-            // Character image
+            // Character image - muy compacto para 3 columnas
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.75f)
+                    .aspectRatio(0.62f) // Reducido más para 3 columnas
             ) {
                 AsyncImage(
                     model = character.imageCharacter?.jpg?.imageUrl,
@@ -2208,44 +2215,73 @@ private fun AnimeCharacterCard(
                     contentScale = ContentScale.Crop
                 )
 
-                // Role badge
+                // Gradiente en la parte inferior para mejor legibilidad del nombre
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.75f)
+                                )
+                            )
+                        )
+                )
+
+                // Role badge mejorado - icono + texto compacto
                 if (character.role.isNotBlank()) {
+                    val (icon, roleText) = when (character.role.lowercase()) {
+                        "main" -> "★" to "Main"
+                        "supporting" -> "◆" to "Supp"
+                        else -> "•" to character.role.take(4)
+                    }
+
                     Surface(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        color = when (character.role.lowercase()) {
-                            "main" -> MaterialTheme.colorScheme.primary
-                            "supporting" -> MaterialTheme.colorScheme.secondary
-                            else -> MaterialTheme.colorScheme.tertiary
-                        }
+                            .align(Alignment.TopStart)
+                            .padding(4.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        color = roleColor.copy(alpha = 0.9f)
                     ) {
-                        Text(
-                            text = when (character.role.lowercase()) {
-                                "main" -> "MAIN"
-                                "supporting" -> "SUPP"
-                                else -> character.role.take(4).uppercase()
-                            },
-                            fontFamily = PoppinsBold,
-                            fontSize = 9.sp,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = icon,
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                text = roleText,
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.sp,
+                                color = Color.White,
+                                letterSpacing = 0.2.sp
+                            )
+                        }
                     }
                 }
-            }
 
-            // Character name
-            Text(
-                text = character.nameCharacter ?: "Unknown",
-                fontFamily = PoppinsMedium,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(12.dp)
-            )
+                // Character name sobre la imagen - en la parte inferior
+                Text(
+                    text = character.nameCharacter ?: "Unknown",
+                    fontFamily = PoppinsBold,
+                    fontSize = 9.sp,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 11.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(6.dp)
+                )
+            }
         }
     }
 }
