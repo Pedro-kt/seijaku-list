@@ -43,4 +43,7 @@ object AppDestinations {
 
     const val NOVEDADES_ROUTE = "novedades_route"
     const val POLICY_PRIVACY_ROUTE = "policy_privacy_route"
+
+    const val ADD_TO_LIST_ROUTE = "add_to_list_route"
+    const val ADD_TO_LIST_ANIME_ID_KEY = "animeId"
 }
