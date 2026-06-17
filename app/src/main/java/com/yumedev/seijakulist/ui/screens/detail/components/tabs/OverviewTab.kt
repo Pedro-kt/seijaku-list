@@ -3,6 +3,7 @@ package com.yumedev.seijakulist.ui.screens.detail.components.tabs
 import android.net.Uri
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yumedev.seijakulist.domain.models.AnimeDetail
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.*
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
@@ -94,9 +96,9 @@ fun OverviewTab(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // GÉNEROS Y DEMOGRAPHICS
+        // DEMOGRAFÍA
         animeDetail?.let { anime ->
-            if (!anime.genres.isNullOrEmpty() || !anime.demographics.isNullOrEmpty()) {
+            if (!anime.demographics.isNullOrEmpty()) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -108,60 +110,75 @@ fun OverviewTab(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = "Géneros y Demografía",
-                            fontSize = 16.asp(),
+                            text = "Demografía",
+                            fontSize = 21.asp(),
                             fontFamily = PoppinsBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            letterSpacing = 0.3.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
                         )
 
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        LazyRow(
+                            modifier = Modifier.height(55.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            // Demographics primero (más destacados)
-                            anime.demographics?.filterNotNull()?.forEach { demographic ->
-                                Surface(
-                                    shape = RoundedCornerShape(20.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                    border = BorderStroke(
-                                        1.5.dp,
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
-                                    ),
-                                    modifier = Modifier.height(34.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 14.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.People,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(14.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = demographic.name ?: "",
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontFamily = PoppinsBold,
-                                            fontSize = 13.asp()
-                                        )
-                                    }
-                                }
-                            }
-
-                            // Géneros
-                            anime.genres?.filterNotNull()?.forEach { genre ->
-                                GenreChip(genreName = genre.name ?: "")
+                            items(anime.demographics?.filterNotNull() ?: emptyList()) { demographic ->
+                                CompactDemographicCard(demographicName = demographic.name ?: "")
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // GÉNEROS
+        animeDetail?.let { anime ->
+            if (!anime.genres.isNullOrEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Géneros",
+                            fontSize = 21.asp(),
+                            fontFamily = PoppinsBold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            letterSpacing = 0.3.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                        )
+
+                        LazyRow(
+                            modifier = Modifier.height(55.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(anime.genres?.filterNotNull() ?: emptyList()) { genre ->
+                                CompactGenreCard(genreName = genre.name ?: "")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
@@ -183,9 +200,11 @@ fun OverviewTab(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(16.dp)
+                            .animateContentSize(), // Animación suave al expandir/colapsar
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Header con título y botones de acción
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -193,79 +212,105 @@ fun OverviewTab(
                         ) {
                             Text(
                                 text = "Sinopsis",
-                                fontSize = 16.asp(),
+                                fontSize = 21.asp(),
                                 fontFamily = PoppinsBold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                letterSpacing = 0.3.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
 
-                            Surface(
-                                onClick = {
-                                    val synopsis = anime.synopsis
-                                    val textToTranslate = if (synopsis.length > 2000) {
-                                        synopsis.substring(0, 2000) + "..."
-                                    } else {
-                                        synopsis
-                                    }
-                                    val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
-                                    val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
-
-                                    val customTabsIntent = CustomTabsIntent.Builder()
-                                        .setShowTitle(true)
-                                        .build()
-                                    customTabsIntent.launchUrl(context, Uri.parse(url))
-                                },
-                                shape = RoundedCornerShape(20.dp),
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                border = BorderStroke(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                                ),
-                                modifier = Modifier.height(32.dp)
+                            // Botones de acción
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                // Botón de copiar
+                                FilledTonalIconButton(
+                                    onClick = {
+                                        clipboardManager.setText(AnnotatedString(anime.synopsis))
+                                        Toast.makeText(
+                                            context,
+                                            "Sinopsis copiada al portapapeles",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    },
+                                    modifier = Modifier.size(36.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.OpenInNew,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = MaterialTheme.colorScheme.primary
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = "Copiar sinopsis",
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                    Text(
-                                        text = "Traducir",
-                                        fontSize = 13.asp(),
-                                        fontFamily = PoppinsMedium,
-                                        color = MaterialTheme.colorScheme.primary
+                                }
+
+                                // Botón de traducir
+                                FilledTonalIconButton(
+                                    onClick = {
+                                        val synopsis = anime.synopsis
+                                        val textToTranslate = if (synopsis.length > 2000) {
+                                            synopsis.substring(0, 2000) + "..."
+                                        } else {
+                                            synopsis
+                                        }
+                                        val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
+                                        val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
+
+                                        val customTabsIntent = CustomTabsIntent.Builder()
+                                            .setShowTitle(true)
+                                            .build()
+                                        customTabsIntent.launchUrl(context, Uri.parse(url))
+                                    },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Translate,
+                                        contentDescription = "Traducir sinopsis",
+                                        modifier = Modifier.size(18.dp)
                                     )
                                 }
                             }
                         }
 
                         var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                        val hasOverflow = textLayoutResult?.hasVisualOverflow ?: false
 
+                        // Texto de la sinopsis con mejor tipografía
                         Text(
                             text = anime.synopsis,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.asp(),
                             fontFamily = PoppinsRegular,
-                            textAlign = TextAlign.Justify,
-                            lineHeight = 22.asp(),
-                            maxLines = if (synopsisExpanded) Int.MAX_VALUE else 8,
+                            textAlign = if (synopsisExpanded) TextAlign.Justify else TextAlign.Start,
+                            lineHeight = 23.asp(), // Más espaciado para mejor legibilidad
+                            maxLines = if (synopsisExpanded) Int.MAX_VALUE else 6,
+                            overflow = TextOverflow.Ellipsis,
                             onTextLayout = { textLayoutResult = it }
                         )
 
-                        if ((textLayoutResult?.hasVisualOverflow ?: false) || synopsisExpanded) {
-                            TextButton(
-                                onClick = { synopsisExpanded = !synopsisExpanded },
-                                modifier = Modifier.align(Alignment.End)
+                        // Botón Ver más/menos solo si hay overflow
+                        if (hasOverflow || synopsisExpanded) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
                             ) {
-                                Text(
-                                    text = if (synopsisExpanded) "Ver menos" else "Ver más",
-                                    fontFamily = PoppinsBold,
-                                    fontSize = 13.asp()
-                                )
+                                FilledTonalButton(
+                                    onClick = { synopsisExpanded = !synopsisExpanded },
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (synopsisExpanded)
+                                            Icons.Default.ExpandLess
+                                        else
+                                            Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = if (synopsisExpanded) "Ver menos" else "Ver más",
+                                        fontFamily = PoppinsBold,
+                                        fontSize = 13.asp()
+                                    )
+                                }
                             }
                         }
                     }
@@ -292,23 +337,14 @@ fun OverviewTab(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = "Información Adicional",
-                                fontSize = 16.asp(),
-                                fontFamily = PoppinsBold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                        }
+                        Text(
+                            text = "Información Adicional",
+                            fontSize = 21.asp(),
+                            fontFamily = PoppinsBold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            letterSpacing = 0.3.sp,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
 
                         var backgroundLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
@@ -486,8 +522,10 @@ fun OverviewTab(
                 ) {
                     Text(
                         text = "Información Detallada",
-                        fontSize = 16.asp(),
+                        fontSize = 21.asp(),
                         fontFamily = PoppinsBold,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        letterSpacing = 0.3.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )

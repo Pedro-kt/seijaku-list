@@ -16,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
@@ -24,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yumedev.seijakulist.ui.theme.GenreThemeMapper
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
@@ -163,6 +166,121 @@ fun GenreChip(
                 fontFamily = PoppinsMedium,
                 fontSize = 13.asp()
             )
+        }
+    }
+}
+
+/**
+ * Tarjeta compacta de género con gradiente e icono para detalles
+ * Similar a DiscoveryGenreCard pero más pequeña y sin contador
+ */
+@Composable
+fun CompactGenreCard(
+    genreName: String,
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val genreTheme = GenreThemeMapper.getThemeForGenre(genreName)
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier
+            .width(140.dp)
+            .height(55.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(genreTheme.startColor, genreTheme.endColor),
+                        start = Offset.Zero,
+                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                    )
+                )
+        ) {
+            // Icono de fondo (marca de agua)
+            Icon(
+                imageVector = genreTheme.icon,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.15f),
+                modifier = Modifier
+                    .size(48.dp)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 8.dp, y = 8.dp)
+            )
+
+            // Nombre del género
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = genreName,
+                    color = Color.White,
+                    fontFamily = PoppinsBold,
+                    fontSize = 13.asp(),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Tarjeta compacta de demografía con fondo neutral e icono colorido
+ * Diseño similar a géneros pero diferenciado con colores neutros
+ */
+@Composable
+fun CompactDemographicCard(
+    demographicName: String,
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val demographicTheme = GenreThemeMapper.getThemeForGenre(demographicName)
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        modifier = modifier
+            .width(140.dp)
+            .height(55.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Icono de fondo colorido (diferenciador de géneros)
+            Icon(
+                imageVector = demographicTheme.icon,
+                contentDescription = null,
+                tint = demographicTheme.startColor.copy(alpha = 0.2f),
+                modifier = Modifier
+                    .size(48.dp)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 8.dp, y = 8.dp)
+            )
+
+            // Nombre de la demografía
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = demographicName,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontFamily = PoppinsBold,
+                    fontSize = 13.asp(),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

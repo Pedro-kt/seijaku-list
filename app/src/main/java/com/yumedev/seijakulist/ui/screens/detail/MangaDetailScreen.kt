@@ -28,10 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import android.widget.Toast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,6 +45,7 @@ import coil.compose.AsyncImage
 import com.yumedev.seijakulist.domain.models.AnimeCharactersDetail
 import com.yumedev.seijakulist.domain.models.MangaDetail
 import com.yumedev.seijakulist.ui.components.LoadingScreen
+import com.yumedev.seijakulist.ui.screens.detail.components.shared.CompactGenreCard
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
@@ -131,17 +136,29 @@ fun MangaDetailScreen(
                             icon = {
                                 Icon(
                                     imageVector = Icons.Default.Favorite,
-                                    contentDescription = null
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp) // Icono más grande
                                 )
                             },
                             text = {
                                 Text(
                                     text = "Añadir a lista",
-                                    fontFamily = PoppinsBold
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 16.sp, // Texto más grande
+                                    letterSpacing = 0.2.sp
                                 )
                             },
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            shape = RoundedCornerShape(20.dp), // Más redondeado
+                            elevation = FloatingActionButtonDefaults.elevation(
+                                defaultElevation = 8.dp, // Mayor elevación
+                                pressedElevation = 12.dp,
+                                hoveredElevation = 10.dp
+                            ),
+                            modifier = Modifier
+                                .height(60.dp) // Más alto
+                                .padding(bottom = 8.dp)
                         )
                     }
                 }
@@ -396,27 +413,32 @@ private fun MangaDetailHeader(
                     }
                 }
 
-                // BOTÓN DE ACCIÓN
+                // BOTÓN DE ACCIÓN MEJORADO
                 Button(
                     onClick = { /* TODO: Añadir a lista */ },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(40.dp),
-                    shape = RoundedCornerShape(10.dp),
+                        .height(48.dp), // Más alto
+                    shape = RoundedCornerShape(14.dp), // Más redondeado
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 4.dp, // Mayor elevación
+                        pressedElevation = 8.dp
                     )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp) // Icono más grande
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Añadir",
-                        fontSize = 13.asp(),
-                        fontFamily = PoppinsBold
+                        fontSize = 15.sp, // Texto más grande
+                        fontFamily = PoppinsBold,
+                        letterSpacing = 0.3.sp
                     )
                 }
             }
@@ -544,65 +566,129 @@ private fun MangaOverviewTab(
     ) {
         // Synopsis
         if (!mangaDetail?.synopsis.isNullOrBlank()) {
-            MangaInfoCard(title = "Sinopsis") {
-                var expanded by remember { mutableStateOf(false) }
+            val clipboardManager = LocalClipboardManager.current
+            var expanded by remember { mutableStateOf(false) }
 
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .animateContentSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Header con título y botones de acción
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Sinopsis",
+                            fontSize = 21.sp,
+                            fontFamily = PoppinsBold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            letterSpacing = 0.3.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        // Botones de acción
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Botón de copiar
+                            FilledTonalIconButton(
+                                onClick = {
+                                    clipboardManager.setText(AnnotatedString(mangaDetail.synopsis))
+                                    Toast.makeText(
+                                        context,
+                                        "Sinopsis copiada al portapapeles",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "Copiar sinopsis",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                            // Botón de traducir
+                            FilledTonalIconButton(
+                                onClick = {
+                                    val synopsis = mangaDetail.synopsis
+                                    val textToTranslate = if (synopsis.length > 2000) {
+                                        synopsis.substring(0, 2000) + "..."
+                                    } else {
+                                        synopsis
+                                    }
+                                    val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
+                                    val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
+
+                                    val customTabsIntent = CustomTabsIntent.Builder()
+                                        .setShowTitle(true)
+                                        .build()
+                                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                                },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Translate,
+                                    contentDescription = "Traducir sinopsis",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                    val hasOverflow = textLayoutResult?.hasVisualOverflow ?: false
+
                     Text(
                         text = mangaDetail.synopsis,
                         fontFamily = PoppinsRegular,
                         fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 23.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = if (expanded) TextAlign.Justify else TextAlign.Start,
                         maxLines = if (expanded) Int.MAX_VALUE else 6,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        onTextLayout = { textLayoutResult = it }
                     )
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (mangaDetail.synopsis.length > 200) {
-                            TextButton(
-                                onClick = { expanded = !expanded }
+                    if (hasOverflow || expanded) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            FilledTonalButton(
+                                onClick = { expanded = !expanded },
+                                shape = RoundedCornerShape(12.dp)
                             ) {
+                                Icon(
+                                    imageVector = if (expanded)
+                                        Icons.Default.ExpandLess
+                                    else
+                                        Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = if (expanded) "Leer menos" else "Leer más",
-                                    fontFamily = PoppinsMedium,
+                                    text = if (expanded) "Ver menos" else "Ver más",
+                                    fontFamily = PoppinsBold,
                                     fontSize = 13.sp
                                 )
                             }
-                        }
-
-                        // Translate button
-                        TextButton(
-                            onClick = {
-                                val synopsis = mangaDetail.synopsis
-                                val textToTranslate = if (synopsis.length > 2000) {
-                                    synopsis.substring(0, 2000) + "..."
-                                } else {
-                                    synopsis
-                                }
-                                val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
-                                val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
-
-                                val customTabsIntent = CustomTabsIntent.Builder()
-                                    .setShowTitle(true)
-                                    .build()
-                                customTabsIntent.launchUrl(context, Uri.parse(url))
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Translate,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Traducir",
-                                fontFamily = PoppinsMedium,
-                                fontSize = 13.sp
-                            )
                         }
                     }
                 }
@@ -611,13 +697,39 @@ private fun MangaOverviewTab(
 
         // Genres
         if (!mangaDetail?.genres.isNullOrEmpty()) {
-            MangaInfoCard(title = "Géneros") {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(mangaDetail.genres.filterNotNull()) { genre ->
-                        MangaGenreChip(genre = genre.name ?: "")
+                    Text(
+                        text = "Géneros",
+                        fontFamily = PoppinsBold,
+                        fontSize = 21.sp,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        letterSpacing = 0.3.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                    )
+
+                    LazyRow(
+                        modifier = Modifier.height(55.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(mangaDetail.genres.filterNotNull()) { genre ->
+                            CompactGenreCard(genreName = genre.name ?: "")
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
@@ -820,8 +932,10 @@ private fun MangaInfoCard(
             Text(
                 text = title,
                 fontFamily = PoppinsBold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.primary
+                fontSize = 21.sp,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                letterSpacing = 0.3.sp,
+                color = MaterialTheme.colorScheme.onSurface
             )
             content()
         }
