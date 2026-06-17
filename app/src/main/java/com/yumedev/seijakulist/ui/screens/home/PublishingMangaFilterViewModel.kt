@@ -1,0 +1,59 @@
+package com.yumedev.seijakulist.ui.screens.home
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.yumedev.seijakulist.common.RequestThrottler
+import com.yumedev.seijakulist.domain.models.Anime
+import com.yumedev.seijakulist.domain.usecase.anilist.GetPublishingMangaFilterAniListUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class PublishingMangaFilterViewModel @Inject constructor(
+    private val getPublishingMangaFilterAniListUseCase: GetPublishingMangaFilterAniListUseCase,
+    private val requestThrottler: RequestThrottler
+) : ViewModel() {
+    private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
+    val animeList: StateFlow<List<Anime>> = _animeList.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    val isError: StateFlow<Boolean> = _errorMessage.map { it != null }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false
+    )
+
+    fun PublishingMangaFilter(filter: String) {
+        viewModelScope.launch {
+            _errorMessage.value = null
+            _isLoading.value = true
+
+            val result = requestThrottler.throttle {
+                getPublishingMangaFilterAniListUseCase.invoke(filter)
+            }
+
+            if (result != null) {
+                val filtered = result.distinctBy { it.malId }
+                _animeList.value = filtered
+                _errorMessage.value = null
+            } else {
+                _errorMessage.value = "Error al cargar los datos"
+                _animeList.value = emptyList()
+            }
+
+            _isLoading.value = false
+        }
+    }
+}

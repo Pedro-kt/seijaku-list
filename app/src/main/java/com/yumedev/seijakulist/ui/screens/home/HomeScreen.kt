@@ -152,6 +152,9 @@ import com.yumedev.seijakulist.ui.screens.home.anilist.AiringAnimeAniListViewMod
 import com.yumedev.seijakulist.ui.screens.home.anilist.TopAnimeAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.AnimeSeasonUpcomingAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.HeroCarouselAniListViewModel
+import com.yumedev.seijakulist.ui.screens.home.anilist.TopMangaAniListViewModel
+import com.yumedev.seijakulist.ui.screens.home.anilist.PublishingMangaAniListViewModel
+import com.yumedev.seijakulist.ui.screens.home.anilist.TrendingMangaAniListViewModel
 
 
 // HomeScreen con UI mejorada
@@ -172,12 +175,17 @@ fun HomeScreen(
     profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel(),
     localAnimeIdsViewModel: LocalAnimeIdsViewModel = hiltViewModel(),
     heroCarouselViewModel: HeroCarouselAniListViewModel = hiltViewModel(),
+    topMangaViewModel: TopMangaAniListViewModel = hiltViewModel(),
+    publishingMangaViewModel: PublishingMangaAniListViewModel = hiltViewModel(),
+    trendingMangaViewModel: TrendingMangaAniListViewModel = hiltViewModel(),
+    topMangaFilterViewModel: TopMangaFilterViewModel = hiltViewModel(),
+    publishingMangaFilterViewModel: PublishingMangaFilterViewModel = hiltViewModel(),
     onScrollChanged: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("seijaku_prefs", Context.MODE_PRIVATE) }
 
     LaunchedEffect(Unit) {
-        val prefs = context.getSharedPreferences("seijaku_prefs", Context.MODE_PRIVATE)
         val currentVersionCode = currentVersionCode(context)
         val lastShownVersion = prefs.getInt("whats_new_last_version", 0)
         if (currentVersionCode > lastShownVersion) {
@@ -213,6 +221,25 @@ fun HomeScreen(
     val heroCards by heroCarouselViewModel.cards.collectAsState()
     val heroIsLoading by heroCarouselViewModel.isLoading.collectAsState()
 
+    // Estados de Manga
+    val topManga by topMangaViewModel.animeList.collectAsState()
+    val topMangaIsLoading by topMangaViewModel.isLoading.collectAsState()
+    val topMangaError by topMangaViewModel.isError.collectAsState()
+
+    val publishingManga by publishingMangaViewModel.animeList.collectAsState()
+    val publishingMangaIsLoading by publishingMangaViewModel.isLoading.collectAsState()
+    val publishingMangaError by publishingMangaViewModel.isError.collectAsState()
+
+    val trendingManga by trendingMangaViewModel.animeList.collectAsState()
+    val trendingMangaIsLoading by trendingMangaViewModel.isLoading.collectAsState()
+    val trendingMangaError by trendingMangaViewModel.isError.collectAsState()
+
+    val topMangaFilter by topMangaFilterViewModel.animeList.collectAsState()
+    val topMangaFilterIsLoading by topMangaFilterViewModel.isLoading.collectAsState()
+
+    val publishingMangaFilter by publishingMangaFilterViewModel.animeList.collectAsState()
+    val publishingMangaFilterIsLoading by publishingMangaFilterViewModel.isLoading.collectAsState()
+
     // Solo mostrar error si TODOS los ViewModels críticos tienen error Y no hay datos
     val hasError = animeSeasonNowError && topAnimeError && animeSeasonUpcomingError &&
             animeSeasonNow.isEmpty() && topAnimes.isEmpty() && animeSeasonUpcoming.isEmpty()
@@ -232,9 +259,15 @@ fun HomeScreen(
     val listTypeSeasonUpcoming = listOf("tv", "movie", "ova", "special", "ona", "music")
     val listTypeSeasonUpcomingFilter = listOf("TV", "Película", "OVA", "Especial", "ONA", "Música")
 
+    // Filtros para Manga
+    val listTypeManga = listOf("manga", "one_shot", "novel")
+    val listTypeMangaFilter = listOf("Manga", "One-shot", "Novela Ligera")
+
     var selectedDayFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTypeFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedUpcomingFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedTopMangaFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedPublishingMangaFilter by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(selectedDayFilter) {
         selectedDayFilter?.let { animeScheduleViewModel.AnimeSchedule(it) }
@@ -248,8 +281,23 @@ fun HomeScreen(
         selectedUpcomingFilter?.let { seasonUpcomingFilterViewModel.AnimeSeasonUpcomingFilter(it) }
     }
 
-    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+    LaunchedEffect(selectedTopMangaFilter) {
+        selectedTopMangaFilter?.let { topMangaFilterViewModel.TopMangaFilter(it) }
+    }
+
+    LaunchedEffect(selectedPublishingMangaFilter) {
+        selectedPublishingMangaFilter?.let { publishingMangaFilterViewModel.PublishingMangaFilter(it) }
+    }
+
+    // Recuperar el tab guardado o usar 0 (Anime) por defecto
+    val savedTabIndex = remember { prefs.getInt("selected_home_tab", 0) }
+    var selectedTabIndex by rememberSaveable { mutableStateOf(savedTabIndex) }
     val tabs = listOf("Anime", "Manga")
+
+    // Guardar el tab seleccionado cuando cambia
+    LaunchedEffect(selectedTabIndex) {
+        prefs.edit().putInt("selected_home_tab", selectedTabIndex).apply()
+    }
 
     // Estado de scroll para el LazyColumn - NO guardar estado entre navegaciones
     val listState = rememberLazyListState()
@@ -353,7 +401,33 @@ fun HomeScreen(
                     }
 
                     1 -> {
-                        MangaPlaceholder()
+                        MangaContent(
+                            topManga = topManga,
+                            publishingManga = publishingManga,
+                            trendingManga = trendingManga,
+                            topMangaFilter = topMangaFilter,
+                            publishingMangaFilter = publishingMangaFilter,
+                            topMangaFilterIsLoading = topMangaFilterIsLoading,
+                            publishingMangaFilterIsLoading = publishingMangaFilterIsLoading,
+                            trendingMangaIsLoading = trendingMangaIsLoading,
+                            listTypeManga = listTypeManga,
+                            listTypeMangaFilter = listTypeMangaFilter,
+                            selectedTopMangaFilter = selectedTopMangaFilter,
+                            selectedPublishingMangaFilter = selectedPublishingMangaFilter,
+                            onTopMangaFilterSelected = { selectedTopMangaFilter = it },
+                            onPublishingMangaFilterSelected = { selectedPublishingMangaFilter = it },
+                            navController = navController,
+                            localAnimeStatuses = localAnimeStatuses,
+                            listState = listState,
+                            isRefreshing = topMangaIsLoading,
+                            onRefresh = {
+                                topMangaViewModel.topManga()
+                                publishingMangaViewModel.loadPublishingManga()
+                                trendingMangaViewModel.loadTrendingManga()
+                            },
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
                     }
                 }
                 }
@@ -506,6 +580,122 @@ private fun AnimeContent(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
+private fun MangaContent(
+    topManga: List<Any>,
+    publishingManga: List<Any>,
+    trendingManga: List<Any>,
+    topMangaFilter: List<Any>,
+    publishingMangaFilter: List<Any>,
+    topMangaFilterIsLoading: Boolean,
+    publishingMangaFilterIsLoading: Boolean,
+    trendingMangaIsLoading: Boolean,
+    listTypeManga: List<String>,
+    listTypeMangaFilter: List<String>,
+    selectedTopMangaFilter: String?,
+    selectedPublishingMangaFilter: String?,
+    onTopMangaFilterSelected: (String?) -> Unit,
+    onPublishingMangaFilterSelected: (String?) -> Unit,
+    navController: NavController,
+    localAnimeStatuses: Map<Int, String> = emptyMap(),
+    listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
+) {
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
+    ) {
+        LazyColumn(
+            state = listState,
+            contentPadding = PaddingValues(bottom = 16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Espacio superior
+            item {
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // Sección Top Puntuación
+            item {
+                AnimeSectionWithFilter(
+                    title = "Top puntuación",
+                    icon = Icons.Default.Star,
+                    filters = listTypeManga,
+                    filterLabels = listTypeMangaFilter,
+                    selectedFilter = selectedTopMangaFilter,
+                    onFilterSelected = onTopMangaFilterSelected,
+                    isLoading = topMangaFilterIsLoading,
+                    animeList = if (selectedTopMangaFilter != null) topMangaFilter else topManga,
+                    emptyMessage = "No se encontraron manga para el filtro seleccionado.",
+                    navController = navController,
+                    localAnimeStatuses = localAnimeStatuses,
+                    onViewMoreClick = {
+                        // TODO: Implementar ruta de ver más para manga
+                    },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    isManga = true
+                )
+            }
+
+            // Sección En Publicación
+            item {
+                AnimeSectionWithFilter(
+                    title = "En publicación",
+                    icon = Icons.AutoMirrored.Filled.MenuBook,
+                    filters = listTypeManga,
+                    filterLabels = listTypeMangaFilter,
+                    selectedFilter = selectedPublishingMangaFilter,
+                    onFilterSelected = onPublishingMangaFilterSelected,
+                    isLoading = publishingMangaFilterIsLoading,
+                    animeList = if (selectedPublishingMangaFilter != null) publishingMangaFilter else publishingManga,
+                    emptyMessage = "No se encontraron manga para el filtro seleccionado.",
+                    navController = navController,
+                    localAnimeStatuses = localAnimeStatuses,
+                    onViewMoreClick = {
+                        // TODO: Implementar ruta de ver más para manga
+                    },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    isManga = true
+                )
+            }
+
+            // Sección Tendencias
+            item {
+                AnimeSectionWithFilter(
+                    title = "Tendencias",
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                    filters = emptyList(),
+                    filterLabels = emptyList(),
+                    selectedFilter = null,
+                    onFilterSelected = {},
+                    isLoading = trendingMangaIsLoading,
+                    animeList = trendingManga,
+                    emptyMessage = "No se encontraron manga en tendencia.",
+                    navController = navController,
+                    localAnimeStatuses = localAnimeStatuses,
+                    onViewMoreClick = {
+                        // TODO: Implementar ruta de ver más para manga
+                    },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    isManga = true
+                )
+            }
+
+            // Espacio final
+            item {
+                Spacer(Modifier.height(80.adp()))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
 private fun AnimeSectionWithFilter(
     title: String,
     icon: ImageVector,
@@ -520,7 +710,8 @@ private fun AnimeSectionWithFilter(
     onViewMoreClick: () -> Unit,
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    isManga: Boolean = false
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -576,7 +767,8 @@ private fun AnimeSectionWithFilter(
                             navController = navController,
                             localAnimeStatuses = localAnimeStatuses,
                             sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            isManga = isManga
                         )
                     }
                 }

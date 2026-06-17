@@ -68,7 +68,8 @@ fun CardAnimesHome(
     navController: NavController,
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    isManga: Boolean = false
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -81,7 +82,8 @@ fun CardAnimesHome(
                 navController = navController,
                 localAnimeStatuses = localAnimeStatuses,
                 sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
+                animatedVisibilityScope = animatedVisibilityScope,
+                isManga = isManga
             )
         }
     }
@@ -94,7 +96,8 @@ private fun AnimeSectionCard(
     navController: NavController,
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    isManga: Boolean = false
 ) {
     val context = LocalContext.current
 
@@ -106,7 +109,12 @@ private fun AnimeSectionCard(
             .clickable {
                 // Guardar imagen en cache para la transición
                 AnimeTransitionCache.setAnimeImage(anime.malId, anime.image)
-                navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                val route = if (isManga) {
+                    "${AppDestinations.MANGA_DETAIL_ROUTE}/${anime.malId}"
+                } else {
+                    "${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}"
+                }
+                navController.navigate(route)
             }
     ) {
         // Imagen de fondo completa con shared element transition
@@ -269,7 +277,8 @@ fun CardAnimesHomeGrid(
     anime: Anime,
     navController: NavController,
     modifier: Modifier = Modifier,
-    localAnimeStatuses: Map<Int, String> = emptyMap()
+    localAnimeStatuses: Map<Int, String> = emptyMap(),
+    isManga: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -287,7 +296,12 @@ fun CardAnimesHomeGrid(
             .clickable(interactionSource = interactionSource, indication = null) {
                 // Guardar imagen en cache para la transición
                 AnimeTransitionCache.setAnimeImage(anime.malId, anime.image)
-                navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                val route = if (isManga) {
+                    "${AppDestinations.MANGA_DETAIL_ROUTE}/${anime.malId}"
+                } else {
+                    "${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}"
+                }
+                navController.navigate(route)
             }
     ) {
         AsyncImage(

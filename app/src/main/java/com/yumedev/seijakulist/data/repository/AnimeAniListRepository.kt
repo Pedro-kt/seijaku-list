@@ -1223,6 +1223,123 @@ class AnimeAniListRepository @Inject constructor(
         }
     }
 
+    /**
+     * Obtiene los mejores manga usando AniList API
+     * Ordenados por puntuación y popularidad
+     *
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard (reutilizado para manga)
+     */
+    suspend fun getTopManga(
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(page),
+                perPage = Optional.present(perPage),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                sort = Optional.present(listOf(MediaSort.SCORE_DESC, MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
+        return media.map { it.toAnimeCard() }
+    }
+
+    /**
+     * Obtiene manga que están actualmente en publicación
+     *
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard (reutilizado para manga)
+     */
+    suspend fun getPublishingManga(
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(page),
+                perPage = Optional.present(perPage),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                status = Optional.present(MediaStatus.RELEASING),
+                sort = Optional.present(listOf(MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
+        return media.map { it.toAnimeCard() }
+    }
+
+    /**
+     * Obtiene manga en tendencia (trending)
+     *
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard (reutilizado para manga)
+     */
+    suspend fun getTrendingManga(
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(page),
+                perPage = Optional.present(perPage),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                sort = Optional.present(listOf(MediaSort.TRENDING_DESC, MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
+        return media.map { it.toAnimeCard() }
+    }
+
+    /**
+     * Obtiene manga por formato (MANGA, ONE_SHOT, NOVEL, etc.)
+     *
+     * @param format Formato del manga
+     * @param page Número de página
+     * @param perPage Elementos por página
+     * @return Lista de AnimeCard (reutilizado para manga)
+     */
+    suspend fun getMangaByFormat(
+        format: MediaFormat,
+        page: Int = 1,
+        perPage: Int = DEFAULT_PER_PAGE
+    ): List<AnimeCard> {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(page),
+                perPage = Optional.present(perPage),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                format = Optional.present(format),
+                sort = Optional.present(listOf(MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            throw Exception("GraphQL errors: ${response.errors?.joinToString { it.message }}")
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull() ?: emptyList()
+        return media.map { it.toAnimeCard() }
+    }
+
     // ========== SCHEDULE METHODS ==========
 
     /**

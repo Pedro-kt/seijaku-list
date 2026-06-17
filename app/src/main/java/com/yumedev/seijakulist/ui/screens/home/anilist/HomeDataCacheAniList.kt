@@ -29,3 +29,18 @@ class TopAnimeCacheAniList @Inject constructor() {
 class AiringAnimeCacheAniList @Inject constructor() {
     var animeList: List<Anime>? = null
 }
+
+@Singleton
+class TopMangaCacheAniList @Inject constructor() {
+    var animeList: List<Anime>? = null
+}
+
+@Singleton
+class PublishingMangaCacheAniList @Inject constructor() {
+    var animeList: List<Anime>? = null
+}
+
+@Singleton
+class TrendingMangaCacheAniList @Inject constructor() {
+    var animeList: List<Anime>? = null
+}
