@@ -14,6 +14,7 @@ fun AnimeDetailDto.toAnimeDetails(): AnimeDetail {
         images = this.images?.webp?.largeImageUrl
             ?: images?.jpg?.largeImageUrl
             ?: "URL de imagen predeterminada",
+        bannerImage = null, // MyAnimeList no proporciona bannerImage
         trailer = trailer?.let {
             TrailerInfo(
                 youtubeId = it.youtubeId,

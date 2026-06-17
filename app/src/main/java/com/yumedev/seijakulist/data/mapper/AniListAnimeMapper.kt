@@ -69,7 +69,8 @@ fun GetAnimeDetailsQuery.Media.toAnimeDetail(): AnimeDetail {
         title = fields.title?.romaji ?: fields.title?.english ?: fields.title?.native ?: "Sin título",
         titleEnglish = fields.title?.english ?: "No encontrado",
         titleJapanese = fields.title?.native ?: "No encontrado",
-        images = fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: fields.bannerImage ?: "",
+        images = fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: "",
+        bannerImage = fields.bannerImage,
         trailer = fields.trailer?.let {
             TrailerInfo(
                 youtubeId = it.id,

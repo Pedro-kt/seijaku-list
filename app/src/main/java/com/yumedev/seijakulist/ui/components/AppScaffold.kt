@@ -93,7 +93,11 @@ fun AppScaffold(
     // Pantallas fullscreen que deben dibujarse detrás de la status bar (sin Scaffold)
     if (currentRoute == AppDestinations.AUTH_ROUTE ||
         currentRoute == AppDestinations.LOGIN_ROUTE ||
-        currentRoute == AppDestinations.REGISTER_ROUTE || currentRoute == AppDestinations.SELECT_TOP5_ROUTE
+        currentRoute == AppDestinations.REGISTER_ROUTE ||
+        currentRoute == AppDestinations.SELECT_TOP5_ROUTE ||
+        currentRoute?.startsWith("${AppDestinations.ANIME_DETAIL_ROUTE}/") == true ||
+        currentRoute?.startsWith("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/") == true ||
+        currentRoute?.startsWith("${AppDestinations.MANGA_DETAIL_ROUTE}/") == true
     ) {
         AppNavigation(
             navController,

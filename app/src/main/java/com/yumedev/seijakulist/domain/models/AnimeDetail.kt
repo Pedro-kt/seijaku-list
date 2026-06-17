@@ -11,6 +11,7 @@ data class AnimeDetail(
     val titleEnglish: String,
     val titleJapanese: String,
     val images: String,
+    val bannerImage: String?,
     val trailer: TrailerInfo?,
     val typeAnime: String,
     val source: String,

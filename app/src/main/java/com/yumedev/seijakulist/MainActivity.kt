@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -121,6 +122,15 @@ class MainActivity : ComponentActivity() {
             android.util.Log.d("MainActivity", "Modo de tema activo: ${themeMode.name}")
 
             SeijakuListTheme(themeMode) {
+                // Configurar colores de las barras del sistema
+                val view = window.decorView
+                val backgroundColor = MaterialTheme.colorScheme.background
+
+                androidx.compose.runtime.SideEffect {
+                    window.statusBarColor = backgroundColor.toArgb()
+                    window.navigationBarColor = backgroundColor.toArgb()
+                }
+
                 var showBetaDialog by remember { mutableStateOf(false) }
 
                 Surface(modifier = Modifier.fillMaxSize()) {
