@@ -1241,17 +1241,40 @@ private fun MangaInfoRow(
 private fun MangaTypeBadge(type: String) {
     if (type.isBlank()) return
 
+    // Mapeo de tipos de manga con colores específicos
+    val (icon, color) = when (type) {
+        "MANGA" -> Icons.Default.Book to Color(0xFF2196F3) // Azul
+        "NOVEL" -> Icons.Default.MenuBook to Color(0xFF9C27B0) // Púrpura
+        "ONE_SHOT" -> Icons.Default.Description to Color(0xFF00BCD4) // Cian
+        "MANHWA" -> Icons.Default.Book to Color(0xFFFF5722) // Naranja rojizo (Corea)
+        "MANHUA" -> Icons.Default.Book to Color(0xFFF44336) // Rojo (China)
+        else -> Icons.Default.Book to Color(0xFF2196F3) // Azul por defecto
+    }
+
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.primaryContainer
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = formatMangaType(type),
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = color
+            )
+            Text(
+                text = formatMangaType(type),
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 
@@ -1259,26 +1282,64 @@ private fun MangaTypeBadge(type: String) {
 private fun MangaStatusBadge(status: String) {
     if (status.isBlank()) return
 
-    val (text, containerColor) = when (status) {
-        "FINISHED" -> "Completado" to MaterialTheme.colorScheme.tertiaryContainer
-        "RELEASING" -> "En curso" to MaterialTheme.colorScheme.secondaryContainer
-        "NOT_YET_RELEASED" -> "Próximo" to MaterialTheme.colorScheme.primaryContainer
-        "CANCELLED" -> "Cancelado" to MaterialTheme.colorScheme.errorContainer
-        "HIATUS" -> "Pausado" to MaterialTheme.colorScheme.surfaceVariant
-        else -> status to MaterialTheme.colorScheme.surfaceVariant
+    // Mapeo completo de todos los estados posibles de AniList API para manga
+    val (text, icon, color) = when (status) {
+        "FINISHED" -> Triple(
+            "Completado",
+            Icons.Default.CheckCircle,
+            Color(0xFF4CAF50) // Verde - completado
+        )
+        "RELEASING" -> Triple(
+            "En publicación",
+            Icons.Default.FiberManualRecord,
+            Color(0xFF2196F3) // Azul - activo
+        )
+        "NOT_YET_RELEASED" -> Triple(
+            "Próximamente",
+            Icons.Default.Schedule,
+            Color(0xFF9C27B0) // Púrpura - futuro
+        )
+        "CANCELLED" -> Triple(
+            "Cancelado",
+            Icons.Default.Cancel,
+            Color(0xFFF44336) // Rojo - error/cancelado
+        )
+        "HIATUS" -> Triple(
+            "En pausa",
+            Icons.Default.Pause,
+            Color(0xFFFF9800) // Naranja - pausado
+        )
+        else -> Triple(
+            status,
+            Icons.Default.Info,
+            Color(0xFF757575) // Gris - desconocido
+        )
     }
 
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = containerColor
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = text,
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(if (status == "RELEASING") 10.dp else 14.dp),
+                tint = color
+            )
+            Text(
+                text = text,
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 

@@ -2293,17 +2293,41 @@ private fun AnimeInfoRow(
 private fun AnimeTypeBadge(type: String) {
     if (type.isBlank()) return
 
+    // Mapeo de tipos de anime con colores específicos (AniList format)
+    val (icon, color) = when (type) {
+        "TV" -> Icons.Default.Tv to Color(0xFF2196F3) // Azul
+        "MOVIE" -> Icons.Default.Movie to Color(0xFF9C27B0) // Púrpura
+        "OVA" -> Icons.Default.PlayCircle to Color(0xFF00BCD4) // Cian
+        "ONA" -> Icons.Default.PlayCircle to Color(0xFF009688) // Teal
+        "SPECIAL" -> Icons.Default.Star to Color(0xFFFF9800) // Naranja
+        "MUSIC" -> Icons.Default.MusicNote to Color(0xFFE91E63) // Rosa
+        else -> Icons.Default.Tv to Color(0xFF2196F3) // Azul por defecto
+    }
+
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.primaryContainer
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = formatAnimeType(type),
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = color
+            )
+            Text(
+                text = formatAnimeType(type),
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 
@@ -2311,24 +2335,64 @@ private fun AnimeTypeBadge(type: String) {
 private fun AnimeStatusBadge(status: String) {
     if (status.isBlank()) return
 
-    val (text, containerColor) = when (status) {
-        "Finished Airing" -> "Finalizado" to MaterialTheme.colorScheme.tertiaryContainer
-        "Currently Airing" -> "En emisión" to MaterialTheme.colorScheme.secondaryContainer
-        "Not yet aired" -> "Próximo" to MaterialTheme.colorScheme.primaryContainer
-        else -> status to MaterialTheme.colorScheme.surfaceVariant
+    // Mapeo completo de todos los estados posibles de AniList API (igual que manga)
+    val (text, icon, color) = when (status) {
+        "FINISHED" -> Triple(
+            "Finalizado",
+            Icons.Default.CheckCircle,
+            Color(0xFF4CAF50) // Verde - completado
+        )
+        "RELEASING" -> Triple(
+            "En emisión",
+            Icons.Default.FiberManualRecord,
+            Color(0xFF2196F3) // Azul - futuro
+        )
+        "NOT_YET_RELEASED" -> Triple(
+            "Próximamente",
+            Icons.Default.Schedule,
+            Color(0xFFFF5722) // Rojo/Naranja - en vivo
+        )
+        "CANCELLED" -> Triple(
+            "Cancelado",
+            Icons.Default.Cancel,
+            Color(0xFFF44336) // Rojo - cancelado
+        )
+        "HIATUS" -> Triple(
+            "En pausa",
+            Icons.Default.Pause,
+            Color(0xFFFF9800) // Naranja - pausado
+        )
+        else -> Triple(
+            status,
+            Icons.Default.Info,
+            Color(0xFF757575) // Gris - desconocido
+        )
     }
 
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = containerColor
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = text,
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(if (status == "RELEASING") 10.dp else 14.dp),
+                tint = color
+            )
+            Text(
+                text = text,
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 
@@ -2336,26 +2400,30 @@ private fun AnimeStatusBadge(status: String) {
 private fun AnimeBroadcastBadge(broadcast: String) {
     if (broadcast.isBlank()) return
 
+    val color = MaterialTheme.colorScheme.primary
+
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.12f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.4f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Schedule,
                 contentDescription = null,
-                modifier = Modifier.size(12.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                modifier = Modifier.size(14.dp),
+                tint = color
             )
             Text(
                 text = broadcast,
-                fontFamily = PoppinsMedium,
-                fontSize = 9.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
             )
         }
     }
@@ -2451,18 +2519,20 @@ private fun AnimeErrorState(
 
 private fun formatAnimeType(type: String): String = when (type) {
     "TV" -> "TV"
-    "Movie" -> "Película"
+    "MOVIE" -> "Película"
     "OVA" -> "OVA"
     "ONA" -> "ONA"
-    "Special" -> "Especial"
-    "Music" -> "Música"
+    "SPECIAL" -> "Especial"
+    "MUSIC" -> "Música"
     else -> type
 }
 
 private fun formatAnimeStatus(status: String): String = when (status) {
-    "Finished Airing" -> "Finalizado"
-    "Currently Airing" -> "En emisión"
-    "Not yet aired" -> "Próximamente"
+    "FINISHED" -> "Finalizado"
+    "RELEASING" -> "En emisión"
+    "NOT_YET_RELEASED" -> "Próximamente"
+    "CANCELLED" -> "Cancelado"
+    "HIATUS" -> "En pausa"
     else -> status
 }
 
