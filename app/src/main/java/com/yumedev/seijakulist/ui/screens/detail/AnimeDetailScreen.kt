@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import android.widget.Toast
@@ -55,13 +58,17 @@ import com.yumedev.seijakulist.domain.models.AnimeDetail
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.CompactDemographicCard
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.CompactGenreCard
+import com.yumedev.seijakulist.ui.screens.detail.components.shared.RatingBar
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
+import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * Pantalla de detalle del anime
@@ -419,6 +426,7 @@ fun AnimeDetailScreen(
 // BOTTOM SHEET (TODO: Implementar UI completa)
 // ============================================================================
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddToListBottomSheetContent(
     anime: AnimeDetail?,
@@ -428,23 +436,597 @@ private fun AddToListBottomSheetContent(
     onDelete: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    // TODO: Implementar UI completa del bottom sheet
+    // Estado del sheet
+    var sheetStatus by remember { mutableStateOf(existingAnime?.userStatus) }
+    var sheetRating by remember { mutableStateOf(existingAnime?.userScore ?: 0f) }
+    var sheetOpinion by remember { mutableStateOf(existingAnime?.userOpiniun ?: "") }
+    var sheetStartDate by remember { mutableStateOf(existingAnime?.startDate) }
+    var sheetEndDate by remember { mutableStateOf(existingAnime?.endDate) }
+    var sheetPlannedPriority by remember { mutableStateOf(existingAnime?.plannedPriority) }
+    var sheetPlannedNote by remember { mutableStateOf(existingAnime?.plannedNote ?: "") }
+
+    var sheetShowStartPicker by remember { mutableStateOf(false) }
+    var sheetShowEndPicker by remember { mutableStateOf(false) }
+
+    val statusList = listOf(
+        "Viendo" to Icons.Default.PlayArrow,
+        "Completado" to Icons.Default.CheckCircle,
+        "Pendiente" to Icons.Default.WatchLater,
+        "Abandonado" to Icons.Default.Close,
+        "Planeado" to Icons.Default.EventNote
+    )
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+
+    // DatePicker Dialogs
+    if (sheetShowStartPicker) {
+        DatePickerDialog(
+            onDismissRequest = { sheetShowStartPicker = false },
+            confirmButton = {
+                TextButton(onClick = { sheetShowStartPicker = false }) {
+                    Text("OK", fontFamily = PoppinsMedium)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { sheetShowStartPicker = false }) {
+                    Text("Cancelar", fontFamily = PoppinsRegular)
+                }
+            }
+        ) {
+            val pickerState = rememberDatePickerState(initialSelectedDateMillis = sheetStartDate)
+            DatePicker(state = pickerState)
+            sheetStartDate = pickerState.selectedDateMillis
+        }
+    }
+
+    if (sheetShowEndPicker) {
+        DatePickerDialog(
+            onDismissRequest = { sheetShowEndPicker = false },
+            confirmButton = {
+                TextButton(onClick = { sheetShowEndPicker = false }) {
+                    Text("OK", fontFamily = PoppinsMedium)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { sheetShowEndPicker = false }) {
+                    Text("Cancelar", fontFamily = PoppinsRegular)
+                }
+            }
+        ) {
+            val pickerState = rememberDatePickerState(initialSelectedDateMillis = sheetEndDate)
+            DatePicker(state = pickerState)
+            sheetEndDate = pickerState.selectedDateMillis
+        }
+    }
+
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = if (isAdded) "Editar en lista" else "Añadir a lista",
-            style = MaterialTheme.typography.headlineSmall,
-            fontFamily = PoppinsBold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Funcionalidad de bottom sheet pendiente de implementación completa",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(100.dp))
+        // Contenido scrolleable
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+        // Estado - Card con grid compacto y con iconos
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "¿Cuál es el estado?",
+                        fontFamily = PoppinsBold,
+                        fontSize = 21.sp,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        letterSpacing = 0.3.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.height(200.adp()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(statusList) { (status, icon) ->
+                        val isSelected = sheetStatus == status
+                        val statusColor = getAnimeStatusColor(status)
+
+                        Card(
+                            onClick = { sheetStatus = if (isSelected) null else status },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) statusColor.copy(alpha = 0.15f)
+                                else MaterialTheme.colorScheme.surfaceContainerHighest
+                            ),
+                            modifier = Modifier.height(60.adp()),
+                            shape = RoundedCornerShape(14.dp),
+                            border = if (isSelected)
+                                androidx.compose.foundation.BorderStroke(2.dp, statusColor)
+                            else null,
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = if (isSelected) 4.dp else 1.dp
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.adp()),
+                                    tint = if (isSelected) statusColor else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    status,
+                                    fontSize = 12.asp(),
+                                    fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
+                                    color = if (isSelected) statusColor else MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Prioridad y Nota (solo si Planeado) - Card
+        AnimatedVisibility(
+            visible = sheetStatus == "Planeado",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Prioridad del plan",
+                            fontFamily = PoppinsBold,
+                            fontSize = 21.sp,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            letterSpacing = 0.3.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    val priorities = listOf(
+                        "Alta" to Color(0xFFEF5350),
+                        "Media" to Color(0xFFFFCA28),
+                        "Baja" to Color(0xFF66BB6A)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        priorities.forEach { (priority, color) ->
+                            val isSel = sheetPlannedPriority == priority
+                            Card(
+                                onClick = { sheetPlannedPriority = if (isSel) null else priority },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(50.adp()),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSel) color.copy(alpha = 0.2f)
+                                                   else MaterialTheme.colorScheme.surfaceContainerHighest
+                                ),
+                                border = if (isSel) androidx.compose.foundation.BorderStroke(2.dp, color) else null,
+                                elevation = CardDefaults.cardElevation(defaultElevation = if (isSel) 3.dp else 1.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        priority,
+                                        fontSize = 14.asp(),
+                                        fontFamily = if (isSel) PoppinsBold else PoppinsRegular,
+                                        color = if (isSel) color else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = sheetPlannedNote,
+                        onValueChange = { sheetPlannedNote = it },
+                        placeholder = {
+                            Text(
+                                "¿Por qué lo tenés planeado?",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 13.asp()
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        maxLines = 3,
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.asp()
+                        )
+                    )
+                }
+            }
+        }
+
+        // Calificación (solo si no es Planeado) - Card
+        AnimatedVisibility(
+            visible = sheetStatus != null && sheetStatus != "Planeado",
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Tu calificación",
+                                fontFamily = PoppinsBold,
+                                fontSize = 21.sp,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                letterSpacing = 0.3.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        if (sheetRating > 0) {
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = Color(0xFFFFD700).copy(alpha = 0.15f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        String.format("%.1f", sheetRating),
+                                        fontSize = 16.asp(),
+                                        fontFamily = PoppinsBold,
+                                        color = Color(0xFFFFD700)
+                                    )
+                                    Text(
+                                        "/ 10",
+                                        fontSize = 12.asp(),
+                                        fontFamily = PoppinsRegular,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    RatingBar(
+                        rating = sheetRating,
+                        onRatingChange = { sheetRating = it },
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            }
+        }
+
+        // Opinión - Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Tu opinión (opcional)",
+                        fontFamily = PoppinsBold,
+                        fontSize = 21.sp,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        letterSpacing = 0.3.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                OutlinedTextField(
+                    value = sheetOpinion,
+                    onValueChange = { sheetOpinion = it },
+                    placeholder = {
+                        Text(
+                            "Comparte qué te pareció este anime...",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 13.asp()
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.adp()),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    maxLines = 4,
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        fontFamily = PoppinsRegular,
+                        fontSize = 14.asp()
+                    )
+                )
+            }
+        }
+
+        // Fechas - Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Fechas (opcional)",
+                        fontFamily = PoppinsBold,
+                        fontSize = 21.sp,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        letterSpacing = 0.3.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                val canStart = sheetStatus != "Planeado"
+                val canEnd = sheetStatus == "Completado"
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Fecha inicio
+                    Card(
+                        onClick = { if (canStart) sheetShowStartPicker = true },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (canStart) MaterialTheme.colorScheme.surface
+                                           else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = if (canStart) 1.dp else 0.dp
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.adp()),
+                                tint = if (canStart) MaterialTheme.colorScheme.primary
+                                      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            )
+                            Text(
+                                sheetStartDate?.let { dateFormat.format(it) } ?: "Inicio",
+                                fontSize = 13.asp(),
+                                fontFamily = PoppinsMedium,
+                                color = if (canStart) MaterialTheme.colorScheme.onSurface
+                                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    // Fecha final
+                    Card(
+                        onClick = { if (canEnd) sheetShowEndPicker = true },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (canEnd) MaterialTheme.colorScheme.surface
+                                           else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = if (canEnd) 1.dp else 0.dp
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.adp()),
+                                tint = if (canEnd) MaterialTheme.colorScheme.primary
+                                      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            )
+                            Text(
+                                sheetEndDate?.let { dateFormat.format(it) } ?: "Final",
+                                fontSize = 13.asp(),
+                                fontFamily = PoppinsMedium,
+                                color = if (canEnd) MaterialTheme.colorScheme.onSurface
+                                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
+        }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Botón eliminar (solo si está añadido)
+                if (isAdded) {
+                    OutlinedButton(
+                        onClick = onDelete,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.adp()),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.5.dp,
+                            MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.adp())
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Eliminar",
+                            fontSize = 15.asp(),
+                            fontFamily = PoppinsBold
+                        )
+                    }
+                }
+
+                // Botón guardar
+                Button(
+                    onClick = {
+                        val selectedStatus = sheetStatus
+                        if (selectedStatus != null) {
+                            val scoreToPass = if (selectedStatus == "Planeado") 0f else sheetRating
+                            val priorityToPass = if (selectedStatus == "Planeado") sheetPlannedPriority else null
+                            val noteToPass = if (selectedStatus == "Planeado" && sheetPlannedNote.isNotBlank())
+                                sheetPlannedNote
+                            else if (sheetOpinion.isNotBlank())
+                                sheetOpinion
+                            else
+                                ""
+
+                            onSave(
+                                selectedStatus,
+                                scoreToPass,
+                                sheetStartDate,
+                                sheetEndDate,
+                                priorityToPass,
+                                noteToPass
+                            )
+                        }
+                    },
+                    enabled = sheetStatus != null,
+                    modifier = Modifier
+                        .weight(if (isAdded) 1f else 1f)
+                        .height(56.adp()),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 3.dp,
+                        pressedElevation = 6.dp
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.adp())
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (isAdded) "Guardar" else "Agregar",
+                        fontSize = 15.asp(),
+                        fontFamily = PoppinsBold
+                    )
+                }
+            }
+        }
     }
 }
 
