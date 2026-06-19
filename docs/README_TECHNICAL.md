@@ -2,7 +2,7 @@
 
 Esta documentación contiene información técnica detallada sobre la arquitectura, implementación y estructura del proyecto Seijaku List.
 
-Para información general sobre el producto y sus características, consulta el [README principal](README.md).
+Para información general sobre el producto y sus características, consulta el [README principal](../README.md).
 
 ---
 

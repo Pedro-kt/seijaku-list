@@ -104,7 +104,7 @@ Your ultimate companion for organizing, discovering, and sharing your passion fo
 - **Images**: Coil with optimized caching
 - **Animations**: Lottie + Compose Animations
 
-[📖 View Full Technical Documentation →](README_TECHNICAL.md)
+[📖 View Full Technical Documentation →](docs/README_TECHNICAL.md)
 
 ---
 
