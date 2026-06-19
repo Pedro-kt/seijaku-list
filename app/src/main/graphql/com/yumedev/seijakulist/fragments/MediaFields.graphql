@@ -32,6 +32,8 @@ fragment MediaFields on Media {
   seasonYear
   seasonInt
   episodes
+  chapters
+  volumes
   duration
   countryOfOrigin
   isLicensed

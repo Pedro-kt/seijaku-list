@@ -1510,4 +1510,185 @@ class AnimeAniListRepository @Inject constructor(
             isBirthday = true
         )
     }
+
+    // ========== MANGA HERO SECTION METHODS ==========
+
+    /**
+     * Obtiene un manga aleatorio de los más populares para Hero Section
+     *
+     * @return HeroAnimeItem o null
+     */
+    suspend fun getTopClassicManga(): com.yumedev.seijakulist.domain.models.HeroAnimeItem? {
+        val randomPage = (1..4).random()
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(randomPage),
+                perPage = Optional.present(20),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                sort = Optional.present(listOf(MediaSort.SCORE_DESC, MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            return null
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull()?.randomOrNull() ?: return null
+        val fields = media.mediaFields
+
+        return com.yumedev.seijakulist.domain.models.HeroAnimeItem(
+            malId = fields.idMal ?: 0,
+            title = fields.title?.romaji ?: fields.title?.english ?: return null,
+            imageUrl = fields.bannerImage ?: fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: return null,
+            label = "CLÁSICO",
+            score = (fields.averageScore ?: 0) / 10.0f,
+            year = fields.startDate?.year?.toString(),
+            status = fields.status?.name,
+            genres = fields.genres?.filterNotNull()?.take(2) ?: emptyList(),
+            episodes = fields.chapters
+        )
+    }
+
+    /**
+     * Obtiene un manga en tendencia para Hero Section
+     *
+     * @return HeroAnimeItem o null
+     */
+    suspend fun getTrendingMangaHeroItem(): com.yumedev.seijakulist.domain.models.HeroAnimeItem? {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(1),
+                perPage = Optional.present(20),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                sort = Optional.present(listOf(MediaSort.TRENDING_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            return null
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull()?.randomOrNull() ?: return null
+        val fields = media.mediaFields
+
+        return com.yumedev.seijakulist.domain.models.HeroAnimeItem(
+            malId = fields.idMal ?: 0,
+            title = fields.title?.romaji ?: fields.title?.english ?: return null,
+            imageUrl = fields.bannerImage ?: fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: return null,
+            label = "TENDENCIA",
+            score = (fields.averageScore ?: 0) / 10.0f,
+            year = fields.startDate?.year?.toString(),
+            status = fields.status?.name,
+            genres = fields.genres?.filterNotNull()?.take(2) ?: emptyList(),
+            episodes = fields.chapters
+        )
+    }
+
+    /**
+     * Obtiene un manga actualmente en publicación para Hero Section
+     *
+     * @return HeroAnimeItem o null
+     */
+    suspend fun getPublishingMangaHeroItem(): com.yumedev.seijakulist.domain.models.HeroAnimeItem? {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(1),
+                perPage = Optional.present(20),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                status = Optional.present(MediaStatus.RELEASING),
+                sort = Optional.present(listOf(MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            return null
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull()?.randomOrNull() ?: return null
+        val fields = media.mediaFields
+
+        return com.yumedev.seijakulist.domain.models.HeroAnimeItem(
+            malId = fields.idMal ?: 0,
+            title = fields.title?.romaji ?: fields.title?.english ?: return null,
+            imageUrl = fields.bannerImage ?: fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: return null,
+            label = "EN PUBLICACIÓN",
+            score = (fields.averageScore ?: 0) / 10.0f,
+            year = fields.startDate?.year?.toString(),
+            status = fields.status?.name,
+            genres = fields.genres?.filterNotNull()?.take(2) ?: emptyList(),
+            episodes = fields.chapters
+        )
+    }
+
+    /**
+     * Obtiene una recomendación de manga basada en un manga específico (Hero Section)
+     *
+     * @param mangaId ID del manga (MAL ID)
+     * @return HeroAnimeItem o null
+     */
+    suspend fun getRecommendationForManga(mangaId: Int): com.yumedev.seijakulist.domain.models.HeroAnimeItem? {
+        val response = apolloClient.query(
+            GetMangaDetailsQuery(
+                id = Optional.absent(),
+                idMal = Optional.present(mangaId)
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            return null
+        }
+
+        val recommendation = response.data?.Media?.recommendations?.nodes
+            ?.filterNotNull()
+            ?.randomOrNull() ?: return null
+
+        val media = recommendation.mediaRecommendation ?: return null
+
+        return com.yumedev.seijakulist.domain.models.HeroAnimeItem(
+            malId = media.idMal ?: 0,
+            title = media.title?.romaji ?: media.title?.english ?: return null,
+            imageUrl = media.bannerImage ?: media.coverImage?.extraLarge ?: media.coverImage?.large ?: return null,
+            label = "PARA VOS",
+            score = (media.averageScore ?: 0) / 10.0f,
+            year = media.startDate?.year?.toString(),
+            status = media.status?.name,
+            genres = media.genres?.filterNotNull()?.take(2) ?: emptyList(),
+            episodes = media.chapters
+        )
+    }
+
+    /**
+     * Obtiene un manga popular para Hero Section
+     *
+     * @return HeroAnimeItem o null
+     */
+    suspend fun getPopularMangaHeroItem(): com.yumedev.seijakulist.domain.models.HeroAnimeItem? {
+        val response = apolloClient.query(
+            SearchAnimeQuery(
+                page = Optional.present(1),
+                perPage = Optional.present(20),
+                type = Optional.present(com.yumedev.seijakulist.data.remote.graphql.type.MediaType.MANGA),
+                sort = Optional.present(listOf(MediaSort.POPULARITY_DESC))
+            )
+        ).execute()
+
+        if (response.hasErrors()) {
+            return null
+        }
+
+        val media = response.data?.Page?.media?.filterNotNull()?.randomOrNull() ?: return null
+        val fields = media.mediaFields
+
+        return com.yumedev.seijakulist.domain.models.HeroAnimeItem(
+            malId = fields.idMal ?: 0,
+            title = fields.title?.romaji ?: fields.title?.english ?: return null,
+            imageUrl = fields.bannerImage ?: fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: return null,
+            label = "POPULAR",
+            score = (fields.averageScore ?: 0) / 10.0f,
+            year = fields.startDate?.year?.toString(),
+            status = fields.status?.name,
+            genres = fields.genres?.filterNotNull()?.take(2) ?: emptyList(),
+            episodes = fields.chapters
+        )
+    }
 }

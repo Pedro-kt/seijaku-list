@@ -152,6 +152,7 @@ import com.yumedev.seijakulist.ui.screens.home.anilist.AiringAnimeAniListViewMod
 import com.yumedev.seijakulist.ui.screens.home.anilist.TopAnimeAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.AnimeSeasonUpcomingAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.HeroCarouselAniListViewModel
+import com.yumedev.seijakulist.ui.screens.home.anilist.HeroCarouselMangaAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.TopMangaAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.PublishingMangaAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.TrendingMangaAniListViewModel
@@ -175,6 +176,7 @@ fun HomeScreen(
     profileViewModel: com.yumedev.seijakulist.ui.screens.profile.ProfileViewModel = hiltViewModel(),
     localAnimeIdsViewModel: LocalAnimeIdsViewModel = hiltViewModel(),
     heroCarouselViewModel: HeroCarouselAniListViewModel = hiltViewModel(),
+    heroCarouselMangaViewModel: HeroCarouselMangaAniListViewModel = hiltViewModel(),
     topMangaViewModel: TopMangaAniListViewModel = hiltViewModel(),
     publishingMangaViewModel: PublishingMangaAniListViewModel = hiltViewModel(),
     trendingMangaViewModel: TrendingMangaAniListViewModel = hiltViewModel(),
@@ -220,6 +222,8 @@ fun HomeScreen(
     val localAnimeStatuses by localAnimeIdsViewModel.localAnimeStatuses.collectAsState()
     val heroCards by heroCarouselViewModel.cards.collectAsState()
     val heroIsLoading by heroCarouselViewModel.isLoading.collectAsState()
+    val heroMangaCards by heroCarouselMangaViewModel.cards.collectAsState()
+    val heroMangaIsLoading by heroCarouselMangaViewModel.isLoading.collectAsState()
 
     // Estados de Manga
     val topManga by topMangaViewModel.animeList.collectAsState()
@@ -342,6 +346,7 @@ fun HomeScreen(
                     airingAnimeViewModel.loadAiringAnime()
                     seasonUpcomingViewModel.loadUpcomingAnime()
                     heroCarouselViewModel.retry()
+                    heroCarouselMangaViewModel.retry()
                     //animeRandomViewModel.loadRandomAnime()
                     //characterRandomViewModel.loadCharacterRandom()
                 })
@@ -418,12 +423,15 @@ fun HomeScreen(
                             onPublishingMangaFilterSelected = { selectedPublishingMangaFilter = it },
                             navController = navController,
                             localAnimeStatuses = localAnimeStatuses,
+                            heroMangaCards = heroMangaCards,
+                            heroMangaIsLoading = heroMangaIsLoading,
                             listState = listState,
                             isRefreshing = topMangaIsLoading,
                             onRefresh = {
                                 topMangaViewModel.topManga()
                                 publishingMangaViewModel.loadPublishingManga()
                                 trendingMangaViewModel.loadTrendingManga()
+                                heroCarouselMangaViewModel.retry()
                             },
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope
@@ -578,7 +586,7 @@ private fun AnimeContent(
   }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun MangaContent(
     topManga: List<Any>,
@@ -597,6 +605,8 @@ private fun MangaContent(
     onPublishingMangaFilterSelected: (String?) -> Unit,
     navController: NavController,
     localAnimeStatuses: Map<Int, String> = emptyMap(),
+    heroMangaCards: List<com.yumedev.seijakulist.domain.models.HeroAnimeItem>? = null,
+    heroMangaIsLoading: Boolean = true,
     listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
@@ -612,9 +622,18 @@ private fun MangaContent(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // Espacio superior
-            item {
-                Spacer(Modifier.height(16.dp))
+            // Hero Carousel para Manga
+            item(key = "hero_manga_${heroMangaCards?.size ?: 0}") {
+                Column {
+                    Spacer(Modifier.height(16.dp))
+                    HeroCarousel(
+                        navController = navController,
+                        cards = heroMangaCards,
+                        isLoading = heroMangaIsLoading,
+                        localAnimeStatuses = localAnimeStatuses,
+                        isManga = true
+                    )
+                }
             }
 
             // Sección Top Puntuación
@@ -954,7 +973,8 @@ private fun HeroCarousel(
     navController: NavController,
     cards: List<com.yumedev.seijakulist.domain.models.HeroAnimeItem>?,
     @Suppress("UNUSED_PARAMETER") isLoading: Boolean,
-    localAnimeStatuses: Map<Int, String> = emptyMap()
+    localAnimeStatuses: Map<Int, String> = emptyMap(),
+    isManga: Boolean = false
 ) {
     val hasCards = !cards.isNullOrEmpty()
     val pageCount = if (hasCards) cards!!.size else 5
@@ -1085,7 +1105,15 @@ private fun HeroCarousel(
                         HeroAnimeCard(
                             item = cards!![page],
                             localAnimeStatus = localAnimeStatuses[cards[page].malId],
-                            onClick = { navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${cards[page].malId}") }
+                            onClick = {
+                                val route = if (isManga) {
+                                    "${AppDestinations.MANGA_DETAIL_ROUTE}/${cards[page].malId}"
+                                } else {
+                                    "${AppDestinations.ANIME_DETAIL_ROUTE}/${cards[page].malId}"
+                                }
+                                navController.navigate(route)
+                            },
+                            isManga = isManga
                         )
                     }
                 }
@@ -1271,7 +1299,8 @@ private fun heroStatusConfig(status: String): HeroStatusConfig? = when (status) 
 private fun HeroAnimeCard(
     item: com.yumedev.seijakulist.domain.models.HeroAnimeItem,
     localAnimeStatus: String?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isManga: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1437,8 +1466,8 @@ private fun HeroAnimeCard(
                     }
                     item.episodes?.let { eps ->
                         HeroMetaBadge(
-                            icon = Icons.Default.PlayArrow,
-                            text = "$eps eps",
+                            icon = if (isManga) Icons.AutoMirrored.Filled.MenuBook else Icons.Default.PlayArrow,
+                            text = if (isManga) "$eps caps" else "$eps eps",
                             containerColor = Color.White.copy(alpha = 0.13f),
                             contentColor = Color.White.copy(alpha = 0.92f),
                             borderColor = Color.White.copy(alpha = 0.22f)
@@ -1446,13 +1475,19 @@ private fun HeroAnimeCard(
                     }
                     item.status?.let { status ->
                         val statusColor = when {
-                            status.contains("Airing", ignoreCase = true) -> Color(0xFF4CAF50)
+                            status.contains("Releasing", ignoreCase = true) || status.contains("Airing", ignoreCase = true) -> Color(0xFF4CAF50)
                             status.contains("Finished", ignoreCase = true) -> Color(0xFF64B5F6)
                             else -> Color(0xFFCE93D8)
                         }
+                        val statusText = when {
+                            status.contains("Releasing", ignoreCase = true) && isManga -> "En publicación"
+                            status.contains("Airing", ignoreCase = true) -> "En emisión"
+                            status.contains("Finished", ignoreCase = true) -> "Finalizado"
+                            else -> "Próximamente"
+                        }
                         HeroMetaBadge(
-                            icon = Icons.Default.Tv,
-                            text = translateAnimeStatus(status),
+                            icon = if (isManga) Icons.AutoMirrored.Filled.MenuBook else Icons.Default.Tv,
+                            text = statusText,
                             containerColor = statusColor.copy(alpha = 0.18f),
                             contentColor = statusColor,
                             borderColor = statusColor.copy(alpha = 0.38f)

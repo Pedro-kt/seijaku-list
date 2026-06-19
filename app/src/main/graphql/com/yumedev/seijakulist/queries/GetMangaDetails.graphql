@@ -142,6 +142,11 @@ query GetMangaDetails($id: Int, $idMal: Int) {
           type
           status
           description(asHtml: false)
+          startDate {
+            year
+            month
+            day
+          }
           chapters
           volumes
           averageScore

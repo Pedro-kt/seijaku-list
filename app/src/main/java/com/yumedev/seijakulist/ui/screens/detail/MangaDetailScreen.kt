@@ -124,8 +124,7 @@ fun MangaDetailScreen(
                         },
                         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background
-                        ),
-                        windowInsets = WindowInsets(0.dp)
+                        )
                     )
                 },
                 floatingActionButton = {
