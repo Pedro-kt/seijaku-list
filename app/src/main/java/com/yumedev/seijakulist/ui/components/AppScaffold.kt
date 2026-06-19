@@ -97,7 +97,8 @@ fun AppScaffold(
         currentRoute == AppDestinations.SELECT_TOP5_ROUTE ||
         currentRoute?.startsWith("${AppDestinations.ANIME_DETAIL_ROUTE}/") == true ||
         currentRoute?.startsWith("${AppDestinations.ANIME_DETAIL_LOCAL_ROUTE}/") == true ||
-        currentRoute?.startsWith("${AppDestinations.MANGA_DETAIL_ROUTE}/") == true
+        currentRoute?.startsWith("${AppDestinations.MANGA_DETAIL_ROUTE}/") == true ||
+        currentRoute?.startsWith("${AppDestinations.CHARACTER_DETAIL_ROUTE}/") == true
     ) {
         AppNavigation(
             navController,
@@ -437,33 +438,6 @@ fun AppScaffold(
 
                 else -> {
                     when {
-                        currentRoute?.startsWith("${AppDestinations.CHARACTER_DETAIL_ROUTE}/") == true -> {
-                            TopAppBar(
-                                title = {
-                                    Text(
-                                        text = "Detalle del Personaje",
-                                        fontFamily = PoppinsBold,
-                                        fontSize = 20.asp(),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                },
-                                navigationIcon = {
-                                    IconButton(onClick = { navController.popBackStack() }) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_arrow_left_line),
-                                            contentDescription = "Volver"
-                                        )
-                                    }
-                                },
-                                colors = TopAppBarDefaults.topAppBarColors(
-                                    containerColor = MaterialTheme.colorScheme.background,
-                                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-                                )
-                            )
-                        }
-
                         currentRoute?.startsWith(AppDestinations.VIEW_MORE_ROUTE) == true -> {
                             val section = navController.currentBackStackEntry?.arguments?.getString("section")
                             val title = when (section) {
