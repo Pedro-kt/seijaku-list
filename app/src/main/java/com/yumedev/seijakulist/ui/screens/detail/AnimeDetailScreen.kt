@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import android.widget.Toast
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -56,6 +57,7 @@ import coil.size.Size
 import com.yumedev.seijakulist.domain.models.AnimeCharactersDetail
 import com.yumedev.seijakulist.domain.models.AnimeDetail
 import com.yumedev.seijakulist.ui.components.LoadingScreen
+import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.CompactDemographicCard
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.CompactGenreCard
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.RatingBar
@@ -99,8 +101,6 @@ fun AnimeDetailScreen(
 
     // UI State
     var selectedTab by remember { mutableStateOf(AnimeDetailTab.OVERVIEW) }
-    var showAddToListSheet by remember { mutableStateOf(false) }
-    val addToListSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -140,9 +140,9 @@ fun AnimeDetailScreen(
     }
 
     // Handle open sheet parameter
-    LaunchedEffect(openSheet, isLoading) {
+    LaunchedEffect(openSheet, isLoading, animeDetail) {
         if (openSheet && !isLoading && animeDetail != null) {
-            showAddToListSheet = true
+            navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${animeDetail!!.malId}")
         }
     }
 
@@ -179,7 +179,11 @@ fun AnimeDetailScreen(
                         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     ) {
                         ExtendedFloatingActionButton(
-                            onClick = { showAddToListSheet = true },
+                            onClick = {
+                                animeDetail?.let {
+                                    navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
+                                }
+                            },
                             icon = {
                                 Icon(
                                     imageVector = if (isAdded) Icons.Default.Edit else Icons.Default.Favorite,
@@ -292,7 +296,11 @@ fun AnimeDetailScreen(
                                     AnimeDetailHeader(
                                         animeDetail = animeDetail,
                                         isAdded = isAdded,
-                                        onAddToListClick = { showAddToListSheet = true },
+                                        onAddToListClick = {
+                                            animeDetail?.let {
+                                                navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
+                                            }
+                                        },
                                         sharedTransitionScope = sharedTransitionScope,
                                         animatedVisibilityScope = animatedVisibilityScope,
                                         animeId = animeId
@@ -377,653 +385,6 @@ fun AnimeDetailScreen(
                             }
                         }
                     }
-                }
-            }
-
-            // Bottom sheet para añadir/editar en lista
-            if (showAddToListSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showAddToListSheet = false },
-                    sheetState = addToListSheetState
-                ) {
-                    AddToListBottomSheetContent(
-                        anime = animeDetail,
-                        existingAnime = existingAnime,
-                        isAdded = isAdded,
-                        onSave = { status, rating, startDate, endDate, priority, note ->
-                            scope.launch {
-                                animeDetailViewModel.addAnimeToList(
-                                    userScore = rating,
-                                    userStatus = status ?: "Viendo",
-                                    userOpinion = note,
-                                    startDate = startDate,
-                                    endDate = endDate,
-                                    plannedPriority = priority,
-                                    plannedNote = note
-                                )
-                                showAddToListSheet = false
-
-                                val message = if (isAdded) "Anime actualizado" else "Anime añadido a tu lista"
-                                snackbarHostState.showSnackbar(message)
-                            }
-                        },
-                        onDelete = {
-                            scope.launch {
-                                // TODO: Implement delete method
-                                showAddToListSheet = false
-                                snackbarHostState.showSnackbar("Anime eliminado de tu lista")
-                            }
-                        },
-                        onDismiss = { showAddToListSheet = false }
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ============================================================================
-// BOTTOM SHEET (TODO: Implementar UI completa)
-// ============================================================================
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddToListBottomSheetContent(
-    anime: AnimeDetail?,
-    existingAnime: com.yumedev.seijakulist.domain.models.AnimeEntityDomain?,
-    isAdded: Boolean,
-    onSave: (String?, Float, Long?, Long?, String?, String) -> Unit,
-    onDelete: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    // Estado del sheet
-    var sheetStatus by remember { mutableStateOf(existingAnime?.userStatus) }
-    var sheetRating by remember { mutableStateOf(existingAnime?.userScore ?: 0f) }
-    var sheetOpinion by remember { mutableStateOf(existingAnime?.userOpiniun ?: "") }
-    var sheetStartDate by remember { mutableStateOf(existingAnime?.startDate) }
-    var sheetEndDate by remember { mutableStateOf(existingAnime?.endDate) }
-    var sheetPlannedPriority by remember { mutableStateOf(existingAnime?.plannedPriority) }
-    var sheetPlannedNote by remember { mutableStateOf(existingAnime?.plannedNote ?: "") }
-
-    var sheetShowStartPicker by remember { mutableStateOf(false) }
-    var sheetShowEndPicker by remember { mutableStateOf(false) }
-
-    val statusList = listOf(
-        "Viendo" to Icons.Default.PlayArrow,
-        "Completado" to Icons.Default.CheckCircle,
-        "Pendiente" to Icons.Default.WatchLater,
-        "Abandonado" to Icons.Default.Close,
-        "Planeado" to Icons.Default.EventNote
-    )
-    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
-
-    // DatePicker Dialogs
-    if (sheetShowStartPicker) {
-        DatePickerDialog(
-            onDismissRequest = { sheetShowStartPicker = false },
-            confirmButton = {
-                TextButton(onClick = { sheetShowStartPicker = false }) {
-                    Text("OK", fontFamily = PoppinsMedium)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { sheetShowStartPicker = false }) {
-                    Text("Cancelar", fontFamily = PoppinsRegular)
-                }
-            }
-        ) {
-            val pickerState = rememberDatePickerState(initialSelectedDateMillis = sheetStartDate)
-            DatePicker(state = pickerState)
-            sheetStartDate = pickerState.selectedDateMillis
-        }
-    }
-
-    if (sheetShowEndPicker) {
-        DatePickerDialog(
-            onDismissRequest = { sheetShowEndPicker = false },
-            confirmButton = {
-                TextButton(onClick = { sheetShowEndPicker = false }) {
-                    Text("OK", fontFamily = PoppinsMedium)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { sheetShowEndPicker = false }) {
-                    Text("Cancelar", fontFamily = PoppinsRegular)
-                }
-            }
-        ) {
-            val pickerState = rememberDatePickerState(initialSelectedDateMillis = sheetEndDate)
-            DatePicker(state = pickerState)
-            sheetEndDate = pickerState.selectedDateMillis
-        }
-    }
-
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // Contenido scrolleable
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-        // Estado - Card con grid compacto y con iconos
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "¿Cuál es el estado?",
-                        fontFamily = PoppinsBold,
-                        fontSize = 21.sp,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                        letterSpacing = 0.3.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.height(200.adp()),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(statusList) { (status, icon) ->
-                        val isSelected = sheetStatus == status
-                        val statusColor = getAnimeStatusColor(status)
-
-                        Card(
-                            onClick = { sheetStatus = if (isSelected) null else status },
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) statusColor.copy(alpha = 0.15f)
-                                else MaterialTheme.colorScheme.surfaceContainerHighest
-                            ),
-                            modifier = Modifier.height(60.adp()),
-                            shape = RoundedCornerShape(14.dp),
-                            border = if (isSelected)
-                                androidx.compose.foundation.BorderStroke(2.dp, statusColor)
-                            else null,
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = if (isSelected) 4.dp else 1.dp
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.adp()),
-                                    tint = if (isSelected) statusColor else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    status,
-                                    fontSize = 12.asp(),
-                                    fontFamily = if (isSelected) PoppinsBold else PoppinsRegular,
-                                    color = if (isSelected) statusColor else MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Prioridad y Nota (solo si Planeado) - Card
-        AnimatedVisibility(
-            visible = sheetStatus == "Planeado",
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Prioridad del plan",
-                            fontFamily = PoppinsBold,
-                            fontSize = 21.sp,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            letterSpacing = 0.3.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    val priorities = listOf(
-                        "Alta" to Color(0xFFEF5350),
-                        "Media" to Color(0xFFFFCA28),
-                        "Baja" to Color(0xFF66BB6A)
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        priorities.forEach { (priority, color) ->
-                            val isSel = sheetPlannedPriority == priority
-                            Card(
-                                onClick = { sheetPlannedPriority = if (isSel) null else priority },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.adp()),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (isSel) color.copy(alpha = 0.2f)
-                                                   else MaterialTheme.colorScheme.surfaceContainerHighest
-                                ),
-                                border = if (isSel) androidx.compose.foundation.BorderStroke(2.dp, color) else null,
-                                elevation = CardDefaults.cardElevation(defaultElevation = if (isSel) 3.dp else 1.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        priority,
-                                        fontSize = 14.asp(),
-                                        fontFamily = if (isSel) PoppinsBold else PoppinsRegular,
-                                        color = if (isSel) color else MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    OutlinedTextField(
-                        value = sheetPlannedNote,
-                        onValueChange = { sheetPlannedNote = it },
-                        placeholder = {
-                            Text(
-                                "¿Por qué lo tenés planeado?",
-                                fontFamily = PoppinsRegular,
-                                fontSize = 13.asp()
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        maxLines = 3,
-                        textStyle = androidx.compose.ui.text.TextStyle(
-                            fontFamily = PoppinsRegular,
-                            fontSize = 14.asp()
-                        )
-                    )
-                }
-            }
-        }
-
-        // Calificación (solo si no es Planeado) - Card
-        AnimatedVisibility(
-            visible = sheetStatus != null && sheetStatus != "Planeado",
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Tu calificación",
-                                fontFamily = PoppinsBold,
-                                fontSize = 21.sp,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                letterSpacing = 0.3.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        if (sheetRating > 0) {
-                            Surface(
-                                shape = RoundedCornerShape(20.dp),
-                                color = Color(0xFFFFD700).copy(alpha = 0.15f)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        String.format("%.1f", sheetRating),
-                                        fontSize = 16.asp(),
-                                        fontFamily = PoppinsBold,
-                                        color = Color(0xFFFFD700)
-                                    )
-                                    Text(
-                                        "/ 10",
-                                        fontSize = 12.asp(),
-                                        fontFamily = PoppinsRegular,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    RatingBar(
-                        rating = sheetRating,
-                        onRatingChange = { sheetRating = it },
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-            }
-        }
-
-        // Opinión - Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Tu opinión (opcional)",
-                        fontFamily = PoppinsBold,
-                        fontSize = 21.sp,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                        letterSpacing = 0.3.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                OutlinedTextField(
-                    value = sheetOpinion,
-                    onValueChange = { sheetOpinion = it },
-                    placeholder = {
-                        Text(
-                            "Comparte qué te pareció este anime...",
-                            fontFamily = PoppinsRegular,
-                            fontSize = 13.asp()
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(110.adp()),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    maxLines = 4,
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        fontFamily = PoppinsRegular,
-                        fontSize = 14.asp()
-                    )
-                )
-            }
-        }
-
-        // Fechas - Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Fechas (opcional)",
-                        fontFamily = PoppinsBold,
-                        fontSize = 21.sp,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                        letterSpacing = 0.3.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                val canStart = sheetStatus != "Planeado"
-                val canEnd = sheetStatus == "Completado"
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Fecha inicio
-                    Card(
-                        onClick = { if (canStart) sheetShowStartPicker = true },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (canStart) MaterialTheme.colorScheme.surface
-                                           else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = if (canStart) 1.dp else 0.dp
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.adp()),
-                                tint = if (canStart) MaterialTheme.colorScheme.primary
-                                      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                            )
-                            Text(
-                                sheetStartDate?.let { dateFormat.format(it) } ?: "Inicio",
-                                fontSize = 13.asp(),
-                                fontFamily = PoppinsMedium,
-                                color = if (canStart) MaterialTheme.colorScheme.onSurface
-                                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-
-                    // Fecha final
-                    Card(
-                        onClick = { if (canEnd) sheetShowEndPicker = true },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (canEnd) MaterialTheme.colorScheme.surface
-                                           else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = if (canEnd) 1.dp else 0.dp
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.adp()),
-                                tint = if (canEnd) MaterialTheme.colorScheme.primary
-                                      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                            )
-                            Text(
-                                sheetEndDate?.let { dateFormat.format(it) } ?: "Final",
-                                fontSize = 13.asp(),
-                                fontFamily = PoppinsMedium,
-                                color = if (canEnd) MaterialTheme.colorScheme.onSurface
-                                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-        }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Botón eliminar (solo si está añadido)
-                if (isAdded) {
-                    OutlinedButton(
-                        onClick = onDelete,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.adp()),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.5.dp,
-                            MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.adp())
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Eliminar",
-                            fontSize = 15.asp(),
-                            fontFamily = PoppinsBold
-                        )
-                    }
-                }
-
-                // Botón guardar
-                Button(
-                    onClick = {
-                        val selectedStatus = sheetStatus
-                        if (selectedStatus != null) {
-                            val scoreToPass = if (selectedStatus == "Planeado") 0f else sheetRating
-                            val priorityToPass = if (selectedStatus == "Planeado") sheetPlannedPriority else null
-                            val noteToPass = if (selectedStatus == "Planeado" && sheetPlannedNote.isNotBlank())
-                                sheetPlannedNote
-                            else if (sheetOpinion.isNotBlank())
-                                sheetOpinion
-                            else
-                                ""
-
-                            onSave(
-                                selectedStatus,
-                                scoreToPass,
-                                sheetStartDate,
-                                sheetEndDate,
-                                priorityToPass,
-                                noteToPass
-                            )
-                        }
-                    },
-                    enabled = sheetStatus != null,
-                    modifier = Modifier
-                        .weight(if (isAdded) 1f else 1f)
-                        .height(56.adp()),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 3.dp,
-                        pressedElevation = 6.dp
-                    )
-                ) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.adp())
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        if (isAdded) "Guardar" else "Agregar",
-                        fontSize = 15.asp(),
-                        fontFamily = PoppinsBold
-                    )
                 }
             }
         }
@@ -1444,93 +805,221 @@ private fun AnimeStatsRow(
     animeDetail: AnimeDetail?,
     modifier: Modifier = Modifier
 ) {
+    // Lista de estadísticas con su índice para animaciones escalonadas
+    val stats = remember(animeDetail) {
+        buildList {
+            animeDetail?.let {
+                if (it.score != null && it.score > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.Star,
+                            value = String.format("%.1f", it.score),
+                            label = "Score",
+                            type = StatType.SCORE
+                        )
+                    )
+                }
+                if (it.episodes != null && it.episodes > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.Tv,
+                            value = "${it.episodes}",
+                            label = "Episodios",
+                            type = StatType.EPISODES
+                        )
+                    )
+                }
+                if (it.rank != null && it.rank > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.EmojiEvents,
+                            value = "#${it.rank}",
+                            label = "Ranking",
+                            type = StatType.RANK
+                        )
+                    )
+                }
+                if (it.scoreBy != null && it.scoreBy > 0) {
+                    add(
+                        StatData(
+                            icon = Icons.Default.People,
+                            value = formatNumber(it.scoreBy),
+                            label = "Usuarios",
+                            type = StatType.USERS
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Score
-        if (animeDetail?.score != null && animeDetail.score > 0) {
+        stats.forEachIndexed { index, stat ->
             AnimeStatCard(
-                icon = Icons.Default.Star,
-                value = String.format("%.1f", animeDetail.score),
-                label = "Score",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Episodes
-        if (animeDetail?.episodes != null && animeDetail.episodes > 0) {
-            AnimeStatCard(
-                icon = Icons.Default.Tv,
-                value = "${animeDetail.episodes}",
-                label = "Episodios",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Rank
-        if (animeDetail?.rank != null && animeDetail.rank > 0) {
-            AnimeStatCard(
-                icon = Icons.Default.EmojiEvents,
-                value = "#${animeDetail.rank}",
-                label = "Ranking",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Scored By
-        if (animeDetail?.scoreBy != null && animeDetail.scoreBy > 0) {
-            AnimeStatCard(
-                icon = Icons.Default.People,
-                value = formatNumber(animeDetail.scoreBy),
-                label = "Usuarios",
+                statData = stat,
+                index = index,
+                statsCount = stats.size,
                 modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
+// Clase de datos para las estadísticas
+private data class StatData(
+    val icon: ImageVector,
+    val value: String,
+    val label: String,
+    val type: StatType
+)
+
+// Enum para tipos de estadísticas con colores específicos
+private enum class StatType {
+    SCORE, EPISODES, RANK, USERS
+}
+
 @Composable
 private fun AnimeStatCard(
-    icon: ImageVector,
-    value: String,
-    label: String,
+    statData: StatData,
+    index: Int,
+    statsCount: Int,
     modifier: Modifier = Modifier
 ) {
+    // Estados de animación
+    var isPressed by remember { mutableStateOf(false) }
+
+    // Animación de entrada escalonada (más sutil)
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "scale"
+    )
+
+    // Animación de aparición
+    val animatedAlpha by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(
+            durationMillis = 350,
+            delayMillis = index * 60,
+            easing = FastOutSlowInEasing
+        ),
+        label = "alpha"
+    )
+
+    val animatedOffset by animateFloatAsState(
+        targetValue = 0f,
+        animationSpec = tween(
+            durationMillis = 450,
+            delayMillis = index * 60,
+            easing = FastOutSlowInEasing
+        ),
+        label = "offset"
+    )
+
+    // Color de acento más sutil
+    val accentColor = when (statData.type) {
+        StatType.SCORE -> MaterialTheme.colorScheme.primary
+        StatType.EPISODES -> MaterialTheme.colorScheme.tertiary
+        StatType.RANK -> MaterialTheme.colorScheme.secondary
+        StatType.USERS -> MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+    }
+
+    // Ajustar tamaños según cantidad de stats
+    val labelFontSize = when (statsCount) {
+        1, 2 -> 10.sp
+        3 -> 9.sp
+        else -> 9.sp // 4 o más - reducido para que quepa
+    }
+
+    val valueFontSize = when (statsCount) {
+        1 -> 22.sp
+        2 -> 20.sp
+        3 -> 18.sp
+        else -> 15.sp // 4 o más - reducido para que quepa
+    }
+
+    val horizontalPadding = when (statsCount) {
+        1, 2 -> 16.dp
+        3 -> 10.dp
+        else -> 4.dp // 4 o más - muy reducido para que quepa
+    }
+
+    val verticalPadding = when (statsCount) {
+        1, 2 -> 12.dp
+        else -> 10.dp
+    }
+
+    val letterSpacing = when (statsCount) {
+        1, 2 -> 0.8.sp
+        3 -> 0.6.sp
+        else -> 0.3.sp // 4 o más - muy reducido para que quepa
+    }
+
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                alpha = animatedAlpha
+                translationY = animatedOffset * 12f
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 4.dp
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(horizontal = horizontalPadding, vertical = verticalPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
-            )
+            // Etiqueta destacada arriba
             Text(
-                text = value,
+                text = statData.label.uppercase(),
                 fontFamily = PoppinsBold,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = labelFontSize,
+                color = accentColor,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = letterSpacing,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
             )
+
+            // Valor principal grande
             Text(
-                text = label,
-                fontFamily = PoppinsRegular,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = statData.value,
+                fontFamily = PoppinsBold,
+                fontSize = valueFontSize,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.4).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -1839,9 +1328,9 @@ private fun AnimeCharactersTab(
             }
             else -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    columns = GridCells.Fixed(3),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.heightIn(max = 2000.dp),
                     userScrollEnabled = false
                 ) {
@@ -1908,29 +1397,46 @@ private fun AnimeProductionTab(
             AnimeInfoRow("Valoraciones", "${animeDetail.scoreBy} usuarios")
         }
 
-        // Studios
+        // Studios - en formato pill con colores
         if (!animeDetail?.studios.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             AnimeInfoCard(title = "Estudios") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Paleta de colores para los chips
+                val chipColors = listOf(
+                    Color(0xFF2196F3), // Azul
+                    Color(0xFF9C27B0), // Púrpura
+                    Color(0xFF00BCD4), // Cian
+                    Color(0xFFFF5722), // Naranja rojizo
+                    Color(0xFF4CAF50), // Verde
+                    Color(0xFFFF9800), // Naranja
+                    Color(0xFFE91E63), // Rosa
+                    Color(0xFF009688)  // Teal
+                )
+
+                androidx.compose.foundation.layout.FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     animeDetail.studios.filterNotNull()
                         .filter { !it.nameStudio.isNullOrBlank() }
-                        .forEach { studio ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Business,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
+                        .forEachIndexed { index, studio ->
+                            val chipColor = chipColors[index % chipColors.size]
+
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = chipColor.copy(alpha = 0.15f),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    chipColor.copy(alpha = 0.5f)
                                 )
+                            ) {
                                 Text(
                                     text = studio.nameStudio ?: "",
-                                    fontFamily = PoppinsMedium,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 12.sp,
+                                    color = chipColor,
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                                 )
                             }
                         }
@@ -1938,29 +1444,46 @@ private fun AnimeProductionTab(
             }
         }
 
-        // Producers
+        // Producers - en formato pill con colores
         if (!animeDetail?.producers.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             AnimeInfoCard(title = "Productores") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Paleta de colores para los chips
+                val chipColors = listOf(
+                    Color(0xFF2196F3), // Azul
+                    Color(0xFF9C27B0), // Púrpura
+                    Color(0xFF00BCD4), // Cian
+                    Color(0xFFFF5722), // Naranja rojizo
+                    Color(0xFF4CAF50), // Verde
+                    Color(0xFFFF9800), // Naranja
+                    Color(0xFFE91E63), // Rosa
+                    Color(0xFF009688)  // Teal
+                )
+
+                androidx.compose.foundation.layout.FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     animeDetail.producers.filterNotNull()
                         .filter { !it.name.isNullOrBlank() }
-                        .forEach { producer ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Movie,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
+                        .forEachIndexed { index, producer ->
+                            val chipColor = chipColors[index % chipColors.size]
+
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = chipColor.copy(alpha = 0.15f),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    chipColor.copy(alpha = 0.5f)
                                 )
+                            ) {
                                 Text(
                                     text = producer.name ?: "",
-                                    fontFamily = PoppinsMedium,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 12.sp,
+                                    color = chipColor,
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                                 )
                             }
                         }
@@ -2056,21 +1579,28 @@ private fun AnimeCharacterCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Colores según el rol
+    val roleColor = when (character.role.lowercase()) {
+        "main" -> Color(0xFFFF5722) // Naranja rojizo - protagonista
+        "supporting" -> Color(0xFF2196F3) // Azul - soporte
+        else -> Color(0xFF9E9E9E) // Gris - otro
+    }
+
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column {
-            // Character image
+            // Character image - muy compacto para 3 columnas
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.75f)
+                    .aspectRatio(0.62f) // Reducido más para 3 columnas
             ) {
                 AsyncImage(
                     model = character.imageCharacter?.jpg?.imageUrl,
@@ -2079,44 +1609,73 @@ private fun AnimeCharacterCard(
                     contentScale = ContentScale.Crop
                 )
 
-                // Role badge
+                // Gradiente en la parte inferior para mejor legibilidad del nombre
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.75f)
+                                )
+                            )
+                        )
+                )
+
+                // Role badge mejorado - icono + texto compacto
                 if (character.role.isNotBlank()) {
+                    val (icon, roleText) = when (character.role.lowercase()) {
+                        "main" -> "★" to "Main"
+                        "supporting" -> "◆" to "Supp"
+                        else -> "•" to character.role.take(4)
+                    }
+
                     Surface(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        color = when (character.role.lowercase()) {
-                            "main" -> MaterialTheme.colorScheme.primary
-                            "supporting" -> MaterialTheme.colorScheme.secondary
-                            else -> MaterialTheme.colorScheme.tertiary
-                        }
+                            .align(Alignment.TopStart)
+                            .padding(4.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        color = roleColor.copy(alpha = 0.9f)
                     ) {
-                        Text(
-                            text = when (character.role.lowercase()) {
-                                "main" -> "MAIN"
-                                "supporting" -> "SUPP"
-                                else -> character.role.take(4).uppercase()
-                            },
-                            fontFamily = PoppinsBold,
-                            fontSize = 9.sp,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = icon,
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                text = roleText,
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.sp,
+                                color = Color.White,
+                                letterSpacing = 0.2.sp
+                            )
+                        }
                     }
                 }
-            }
 
-            // Character name
-            Text(
-                text = character.nameCharacter ?: "Unknown",
-                fontFamily = PoppinsMedium,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(12.dp)
-            )
+                // Character name sobre la imagen - en la parte inferior
+                Text(
+                    text = character.nameCharacter ?: "Unknown",
+                    fontFamily = PoppinsBold,
+                    fontSize = 9.sp,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 11.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(6.dp)
+                )
+            }
         }
     }
 }
@@ -2127,35 +1686,60 @@ private fun AnimeInfoRow(
     value: String,
     modifier: Modifier = Modifier
 ) {
+    val gradientColors = listOf(
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    )
+
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-        )
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = gradientColors,
+                        startX = 0f,
+                        endX = 400f // El gradiente termina rápido, antes del texto
+                    )
+                )
+                .padding(horizontal = 20.dp, vertical = 14.dp)
         ) {
-            Text(
-                text = label,
-                fontFamily = PoppinsMedium,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = value,
-                fontFamily = PoppinsBold,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Label - lado izquierdo
+                Text(
+                    text = label,
+                    fontFamily = PoppinsMedium,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Value - lado derecho con énfasis
+                Text(
+                    text = value,
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
         }
     }
 }
@@ -2164,17 +1748,41 @@ private fun AnimeInfoRow(
 private fun AnimeTypeBadge(type: String) {
     if (type.isBlank()) return
 
+    // Mapeo de tipos de anime con colores específicos (AniList format)
+    val (icon, color) = when (type) {
+        "TV" -> Icons.Default.Tv to Color(0xFF2196F3) // Azul
+        "MOVIE" -> Icons.Default.Movie to Color(0xFF9C27B0) // Púrpura
+        "OVA" -> Icons.Default.PlayCircle to Color(0xFF00BCD4) // Cian
+        "ONA" -> Icons.Default.PlayCircle to Color(0xFF009688) // Teal
+        "SPECIAL" -> Icons.Default.Star to Color(0xFFFF9800) // Naranja
+        "MUSIC" -> Icons.Default.MusicNote to Color(0xFFE91E63) // Rosa
+        else -> Icons.Default.Tv to Color(0xFF2196F3) // Azul por defecto
+    }
+
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.primaryContainer
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = formatAnimeType(type),
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = color
+            )
+            Text(
+                text = formatAnimeType(type),
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 
@@ -2182,24 +1790,64 @@ private fun AnimeTypeBadge(type: String) {
 private fun AnimeStatusBadge(status: String) {
     if (status.isBlank()) return
 
-    val (text, containerColor) = when (status) {
-        "Finished Airing" -> "Finalizado" to MaterialTheme.colorScheme.tertiaryContainer
-        "Currently Airing" -> "En emisión" to MaterialTheme.colorScheme.secondaryContainer
-        "Not yet aired" -> "Próximo" to MaterialTheme.colorScheme.primaryContainer
-        else -> status to MaterialTheme.colorScheme.surfaceVariant
+    // Mapeo completo de todos los estados posibles de AniList API (igual que manga)
+    val (text, icon, color) = when (status) {
+        "FINISHED" -> Triple(
+            "Finalizado",
+            Icons.Default.CheckCircle,
+            Color(0xFF4CAF50) // Verde - completado
+        )
+        "RELEASING" -> Triple(
+            "En emisión",
+            Icons.Default.FiberManualRecord,
+            Color(0xFF2196F3) // Azul - futuro
+        )
+        "NOT_YET_RELEASED" -> Triple(
+            "Próximamente",
+            Icons.Default.Schedule,
+            Color(0xFFFF5722) // Rojo/Naranja - en vivo
+        )
+        "CANCELLED" -> Triple(
+            "Cancelado",
+            Icons.Default.Cancel,
+            Color(0xFFF44336) // Rojo - cancelado
+        )
+        "HIATUS" -> Triple(
+            "En pausa",
+            Icons.Default.Pause,
+            Color(0xFFFF9800) // Naranja - pausado
+        )
+        else -> Triple(
+            status,
+            Icons.Default.Info,
+            Color(0xFF757575) // Gris - desconocido
+        )
     }
 
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = containerColor
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = text,
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(if (status == "RELEASING") 10.dp else 14.dp),
+                tint = color
+            )
+            Text(
+                text = text,
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 
@@ -2207,26 +1855,30 @@ private fun AnimeStatusBadge(status: String) {
 private fun AnimeBroadcastBadge(broadcast: String) {
     if (broadcast.isBlank()) return
 
+    val color = MaterialTheme.colorScheme.primary
+
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.12f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.4f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Schedule,
                 contentDescription = null,
-                modifier = Modifier.size(12.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                modifier = Modifier.size(14.dp),
+                tint = color
             )
             Text(
                 text = broadcast,
-                fontFamily = PoppinsMedium,
-                fontSize = 9.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
             )
         }
     }
@@ -2322,18 +1974,20 @@ private fun AnimeErrorState(
 
 private fun formatAnimeType(type: String): String = when (type) {
     "TV" -> "TV"
-    "Movie" -> "Película"
+    "MOVIE" -> "Película"
     "OVA" -> "OVA"
     "ONA" -> "ONA"
-    "Special" -> "Especial"
-    "Music" -> "Música"
+    "SPECIAL" -> "Especial"
+    "MUSIC" -> "Música"
     else -> type
 }
 
 private fun formatAnimeStatus(status: String): String = when (status) {
-    "Finished Airing" -> "Finalizado"
-    "Currently Airing" -> "En emisión"
-    "Not yet aired" -> "Próximamente"
+    "FINISHED" -> "Finalizado"
+    "RELEASING" -> "En emisión"
+    "NOT_YET_RELEASED" -> "Próximamente"
+    "CANCELLED" -> "Cancelado"
+    "HIATUS" -> "En pausa"
     else -> status
 }
 

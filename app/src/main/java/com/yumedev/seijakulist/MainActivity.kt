@@ -430,6 +430,44 @@ fun AppNavigation(
         ) {
             PolicyPrivacyScreen(navController)
         }
+        composable(
+            arguments = listOf(navArgument(AppDestinations.ADD_TO_LIST_ANIME_ID_KEY) { type = NavType.IntType }),
+            route = "${AppDestinations.ADD_TO_LIST_ROUTE}/{${AppDestinations.ADD_TO_LIST_ANIME_ID_KEY}}",
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            }
+        ) { backStackEntry ->
+            val animeId = backStackEntry.arguments?.getInt(AppDestinations.ADD_TO_LIST_ANIME_ID_KEY)
+            if (animeId != null) {
+                com.yumedev.seijakulist.ui.screens.add_to_list.AddToListScreen(
+                    navController = navController,
+                    animeId = animeId
+                )
+            } else {
+                Text("Error: anime no encontrado")
+            }
+        }
         }
     }
 }

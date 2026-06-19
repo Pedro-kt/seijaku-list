@@ -24,7 +24,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -33,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import android.widget.Toast
@@ -121,8 +124,7 @@ fun MangaDetailScreen(
                         },
                         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background
-                        ),
-                        windowInsets = WindowInsets(0.dp)
+                        )
                     )
                 },
                 floatingActionButton = {
@@ -455,93 +457,221 @@ private fun MangaStatsRow(
     mangaDetail: MangaDetail?,
     modifier: Modifier = Modifier
 ) {
+    // Lista de estadísticas con su índice para animaciones escalonadas
+    val stats = remember(mangaDetail) {
+        buildList {
+            mangaDetail?.let {
+                if (it.score != null && it.score > 0) {
+                    add(
+                        MangaStatData(
+                            icon = Icons.Default.Star,
+                            value = String.format("%.1f", it.score),
+                            label = "Score",
+                            type = MangaStatType.SCORE
+                        )
+                    )
+                }
+                if (it.chapters != null && it.chapters > 0) {
+                    add(
+                        MangaStatData(
+                            icon = Icons.Default.Book,
+                            value = "${it.chapters}",
+                            label = "Capítulos",
+                            type = MangaStatType.CHAPTERS
+                        )
+                    )
+                }
+                if (it.volumes != null && it.volumes > 0) {
+                    add(
+                        MangaStatData(
+                            icon = Icons.Default.Collections,
+                            value = "${it.volumes}",
+                            label = "Volúmenes",
+                            type = MangaStatType.VOLUMES
+                        )
+                    )
+                }
+                if (it.rank != null && it.rank > 0) {
+                    add(
+                        MangaStatData(
+                            icon = Icons.Default.EmojiEvents,
+                            value = "#${it.rank}",
+                            label = "Ranking",
+                            type = MangaStatType.RANK
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Score
-        if (mangaDetail?.score != null && mangaDetail.score > 0) {
+        stats.forEachIndexed { index, stat ->
             MangaStatCard(
-                icon = Icons.Default.Star,
-                value = String.format("%.1f", mangaDetail.score),
-                label = "Score",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Chapters
-        if (mangaDetail?.chapters != null && mangaDetail.chapters > 0) {
-            MangaStatCard(
-                icon = Icons.Default.Book,
-                value = "${mangaDetail.chapters}",
-                label = "Capítulos",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Volumes
-        if (mangaDetail?.volumes != null && mangaDetail.volumes > 0) {
-            MangaStatCard(
-                icon = Icons.Default.Collections,
-                value = "${mangaDetail.volumes}",
-                label = "Volúmenes",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // Rank
-        if (mangaDetail?.rank != null && mangaDetail.rank > 0) {
-            MangaStatCard(
-                icon = Icons.Default.EmojiEvents,
-                value = "#${mangaDetail.rank}",
-                label = "Ranking",
+                statData = stat,
+                index = index,
+                statsCount = stats.size,
                 modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
+// Clase de datos para las estadísticas del manga
+private data class MangaStatData(
+    val icon: ImageVector,
+    val value: String,
+    val label: String,
+    val type: MangaStatType
+)
+
+// Enum para tipos de estadísticas del manga con colores específicos
+private enum class MangaStatType {
+    SCORE, CHAPTERS, VOLUMES, RANK
+}
+
 @Composable
 private fun MangaStatCard(
-    icon: ImageVector,
-    value: String,
-    label: String,
+    statData: MangaStatData,
+    index: Int,
+    statsCount: Int,
     modifier: Modifier = Modifier
 ) {
+    // Estados de animación
+    var isPressed by remember { mutableStateOf(false) }
+
+    // Animación de entrada escalonada (más sutil)
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "scale"
+    )
+
+    // Animación de aparición
+    val animatedAlpha by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(
+            durationMillis = 350,
+            delayMillis = index * 60,
+            easing = FastOutSlowInEasing
+        ),
+        label = "alpha"
+    )
+
+    val animatedOffset by animateFloatAsState(
+        targetValue = 0f,
+        animationSpec = tween(
+            durationMillis = 450,
+            delayMillis = index * 60,
+            easing = FastOutSlowInEasing
+        ),
+        label = "offset"
+    )
+
+    // Color de acento más sutil
+    val accentColor = when (statData.type) {
+        MangaStatType.SCORE -> MaterialTheme.colorScheme.primary
+        MangaStatType.CHAPTERS -> MaterialTheme.colorScheme.tertiary
+        MangaStatType.VOLUMES -> MaterialTheme.colorScheme.secondary
+        MangaStatType.RANK -> MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+    }
+
+    // Ajustar tamaños según cantidad de stats
+    val labelFontSize = when (statsCount) {
+        1, 2 -> 10.sp
+        3 -> 9.sp
+        else -> 9.sp // 4 o más - reducido para que quepa
+    }
+
+    val valueFontSize = when (statsCount) {
+        1 -> 22.sp
+        2 -> 20.sp
+        3 -> 18.sp
+        else -> 15.sp // 4 o más - reducido para que quepa
+    }
+
+    val horizontalPadding = when (statsCount) {
+        1, 2 -> 16.dp
+        3 -> 10.dp
+        else -> 4.dp // 4 o más - muy reducido para que quepa
+    }
+
+    val verticalPadding = when (statsCount) {
+        1, 2 -> 12.dp
+        else -> 10.dp
+    }
+
+    val letterSpacing = when (statsCount) {
+        1, 2 -> 0.8.sp
+        3 -> 0.6.sp
+        else -> 0.3.sp // 4 o más - muy reducido para que quepa
+    }
+
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                alpha = animatedAlpha
+                translationY = animatedOffset * 12f
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 4.dp
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(horizontal = horizontalPadding, vertical = verticalPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
-            )
+            // Etiqueta destacada arriba
             Text(
-                text = value,
+                text = statData.label.uppercase(),
                 fontFamily = PoppinsBold,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                fontSize = labelFontSize,
+                color = accentColor,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = letterSpacing,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
             )
+
+            // Valor principal grande
             Text(
-                text = label,
-                fontFamily = PoppinsRegular,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = statData.value,
+                fontFamily = PoppinsBold,
+                fontSize = valueFontSize,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.4).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -814,9 +944,9 @@ private fun MangaCharactersTab(
             }
             else -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    columns = GridCells.Fixed(3),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.heightIn(max = 2000.dp),
                     userScrollEnabled = false
                 ) {
@@ -875,27 +1005,44 @@ private fun MangaInfoTab(
             MangaInfoRow("Valoraciones", "${mangaDetail.scoreBy} usuarios")
         }
 
-        // Serializations
+        // Serializations - en formato pill con colores
         if (!mangaDetail?.serializations.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             MangaInfoCard(title = "Publicado en") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    mangaDetail.serializations.forEach { serialization ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Newspaper,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
+                // Paleta de colores para los chips
+                val chipColors = listOf(
+                    Color(0xFF2196F3), // Azul
+                    Color(0xFF9C27B0), // Púrpura
+                    Color(0xFF00BCD4), // Cian
+                    Color(0xFFFF5722), // Naranja rojizo
+                    Color(0xFF4CAF50), // Verde
+                    Color(0xFFFF9800), // Naranja
+                    Color(0xFFE91E63), // Rosa
+                    Color(0xFF009688)  // Teal
+                )
+
+                androidx.compose.foundation.layout.FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    mangaDetail.serializations.forEachIndexed { index, serialization ->
+                        val chipColor = chipColors[index % chipColors.size]
+
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = chipColor.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                chipColor.copy(alpha = 0.5f)
                             )
+                        ) {
                             Text(
                                 text = serialization.name,
-                                fontFamily = PoppinsMedium,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontFamily = PoppinsBold,
+                                fontSize = 12.sp,
+                                color = chipColor,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                             )
                         }
                     }
@@ -1003,21 +1150,28 @@ private fun MangaCharacterCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Colores según el rol
+    val roleColor = when (character.role.lowercase()) {
+        "main" -> Color(0xFFFF5722) // Naranja rojizo - protagonista
+        "supporting" -> Color(0xFF2196F3) // Azul - soporte
+        else -> Color(0xFF9E9E9E) // Gris - otro
+    }
+
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column {
-            // Character image
+            // Character image - muy compacto para 3 columnas
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.75f)
+                    .aspectRatio(0.62f) // Reducido más para 3 columnas
             ) {
                 AsyncImage(
                     model = character.imageCharacter?.jpg?.imageUrl,
@@ -1026,44 +1180,73 @@ private fun MangaCharacterCard(
                     contentScale = ContentScale.Crop
                 )
 
-                // Role badge
+                // Gradiente en la parte inferior para mejor legibilidad del nombre
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.75f)
+                                )
+                            )
+                        )
+                )
+
+                // Role badge mejorado - icono + texto compacto
                 if (character.role.isNotBlank()) {
+                    val (icon, roleText) = when (character.role.lowercase()) {
+                        "main" -> "★" to "Main"
+                        "supporting" -> "◆" to "Supp"
+                        else -> "•" to character.role.take(4)
+                    }
+
                     Surface(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        color = when (character.role.lowercase()) {
-                            "main" -> MaterialTheme.colorScheme.primary
-                            "supporting" -> MaterialTheme.colorScheme.secondary
-                            else -> MaterialTheme.colorScheme.tertiary
-                        }
+                            .align(Alignment.TopStart)
+                            .padding(4.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        color = roleColor.copy(alpha = 0.9f)
                     ) {
-                        Text(
-                            text = when (character.role.lowercase()) {
-                                "main" -> "MAIN"
-                                "supporting" -> "SUPP"
-                                else -> character.role.take(4).uppercase()
-                            },
-                            fontFamily = PoppinsBold,
-                            fontSize = 9.sp,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = icon,
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                text = roleText,
+                                fontFamily = PoppinsBold,
+                                fontSize = 9.sp,
+                                color = Color.White,
+                                letterSpacing = 0.2.sp
+                            )
+                        }
                     }
                 }
-            }
 
-            // Character name
-            Text(
-                text = character.nameCharacter ?: "Unknown",
-                fontFamily = PoppinsMedium,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(12.dp)
-            )
+                // Character name sobre la imagen - en la parte inferior
+                Text(
+                    text = character.nameCharacter ?: "Unknown",
+                    fontFamily = PoppinsBold,
+                    fontSize = 9.sp,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 11.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(6.dp)
+                )
+            }
         }
     }
 }
@@ -1074,35 +1257,60 @@ private fun MangaInfoRow(
     value: String,
     modifier: Modifier = Modifier
 ) {
+    val gradientColors = listOf(
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    )
+
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = gradientColors,
+                        startX = 0f,
+                        endX = 400f // El gradiente termina rápido, antes del texto
+                    )
+                )
+                .padding(horizontal = 20.dp, vertical = 14.dp)
         ) {
-            Text(
-                text = label,
-                fontFamily = PoppinsMedium,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = value,
-                fontFamily = PoppinsBold,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Label - lado izquierdo
+                Text(
+                    text = label,
+                    fontFamily = PoppinsMedium,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Value - lado derecho con énfasis
+                Text(
+                    text = value,
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
         }
     }
 }
@@ -1111,17 +1319,40 @@ private fun MangaInfoRow(
 private fun MangaTypeBadge(type: String) {
     if (type.isBlank()) return
 
+    // Mapeo de tipos de manga con colores específicos
+    val (icon, color) = when (type) {
+        "MANGA" -> Icons.Default.Book to Color(0xFF2196F3) // Azul
+        "NOVEL" -> Icons.Default.MenuBook to Color(0xFF9C27B0) // Púrpura
+        "ONE_SHOT" -> Icons.Default.Description to Color(0xFF00BCD4) // Cian
+        "MANHWA" -> Icons.Default.Book to Color(0xFFFF5722) // Naranja rojizo (Corea)
+        "MANHUA" -> Icons.Default.Book to Color(0xFFF44336) // Rojo (China)
+        else -> Icons.Default.Book to Color(0xFF2196F3) // Azul por defecto
+    }
+
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.primaryContainer
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = formatMangaType(type),
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = color
+            )
+            Text(
+                text = formatMangaType(type),
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 
@@ -1129,26 +1360,64 @@ private fun MangaTypeBadge(type: String) {
 private fun MangaStatusBadge(status: String) {
     if (status.isBlank()) return
 
-    val (text, containerColor) = when (status) {
-        "FINISHED" -> "Completado" to MaterialTheme.colorScheme.tertiaryContainer
-        "RELEASING" -> "En curso" to MaterialTheme.colorScheme.secondaryContainer
-        "NOT_YET_RELEASED" -> "Próximo" to MaterialTheme.colorScheme.primaryContainer
-        "CANCELLED" -> "Cancelado" to MaterialTheme.colorScheme.errorContainer
-        "HIATUS" -> "Pausado" to MaterialTheme.colorScheme.surfaceVariant
-        else -> status to MaterialTheme.colorScheme.surfaceVariant
+    // Mapeo completo de todos los estados posibles de AniList API para manga
+    val (text, icon, color) = when (status) {
+        "FINISHED" -> Triple(
+            "Completado",
+            Icons.Default.CheckCircle,
+            Color(0xFF4CAF50) // Verde - completado
+        )
+        "RELEASING" -> Triple(
+            "En publicación",
+            Icons.Default.FiberManualRecord,
+            Color(0xFF2196F3) // Azul - activo
+        )
+        "NOT_YET_RELEASED" -> Triple(
+            "Próximamente",
+            Icons.Default.Schedule,
+            Color(0xFF9C27B0) // Púrpura - futuro
+        )
+        "CANCELLED" -> Triple(
+            "Cancelado",
+            Icons.Default.Cancel,
+            Color(0xFFF44336) // Rojo - error/cancelado
+        )
+        "HIATUS" -> Triple(
+            "En pausa",
+            Icons.Default.Pause,
+            Color(0xFFFF9800) // Naranja - pausado
+        )
+        else -> Triple(
+            status,
+            Icons.Default.Info,
+            Color(0xFF757575) // Gris - desconocido
+        )
     }
 
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = containerColor
+        shape = RoundedCornerShape(8.dp),
+        color = color.copy(alpha = 0.15f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
     ) {
-        Text(
-            text = text,
-            fontFamily = PoppinsBold,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(if (status == "RELEASING") 10.dp else 14.dp),
+                tint = color
+            )
+            Text(
+                text = text,
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
+        }
     }
 }
 

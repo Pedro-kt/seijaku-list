@@ -1,25 +1,30 @@
 package com.yumedev.seijakulist.ui.screens.detail.components.shared
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.automirrored.filled.StarHalf
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -522,7 +527,8 @@ fun StatsCard(
 }
 
 /**
- * Barra de rating con estrellas
+ * Barra de rating con estrellas personalizadas (0-10)
+ * Permite calificaciones en incrementos de 0.5 (medias estrellas)
  */
 @Composable
 fun RatingBar(
@@ -532,38 +538,111 @@ fun RatingBar(
     stars: Int = 10,
     starColor: Color = Color(0xFFFFD700)
 ) {
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .height(48.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row {
-            for (i in 1..stars) {
-                val starValue = i.toFloat()
-                val isFilled = starValue <= rating
-                val isHalfFilled = (starValue - 0.5f) <= rating && !isFilled
-
-                val imageVector = when {
-                    isFilled -> Icons.Default.Star
-                    isHalfFilled -> Icons.AutoMirrored.Filled.StarHalf
-                    else -> Icons.Default.StarBorder
-                }
-
-                val starTint = if (isFilled || isHalfFilled) starColor else Color.Gray
-
-                Icon(
-                    imageVector = imageVector,
-                    contentDescription = null,
-                    tint = starTint,
-                    modifier = Modifier
-                        .size(32.adp())
-                        .clickable {
-                            onRatingChange(starValue)
-                        }
-                )
-            }
+        for (i in 1..stars) {
+            StarIcon(
+                position = i,
+                rating = rating,
+                onRatingChange = onRatingChange,
+                starColor = starColor,
+                emptyStarColor = Color(0xFF404040)
+            )
         }
+    }
+}
+
+@Composable
+private fun StarIcon(
+    position: Int,
+    rating: Float,
+    onRatingChange: (Float) -> Unit,
+    starColor: Color,
+    emptyStarColor: Color
+) {
+    // Determinar qué tipo de estrella mostrar
+    val filled = position <= kotlin.math.floor(rating).toInt()
+    val halfFilled = position == kotlin.math.floor(rating).toInt() + 1 && rating % 1 != 0f
+
+    // Animación de escala al presionar
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1f,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessHigh
+        ),
+        label = "star_scale"
+    )
+
+    // Animación de aparición
+    val alpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 300,
+            delayMillis = position * 30,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "star_alpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .scale(scale)
+            .pointerInput(position) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = { offset ->
+                        // Determinar si es click en la mitad izquierda o derecha
+                        val clickedOnLeftHalf = offset.x < size.width / 2
+                        val newRating = if (clickedOnLeftHalf) {
+                            position - 0.5f
+                        } else {
+                            position.toFloat()
+                        }
+
+                        // Si se clickea la misma estrella, resetear a 0
+                        if (newRating == rating) {
+                            onRatingChange(0f)
+                        } else {
+                            onRatingChange(newRating.coerceIn(0f, 10f))
+                        }
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        val starDrawable = when {
+            filled -> com.yumedev.seijakulist.R.drawable.ic_star_solid
+            halfFilled -> com.yumedev.seijakulist.R.drawable.ic_star_half
+            else -> com.yumedev.seijakulist.R.drawable.ic_star_outline
+        }
+
+        val tintColor = when {
+            filled || halfFilled -> starColor
+            else -> emptyStarColor
+        }
+
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(id = starDrawable),
+            contentDescription = "Star $position",
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    this.alpha = alpha
+                },
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(tintColor)
+        )
     }
 }
 
