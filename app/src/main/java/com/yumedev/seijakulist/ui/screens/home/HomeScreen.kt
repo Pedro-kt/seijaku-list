@@ -147,6 +147,9 @@ import kotlinx.coroutines.delay
 import com.yumedev.seijakulist.ui.theme.adp
 import com.yumedev.seijakulist.ui.theme.asp
 import com.yumedev.seijakulist.ui.theme.getAnimeStatusColor
+import com.yumedev.seijakulist.ui.theme.SeijakuSemanticColors
+import com.yumedev.seijakulist.ui.theme.SeijakuColors
+import androidx.compose.foundation.isSystemInDarkTheme
 import kotlinx.coroutines.launch
 import com.yumedev.seijakulist.ui.screens.home.anilist.AiringAnimeAniListViewModel
 import com.yumedev.seijakulist.ui.screens.home.anilist.TopAnimeAniListViewModel
@@ -1240,28 +1243,26 @@ private fun HeroPlaceholderCard() {
 private data class HeroBadgeConfig(
     val displayLabel: String,
     val icon: ImageVector,
-    val color: Color
+    val badgeType: String // Tipo para buscar en SeijakuSemanticColors
 )
 
 private fun heroBadgeConfig(label: String): HeroBadgeConfig = when (label) {
-    "PARA VOS" -> HeroBadgeConfig("Pensado para vos", Icons.Default.Favorite, Color(0xFF7C3AED))
-    "PROMO" -> HeroBadgeConfig("Miralo ahora", Icons.Default.PlayArrow, Color(0xFFEA580C))
-    "SIGUE MIRANDO" -> HeroBadgeConfig("Sigue mirando", Icons.Default.Tv, Color(0xFF059669))
-    "EMPIEZA A VER" -> HeroBadgeConfig("Empieza a ver", Icons.Default.PlayArrow, Color(0xFF0891B2))
+    "PARA VOS" -> HeroBadgeConfig("Pensado para vos", Icons.Default.Favorite, "PARA VOS")
+    "PROMO" -> HeroBadgeConfig("Miralo ahora", Icons.Default.PlayArrow, "PROMO")
+    "SIGUE MIRANDO" -> HeroBadgeConfig("Sigue mirando", Icons.Default.Tv, "SIGUE MIRANDO")
+    "EMPIEZA A VER" -> HeroBadgeConfig("Empieza a ver", Icons.Default.PlayArrow, "EMPIEZA A VER")
     "NUEVOS EPISODIOS" -> HeroBadgeConfig(
         "Nuevos episodios",
         Icons.Default.FiberNew,
-        Color(0xFFDB2777)
+        "NUEVOS EPISODIOS"
     )
-
     "PRÓXIMAMENTE" -> HeroBadgeConfig(
         "Próximamente",
         Icons.Default.CalendarToday,
-        Color(0xFF2563EB)
+        "PRÓXIMAMENTE"
     )
-
-    "CLÁSICO" -> HeroBadgeConfig("Un clásico", Icons.Default.Star, Color(0xFFD97706))
-    else -> HeroBadgeConfig(label, Icons.Default.Star, Color(0xFF6200EA))
+    "CLÁSICO" -> HeroBadgeConfig("Un clásico", Icons.Default.Star, "CLÁSICO")
+    else -> HeroBadgeConfig(label, Icons.Default.Star, "DEFAULT")
 }
 
 private fun translateAnimeStatus(status: String): String = when {
@@ -1302,6 +1303,7 @@ private fun HeroAnimeCard(
     onClick: () -> Unit,
     isManga: Boolean = false
 ) {
+    val isDark = isSystemInDarkTheme()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -1447,12 +1449,13 @@ private fun HeroAnimeCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     item.score?.let { score ->
+                        val ratingColors = SeijakuSemanticColors.ratingBadgeColors(isDark)
                         HeroMetaBadge(
                             icon = Icons.Default.Star,
                             text = String.format(java.util.Locale.US, "%.1f", score),
-                            containerColor = Color(0xFFFFB300).copy(alpha = 0.22f),
-                            contentColor = Color(0xFFFFD54F),
-                            borderColor = Color(0xFFFFB300).copy(alpha = 0.45f)
+                            containerColor = ratingColors.containerColor,
+                            contentColor = ratingColors.contentColor,
+                            borderColor = ratingColors.borderColor
                         )
                     }
                     item.year?.let { year ->
@@ -1474,11 +1477,7 @@ private fun HeroAnimeCard(
                         )
                     }
                     item.status?.let { status ->
-                        val statusColor = when {
-                            status.contains("Releasing", ignoreCase = true) || status.contains("Airing", ignoreCase = true) -> Color(0xFF4CAF50)
-                            status.contains("Finished", ignoreCase = true) -> Color(0xFF64B5F6)
-                            else -> Color(0xFFCE93D8)
-                        }
+                        val statusColor = SeijakuSemanticColors.statusColor(status, isDark)
                         val statusText = when {
                             status.contains("Releasing", ignoreCase = true) && isManga -> "En publicación"
                             status.contains("Airing", ignoreCase = true) -> "En emisión"
@@ -1539,6 +1538,7 @@ private fun QuickStats(
     recentAnimes: List<AnimeEntity>,
     navController: NavController
 ) {
+    val isDark = isSystemInDarkTheme()
     var isExpanded by remember { mutableStateOf(false) }
 
     val rotationAngle by animateFloatAsState(
@@ -1626,60 +1626,62 @@ private fun QuickStats(
                     // Texto rotativo con insights - cada uno con su color
                     data class InsightData(val text: String, val color: Color)
 
-                    val insights = remember(stats) {
+                    val insights = remember(stats, isDark) {
                         buildList {
-                            // 1. Siempre: Total de animes - Azul
-                            val animeText = if (stats.totalAnimes == 1) "anime" else "animes"
-                            add(InsightData("${stats.totalAnimes} $animeText en tu lista", Color(0xFF2196F3)))
+                            var insightIndex = 0
 
-                            // 2. Siempre: Horas vistas - Verde
+                            // 1. Siempre: Total de animes - Usa cream (lo importante)
+                            val animeText = if (stats.totalAnimes == 1) "anime" else "animes"
+                            add(InsightData("${stats.totalAnimes} $animeText en tu lista", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+
+                            // 2. Siempre: Horas vistas - Usa salvia (info calma)
                             val totalMinutes = stats.totalEpisodesWatched * 24
                             val hours = totalMinutes / 60
                             val days = hours / 24
                             if (days > 0) {
                                 val diasText = if (days == 1) "día" else "días"
-                                add(InsightData("$days $diasText disfrutando anime", Color(0xFF4CAF50)))
+                                add(InsightData("$days $diasText disfrutando anime", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             } else if (hours > 0) {
                                 val horasText = if (hours == 1) "hora" else "horas"
-                                add(InsightData("$hours $horasText disfrutando anime", Color(0xFF4CAF50)))
+                                add(InsightData("$hours $horasText disfrutando anime", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             } else {
                                 val minutosText = if (totalMinutes == 1) "minuto" else "minutos"
-                                add(InsightData("$totalMinutes $minutosText disfrutando anime", Color(0xFF4CAF50)))
+                                add(InsightData("$totalMinutes $minutosText disfrutando anime", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
-                            // 3. Si completedAnimes > 0 - Celeste
+                            // 3. Si completedAnimes > 0 - Cream claro
                             if (stats.completedAnimes > 0) {
                                 val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
-                                add(InsightData("Has completado ${stats.completedAnimes} $seriesText", Color(0xFF00BCD4)))
+                                add(InsightData("Has completado ${stats.completedAnimes} $seriesText", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
-                            // 4. Si averageScore > 0 - Naranja
+                            // 4. Si averageScore > 0 - Salvia profunda
                             if (stats.averageScore > 0) {
-                                add(InsightData("Promedio ${String.format("%.1f", stats.averageScore)}/10 en tus scores", Color(0xFFFF9800)))
+                                add(InsightData("Promedio ${String.format("%.1f", stats.averageScore)}/10 en tus scores", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
-                            // 5. Si genreStats no está vacío - Morado
+                            // 5. Si genreStats no está vacío - Estado completado (logro)
                             val topGenre = stats.genreStats.maxByOrNull { it.value }?.key
                             if (topGenre != null) {
-                                add(InsightData("Tu género favorito es $topGenre", Color(0xFF9C27B0)))
+                                add(InsightData("Tu género favorito es $topGenre", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
-                            // 6. Si watchingAnimes > 0 - Rosa
+                            // 6. Si watchingAnimes > 0 - Rota colores
                             if (stats.watchingAnimes > 0) {
                                 val watchingText = if (stats.watchingAnimes == 1) "anime" else "animes"
-                                add(InsightData("Viendo ${stats.watchingAnimes} $watchingText ahora mismo", Color(0xFFE91E63)))
+                                add(InsightData("Viendo ${stats.watchingAnimes} $watchingText ahora mismo", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
-                            // 7. Si completedAnimes >= 10 - Teal
+                            // 7. Si completedAnimes >= 10 - Rota colores
                             if (stats.completedAnimes >= 10) {
                                 val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
-                                add(InsightData("¡Ya completaste ${stats.completedAnimes} $seriesText!", Color(0xFF009688)))
+                                add(InsightData("¡Ya completaste ${stats.completedAnimes} $seriesText!", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
-                            // 8. Si totalEpisodesWatched >= 100 - Índigo
+                            // 8. Si totalEpisodesWatched >= 100 - Rota colores
                             if (stats.totalEpisodesWatched >= 100) {
                                 val episodiosText = if (stats.totalEpisodesWatched == 1) "episodio visto" else "episodios vistos"
-                                add(InsightData("Llevas ${stats.totalEpisodesWatched} $episodiosText", Color(0xFF3F51B5)))
+                                add(InsightData("Llevas ${stats.totalEpisodesWatched} $episodiosText", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
                         }
                     }
