@@ -54,8 +54,8 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
-import com.yumedev.seijakulist.domain.models.AnimeCharactersDetail
 import com.yumedev.seijakulist.domain.models.AnimeDetail
+import com.yumedev.seijakulist.domain.models.AnimeEntityDomain
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.CompactDemographicCard
@@ -84,7 +84,6 @@ fun AnimeDetailScreen(
     initialTab: Int = 0,
     openSheet: Boolean = false,
     animeDetailViewModel: AnimeDetailAniListViewModel = hiltViewModel(),
-    animeCharacterDetailViewModel: AnimeCharacterDetailViewModel = hiltViewModel(),
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
@@ -92,9 +91,6 @@ fun AnimeDetailScreen(
     val animeDetail by animeDetailViewModel.animeDetail.collectAsState()
     val isLoading by animeDetailViewModel.isLoading.collectAsState()
     val errorMessage by animeDetailViewModel.errorMessage.collectAsState()
-
-    val animeCharacters by animeCharacterDetailViewModel.characters.collectAsState()
-    val charactersLoading by animeCharacterDetailViewModel.isLoading.collectAsState()
 
     val isAdded by animeDetailViewModel.isAdded.collectAsState()
     val existingAnime by animeDetailViewModel.existingAnime.collectAsState()
@@ -149,8 +145,8 @@ fun AnimeDetailScreen(
     // Set initial tab if provided
     LaunchedEffect(initialTab) {
         selectedTab = when (initialTab) {
-            1 -> AnimeDetailTab.CHARACTERS
-            2 -> AnimeDetailTab.PRODUCTION
+            1 -> AnimeDetailTab.PRODUCTION
+            2 -> AnimeDetailTab.TRACKING
             else -> AnimeDetailTab.OVERVIEW
         }
     }
@@ -178,45 +174,68 @@ fun AnimeDetailScreen(
                         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     ) {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                animeDetail?.let {
-                                    navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
-                                }
-                            },
-                            icon = {
+                        if (isAdded) {
+                            // Estado B: FAB circular "Editar" (56dp)
+                            FloatingActionButton(
+                                onClick = {
+                                    animeDetail?.let {
+                                        navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
+                                    }
+                                },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                shape = CircleShape,
+                                elevation = FloatingActionButtonDefaults.elevation(
+                                    defaultElevation = 8.dp,
+                                    pressedElevation = 12.dp,
+                                    hoveredElevation = 10.dp
+                                ),
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .padding(bottom = 8.dp)
+                            ) {
                                 Icon(
-                                    imageVector = if (isAdded) Icons.Default.Edit else Icons.Default.Favorite,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp) // Icono más grande
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Editar",
+                                    modifier = Modifier.size(24.dp)
                                 )
-                            },
-                            text = {
-                                Text(
-                                    text = if (isAdded) "Editar en lista" else "Añadir a lista",
-                                    fontFamily = PoppinsBold,
-                                    fontSize = 16.sp, // Texto más grande
-                                    letterSpacing = 0.2.sp
-                                )
-                            },
-                            containerColor = if (isAdded)
-                                MaterialTheme.colorScheme.secondaryContainer
-                            else
-                                MaterialTheme.colorScheme.primary,
-                            contentColor = if (isAdded)
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            else
-                                MaterialTheme.colorScheme.onPrimary,
-                            shape = RoundedCornerShape(20.dp), // Más redondeado
-                            elevation = FloatingActionButtonDefaults.elevation(
-                                defaultElevation = 8.dp, // Mayor elevación
-                                pressedElevation = 12.dp,
-                                hoveredElevation = 10.dp
-                            ),
-                            modifier = Modifier
-                                .height(60.dp) // Más alto
-                                .padding(bottom = 8.dp)
-                        )
+                            }
+                        } else {
+                            // Estado A: FAB extendido "Añadir a mi lista"
+                            ExtendedFloatingActionButton(
+                                onClick = {
+                                    animeDetail?.let {
+                                        navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
+                                    }
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                text = {
+                                    Text(
+                                        text = "Añadir a mi lista",
+                                        fontFamily = PoppinsBold,
+                                        fontSize = 16.sp,
+                                        letterSpacing = 0.2.sp
+                                    )
+                                },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                shape = RoundedCornerShape(20.dp),
+                                elevation = FloatingActionButtonDefaults.elevation(
+                                    defaultElevation = 8.dp,
+                                    pressedElevation = 12.dp,
+                                    hoveredElevation = 10.dp
+                                ),
+                                modifier = Modifier
+                                    .height(60.dp)
+                                    .padding(bottom = 8.dp)
+                            )
+                        }
                     }
                 },
                 snackbarHost = {
@@ -318,7 +337,8 @@ fun AnimeDetailScreen(
                         item {
                             AnimeDetailTabSelector(
                                 selectedTab = selectedTab,
-                                onTabSelected = { selectedTab = it }
+                                onTabSelected = { selectedTab = it },
+                                isAdded = isAdded
                             )
                         }
 
@@ -340,22 +360,14 @@ fun AnimeDetailScreen(
                                     AnimeDetailTab.OVERVIEW -> {
                                         AnimeOverviewTab(animeDetail = animeDetail)
                                     }
-                                    AnimeDetailTab.CHARACTERS -> {
-                                        LaunchedEffect(Unit) {
-                                            if (animeCharacters.isEmpty() && !charactersLoading) {
-                                                animeId?.let {
-                                                    animeCharacterDetailViewModel.loadAnimeCharacters(it)
-                                                }
-                                            }
-                                        }
-                                        AnimeCharactersTab(
-                                            characters = animeCharacters,
-                                            isLoading = charactersLoading,
-                                            navController = navController
-                                        )
-                                    }
                                     AnimeDetailTab.PRODUCTION -> {
                                         AnimeProductionTab(animeDetail = animeDetail)
+                                    }
+                                    AnimeDetailTab.TRACKING -> {
+                                        // Tab de seguimiento - solo visible cuando está en lista
+                                        if (isAdded && existingAnime != null) {
+                                            AnimeTrackingTab(anime = existingAnime)
+                                        }
                                     }
                                 }
                             }
@@ -397,37 +409,46 @@ fun AnimeDetailScreen(
 
 enum class AnimeDetailTab {
     OVERVIEW,
-    CHARACTERS,
-    PRODUCTION
+    PRODUCTION,
+    TRACKING
 }
 
 @Composable
 private fun AnimeDetailTabSelector(
     selectedTab: AnimeDetailTab,
     onTabSelected: (AnimeDetailTab) -> Unit,
+    isAdded: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val tabs = listOf(
-        AnimeDetailTab.OVERVIEW to Icons.Default.Description,
-        AnimeDetailTab.CHARACTERS to Icons.Default.People,
-        AnimeDetailTab.PRODUCTION to Icons.Default.Business
-    )
+    // Tabs dinámicos según si está en lista o no
+    val tabs = if (isAdded) {
+        // Estado B: En lista - 3 tabs (Resumen, Producción, Seguimiento)
+        listOf(
+            AnimeDetailTab.OVERVIEW to Icons.Default.Description,
+            AnimeDetailTab.PRODUCTION to Icons.Default.Business,
+            AnimeDetailTab.TRACKING to Icons.Default.Assignment
+        )
+    } else {
+        // Estado A: No en lista - 2 tabs (Resumen, Producción)
+        listOf(
+            AnimeDetailTab.OVERVIEW to Icons.Default.Description,
+            AnimeDetailTab.PRODUCTION to Icons.Default.Business
+        )
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 20.dp, top = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Card(
+        Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shadowElevation = 0.dp
         ) {
-            Row(modifier = Modifier.padding(4.dp)) {
+            Row(modifier = Modifier.padding(6.dp)) {
                 tabs.forEach { (tab, icon) ->
                     AnimeTabItem(
                         icon = icon,
@@ -453,28 +474,30 @@ private fun AnimeTabItem(
             MaterialTheme.colorScheme.primary
         else
             Color.Transparent,
-        label = "Tab Background Color"
+        label = "Tab Background Color",
+        animationSpec = tween(200)
     )
     val iconColor by animateColorAsState(
         targetValue = if (isSelected)
             MaterialTheme.colorScheme.onPrimary
         else
             MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "Tab Icon Color"
+        label = "Tab Icon Color",
+        animationSpec = tween(200)
     )
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .clickable { onClick() }
-            .padding(vertical = 10.dp, horizontal = 12.dp),
+            .padding(vertical = 12.dp, horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(24.adp()),
+            modifier = Modifier.size(20.dp),
             tint = iconColor
         )
     }
@@ -501,20 +524,20 @@ private fun AnimeDetailHeader(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // SECCIÓN PRINCIPAL: Portada + Info
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // PORTADA
             Card(
                 modifier = Modifier
-                    .width(120.adp())
-                    .height(180.adp()),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    .width(100.dp)
+                    .height(145.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 val imageModifier = if (sharedTransitionScope != null &&
                     animatedVisibilityScope != null && animeId != null
@@ -528,12 +551,12 @@ private fun AnimeDetailHeader(
                                 animatedVisibilityScope = animatedVisibilityScope
                             )
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(8.dp))
                     }
                 } else {
                     Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(8.dp))
                 }
 
                 AsyncImage(
@@ -552,81 +575,69 @@ private fun AnimeDetailHeader(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .height(180.adp()),
+                    .height(145.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // TÍTULOS Y ESTADO
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // TÍTULOS Y BADGES
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     // Título principal
                     Text(
                         text = animeDetail?.title ?: "",
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.asp(),
+                        fontSize = 16.sp,
                         fontFamily = PoppinsBold,
-                        maxLines = 3,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 22.asp()
+                        lineHeight = 20.sp
                     )
 
-                    // Título japonés
+                    // Título japonés (más pequeño y sutil)
                     if (!animeDetail?.titleJapanese.isNullOrBlank()) {
                         Text(
                             text = animeDetail.titleJapanese,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 12.asp(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            fontSize = 11.sp,
                             fontFamily = PoppinsRegular,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    // Type y Status badges
+                    // Type y Status badges (estilo PDF: radio 8dp, 15% fondo, 45% borde)
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         // Type badge
-                        AnimeTypeBadge(type = animeDetail?.typeAnime ?: "")
+                        AnimeTypeBadgePDF(type = animeDetail?.typeAnime ?: "")
 
                         // Status badge
-                        AnimeStatusBadge(status = animeDetail?.status ?: "")
-                    }
-
-                    // Broadcast (si está en emisión)
-                    if (animeDetail?.status == "Currently Airing" && animeDetail.broadcast != null) {
-                        AnimeBroadcastBadge(broadcast = animeDetail.broadcast.fullString ?: "")
+                        AnimeStatusBadgePDF(status = animeDetail?.status ?: "")
                     }
                 }
 
-                // BOTÓN DE ACCIÓN MEJORADO
+                // BOTÓN "Añadir" o "Editar" (sin espaciado excesivo)
                 Button(
                     onClick = onAddToListClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp), // Más alto
-                    shape = RoundedCornerShape(14.dp), // Más redondeado
+                        .height(40.dp),
+                    shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isAdded)
-                            MaterialTheme.colorScheme.secondaryContainer
-                        else
-                            MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.primary
                     ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 4.dp, // Mayor elevación
-                        pressedElevation = 8.dp
-                    )
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     Icon(
-                        imageVector = if (isAdded) Icons.Default.Edit else Icons.Default.Favorite,
+                        imageVector = if (isAdded) Icons.Default.Edit else Icons.Default.Add,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp) // Icono más grande
+                        modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = if (isAdded) "Editar" else "Añadir",
-                        fontSize = 15.sp, // Texto más grande
-                        fontFamily = PoppinsBold,
-                        letterSpacing = 0.3.sp
+                        fontSize = 13.sp,
+                        fontFamily = PoppinsBold
                     )
                 }
             }
@@ -856,8 +867,8 @@ private fun AnimeStatsRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         stats.forEachIndexed { index, stat ->
             AnimeStatCard(
@@ -883,6 +894,7 @@ private enum class StatType {
     SCORE, EPISODES, RANK, USERS
 }
 
+// Stats badges según el PDF - diseño compacto y limpio
 @Composable
 private fun AnimeStatCard(
     statData: StatData,
@@ -890,133 +902,45 @@ private fun AnimeStatCard(
     statsCount: Int,
     modifier: Modifier = Modifier
 ) {
-    // Estados de animación
-    var isPressed by remember { mutableStateOf(false) }
-
-    // Animación de entrada escalonada (más sutil)
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "scale"
-    )
-
-    // Animación de aparición
-    val animatedAlpha by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(
-            durationMillis = 350,
-            delayMillis = index * 60,
-            easing = FastOutSlowInEasing
-        ),
-        label = "alpha"
-    )
-
-    val animatedOffset by animateFloatAsState(
-        targetValue = 0f,
-        animationSpec = tween(
-            durationMillis = 450,
-            delayMillis = index * 60,
-            easing = FastOutSlowInEasing
-        ),
-        label = "offset"
-    )
-
-    // Color de acento más sutil
+    // Color de acento según el tipo
     val accentColor = when (statData.type) {
-        StatType.SCORE -> MaterialTheme.colorScheme.primary
-        StatType.EPISODES -> MaterialTheme.colorScheme.tertiary
-        StatType.RANK -> MaterialTheme.colorScheme.secondary
-        StatType.USERS -> MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+        StatType.SCORE -> Color(0xFF1E88E5) // Primary
+        StatType.EPISODES -> Color(0xFF7EE787) // Tertiary
+        StatType.RANK -> Color(0xFF79C0FF) // Secondary
+        StatType.USERS -> Color(0xFF1E88E5)
     }
 
-    // Ajustar tamaños según cantidad de stats
-    val labelFontSize = when (statsCount) {
-        1, 2 -> 10.sp
-        3 -> 9.sp
-        else -> 9.sp // 4 o más - reducido para que quepa
-    }
-
-    val valueFontSize = when (statsCount) {
-        1 -> 22.sp
-        2 -> 20.sp
-        3 -> 18.sp
-        else -> 15.sp // 4 o más - reducido para que quepa
-    }
-
-    val horizontalPadding = when (statsCount) {
-        1, 2 -> 16.dp
-        3 -> 10.dp
-        else -> 4.dp // 4 o más - muy reducido para que quepa
-    }
-
-    val verticalPadding = when (statsCount) {
-        1, 2 -> 12.dp
-        else -> 10.dp
-    }
-
-    val letterSpacing = when (statsCount) {
-        1, 2 -> 0.8.sp
-        3 -> 0.6.sp
-        else -> 0.3.sp // 4 o más - muy reducido para que quepa
-    }
-
-    Card(
-        modifier = modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                alpha = animatedAlpha
-                translationY = animatedOffset * 12f
-            }
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        tryAwaitRelease()
-                        isPressed = false
-                    }
-                )
-            },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp,
-            pressedElevation = 4.dp
-        )
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = horizontalPadding, vertical = verticalPadding),
+                .padding(vertical = 10.dp, horizontal = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // Etiqueta destacada arriba
+            // Label arriba (pequeño, en mayúsculas, color de acento)
             Text(
                 text = statData.label.uppercase(),
                 fontFamily = PoppinsBold,
-                fontSize = labelFontSize,
-                color = accentColor,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = letterSpacing,
+                fontSize = 9.sp,
+                color = accentColor.copy(alpha = 0.8f),
+                letterSpacing = 0.5.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
             )
 
-            // Valor principal grande
+            // Valor grande abajo
             Text(
                 text = statData.value,
                 fontFamily = PoppinsBold,
-                fontSize = valueFontSize,
+                fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = (-0.4).sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
@@ -1298,61 +1222,6 @@ private fun AnimeOverviewTab(
 }
 
 @Composable
-private fun AnimeCharactersTab(
-    characters: List<AnimeCharactersDetail>,
-    isLoading: Boolean,
-    navController: NavController,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            characters.isEmpty() -> {
-                AnimeEmptyState(message = "No hay personajes disponibles")
-            }
-            else -> {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.heightIn(max = 2000.dp),
-                    userScrollEnabled = false
-                ) {
-                    items(characters, key = { it.idCharacter ?: 0 }) { character ->
-                        AnimeCharacterCard(
-                            character = character,
-                            onClick = {
-                                character.idCharacter?.let {
-                                    navController.navigate("character_detail_route/$it")
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-@Composable
 private fun AnimeProductionTab(
     animeDetail: AnimeDetail?,
     modifier: Modifier = Modifier
@@ -1495,6 +1364,185 @@ private fun AnimeProductionTab(
     }
 }
 
+@Composable
+private fun AnimeTrackingTab(
+    anime: AnimeEntityDomain?,
+    modifier: Modifier = Modifier
+) {
+    val sdf = remember {
+        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Fechas de seguimiento
+        AnimeInfoCard(title = "Seguimiento") {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Fecha de inicio
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "Inicio",
+                                fontSize = 12.sp,
+                                fontFamily = PoppinsRegular,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = anime?.startDate?.let { sdf.format(it) } ?: "Sin fecha",
+                                fontSize = 14.sp,
+                                fontFamily = PoppinsBold,
+                                color = if (anime?.startDate != null)
+                                    MaterialTheme.colorScheme.onSurface
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                // Fecha de finalización
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "Finalización",
+                                fontSize = 12.sp,
+                                fontFamily = PoppinsRegular,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = anime?.endDate?.let { sdf.format(it) } ?: "Sin fecha",
+                                fontSize = 14.sp,
+                                fontFamily = PoppinsBold,
+                                color = if (anime?.endDate != null)
+                                    MaterialTheme.colorScheme.onSurface
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Prioridad del plan (solo si está Planeado)
+        if (anime?.userStatus == "Planeado") {
+            AnimeInfoCard(title = "Prioridad del plan") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    // Prioridad actual
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Prioridad",
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsRegular,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        val priorityColor = when (anime.plannedPriority) {
+                            "Alta" -> Color(0xFFEF5350)
+                            "Media" -> Color(0xFFFFCA28)
+                            "Baja" -> Color(0xFF66BB6A)
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (anime.plannedPriority != null)
+                                priorityColor.copy(alpha = 0.15f)
+                            else
+                                MaterialTheme.colorScheme.surfaceContainerHighest
+                        ) {
+                            Text(
+                                text = anime.plannedPriority ?: "Sin definir",
+                                fontSize = 14.sp,
+                                fontFamily = PoppinsBold,
+                                color = if (anime.plannedPriority != null) priorityColor
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    // Nota del plan
+                    if (!anime.plannedNote.isNullOrBlank()) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+                        Text(
+                            text = "Nota",
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsRegular,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = anime.plannedNote,
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsRegular,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+        }
+
+        // Mi Reseña
+        if (!anime?.userOpiniun.isNullOrEmpty()) {
+            AnimeInfoCard(title = "Mi Reseña") {
+                Text(
+                    text = anime.userOpiniun,
+                    textAlign = TextAlign.Justify,
+                    fontSize = 14.sp,
+                    fontFamily = PoppinsRegular,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
 // ============================================================================
 // COMPONENTS
 // ============================================================================
@@ -1574,113 +1622,6 @@ private fun AnimeDemographicChip(demographic: String) {
 }
 
 @Composable
-private fun AnimeCharacterCard(
-    character: AnimeCharactersDetail,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // Colores según el rol
-    val roleColor = when (character.role.lowercase()) {
-        "main" -> Color(0xFFFF5722) // Naranja rojizo - protagonista
-        "supporting" -> Color(0xFF2196F3) // Azul - soporte
-        else -> Color(0xFF9E9E9E) // Gris - otro
-    }
-
-    Card(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Column {
-            // Character image - muy compacto para 3 columnas
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.62f) // Reducido más para 3 columnas
-            ) {
-                AsyncImage(
-                    model = character.imageCharacter?.jpg?.imageUrl,
-                    contentDescription = character.nameCharacter,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                // Gradiente en la parte inferior para mejor legibilidad del nombre
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.75f)
-                                )
-                            )
-                        )
-                )
-
-                // Role badge mejorado - icono + texto compacto
-                if (character.role.isNotBlank()) {
-                    val (icon, roleText) = when (character.role.lowercase()) {
-                        "main" -> "★" to "Main"
-                        "supporting" -> "◆" to "Supp"
-                        else -> "•" to character.role.take(4)
-                    }
-
-                    Surface(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(4.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        color = roleColor.copy(alpha = 0.9f)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = icon,
-                                fontFamily = PoppinsBold,
-                                fontSize = 9.sp,
-                                color = Color.White
-                            )
-                            Text(
-                                text = roleText,
-                                fontFamily = PoppinsBold,
-                                fontSize = 9.sp,
-                                color = Color.White,
-                                letterSpacing = 0.2.sp
-                            )
-                        }
-                    }
-                }
-
-                // Character name sobre la imagen - en la parte inferior
-                Text(
-                    text = character.nameCharacter ?: "Unknown",
-                    fontFamily = PoppinsBold,
-                    fontSize = 9.sp,
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 11.sp,
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(6.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun AnimeInfoRow(
     label: String,
     value: String,
@@ -1744,110 +1685,68 @@ private fun AnimeInfoRow(
     }
 }
 
+// Badges con estilo del PDF: radio 8dp, color al 15% fondo, 45% borde
 @Composable
-private fun AnimeTypeBadge(type: String) {
+private fun AnimeTypeBadgePDF(type: String) {
     if (type.isBlank()) return
 
-    // Mapeo de tipos de anime con colores específicos (AniList format)
-    val (icon, color) = when (type) {
-        "TV" -> Icons.Default.Tv to Color(0xFF2196F3) // Azul
-        "MOVIE" -> Icons.Default.Movie to Color(0xFF9C27B0) // Púrpura
-        "OVA" -> Icons.Default.PlayCircle to Color(0xFF00BCD4) // Cian
-        "ONA" -> Icons.Default.PlayCircle to Color(0xFF009688) // Teal
-        "SPECIAL" -> Icons.Default.Star to Color(0xFFFF9800) // Naranja
-        "MUSIC" -> Icons.Default.MusicNote to Color(0xFFE91E63) // Rosa
-        else -> Icons.Default.Tv to Color(0xFF2196F3) // Azul por defecto
+    // Colores según el PDF
+    val color = when (type) {
+        "TV" -> Color(0xFF1E88E5) // Primary
+        "MOVIE" -> Color(0xFF9C27B0)
+        "OVA" -> Color(0xFF00BCD4)
+        "ONA" -> Color(0xFF009688)
+        "SPECIAL" -> Color(0xFFFF9800)
+        "MUSIC" -> Color(0xFFE91E63)
+        else -> Color(0xFF1E88E5)
     }
 
     Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.15f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
+        shape = RoundedCornerShape(8.dp), // Radio 8dp según PDF
+        color = color.copy(alpha = 0.15f), // 15% fondo
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = color.copy(alpha = 0.45f) // 45% borde
+        )
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = color
-            )
-            Text(
-                text = formatAnimeType(type),
-                fontFamily = PoppinsBold,
-                fontSize = 11.sp,
-                color = color,
-                letterSpacing = 0.3.sp
-            )
-        }
+        Text(
+            text = formatAnimeType(type),
+            fontFamily = PoppinsBold,
+            fontSize = 10.sp,
+            color = color,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
     }
 }
 
 @Composable
-private fun AnimeStatusBadge(status: String) {
+private fun AnimeStatusBadgePDF(status: String) {
     if (status.isBlank()) return
 
-    // Mapeo completo de todos los estados posibles de AniList API (igual que manga)
-    val (text, icon, color) = when (status) {
-        "FINISHED" -> Triple(
-            "Finalizado",
-            Icons.Default.CheckCircle,
-            Color(0xFF4CAF50) // Verde - completado
-        )
-        "RELEASING" -> Triple(
-            "En emisión",
-            Icons.Default.FiberManualRecord,
-            Color(0xFF2196F3) // Azul - futuro
-        )
-        "NOT_YET_RELEASED" -> Triple(
-            "Próximamente",
-            Icons.Default.Schedule,
-            Color(0xFFFF5722) // Rojo/Naranja - en vivo
-        )
-        "CANCELLED" -> Triple(
-            "Cancelado",
-            Icons.Default.Cancel,
-            Color(0xFFF44336) // Rojo - cancelado
-        )
-        "HIATUS" -> Triple(
-            "En pausa",
-            Icons.Default.Pause,
-            Color(0xFFFF9800) // Naranja - pausado
-        )
-        else -> Triple(
-            status,
-            Icons.Default.Info,
-            Color(0xFF757575) // Gris - desconocido
-        )
+    val (text, color) = when (status) {
+        "FINISHED" -> "Finalizado" to Color(0xFF7EE787) // Tertiary del PDF
+        "RELEASING" -> "En emisión" to Color(0xFF00A8FF) // Viendo del PDF
+        "NOT_YET_RELEASED" -> "Próximamente" to Color(0xFF79C0FF) // Secondary del PDF
+        "CANCELLED" -> "Cancelado" to Color(0xFFFF7B72) // Error del PDF
+        "HIATUS" -> "En pausa" to Color(0xFFFF9800)
+        else -> status to Color(0xFF757575)
     }
 
     Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.15f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
+        shape = RoundedCornerShape(8.dp), // Radio 8dp según PDF
+        color = color.copy(alpha = 0.15f), // 15% fondo
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = color.copy(alpha = 0.45f) // 45% borde
+        )
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(if (status == "RELEASING") 10.dp else 14.dp),
-                tint = color
-            )
-            Text(
-                text = text,
-                fontFamily = PoppinsBold,
-                fontSize = 11.sp,
-                color = color,
-                letterSpacing = 0.3.sp
-            )
-        }
+        Text(
+            text = text,
+            fontFamily = PoppinsBold,
+            fontSize = 10.sp,
+            color = color,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
     }
 }
 
