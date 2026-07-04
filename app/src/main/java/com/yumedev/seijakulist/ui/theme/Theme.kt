@@ -12,7 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
+// DarkColorScheme antiguo (preservado para compatibilidad si es necesario)
+private val OldDarkColorScheme = darkColorScheme(
     primary = DarkPrimary,
     onPrimary = DarkOnPrimary,
     background = DarkBackground,
@@ -172,27 +173,27 @@ fun SeijakuListTheme(
             if (systemDarkTheme) JapaneseDarkColorScheme else JapaneseLightColorScheme
         }
         ThemeMode.DARK -> {
-            // Tema oscuro propio de la app
-            DarkColorScheme
+            // Tema oscuro Seijaku (carbón templado · quietud, calidez, refugio)
+            SeijakuDarkColorScheme
         }
         ThemeMode.LIGHT -> {
-            // Tema claro propio de la app
-            LightColorScheme
+            // Tema claro Seijaku (papel suave · quietud, calidez, refugio)
+            SeijakuLightColorScheme
         }
         ThemeMode.SYSTEM -> {
             // Tema del sistema (Material dinámico si está disponible)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (systemDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             } else {
-                // Fallback para versiones anteriores de Android
-                if (systemDarkTheme) DarkColorScheme else LightColorScheme
+                // Fallback para versiones anteriores de Android (Seijaku)
+                if (systemDarkTheme) SeijakuDarkColorScheme else SeijakuLightColorScheme
             }
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = SeijakuTypography,
         content = content
     )
 }

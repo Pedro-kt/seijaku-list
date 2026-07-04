@@ -161,29 +161,57 @@ val JapaneseLightShadow = Color(0xFF000000)
 val JapaneseLightScrim = Color(0xFF000000)
 
 // ============================================
-// Colores de Estado de Anime
+// Colores de Estado de Anime - SEIJAKU PALETTE V2
 // ============================================
 // Estos colores se usan de forma consistente en toda la app
 // para representar los diferentes estados de un anime en la lista del usuario
+// Basados en el sistema de colores Seijaku (apagados, conviven con el carbón)
+// NOTA: Estos valores vienen de SeijakuColors.Dark para mantener compatibilidad
+// con código que los referencia directamente
 
-val StatusWatching = Color(0xFF00A8FF)     // Azul - Viendo
-val StatusCompleted = Color(0xFF4CAF50)    // Verde - Completado
-val StatusPending = Color(0xFFFFA726)      // Naranja - Pendiente
-val StatusDropped = Color(0xFFEF5350)      // Rojo - Abandonado
-val StatusPlanned = Color(0xFF9C6FDE)      // Morado - Planeado
+val StatusWatching = SeijakuColors.Dark.estadoViendo        // Azul sereno - Viendo
+val StatusCompleted = SeijakuColors.Dark.estadoCompletado   // Verde natural - Completado
+val StatusPending = SeijakuColors.Dark.estadoPausado        // Dorado apagado - Pendiente
+val StatusDropped = SeijakuColors.Dark.estadoAbandonado     // Terracota cálida - Abandonado
+val StatusPlanned = SeijakuColors.Dark.estadoPlaneado       // Lavanda suave - Planeado
+
+// Colores de fondo para chips de estado (Dark theme)
+val StatusWatchingBg = SeijakuColors.Dark.estadoViendoBg
+val StatusCompletedBg = SeijakuColors.Dark.estadoCompletadoBg
+val StatusPendingBg = SeijakuColors.Dark.estadoPausadoBg
+val StatusDroppedBg = SeijakuColors.Dark.estadoAbandonadoBg
+val StatusPlannedBg = SeijakuColors.Dark.estadoPlaneadoBg
 
 /**
  * Obtiene el color correspondiente a un estado de anime
  * @param status El estado del anime ("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
+ * @param isDarkTheme Si es tema oscuro (por defecto true para compatibilidad)
  * @return Color correspondiente al estado
  */
-fun getAnimeStatusColor(status: String): Color {
+fun getAnimeStatusColor(status: String, isDarkTheme: Boolean = true): Color {
     return when (status) {
-        "Viendo" -> StatusWatching
-        "Completado" -> StatusCompleted
-        "Pendiente" -> StatusPending
-        "Abandonado" -> StatusDropped
-        "Planeado" -> StatusPlanned
+        "Viendo" -> if (isDarkTheme) SeijakuColors.Dark.estadoViendo else SeijakuColors.Light.estadoViendo
+        "Completado" -> if (isDarkTheme) SeijakuColors.Dark.estadoCompletado else SeijakuColors.Light.estadoCompletado
+        "Pendiente" -> if (isDarkTheme) SeijakuColors.Dark.estadoPausado else SeijakuColors.Light.estadoPausado
+        "Abandonado" -> if (isDarkTheme) SeijakuColors.Dark.estadoAbandonado else SeijakuColors.Light.estadoAbandonado
+        "Planeado" -> if (isDarkTheme) SeijakuColors.Dark.estadoPlaneado else SeijakuColors.Light.estadoPlaneado
         else -> Color.Gray
+    }
+}
+
+/**
+ * Obtiene el color de fondo para chips de estado de anime
+ * @param status El estado del anime
+ * @param isDarkTheme Si es tema oscuro
+ * @return Color de fondo correspondiente al estado
+ */
+fun getAnimeStatusBackgroundColor(status: String, isDarkTheme: Boolean = true): Color {
+    return when (status) {
+        "Viendo" -> if (isDarkTheme) SeijakuColors.Dark.estadoViendoBg else SeijakuColors.Light.estadoViendoBg
+        "Completado" -> if (isDarkTheme) SeijakuColors.Dark.estadoCompletadoBg else SeijakuColors.Light.estadoCompletadoBg
+        "Pendiente" -> if (isDarkTheme) SeijakuColors.Dark.estadoPausadoBg else SeijakuColors.Light.estadoPausadoBg
+        "Abandonado" -> if (isDarkTheme) SeijakuColors.Dark.estadoAbandonadoBg else SeijakuColors.Light.estadoAbandonadoBg
+        "Planeado" -> if (isDarkTheme) SeijakuColors.Dark.estadoPlaneadoBg else SeijakuColors.Light.estadoPlaneadoBg
+        else -> Color.Gray.copy(alpha = 0.1f)
     }
 }
