@@ -1285,17 +1285,6 @@ private val genreTranslations = mapOf(
 
 private fun translateGenre(genre: String): String = genreTranslations[genre] ?: genre
 
-private data class HeroStatusConfig(val icon: ImageVector, val color: Color)
-
-private fun heroStatusConfig(status: String): HeroStatusConfig? = when (status) {
-    "Viendo" -> HeroStatusConfig(Icons.Default.PlayArrow, getAnimeStatusColor(status))
-    "Completado" -> HeroStatusConfig(Icons.Default.Check, getAnimeStatusColor(status))
-    "Pendiente" -> HeroStatusConfig(Icons.AutoMirrored.Filled.List, getAnimeStatusColor(status))
-    "Abandonado" -> HeroStatusConfig(Icons.Default.Info, getAnimeStatusColor(status))
-    "Planeado" -> HeroStatusConfig(Icons.Default.CalendarToday, getAnimeStatusColor(status))
-    else -> null
-}
-
 @Composable
 private fun HeroAnimeCard(
     item: com.yumedev.seijakulist.domain.models.HeroAnimeItem,
@@ -1304,6 +1293,8 @@ private fun HeroAnimeCard(
     isManga: Boolean = false
 ) {
     val isDark = isSystemInDarkTheme()
+    val ratingColors = SeijakuSemanticColors.ratingBadgeColors(isDark)
+
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -1319,10 +1310,10 @@ private fun HeroAnimeCard(
             .graphicsLayer { scaleX = scale; scaleY = scale },
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Black),
+        colors = CardDefaults.cardColors(containerColor = SeijakuColors.Dark.fondoCard),
         border = BorderStroke(
             width = 1.dp,
-            color = Color.White.copy(alpha = 0.1f)
+            color = SeijakuColors.Dark.borde.copy(alpha = 0.3f)
         ),
         onClick = onClick,
         interactionSource = interactionSource
@@ -1336,7 +1327,7 @@ private fun HeroAnimeCard(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Gradiente cinemático reforzado
+            // Gradiente más alto desde abajo (empieza en 0.2 en vez de 0.35)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1344,52 +1335,56 @@ private fun HeroAnimeCard(
                         Brush.verticalGradient(
                             colorStops = arrayOf(
                                 0.0f to Color.Transparent,
-                                0.35f to Color.Black.copy(alpha = 0.08f),
-                                0.65f to Color.Black.copy(alpha = 0.50f),
-                                1.0f to Color.Black.copy(alpha = 0.90f)
+                                0.2f to Color.Black.copy(alpha = 0.15f),
+                                0.5f to Color.Black.copy(alpha = 0.65f),
+                                1.0f to Color.Black.copy(alpha = 0.95f)
                             )
                         )
                     )
             )
+
             // Vignette lateral izquierda
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.28f), Color.Transparent)
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.28f),
+                                Color.Transparent
+                            )
                         )
                     )
             )
 
-            // ── Indicador "en tu lista" (top start) — estilo sutil ──────────
+            // ── Indicador de estado mejorado (top end) ──────────
             localAnimeStatus?.let { userStatus ->
-                heroStatusConfig(userStatus)?.let { cfg ->
+                val statusColor = getAnimeStatusColor(userStatus, isDark)
+
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(12.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = statusColor.copy(alpha = 0.20f),
+                    border = BorderStroke(1.dp, statusColor.copy(alpha = 0.4f)),
+                    tonalElevation = 2.dp
+                ) {
                     Row(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(8.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.Black.copy(alpha = 0.6f))
-                            .border(
-                                1.dp,
-                                cfg.color.copy(alpha = 0.5f),
-                                RoundedCornerShape(8.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(
-                            imageVector = cfg.icon,
-                            contentDescription = null,
-                            tint = cfg.color,
-                            modifier = Modifier.size(12.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(statusColor)
                         )
                         Text(
                             text = userStatus,
-                            fontFamily = PoppinsBold,
-                            fontSize = 10.asp(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
                             color = Color.White
                         )
                     }
@@ -1400,37 +1395,15 @@ private fun HeroAnimeCard(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Géneros (disponibles en CLÁSICO y PRÓXIMAMENTE)
-                if (item.genres.isNotEmpty()) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        item.genres.take(2).forEach { genre ->
-                            Text(
-                                text = translateGenre(genre),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color.White.copy(alpha = 0.14f))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp),
-                                fontFamily = PoppinsRegular,
-                                fontSize = 9.asp(),
-                                color = Color.White.copy(alpha = 0.88f),
-                                maxLines = 1
-                            )
-                        }
-                    }
-                }
-
                 // Título con sombra reforzada
                 Text(
                     text = item.title,
-                    fontFamily = PoppinsBold,
-                    fontSize = 17.asp(),
-                    lineHeight = 22.asp(),
+                    fontSize = 20.sp,
+                    lineHeight = 26.sp,
+                    fontWeight = FontWeight.Bold,
                     color = Color.White,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -1443,39 +1416,94 @@ private fun HeroAnimeCard(
                     )
                 )
 
-                // Meta-badges: score · año · episodios · estado
+                // Meta-badges: Pills redondeados
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Rating pill
                     item.score?.let { score ->
-                        val ratingColors = SeijakuSemanticColors.ratingBadgeColors(isDark)
-                        HeroMetaBadge(
-                            icon = Icons.Default.Star,
-                            text = String.format(java.util.Locale.US, "%.1f", score),
-                            containerColor = ratingColors.containerColor,
-                            contentColor = ratingColors.contentColor,
-                            borderColor = ratingColors.borderColor
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = ratingColors.containerColor,
+                            border = BorderStroke(1.dp, ratingColors.borderColor)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = ratingColors.contentColor
+                                )
+                                Text(
+                                    text = String.format(java.util.Locale.US, "%.1f", score),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = ratingColors.contentColor
+                                )
+                            }
+                        }
                     }
+
+                    // Year pill
                     item.year?.let { year ->
-                        HeroMetaBadge(
-                            icon = Icons.Default.CalendarToday,
-                            text = year,
-                            containerColor = Color.White.copy(alpha = 0.13f),
-                            contentColor = Color.White.copy(alpha = 0.92f),
-                            borderColor = Color.White.copy(alpha = 0.22f)
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.White.copy(alpha = 0.12f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarToday,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = Color.White.copy(alpha = 0.85f)
+                                )
+                                Text(
+                                    text = year,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color.White.copy(alpha = 0.92f)
+                                )
+                            }
+                        }
                     }
+
+                    // Episodes pill
                     item.episodes?.let { eps ->
-                        HeroMetaBadge(
-                            icon = if (isManga) Icons.AutoMirrored.Filled.MenuBook else Icons.Default.PlayArrow,
-                            text = if (isManga) "$eps caps" else "$eps eps",
-                            containerColor = Color.White.copy(alpha = 0.13f),
-                            contentColor = Color.White.copy(alpha = 0.92f),
-                            borderColor = Color.White.copy(alpha = 0.22f)
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.White.copy(alpha = 0.12f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (isManga) Icons.AutoMirrored.Filled.MenuBook else Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = Color.White.copy(alpha = 0.85f)
+                                )
+                                Text(
+                                    text = if (isManga) "$eps caps" else "$eps eps",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color.White.copy(alpha = 0.92f)
+                                )
+                            }
+                        }
                     }
+
+                    // Status pill
                     item.status?.let { status ->
                         val statusColor = SeijakuSemanticColors.statusColor(status, isDark)
                         val statusText = when {
@@ -1484,50 +1512,34 @@ private fun HeroAnimeCard(
                             status.contains("Finished", ignoreCase = true) -> "Finalizado"
                             else -> "Próximamente"
                         }
-                        HeroMetaBadge(
-                            icon = if (isManga) Icons.AutoMirrored.Filled.MenuBook else Icons.Default.Tv,
-                            text = statusText,
-                            containerColor = statusColor.copy(alpha = 0.18f),
-                            contentColor = statusColor,
-                            borderColor = statusColor.copy(alpha = 0.38f)
-                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = statusColor.copy(alpha = 0.18f),
+                            border = BorderStroke(1.dp, statusColor.copy(alpha = 0.38f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (isManga) Icons.AutoMirrored.Filled.MenuBook else Icons.Default.Tv,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp),
+                                    tint = statusColor
+                                )
+                                Text(
+                                    text = statusText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = statusColor
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HeroMetaBadge(
-    icon: ImageVector,
-    text: String,
-    containerColor: Color,
-    contentColor: Color,
-    borderColor: Color
-) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(containerColor)
-            .border(1.dp, borderColor, RoundedCornerShape(6.dp))
-            .padding(horizontal = 7.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = contentColor,
-            modifier = Modifier.size(10.adp())
-        )
-        Text(
-            text = text,
-            fontFamily = PoppinsMedium,
-            fontSize = 10.asp(),
-            color = contentColor,
-            maxLines = 1
-        )
     }
 }
 
@@ -1632,7 +1644,7 @@ private fun QuickStats(
 
                             // 1. Siempre: Total de animes - Usa cream (lo importante)
                             val animeText = if (stats.totalAnimes == 1) "anime" else "animes"
-                            add(InsightData("${stats.totalAnimes} $animeText en tu lista", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                            add(InsightData("Llevas ${stats.totalAnimes} $animeText en tu refugio", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
 
                             // 2. Siempre: Horas vistas - Usa salvia (info calma)
                             val totalMinutes = stats.totalEpisodesWatched * 24
@@ -1640,48 +1652,48 @@ private fun QuickStats(
                             val days = hours / 24
                             if (days > 0) {
                                 val diasText = if (days == 1) "día" else "días"
-                                add(InsightData("$days $diasText disfrutando anime", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                add(InsightData("$days $diasText viendo anime, ¿no es genial?", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             } else if (hours > 0) {
                                 val horasText = if (hours == 1) "hora" else "horas"
-                                add(InsightData("$hours $horasText disfrutando anime", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                add(InsightData("$hours $horasText viendo anime, vas bien", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             } else {
                                 val minutosText = if (totalMinutes == 1) "minuto" else "minutos"
-                                add(InsightData("$totalMinutes $minutosText disfrutando anime", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                add(InsightData("$totalMinutes $minutosText de anime, ¡bienvenido!", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
                             // 3. Si completedAnimes > 0 - Cream claro
-                            if (stats.completedAnimes > 0) {
-                                val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
-                                add(InsightData("Has completado ${stats.completedAnimes} $seriesText", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                            if (stats.completedAnimes in 1..<10) {
+                                val animeCompletadoText = if (stats.completedAnimes == 1) "anime" else "animes"
+                                add(InsightData("Ya cerraste ${stats.completedAnimes} $animeCompletadoText, ¿cuál te gustó más?", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
                             // 4. Si averageScore > 0 - Salvia profunda
                             if (stats.averageScore > 0) {
-                                add(InsightData("Promedio ${String.format("%.1f", stats.averageScore)}/10 en tus scores", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                add(InsightData("Les das un ${String.format("%.1f", stats.averageScore)}/10 en promedio, buen ojo", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
                             // 5. Si genreStats no está vacío - Estado completado (logro)
                             val topGenre = stats.genreStats.maxByOrNull { it.value }?.key
                             if (topGenre != null) {
-                                add(InsightData("Tu género favorito es $topGenre", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                add(InsightData("$topGenre es tu zona de confort", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
                             // 6. Si watchingAnimes > 0 - Rota colores
                             if (stats.watchingAnimes > 0) {
-                                val watchingText = if (stats.watchingAnimes == 1) "anime" else "animes"
-                                add(InsightData("Viendo ${stats.watchingAnimes} $watchingText ahora mismo", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                val viendoText = if (stats.watchingAnimes == 1) "anime" else "animes"
+                                add(InsightData("Tienes ${stats.watchingAnimes} $viendoText viendo ahora, ¿qué tal?", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
                             // 7. Si completedAnimes >= 10 - Rota colores
                             if (stats.completedAnimes >= 10) {
-                                val seriesText = if (stats.completedAnimes == 1) "serie" else "series"
-                                add(InsightData("¡Ya completaste ${stats.completedAnimes} $seriesText!", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                val animeMilestoneText = if (stats.completedAnimes == 1) "anime" else "animes"
+                                add(InsightData("¡Ya completaste ${stats.completedAnimes} $animeMilestoneText! Impresionante", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
 
                             // 8. Si totalEpisodesWatched >= 100 - Rota colores
                             if (stats.totalEpisodesWatched >= 100) {
                                 val episodiosText = if (stats.totalEpisodesWatched == 1) "episodio visto" else "episodios vistos"
-                                add(InsightData("Llevas ${stats.totalEpisodesWatched} $episodiosText", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                                add(InsightData("${stats.totalEpisodesWatched} $episodiosText, ¡qué locura!", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
                             }
                         }
                     }
@@ -1751,20 +1763,22 @@ private fun QuickStats(
                                         val annotatedText = buildAnnotatedString {
                                             val text = insight.text
 
-                                            // Detectar si es el insight de género favorito
-                                            if (text.contains("Tu género favorito es ")) {
-                                                val parts = text.split("Tu género favorito es ")
-                                                append(parts[0] + "Tu género favorito es ")
+                                            // Detectar si es el insight de género favorito (nuevo patrón)
+                                            if (text.contains(" es tu zona de confort")) {
+                                                val parts = text.split(" es tu zona de confort")
 
-                                                // Resaltar el género
+                                                // Resaltar el género (está al principio)
                                                 withStyle(
                                                     SpanStyle(
                                                         color = insight.color,
                                                         fontFamily = PoppinsBold
                                                     )
                                                 ) {
-                                                    append(parts.getOrNull(1) ?: "")
+                                                    append(parts[0])
                                                 }
+
+                                                append(" es tu zona de confort")
+                                                append(parts.getOrNull(1) ?: "")
                                             } else {
                                                 // Para otros insights, resaltar números
                                                 val numberRegex = "\\d+(?:[.,]\\d+)?".toRegex()

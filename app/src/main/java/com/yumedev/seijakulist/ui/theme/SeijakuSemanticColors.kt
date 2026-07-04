@@ -33,7 +33,7 @@ object SeijakuSemanticColors {
 
     fun heroBadgeColors(type: String, isDark: Boolean = true): HeroBadgeColors {
         return when (type) {
-            "PARA VOS" -> {
+            "Para vos" -> {
                 // Lo emocional: usa CREAM
                 val base = if (isDark) SeijakuColors.Dark.cream else SeijakuColors.Light.cream
                 HeroBadgeColors(
@@ -42,16 +42,16 @@ object SeijakuSemanticColors {
                     borderColor = base.copy(alpha = 0.3f)
                 )
             }
-            "PROMO", "MIRALO AHORA" -> {
+            "Promo", "Miralo ahora" -> {
                 // Acción urgente pero calmada: ámbar apagado
-                val base = if (isDark) SeijakuColors.Dark.estadoPausado else SeijakuColors.Light.estadoPausado
+                val base = if (isDark) SeijakuColors.Dark.estadoPendiente else SeijakuColors.Light.estadoPendiente
                 HeroBadgeColors(
                     containerColor = base.copy(alpha = 0.15f),
                     contentColor = base,
                     borderColor = base.copy(alpha = 0.3f)
                 )
             }
-            "SIGUE MIRANDO", "EMPIEZA A VER" -> {
+            "Sigue mirando", "Empieza a ver" -> {
                 // En progreso: celeste/azul sereno
                 val base = if (isDark) SeijakuColors.Dark.estadoViendo else SeijakuColors.Light.estadoViendo
                 HeroBadgeColors(
@@ -60,7 +60,7 @@ object SeijakuSemanticColors {
                     borderColor = base.copy(alpha = 0.3f)
                 )
             }
-            "NUEVOS EPISODIOS" -> {
+            "Nuevos episodios" -> {
                 // Novedad calma: salvia
                 val base = if (isDark) SeijakuColors.Dark.salvia else SeijakuColors.Light.salvia
                 HeroBadgeColors(
@@ -69,7 +69,7 @@ object SeijakuSemanticColors {
                     borderColor = base.copy(alpha = 0.3f)
                 )
             }
-            "PRÓXIMAMENTE" -> {
+            "Próximamente" -> {
                 // Futuro: lavanda apagada (planeado)
                 val base = if (isDark) SeijakuColors.Dark.estadoPlaneado else SeijakuColors.Light.estadoPlaneado
                 HeroBadgeColors(
@@ -78,7 +78,7 @@ object SeijakuSemanticColors {
                     borderColor = base.copy(alpha = 0.3f)
                 )
             }
-            "CLÁSICO" -> {
+            "Clásico" -> {
                 // Destacado: cream claro
                 val base = if (isDark) SeijakuColors.Dark.creamClaro else SeijakuColors.Light.creamClaro
                 HeroBadgeColors(

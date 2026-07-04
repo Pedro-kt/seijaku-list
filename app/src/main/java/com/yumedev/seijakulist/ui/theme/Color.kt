@@ -171,14 +171,14 @@ val JapaneseLightScrim = Color(0xFF000000)
 
 val StatusWatching = SeijakuColors.Dark.estadoViendo        // Azul sereno - Viendo
 val StatusCompleted = SeijakuColors.Dark.estadoCompletado   // Verde natural - Completado
-val StatusPending = SeijakuColors.Dark.estadoPausado        // Dorado apagado - Pendiente
+val StatusPending = SeijakuColors.Dark.estadoPendiente      // Dorado apagado - Pendiente
 val StatusDropped = SeijakuColors.Dark.estadoAbandonado     // Terracota cálida - Abandonado
 val StatusPlanned = SeijakuColors.Dark.estadoPlaneado       // Lavanda suave - Planeado
 
 // Colores de fondo para chips de estado (Dark theme)
 val StatusWatchingBg = SeijakuColors.Dark.estadoViendoBg
 val StatusCompletedBg = SeijakuColors.Dark.estadoCompletadoBg
-val StatusPendingBg = SeijakuColors.Dark.estadoPausadoBg
+val StatusPendingBg = SeijakuColors.Dark.estadoPendienteBg
 val StatusDroppedBg = SeijakuColors.Dark.estadoAbandonadoBg
 val StatusPlannedBg = SeijakuColors.Dark.estadoPlaneadoBg
 
@@ -192,7 +192,7 @@ fun getAnimeStatusColor(status: String, isDarkTheme: Boolean = true): Color {
     return when (status) {
         "Viendo" -> if (isDarkTheme) SeijakuColors.Dark.estadoViendo else SeijakuColors.Light.estadoViendo
         "Completado" -> if (isDarkTheme) SeijakuColors.Dark.estadoCompletado else SeijakuColors.Light.estadoCompletado
-        "Pendiente" -> if (isDarkTheme) SeijakuColors.Dark.estadoPausado else SeijakuColors.Light.estadoPausado
+        "Pendiente" -> if (isDarkTheme) SeijakuColors.Dark.estadoPendiente else SeijakuColors.Light.estadoPendiente
         "Abandonado" -> if (isDarkTheme) SeijakuColors.Dark.estadoAbandonado else SeijakuColors.Light.estadoAbandonado
         "Planeado" -> if (isDarkTheme) SeijakuColors.Dark.estadoPlaneado else SeijakuColors.Light.estadoPlaneado
         else -> Color.Gray
@@ -209,7 +209,7 @@ fun getAnimeStatusBackgroundColor(status: String, isDarkTheme: Boolean = true): 
     return when (status) {
         "Viendo" -> if (isDarkTheme) SeijakuColors.Dark.estadoViendoBg else SeijakuColors.Light.estadoViendoBg
         "Completado" -> if (isDarkTheme) SeijakuColors.Dark.estadoCompletadoBg else SeijakuColors.Light.estadoCompletadoBg
-        "Pendiente" -> if (isDarkTheme) SeijakuColors.Dark.estadoPausadoBg else SeijakuColors.Light.estadoPausadoBg
+        "Pendiente" -> if (isDarkTheme) SeijakuColors.Dark.estadoPendienteBg else SeijakuColors.Light.estadoPendienteBg
         "Abandonado" -> if (isDarkTheme) SeijakuColors.Dark.estadoAbandonadoBg else SeijakuColors.Light.estadoAbandonadoBg
         "Planeado" -> if (isDarkTheme) SeijakuColors.Dark.estadoPlaneadoBg else SeijakuColors.Light.estadoPlaneadoBg
         else -> Color.Gray.copy(alpha = 0.1f)

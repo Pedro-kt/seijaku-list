@@ -66,13 +66,13 @@ object SeijakuColors {
         val estadoPlaneado = Color(0xFF9B86C4)     // lavanda
         val estadoViendo = Color(0xFF6FA9C7)       // celeste
         val estadoCompletado = Color(0xFF7FB56E)   // verde
-        val estadoPausado = Color(0xFFD6A94E)      // ámbar
+        val estadoPendiente = Color(0xFFD6A94E)    // ámbar
         val estadoAbandonado = Color(0xFFD2705A)   // terracota
         // Tintes de fondo para chips de estado (pill background)
         val estadoPlaneadoBg = Color(0xFF2E2A38)
         val estadoViendoBg = Color(0xFF22303A)
         val estadoCompletadoBg = Color(0xFF26321F)
-        val estadoPausadoBg = Color(0xFF362D1B)
+        val estadoPendienteBg = Color(0xFF362D1B)
         val estadoAbandonadoBg = Color(0xFF38241E)
 
         val error = Color(0xFFD2705A)
@@ -110,13 +110,13 @@ object SeijakuColors {
         val estadoPlaneado = Color(0xFF6E5EA0)     // lavanda profunda
         val estadoViendo = Color(0xFF3F7E9C)       // celeste profundo
         val estadoCompletado = Color(0xFF40632E)   // verde tierra
-        val estadoPausado = Color(0xFF9A7420)      // ámbar tostado
+        val estadoPendiente = Color(0xFF9A7420)    // ámbar tostado
         val estadoAbandonado = Color(0xFFA5502F)   // terracota profunda
         // Tintes de fondo para chips de estado
         val estadoPlaneadoBg = Color(0xFFE7E1F0)
         val estadoViendoBg = Color(0xFFDDE8EE)
         val estadoCompletadoBg = Color(0xFFDCE6D2)
-        val estadoPausadoBg = Color(0xFFF0E6CC)
+        val estadoPendienteBg = Color(0xFFF0E6CC)
         val estadoAbandonadoBg = Color(0xFFF2DED4)
 
         val error = Color(0xFFA5502F)
