@@ -858,13 +858,6 @@ private fun DiscoveryGenreCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.align(Alignment.TopStart)
                 )
-                Text(
-                    text = "${genre.count}",
-                    color = Color.White.copy(alpha = 0.65f),
-                    fontFamily = PoppinsRegular,
-                    fontSize = 11.asp(),
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                )
             }
         }
     }
