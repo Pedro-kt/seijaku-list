@@ -247,8 +247,8 @@ fun HomeScreen(
     val publishingMangaFilter by publishingMangaFilterViewModel.animeList.collectAsState()
     val publishingMangaFilterIsLoading by publishingMangaFilterViewModel.isLoading.collectAsState()
 
-    // Solo mostrar error si TODOS los ViewModels críticos tienen error Y no hay datos
-    val hasError = animeSeasonNowError && topAnimeError && animeSeasonUpcomingError &&
+    // Mostrar error si HAY ALGÚN error Y no hay datos disponibles
+    val hasError = (animeSeasonNowError || topAnimeError || animeSeasonUpcomingError) &&
             animeSeasonNow.isEmpty() && topAnimes.isEmpty() && animeSeasonUpcoming.isEmpty()
 
     val listTab = listOf("Anime", "Manga")
@@ -404,7 +404,13 @@ fun HomeScreen(
                                 heroCarouselViewModel.retry()
                             },
                             sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            animeSeasonNowError = animeSeasonNowError,
+                            topAnimeError = topAnimeError,
+                            animeSeasonUpcomingError = animeSeasonUpcomingError,
+                            onRetrySeasonNow = { airingAnimeViewModel.loadAiringAnime() },
+                            onRetryTopAnime = { topAnimesViewModel.topAnime() },
+                            onRetrySeasonUpcoming = { seasonUpcomingViewModel.loadUpcomingAnime() }
                         )
                     }
 
@@ -437,11 +443,31 @@ fun HomeScreen(
                                 heroCarouselMangaViewModel.retry()
                             },
                             sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            topMangaError = topMangaError,
+                            publishingMangaError = publishingMangaError,
+                            trendingMangaError = trendingMangaError,
+                            onRetryTopManga = { topMangaViewModel.topManga() },
+                            onRetryPublishingManga = { publishingMangaViewModel.loadPublishingManga() },
+                            onRetryTrendingManga = { trendingMangaViewModel.loadTrendingManga() }
                         )
                     }
                 }
                 }
+            } else {
+                // No está cargando pero no hay datos - mostrar error
+                NoInternetScreen(
+                    onRetryClick = {
+                        topAnimesViewModel.topAnime()
+                        airingAnimeViewModel.loadAiringAnime()
+                        seasonUpcomingViewModel.loadUpcomingAnime()
+                        heroCarouselViewModel.retry()
+                        heroCarouselMangaViewModel.retry()
+                        topMangaViewModel.topManga()
+                        publishingMangaViewModel.loadPublishingManga()
+                        trendingMangaViewModel.loadTrendingManga()
+                    }
+                )
             }
         }
     }
@@ -481,7 +507,13 @@ private fun AnimeContent(
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
     sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    animeSeasonNowError: Boolean = false,
+    topAnimeError: Boolean = false,
+    animeSeasonUpcomingError: Boolean = false,
+    onRetrySeasonNow: () -> Unit = {},
+    onRetryTopAnime: () -> Unit = {},
+    onRetrySeasonUpcoming: () -> Unit = {}
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -533,7 +565,9 @@ private fun AnimeContent(
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_now")
                 },
                 sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
+                animatedVisibilityScope = animatedVisibilityScope,
+                hasError = animeSeasonNowError && selectedDayFilter == null,
+                onRetry = onRetrySeasonNow
             )
         }
 
@@ -555,7 +589,9 @@ private fun AnimeContent(
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/top_anime")
                 },
                 sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
+                animatedVisibilityScope = animatedVisibilityScope,
+                hasError = topAnimeError && selectedTypeFilter == null,
+                onRetry = onRetryTopAnime
             )
         }
 
@@ -577,7 +613,9 @@ private fun AnimeContent(
                     navController.navigate("${AppDestinations.VIEW_MORE_ROUTE}/season_upcoming")
                 },
                 sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
+                animatedVisibilityScope = animatedVisibilityScope,
+                hasError = animeSeasonUpcomingError && selectedUpcomingFilter == null,
+                onRetry = onRetrySeasonUpcoming
             )
         }
 
@@ -614,7 +652,13 @@ private fun MangaContent(
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
     sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    topMangaError: Boolean = false,
+    publishingMangaError: Boolean = false,
+    trendingMangaError: Boolean = false,
+    onRetryTopManga: () -> Unit = {},
+    onRetryPublishingManga: () -> Unit = {},
+    onRetryTrendingManga: () -> Unit = {}
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -661,7 +705,9 @@ private fun MangaContent(
                     },
                     sharedTransitionScope = sharedTransitionScope,
                     animatedVisibilityScope = animatedVisibilityScope,
-                    isManga = true
+                    isManga = true,
+                    hasError = topMangaError && selectedTopMangaFilter == null,
+                    onRetry = onRetryTopManga
                 )
             }
 
@@ -684,7 +730,9 @@ private fun MangaContent(
                     },
                     sharedTransitionScope = sharedTransitionScope,
                     animatedVisibilityScope = animatedVisibilityScope,
-                    isManga = true
+                    isManga = true,
+                    hasError = publishingMangaError && selectedPublishingMangaFilter == null,
+                    onRetry = onRetryPublishingManga
                 )
             }
 
@@ -707,7 +755,9 @@ private fun MangaContent(
                     },
                     sharedTransitionScope = sharedTransitionScope,
                     animatedVisibilityScope = animatedVisibilityScope,
-                    isManga = true
+                    isManga = true,
+                    hasError = trendingMangaError,
+                    onRetry = onRetryTrendingManga
                 )
             }
 
@@ -736,7 +786,9 @@ private fun AnimeSectionWithFilter(
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
-    isManga: Boolean = false
+    isManga: Boolean = false,
+    hasError: Boolean = false,
+    onRetry: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -768,6 +820,7 @@ private fun AnimeSectionWithFilter(
         androidx.compose.animation.AnimatedContent(
             targetState = when {
                 isLoading -> ContentState.Loading
+                hasError && animeList.isEmpty() -> ContentState.Error
                 animeList.isNotEmpty() -> ContentState.Content
                 else -> ContentState.Empty
             }, transitionSpec = {
@@ -808,6 +861,19 @@ private fun AnimeSectionWithFilter(
                         EnhancedEmptyState(emptyMessage)
                     }
                 }
+
+                ContentState.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                    ) {
+                        SectionErrorState(
+                            message = "Error al cargar los datos",
+                            onRetry = onRetry
+                        )
+                    }
+                }
             }
         }
     }
@@ -815,7 +881,7 @@ private fun AnimeSectionWithFilter(
 
 // Estado del contenido para mejor type-safety
 private enum class ContentState {
-    Loading, Content, Empty
+    Loading, Content, Empty, Error
 }
 
 // Header mejorado con diseño profesional
@@ -970,6 +1036,80 @@ private fun EnhancedEmptyState(message: String) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
+        }
+    }
+}
+
+// Estado de error para secciones individuales
+@Composable
+private fun SectionErrorState(
+    message: String,
+    onRetry: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+        ),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.adp())
+                    .clip(CircleShape)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
+                                MaterialTheme.colorScheme.error.copy(alpha = 0.05f)
+                            )
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(28.adp())
+                )
+            }
+
+            Text(
+                text = message,
+                fontFamily = PoppinsMedium,
+                fontSize = 14.asp(),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                lineHeight = 20.asp(),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+
+            // Botón de reintentar
+            androidx.compose.material3.FilledTonalButton(
+                onClick = onRetry,
+                colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Reintentar",
+                    fontFamily = PoppinsBold,
+                    fontSize = 13.asp()
+                )
+            }
         }
     }
 }
