@@ -625,10 +625,13 @@ private fun MangaContent(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // Hero Carousel para Manga
-            item(key = "hero_manga_${heroMangaCards?.size ?: 0}") {
+            // QuickStats Placeholder + Hero Carousel para Manga
+            item(key = "top_section_manga_${heroMangaCards?.size ?: 0}") {
                 Column {
-                    Spacer(Modifier.height(16.dp))
+                    // QuickStats Placeholder para Manga
+                    MangaQuickStatsPlaceholderHome()
+
+                    // Hero Carousel
                     HeroCarousel(
                         navController = navController,
                         cards = heroMangaCards,
@@ -2005,6 +2008,192 @@ private fun EnhancedContinueWatchingCard(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manga QuickStats Placeholder con mensajes rotativos
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun MangaQuickStatsPlaceholderHome(
+    modifier: Modifier = Modifier
+) {
+    val isDark = isSystemInDarkTheme()
+
+    // Mensajes rotativos sobre el futuro feature de manga
+    data class MangaMessage(val text: String, val color: Color)
+
+    val messages = remember(isDark) {
+        listOf(
+            MangaMessage(
+                "Pronto podrás guardar tus mangas favoritos aquí",
+                SeijakuSemanticColors.insightColor(0, isDark)
+            ),
+            MangaMessage(
+                "Estamos trabajando en algo especial para ti",
+                SeijakuSemanticColors.insightColor(1, isDark)
+            ),
+            MangaMessage(
+                "¡Ya casi está listo! Solo falta un poquito más",
+                SeijakuSemanticColors.insightColor(2, isDark)
+            ),
+            MangaMessage(
+                "La espera valdrá la pena, lo prometemos",
+                SeijakuSemanticColors.insightColor(3, isDark)
+            ),
+            MangaMessage(
+                "Tu biblioteca de manga está en camino",
+                SeijakuSemanticColors.insightColor(4, isDark)
+            ),
+            MangaMessage(
+                "Haciendo lo mejor para que disfrutes tu colección",
+                SeijakuSemanticColors.insightColor(5, isDark)
+            )
+        )
+    }
+
+    // Estado para controlar qué mensaje se muestra
+    var currentMessageIndex by remember { mutableStateOf(0) }
+
+    // Cambiar mensaje cada 4 segundos
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(4000)
+            currentMessageIndex = (currentMessageIndex + 1) % messages.size
+        }
+    }
+
+    val currentMessage = messages[currentMessageIndex]
+
+    // Animar el color del stripe
+    val stripeColor by animateColorAsState(
+        targetValue = currentMessage.color,
+        animationSpec = tween(600, easing = FastOutSlowInEasing),
+        label = "stripe_color"
+    )
+
+    // Animación de pulso para la flecha
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            // Cabecera
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Próximamente",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.asp(),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    lineHeight = 18.asp()
+                )
+
+                // Botón con flecha (solo decorativo, no funcional)
+                Surface(
+                    modifier = Modifier
+                        .size(32.adp())
+                        .graphicsLayer {
+                            scaleX = pulseScale
+                            scaleY = pulseScale
+                        },
+                    shape = CircleShape,
+                    color = Color.Transparent,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    onClick = { /* No hace nada, solo decorativo */ }
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.adp()),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Card interna con stripe y mensaje
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Stripe vertical de color
+                    Box(
+                        modifier = Modifier
+                            .width(3.dp)
+                            .fillMaxHeight()
+                            .background(stripeColor)
+                    )
+
+                    // Mensaje rotativo con animación
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                    ) {
+                        AnimatedContent(
+                            targetState = currentMessage,
+                            transitionSpec = {
+                                (slideInVertically(
+                                    animationSpec = tween(500, easing = EaseOutBack),
+                                    initialOffsetY = { it / 2 }
+                                ) + fadeIn(
+                                    animationSpec = tween(400)
+                                )).togetherWith(
+                                    slideOutVertically(
+                                        animationSpec = tween(400, easing = FastOutSlowInEasing),
+                                        targetOffsetY = { -it / 2 }
+                                    ) + fadeOut(
+                                        animationSpec = tween(300)
+                                    )
+                                )
+                            },
+                            label = "message_animation"
+                        ) { message ->
+                            Text(
+                                text = message.text,
+                                fontFamily = PoppinsRegular,
+                                fontSize = 13.asp(),
+                                lineHeight = 19.asp(),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             }
