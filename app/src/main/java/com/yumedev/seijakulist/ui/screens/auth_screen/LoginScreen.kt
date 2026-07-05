@@ -195,7 +195,7 @@ private fun LoginHeader(
                 modifier = Modifier.graphicsLayer { translationY = logoFloat }
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.new_logo_seijaku),
                     contentDescription = "Seijaku List",
                     modifier = Modifier
                         .size(72.adp())

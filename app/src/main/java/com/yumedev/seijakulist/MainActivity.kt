@@ -618,7 +618,7 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                                 .padding(4.dp)
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.logo),
+                                painter = painterResource(R.drawable.new_logo_seijaku),
                                 contentDescription = "Logo SeijakuList",
                                 modifier = Modifier
                                     .fillMaxSize()

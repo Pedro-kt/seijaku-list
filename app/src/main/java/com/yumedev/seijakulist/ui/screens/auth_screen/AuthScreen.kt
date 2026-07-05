@@ -1349,7 +1349,7 @@ private fun WelcomeHeader(
                             )
                     )
                     Image(
-                        painter = painterResource(id = R.drawable.logo),
+                        painter = painterResource(id = R.drawable.new_logo_seijaku),
                         contentDescription = "Seijaku List",
                         modifier = Modifier
                             .size(80.adp())
