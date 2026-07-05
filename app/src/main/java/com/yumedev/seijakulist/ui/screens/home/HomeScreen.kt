@@ -790,7 +790,8 @@ private fun AnimeSectionWithFilter(
                             localAnimeStatuses = localAnimeStatuses,
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope,
-                            isManga = isManga
+                            isManga = isManga,
+                            sectionId = title.replace(" ", "_").lowercase()
                         )
                     }
                 }

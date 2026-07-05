@@ -69,21 +69,23 @@ fun CardAnimesHome(
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
-    isManga: Boolean = false
+    isManga: Boolean = false,
+    sectionId: String = ""
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(animeList, key = { it.malId }) { anime ->
+        items(animeList, key = { "${sectionId}_${it.malId}" }) { anime ->
             AnimeSectionCard(
                 anime = anime,
                 navController = navController,
                 localAnimeStatuses = localAnimeStatuses,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
-                isManga = isManga
+                isManga = isManga,
+                sectionId = sectionId
             )
         }
     }
@@ -97,7 +99,8 @@ private fun AnimeSectionCard(
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
-    isManga: Boolean = false
+    isManga: Boolean = false,
+    sectionId: String = ""
 ) {
     val context = LocalContext.current
 
@@ -122,7 +125,7 @@ private fun AnimeSectionCard(
             with(sharedTransitionScope) {
                 Modifier
                     .sharedElement(
-                        sharedContentState = rememberSharedContentState(key = "anime-image-${anime.malId}"),
+                        sharedContentState = rememberSharedContentState(key = "anime-image-${sectionId}-${anime.malId}"),
                         animatedVisibilityScope = animatedVisibilityScope
                     )
                     .fillMaxSize()
