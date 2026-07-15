@@ -29,6 +29,7 @@ import com.yumedev.seijakulist.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +42,9 @@ fun AddToListScreen(
     val existingAnime by viewModel.existingAnime.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true // Mantiene el modal fijo en su altura inicial
+    )
 
     // Load anime detail if not loaded
     LaunchedEffect(animeId) {
@@ -52,32 +56,28 @@ fun AddToListScreen(
     val isAdded = existingAnime != null
     val anime = animeDetail
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (isAdded) "Editar en Mi Lista" else "Añadir a Mi Lista",
-                        fontFamily = PoppinsBold
+    ModalBottomSheet(
+        onDismissRequest = { navController.navigateUp() },
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.background,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .width(32.dp)
+                    .height(4.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        RoundedCornerShape(2.dp)
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cerrar")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
             )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        AddToListContent(
-            modifier = Modifier.padding(paddingValues),
+        }
+    ) {
+        AddToListModalContent(
             anime = anime,
             existingAnime = existingAnime,
             isAdded = isAdded,
+            onDismiss = { navController.navigateUp() },
             onSave = { status, rating, startDate, endDate, priority, note ->
                 scope.launch {
                     viewModel.addAnimeToList(
@@ -124,7 +124,167 @@ fun AddToListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddToListContent(
+fun AddToListModalContent(
+    modifier: Modifier = Modifier,
+    anime: AnimeDetail?,
+    existingAnime: com.yumedev.seijakulist.domain.models.AnimeEntityDomain?,
+    isAdded: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (String?, Float, Long?, Long?, String?, String) -> Unit,
+    onDelete: () -> Unit
+) {
+    // Estado del formulario
+    var selectedStatus by remember { mutableStateOf(existingAnime?.userStatus) }
+    var rating by remember { mutableStateOf(existingAnime?.userScore ?: 0f) }
+    var opinion by remember { mutableStateOf(existingAnime?.userOpiniun ?: "") }
+    var startDate by remember { mutableStateOf(existingAnime?.startDate) }
+    var endDate by remember { mutableStateOf(existingAnime?.endDate) }
+    var plannedPriority by remember { mutableStateOf(existingAnime?.plannedPriority) }
+    var plannedNote by remember { mutableStateOf(existingAnime?.plannedNote ?: "") }
+
+    var showStartPicker by remember { mutableStateOf(false) }
+    var showEndPicker by remember { mutableStateOf(false) }
+
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+
+    // DatePicker Dialogs
+    if (showStartPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showStartPicker = false },
+            confirmButton = {
+                TextButton(onClick = { showStartPicker = false }) {
+                    Text("OK", fontFamily = PoppinsMedium)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartPicker = false }) {
+                    Text("Cancelar", fontFamily = PoppinsRegular)
+                }
+            }
+        ) {
+            val pickerState = rememberDatePickerState(initialSelectedDateMillis = startDate)
+            DatePicker(state = pickerState)
+            startDate = pickerState.selectedDateMillis
+        }
+    }
+
+    if (showEndPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showEndPicker = false },
+            confirmButton = {
+                TextButton(onClick = { showEndPicker = false }) {
+                    Text("OK", fontFamily = PoppinsMedium)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndPicker = false }) {
+                    Text("Cancelar", fontFamily = PoppinsRegular)
+                }
+            }
+        ) {
+            val pickerState = rememberDatePickerState(initialSelectedDateMillis = endDate)
+            DatePicker(state = pickerState)
+            endDate = pickerState.selectedDateMillis
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // HEADER FIJO
+            ModalHeader(
+                anime = anime,
+                onDismiss = onDismiss
+            )
+
+            // CONTENIDO SCROLLEABLE
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 160.dp), // Espacio para el botón + navigation bar (aumentado)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Selector de Estado
+                StatusSelector(
+                    selectedStatus = selectedStatus,
+                    onStatusSelected = { selectedStatus = it }
+                )
+
+                // Contenido condicional según estado
+                when (selectedStatus) {
+                    "Planeado" -> {
+                        PlannedSection(
+                            priority = plannedPriority,
+                            note = plannedNote,
+                            onPriorityChanged = { plannedPriority = it },
+                            onNoteChanged = { plannedNote = it }
+                        )
+                    }
+                    null -> {
+                        // Estado vacío, no mostrar nada
+                    }
+                    else -> {
+                        // Viendo, Completado, Pendiente, Abandonado
+                        RatingSection(
+                            rating = rating,
+                            onRatingChanged = { rating = it }
+                        )
+
+                        OpinionSection(
+                            opinion = opinion,
+                            onOpinionChanged = { opinion = it }
+                        )
+
+                        DatesSection(
+                            startDate = startDate,
+                            endDate = endDate,
+                            canSelectEndDate = selectedStatus == "Completado",
+                            onStartDateClick = { showStartPicker = true },
+                            onEndDateClick = { if (selectedStatus == "Completado") showEndPicker = true },
+                            dateFormat = dateFormat
+                        )
+                    }
+                }
+            }
+        }
+
+        // BOTÓN FIJO EN EL BOTTOM
+        ActionButton(
+            isAdded = isAdded,
+            selectedStatus = selectedStatus,
+            onSave = {
+                val scoreToPass = if (selectedStatus == "Planeado") 0f else rating
+                val priorityToPass = if (selectedStatus == "Planeado") plannedPriority else null
+                val noteToPass = if (selectedStatus == "Planeado" && plannedNote.isNotBlank())
+                    plannedNote
+                else if (opinion.isNotBlank())
+                    opinion
+                else
+                    ""
+
+                onSave(
+                    selectedStatus,
+                    scoreToPass,
+                    startDate,
+                    endDate,
+                    priorityToPass,
+                    noteToPass
+                )
+            },
+            onDelete = onDelete,
+            modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.background)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+private fun OldAddToListContent(
     modifier: Modifier = Modifier,
     anime: AnimeDetail?,
     existingAnime: com.yumedev.seijakulist.domain.models.AnimeEntityDomain?,
