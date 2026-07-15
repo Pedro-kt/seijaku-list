@@ -803,127 +803,109 @@ private fun MangaOverviewTab(
             val clipboardManager = LocalClipboardManager.current
             var expanded by remember { mutableStateOf(false) }
 
-            Card(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .animateContentSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                // Header con título y botones de acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Header con título y botones de acción
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Sinopsis",
-                            fontSize = 21.sp,
-                            fontFamily = PoppinsBold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            letterSpacing = 0.3.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        // Botones de acción
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // Botón de copiar
-                            FilledTonalIconButton(
-                                onClick = {
-                                    clipboardManager.setText(AnnotatedString(mangaDetail.synopsis))
-                                    Toast.makeText(
-                                        context,
-                                        "Sinopsis copiada al portapapeles",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                },
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copiar sinopsis",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-
-                            // Botón de traducir
-                            FilledTonalIconButton(
-                                onClick = {
-                                    val synopsis = mangaDetail.synopsis
-                                    val textToTranslate = if (synopsis.length > 2000) {
-                                        synopsis.substring(0, 2000) + "..."
-                                    } else {
-                                        synopsis
-                                    }
-                                    val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
-                                    val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
-
-                                    val customTabsIntent = CustomTabsIntent.Builder()
-                                        .setShowTitle(true)
-                                        .build()
-                                    customTabsIntent.launchUrl(context, Uri.parse(url))
-                                },
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Translate,
-                                    contentDescription = "Traducir sinopsis",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-                    val hasOverflow = textLayoutResult?.hasVisualOverflow ?: false
-
                     Text(
-                        text = mangaDetail.synopsis,
-                        fontFamily = PoppinsRegular,
-                        fontSize = 14.sp,
-                        lineHeight = 23.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = if (expanded) TextAlign.Justify else TextAlign.Start,
-                        maxLines = if (expanded) Int.MAX_VALUE else 6,
-                        overflow = TextOverflow.Ellipsis,
-                        onTextLayout = { textLayoutResult = it }
+                        text = "Sinopsis",
+                        fontSize = 16.sp,
+                        fontFamily = PoppinsBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    if (hasOverflow || expanded) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
+                    // Botones de acción
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        // Botón de copiar
+                        IconButton(
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString(mangaDetail.synopsis))
+                                Toast.makeText(
+                                    context,
+                                    "Sinopsis copiada",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            FilledTonalButton(
-                                onClick = { expanded = !expanded },
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (expanded)
-                                        Icons.Default.ExpandLess
-                                    else
-                                        Icons.Default.ExpandMore,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = if (expanded) "Ver menos" else "Ver más",
-                                    fontFamily = PoppinsBold,
-                                    fontSize = 13.sp
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = "Copiar sinopsis",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
+
+                        // Botón de traducir
+                        IconButton(
+                            onClick = {
+                                val synopsis = mangaDetail.synopsis
+                                val textToTranslate = if (synopsis.length > 2000) {
+                                    synopsis.substring(0, 2000) + "..."
+                                } else {
+                                    synopsis
+                                }
+                                val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
+                                val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
+
+                                val customTabsIntent = CustomTabsIntent.Builder()
+                                    .setShowTitle(true)
+                                    .build()
+                                customTabsIntent.launchUrl(context, Uri.parse(url))
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Translate,
+                                contentDescription = "Traducir sinopsis",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                val hasOverflow = textLayoutResult?.hasVisualOverflow ?: false
+
+                Text(
+                    text = mangaDetail.synopsis,
+                    fontFamily = PoppinsRegular,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (expanded) Int.MAX_VALUE else 6,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { textLayoutResult = it },
+                    modifier = Modifier.animateContentSize()
+                )
+
+                if (hasOverflow || expanded) {
+                    TextButton(
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.align(Alignment.Start)
+                    ) {
+                        Text(
+                            text = if (expanded) "ver menos" else "ver más",
+                            fontFamily = PoppinsMedium,
+                            fontSize = 13.sp
+                        )
+                        Icon(
+                            imageVector = if (expanded)
+                                Icons.Default.ExpandLess
+                            else
+                                Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
