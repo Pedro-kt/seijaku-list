@@ -27,6 +27,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -38,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -1011,51 +1014,239 @@ private fun MangaCharactersTab(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    var showAll by remember { mutableStateOf(false) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+
+    // Auto-focus cuando se activa la búsqueda
+    LaunchedEffect(isSearching) {
+        if (isSearching) {
+            focusRequester.requestFocus()
+        }
+    }
+
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
-        when {
-            isLoading -> {
-                Box(
+        // Barra de búsqueda
+        AnimatedVisibility(
+            visible = !isLoading && characters.isNotEmpty(),
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            if (isSearching) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            characters.isEmpty() -> {
-                MangaEmptyState(message = "No hay personajes disponibles")
-            }
-            else -> {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.heightIn(max = 2000.dp),
-                    userScrollEnabled = false
-                ) {
-                    items(characters, key = { it.idCharacter ?: 0 }) { character ->
-                        MangaCharacterCard(
-                            character = character,
-                            onClick = {
-                                character.idCharacter?.let {
-                                    navController.navigate("character_detail_route/$it")
-                                }
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .focusRequester(focusRequester),
+                    placeholder = {
+                        Text(
+                            text = "Buscar personaje...",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.sp
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Buscar",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            if (searchQuery.isEmpty()) {
+                                isSearching = false
+                            } else {
+                                searchQuery = ""
                             }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Cerrar",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(50),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    ),
+                    textStyle = TextStyle(
+                        fontFamily = PoppinsMedium,
+                        fontSize = 14.sp
+                    )
+                )
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Reparto principal",
+                        fontFamily = PoppinsBold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    IconButton(onClick = { isSearching = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Buscar",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                characters.isEmpty() -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.People,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Text(
+                            text = "Sin información de reparto",
+                            fontFamily = PoppinsBold,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Este manga aún no tiene personajes registrados",
+                            fontFamily = PoppinsRegular,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+
+                else -> {
+                    // Filtrar personajes según búsqueda
+                    val filteredCharacters = if (searchQuery.isBlank()) {
+                        characters
+                    } else {
+                        characters.filter { character ->
+                            character.nameCharacter?.contains(searchQuery, ignoreCase = true) == true
+                        }
+                    }
+
+                    // Mostrar mensaje si no hay resultados
+                    if (filteredCharacters.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Text(
+                                    text = "No se encontraron personajes",
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Intenta con otro nombre",
+                                    fontFamily = PoppinsRegular,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        // Mostrar 9 personajes o todos según el estado
+                        val displayedCharacters = if (showAll || searchQuery.isNotBlank()) {
+                            filteredCharacters
+                        } else {
+                            filteredCharacters.take(9)
+                        }
+
+                        Column(
+                            modifier = Modifier.imePadding(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            displayedCharacters.forEach { character ->
+                                MangaCharacterListItem(
+                                    character = character,
+                                    onClick = {
+                                        character.idCharacter?.let { id ->
+                                            navController.navigate("character_detail_route/$id")
+                                        }
+                                    }
+                                )
+                                if (character != displayedCharacters.last()) {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                    )
+                                }
+                            }
+
+                            // Botón "Ver todo el reparto" / "Ver menos" si hay más de 9 personajes y no está buscando
+                            if (filteredCharacters.size > 9 && searchQuery.isBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedButton(
+                                    onClick = { showAll = !showAll },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(
+                                        text = if (showAll) "Ver menos" else "Ver todo el reparto",
+                                        fontFamily = PoppinsMedium,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+
+                            // Spacer adicional para que el contenido no quede tapado por el teclado
+                            Spacer(modifier = Modifier.height(200.dp))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1226,106 +1417,125 @@ private fun MangaSimpleInfoRow(
 }
 
 @Composable
-private fun MangaCharacterCard(
+private fun MangaCharacterListItem(
     character: AnimeCharactersDetail,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Colores según el rol
-    val roleColor = when (character.role.lowercase()) {
-        "main" -> Color(0xFFFF5722) // Naranja rojizo - protagonista
-        "supporting" -> Color(0xFF2196F3) // Azul - soporte
-        else -> Color(0xFF9E9E9E) // Gris - otro
+    val context = LocalContext.current
+    val characterName = character.nameCharacter ?: "Desconocido"
+    val characterRole = when (character.role) {
+        "Main" -> "Protagonista"
+        "Supporting" -> "Principal"
+        else -> character.role
     }
+    val characterImage = character.imageCharacter?.jpg?.imageUrl
 
-    Card(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
-            // Character image - muy compacto para 3 columnas
+        // Avatar e información del personaje (izquierda)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            // Avatar circular con imagen o inicial
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.62f) // Reducido más para 3 columnas
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = character.imageCharacter?.jpg?.imageUrl,
-                    contentDescription = character.nameCharacter,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                // Gradiente en la parte inferior para mejor legibilidad del nombre
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .align(Alignment.BottomCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.75f)
-                                )
-                            )
-                        )
-                )
-
-                // Role badge mejorado - icono + texto compacto
-                if (character.role.isNotBlank()) {
-                    val (icon, roleText) = when (character.role.lowercase()) {
-                        "main" -> "★" to "Main"
-                        "supporting" -> "◆" to "Supp"
-                        else -> "•" to character.role.take(4)
-                    }
-
-                    Surface(
+                if (!characterImage.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(characterImage)
+                            .size(Size.ORIGINAL)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = characterName,
                         modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(4.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        color = roleColor.copy(alpha = 0.9f)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                            horizontalArrangement = Arrangement.spacedBy(2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = icon,
-                                fontFamily = PoppinsBold,
-                                fontSize = 9.sp,
-                                color = Color.White
-                            )
-                            Text(
-                                text = roleText,
-                                fontFamily = PoppinsBold,
-                                fontSize = 9.sp,
-                                color = Color.White,
-                                letterSpacing = 0.2.sp
-                            )
-                        }
-                    }
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(
+                        text = characterName.first().uppercase(),
+                        fontFamily = PoppinsBold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
+            }
 
-                // Character name sobre la imagen - en la parte inferior
+            // Nombre y rol
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
-                    text = character.nameCharacter ?: "Unknown",
+                    text = characterName,
                     fontFamily = PoppinsBold,
-                    fontSize = 9.sp,
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 11.sp,
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(6.dp)
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = characterRole,
+                    fontFamily = PoppinsRegular,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Información del actor de voz (derecha) - placeholder por ahora
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Actor de voz (placeholder)
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = "Actor de voz",
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "Japonés",
+                    fontFamily = PoppinsRegular,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Avatar del actor con inicial (placeholder)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "A",
+                    fontFamily = PoppinsBold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
