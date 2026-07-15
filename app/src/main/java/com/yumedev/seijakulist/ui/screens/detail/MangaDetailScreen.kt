@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -1258,76 +1259,140 @@ private fun MangaInfoTab(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        // Basic info
-        MangaInfoRow("Título en inglés", mangaDetail?.titleEnglish?.ifBlank { "—" } ?: "—")
-        MangaInfoRow("Título japonés", mangaDetail?.titleJapanese?.ifBlank { "—" } ?: "—")
-        MangaInfoRow("Tipo", formatMangaType(mangaDetail?.typeManga ?: ""))
-        MangaInfoRow("Estado", formatMangaStatus(mangaDetail?.status ?: ""))
+        // Basic info - filas simples con dividers
+        MangaSimpleInfoRow("Título en inglés", mangaDetail?.titleEnglish?.ifBlank { "—" } ?: "—")
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 12.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
+
+        MangaSimpleInfoRow("Título japonés", mangaDetail?.titleJapanese?.ifBlank { "—" } ?: "—")
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 12.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
+
+        MangaSimpleInfoRow("Tipo", formatMangaType(mangaDetail?.typeManga ?: ""))
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 12.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
+
+        // Estado con dot indicator
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Estado",
+                fontFamily = PoppinsRegular,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(
+                            when (mangaDetail?.status) {
+                                "RELEASING" -> Color(0xFF00A8FF)
+                                "FINISHED" -> Color(0xFF7EE787)
+                                else -> MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                )
+                Text(
+                    text = formatMangaStatus(mangaDetail?.status ?: ""),
+                    fontFamily = PoppinsBold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.End
+                )
+            }
+        }
 
         if (mangaDetail?.chapters != null && mangaDetail.chapters > 0) {
-            MangaInfoRow("Capítulos", "${mangaDetail.chapters}")
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+            MangaSimpleInfoRow("Capítulos", "${mangaDetail.chapters}")
         }
 
         if (mangaDetail?.volumes != null && mangaDetail.volumes > 0) {
-            MangaInfoRow("Volúmenes", "${mangaDetail.volumes}")
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+            MangaSimpleInfoRow("Volúmenes", "${mangaDetail.volumes}")
         }
 
         if (!mangaDetail?.published.isNullOrBlank()) {
-            MangaInfoRow("Publicación", mangaDetail.published)
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+            MangaSimpleInfoRow("Publicación", mangaDetail.published)
         }
 
         if (mangaDetail?.score != null && mangaDetail.score > 0) {
-            MangaInfoRow("Puntuación", "${mangaDetail.score}/10")
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+            MangaSimpleInfoRow("Puntuación", "${mangaDetail.score} / 10")
         }
 
         if (mangaDetail?.scoreBy != null && mangaDetail.scoreBy > 0) {
-            MangaInfoRow("Valoraciones", "${mangaDetail.scoreBy} usuarios")
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+            MangaSimpleInfoRow("Valoraciones", "${mangaDetail.scoreBy} usuarios")
         }
 
-        // Serializations - en formato pill con colores
+        // Serializations - mismo estilo que Studios/Producers del anime
         if (!mangaDetail?.serializations.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
-            MangaInfoCard(title = "Publicado en") {
-                // Paleta de colores para los chips
-                val chipColors = listOf(
-                    Color(0xFF2196F3), // Azul
-                    Color(0xFF9C27B0), // Púrpura
-                    Color(0xFF00BCD4), // Cian
-                    Color(0xFFFF5722), // Naranja rojizo
-                    Color(0xFF4CAF50), // Verde
-                    Color(0xFFFF9800), // Naranja
-                    Color(0xFFE91E63), // Rosa
-                    Color(0xFF009688)  // Teal
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Publicado en",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
-                androidx.compose.foundation.layout.FlowRow(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    mangaDetail.serializations.forEachIndexed { index, serialization ->
-                        val chipColor = chipColors[index % chipColors.size]
-
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = chipColor.copy(alpha = 0.15f),
-                            border = androidx.compose.foundation.BorderStroke(
-                                1.dp,
-                                chipColor.copy(alpha = 0.5f)
-                            )
-                        ) {
-                            Text(
-                                text = serialization.name,
-                                fontFamily = PoppinsBold,
-                                fontSize = 12.sp,
-                                color = chipColor,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                            )
+                    mangaDetail.serializations.filterNotNull()
+                        .filter { !it.name.isNullOrBlank() }
+                        .forEach { serialization ->
+                            Surface(
+                                shape = RoundedCornerShape(20.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh
+                            ) {
+                                Text(
+                                    text = serialization.name,
+                                    fontFamily = PoppinsMedium,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                                )
+                            }
                         }
-                    }
                 }
             }
         }
