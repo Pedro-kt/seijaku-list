@@ -8,6 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -39,12 +42,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import android.widget.Toast
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import java.net.URLEncoder
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.size.Size
 import com.yumedev.seijakulist.domain.models.AnimeCharactersDetail
 import com.yumedev.seijakulist.domain.models.MangaDetail
 import com.yumedev.seijakulist.ui.components.LoadingScreen
@@ -59,14 +65,16 @@ import com.yumedev.seijakulist.ui.theme.asp
  * Pantalla de detalle del manga
  * Diseño consistente con Material Design 3 y el resto de la app
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MangaDetailScreen(
     navController: NavController,
     mangaId: Int?,
     initialTab: Int = 0,
     mangaDetailViewModel: MangaDetailAniListViewModel = hiltViewModel(),
-    mangaCharacterDetailViewModel: MangaCharacterDetailViewModel = hiltViewModel()
+    mangaCharacterDetailViewModel: MangaCharacterDetailViewModel = hiltViewModel(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     // ViewModels state
     val mangaDetail by mangaDetailViewModel.mangaDetail.collectAsState()
@@ -111,22 +119,7 @@ fun MangaDetailScreen(
 
         mangaDetail != null -> {
             Scaffold(
-                topBar = {
-                    CenterAlignedTopAppBar(
-                        title = { },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Volver"
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
-                },
+                containerColor = Color.Transparent,
                 floatingActionButton = {
                     AnimatedVisibility(
                         visible = showFab,
@@ -168,26 +161,83 @@ fun MangaDetailScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
                         .pointerInput(Unit) {
                             detectTapGestures(onTap = { focusManager.clearFocus() })
                         }
                 ) {
+                    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+                    // CONTENIDO CON SCROLL
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
-                            top = paddingValues.calculateTopPadding(),
                             bottom = paddingValues.calculateBottomPadding()
                         )
                     ) {
-                        // Header con portada e información principal
+                        // BANNER CON BLUR + HEADER ENCIMA
                         item {
-                            MangaDetailHeader(mangaDetail = mangaDetail)
-                        }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                // Banner image con blur (si existe)
+                                mangaDetail!!.bannerImage?.let { banner ->
+                                    if (!banner.contains("no-image", ignoreCase = true) && banner.isNotBlank()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(statusBarHeight + 320.dp)
+                                        ) {
+                                            // Banner image con blur
+                                            AsyncImage(
+                                                model = banner,
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .blur(25.dp),
+                                                contentScale = ContentScale.Crop
+                                            )
 
-                        // Stats Cards
-                        item {
-                            MangaStatsRow(mangaDetail = mangaDetail)
+                                            // Gradient overlay
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(
+                                                        Brush.verticalGradient(
+                                                            colors = listOf(
+                                                                Color.Black.copy(alpha = 0.3f),
+                                                                Color.Black.copy(alpha = 0.4f),
+                                                                Color.Black.copy(alpha = 0.5f),
+                                                                MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+                                                                MaterialTheme.colorScheme.background
+                                                            )
+                                                        )
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Header con portada e información (ENCIMA del banner)
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = statusBarHeight + 56.dp)
+                                ) {
+                                    MangaDetailHeader(
+                                        mangaDetail = mangaDetail,
+                                        isAdded = false, // TODO: Implementar estado isAdded en el ViewModel
+                                        onAddToListClick = {
+                                            // TODO: Navegar a añadir a lista
+                                        },
+                                        sharedTransitionScope = sharedTransitionScope,
+                                        animatedVisibilityScope = animatedVisibilityScope,
+                                        mangaId = mangaId
+                                    )
+                                }
+                            }
                         }
 
                         // Tab selector
@@ -237,6 +287,34 @@ fun MangaDetailScreen(
                             }
                         }
                     }
+
+                    // TOP BAR CON BOTONES (transparente, sobre el banner)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(statusBarHeight + 56.dp)
+                            .align(Alignment.TopCenter)
+                    ) {
+                        // Botón de atrás (izquierda)
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(start = 16.dp, bottom = 8.dp)
+                                .size(40.dp)
+                        ) {
+                            IconButton(
+                                onClick = { navController.popBackStack() }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -247,10 +325,10 @@ fun MangaDetailScreen(
 // TABS
 // ============================================================================
 
-enum class MangaDetailTab {
-    OVERVIEW,
-    CHARACTERS,
-    INFO
+enum class MangaDetailTab(val title: String) {
+    OVERVIEW("Resumen"),
+    CHARACTERS("Reparto"),
+    INFO("Información")
 }
 
 @Composable
@@ -259,30 +337,29 @@ private fun MangaDetailTabSelector(
     onTabSelected: (MangaDetailTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Siempre 3 tabs según el diseño: Resumen, Reparto, Información
     val tabs = listOf(
-        MangaDetailTab.OVERVIEW to Icons.Default.Description,
-        MangaDetailTab.CHARACTERS to Icons.Default.People,
-        MangaDetailTab.INFO to Icons.Default.Info
+        MangaDetailTab.OVERVIEW,
+        MangaDetailTab.CHARACTERS,
+        MangaDetailTab.INFO
     )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 20.dp, top = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Card(
+        Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shadowElevation = 0.dp
         ) {
             Row(modifier = Modifier.padding(4.dp)) {
-                tabs.forEach { (tab, icon) ->
+                tabs.forEach { tab ->
                     MangaTabItem(
-                        icon = icon,
+                        text = tab.title,
                         isSelected = selectedTab == tab,
                         onClick = { onTabSelected(tab) },
                         modifier = Modifier.weight(1f)
@@ -295,7 +372,7 @@ private fun MangaDetailTabSelector(
 
 @Composable
 private fun MangaTabItem(
-    icon: ImageVector,
+    text: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -305,29 +382,33 @@ private fun MangaTabItem(
             MaterialTheme.colorScheme.primary
         else
             Color.Transparent,
-        label = "Tab Background Color"
+        label = "Tab Background Color",
+        animationSpec = tween(200)
     )
-    val iconColor by animateColorAsState(
+    val textColor by animateColorAsState(
         targetValue = if (isSelected)
             MaterialTheme.colorScheme.onPrimary
         else
             MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "Tab Icon Color"
+        label = "Tab Text Color",
+        animationSpec = tween(200)
     )
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(backgroundColor)
             .clickable { onClick() }
             .padding(vertical = 10.dp, horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.adp()),
-            tint = iconColor
+        Text(
+            text = text,
+            fontFamily = if (isSelected) PoppinsBold else PoppinsMedium,
+            fontSize = 13.sp,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -336,122 +417,144 @@ private fun MangaTabItem(
 // HEADER
 // ============================================================================
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun MangaDetailHeader(
     mangaDetail: MangaDetail?,
+    isAdded: Boolean,
+    onAddToListClick: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope?,
+    animatedVisibilityScope: AnimatedVisibilityScope?,
+    mangaId: Int?,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    val context = LocalContext.current
+
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Bottom
     ) {
-        // SECCIÓN PRINCIPAL: Portada + Info
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        // PORTADA (a la izquierda, más grande)
+        Card(
+            modifier = Modifier
+                .width(150.dp)
+                .height(215.dp),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            // PORTADA
-            Card(
-                modifier = Modifier
-                    .width(120.adp())
-                    .height(180.adp()),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            val imageModifier = if (sharedTransitionScope != null &&
+                animatedVisibilityScope != null && mangaId != null
             ) {
-                AsyncImage(
-                    model = mangaDetail?.images ?: "",
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
+                with(sharedTransitionScope) {
+                    Modifier
+                        .sharedElement(
+                            sharedContentState = rememberSharedContentState(
+                                key = "manga-image-$mangaId"
+                            ),
+                            animatedVisibilityScope = animatedVisibilityScope
+                        )
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp))
-                )
+                        .clip(RoundedCornerShape(8.dp))
+                }
+            } else {
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp))
             }
 
-            // INFORMACIÓN PRINCIPAL
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(mangaDetail?.images ?: "")
+                    .size(Size.ORIGINAL)
+                    .crossfade(false)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = imageModifier
+            )
+        }
+
+        // INFORMACIÓN A LA DERECHA (alineada al bottom)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(180.adp()),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // TÍTULOS Y ESTADO
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Título principal
+                // Título principal
+                Text(
+                    text = mangaDetail?.title ?: "",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 22.sp,
+                    fontFamily = PoppinsBold,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 26.sp
+                )
+
+                // Título japonés
+                if (!mangaDetail?.titleJapanese.isNullOrBlank()) {
                     Text(
-                        text = mangaDetail?.title ?: "",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.asp(),
-                        fontFamily = PoppinsBold,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        lineHeight = 22.asp()
+                        text = mangaDetail.titleJapanese,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        fontSize = 14.sp,
+                        fontFamily = PoppinsRegular,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-
-                    // Título japonés
-                    if (!mangaDetail?.titleJapanese.isNullOrBlank()) {
-                        Text(
-                            text = mangaDetail.titleJapanese,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 12.asp(),
-                            fontFamily = PoppinsRegular,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    // Type y Status badges
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // Type badge
-                        MangaTypeBadge(type = mangaDetail?.typeManga ?: "")
-
-                        // Status badge
-                        MangaStatusBadge(status = mangaDetail?.status ?: "")
-                    }
                 }
 
-                // BOTÓN DE ACCIÓN MEJORADO
-                Button(
-                    onClick = { /* TODO: Añadir a lista */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp), // Más alto
-                    shape = RoundedCornerShape(14.dp), // Más redondeado
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 4.dp, // Mayor elevación
-                        pressedElevation = 8.dp
-                    )
+                // Type y Status badges
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp) // Icono más grande
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Añadir",
-                        fontSize = 15.sp, // Texto más grande
-                        fontFamily = PoppinsBold,
-                        letterSpacing = 0.3.sp
-                    )
+                    // Type badge
+                    MangaTypeBadge(type = mangaDetail?.typeManga ?: "")
+
+                    // Status badge
+                    MangaStatusBadge(status = mangaDetail?.status ?: "")
                 }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Botón "Añadir a mi lista" o "Editar"
+            Button(
+                onClick = onAddToListClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
+            ) {
+                Icon(
+                    imageVector = if (isAdded) Icons.Default.Edit else Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isAdded) "Editar" else "Añadir a mi lista",
+                    fontSize = 14.sp,
+                    fontFamily = PoppinsBold
+                )
             }
         }
     }
 }
 
 // ============================================================================
-// STATS ROW
+// STATS ROW (Ya no se necesita, el header incluye las stats)
 // ============================================================================
 
+/*
 @Composable
 private fun MangaStatsRow(
     mangaDetail: MangaDetail?,
@@ -676,6 +779,7 @@ private fun MangaStatCard(
         }
     }
 }
+*/
 
 // ============================================================================
 // TAB CONTENTS
@@ -1319,40 +1423,32 @@ private fun MangaInfoRow(
 private fun MangaTypeBadge(type: String) {
     if (type.isBlank()) return
 
-    // Mapeo de tipos de manga con colores específicos
-    val (icon, color) = when (type) {
-        "MANGA" -> Icons.Default.Book to Color(0xFF2196F3) // Azul
-        "NOVEL" -> Icons.Default.MenuBook to Color(0xFF9C27B0) // Púrpura
-        "ONE_SHOT" -> Icons.Default.Description to Color(0xFF00BCD4) // Cian
-        "MANHWA" -> Icons.Default.Book to Color(0xFFFF5722) // Naranja rojizo (Corea)
-        "MANHUA" -> Icons.Default.Book to Color(0xFFF44336) // Rojo (China)
-        else -> Icons.Default.Book to Color(0xFF2196F3) // Azul por defecto
+    // Colores según el tipo
+    val color = when (type) {
+        "MANGA" -> Color(0xFF2196F3) // Azul
+        "NOVEL" -> Color(0xFF9C27B0) // Púrpura
+        "ONE_SHOT" -> Color(0xFF00BCD4) // Cian
+        "MANHWA" -> Color(0xFFFF5722) // Naranja rojizo (Corea)
+        "MANHUA" -> Color(0xFFF44336) // Rojo (China)
+        else -> Color(0xFF2196F3) // Azul por defecto
     }
 
     Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.15f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
+        shape = RoundedCornerShape(50), // Completamente redondeado (pill)
+        color = color.copy(alpha = 0.2f),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.5.dp,
+            color = color.copy(alpha = 0.5f)
+        )
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = color
-            )
-            Text(
-                text = formatMangaType(type),
-                fontFamily = PoppinsBold,
-                fontSize = 11.sp,
-                color = color,
-                letterSpacing = 0.3.sp
-            )
-        }
+        Text(
+            text = formatMangaType(type),
+            fontFamily = PoppinsBold,
+            fontSize = 11.sp,
+            color = color,
+            letterSpacing = 0.3.sp,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
     }
 }
 
@@ -1360,55 +1456,34 @@ private fun MangaTypeBadge(type: String) {
 private fun MangaStatusBadge(status: String) {
     if (status.isBlank()) return
 
-    // Mapeo completo de todos los estados posibles de AniList API para manga
-    val (text, icon, color) = when (status) {
-        "FINISHED" -> Triple(
-            "Completado",
-            Icons.Default.CheckCircle,
-            Color(0xFF4CAF50) // Verde - completado
-        )
-        "RELEASING" -> Triple(
-            "En publicación",
-            Icons.Default.FiberManualRecord,
-            Color(0xFF2196F3) // Azul - activo
-        )
-        "NOT_YET_RELEASED" -> Triple(
-            "Próximamente",
-            Icons.Default.Schedule,
-            Color(0xFF9C27B0) // Púrpura - futuro
-        )
-        "CANCELLED" -> Triple(
-            "Cancelado",
-            Icons.Default.Cancel,
-            Color(0xFFF44336) // Rojo - error/cancelado
-        )
-        "HIATUS" -> Triple(
-            "En pausa",
-            Icons.Default.Pause,
-            Color(0xFFFF9800) // Naranja - pausado
-        )
-        else -> Triple(
-            status,
-            Icons.Default.Info,
-            Color(0xFF757575) // Gris - desconocido
-        )
+    val (text, color) = when (status) {
+        "FINISHED" -> "Completado" to Color(0xFF7EE787)
+        "RELEASING" -> "En publicación" to Color(0xFF00A8FF)
+        "NOT_YET_RELEASED" -> "Próximamente" to Color(0xFF79C0FF)
+        "CANCELLED" -> "Cancelado" to Color(0xFFFF7B72)
+        "HIATUS" -> "En pausa" to Color(0xFFFF9800)
+        else -> status to Color(0xFF757575)
     }
 
     Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.15f),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
+        shape = RoundedCornerShape(50), // Completamente redondeado (pill)
+        color = color.copy(alpha = 0.2f),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.5.dp,
+            color = color.copy(alpha = 0.5f)
+        )
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(if (status == "RELEASING") 10.dp else 14.dp),
-                tint = color
+            // Dot indicator
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(color)
             )
             Text(
                 text = text,

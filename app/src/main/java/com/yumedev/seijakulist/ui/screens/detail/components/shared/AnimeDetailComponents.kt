@@ -291,11 +291,12 @@ fun CompactDemographicCard(
 }
 
 /**
- * Badge de estado de emisión (Currently Airing, Finished Airing, etc.)
+ * Badge de estado de emisión/publicación (Anime y Manga)
  */
 @Composable
 fun StatusChip(status: String) {
     val (statusBg, statusFg, dotColor) = when (status) {
+        // Estados de Anime
         "Currently Airing" -> Triple(
             MaterialTheme.colorScheme.surfaceContainerHigh,
             Color(0xFF66BB6A),
@@ -311,6 +312,34 @@ fun StatusChip(status: String) {
             Color(0xFFFFA726),
             Color(0xFFFFA726)
         )
+
+        // Estados de Manga
+        "RELEASING", "Publishing" -> Triple(
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            Color(0xFF66BB6A),
+            Color(0xFF66BB6A)
+        )
+        "FINISHED", "Finished" -> Triple(
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            Color(0xFF42A5F5),
+            Color(0xFF42A5F5)
+        )
+        "NOT_YET_RELEASED", "Not yet published" -> Triple(
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            Color(0xFFFFA726),
+            Color(0xFFFFA726)
+        )
+        "CANCELLED", "Cancelled" -> Triple(
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            Color(0xFFF44336),
+            Color(0xFFF44336)
+        )
+        "HIATUS", "On Hiatus" -> Triple(
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            Color(0xFFAB47BC),
+            Color(0xFFAB47BC)
+        )
+
         else -> Triple(
             MaterialTheme.colorScheme.surfaceContainerHigh,
             Color.White,

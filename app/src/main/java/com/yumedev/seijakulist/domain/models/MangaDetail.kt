@@ -14,6 +14,7 @@ data class MangaDetail(
     val titleEnglish: String,
     val titleJapanese: String,
     val images: String,
+    val bannerImage: String?,
     val typeManga: String,  // MANGA, NOVEL, ONE_SHOT, MANHWA, MANHUA
     val source: String,
     val chapters: Int?,     // Número de capítulos (null si es desconocido)

@@ -17,13 +17,22 @@ fun translateSeason(season: String): String {
 }
 
 /**
- * Traduce el estado de emisión del anime del inglés al español
+ * Traduce el estado de emisión del anime/manga del inglés al español
  */
 fun translateStatus(status: String): String {
     return when (status) {
+        // Estados de Anime
         "Currently Airing" -> "Actualmente en emisión"
         "Finished Airing" -> "Finalizado"
         "Not yet aired" -> "Próximamente"
+
+        // Estados de Manga
+        "FINISHED", "Finished" -> "Finalizado"
+        "RELEASING", "Publishing" -> "En publicación"
+        "NOT_YET_RELEASED", "Not yet published" -> "Próximamente"
+        "CANCELLED", "Cancelled" -> "Cancelado"
+        "HIATUS", "On Hiatus" -> "En pausa"
+
         else -> status
     }
 }
