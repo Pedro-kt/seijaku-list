@@ -913,51 +913,56 @@ private fun MangaOverviewTab(
 
         // Genres
         if (!mangaDetail?.genres.isNullOrEmpty()) {
-            Card(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
+                Text(
+                    text = "Géneros",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "Géneros",
-                        fontFamily = PoppinsBold,
-                        fontSize = 21.sp,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                        letterSpacing = 0.3.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                    )
-
-                    LazyRow(
-                        modifier = Modifier.height(55.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(mangaDetail.genres.filterNotNull()) { genre ->
-                            CompactGenreCard(genreName = genre.name ?: "")
-                        }
+                    mangaDetail.genres.filterNotNull().forEach { genre ->
+                        CompactGenreCard(
+                            genreName = genre.name ?: "",
+                            modifier = Modifier
+                                .width(110.dp)
+                                .height(40.dp)
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
 
         // Authors
         if (!mangaDetail?.authors.isNullOrEmpty()) {
-            MangaInfoCard(title = "Autores") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    mangaDetail.authors.forEach { author ->
-                        MangaAuthorRow(
-                            name = author.name,
-                            role = author.role
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Autores",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                mangaDetail.authors.forEachIndexed { index, author ->
+                    MangaSimpleInfoRow(
+                        label = author.role,
+                        value = author.name
+                    )
+                    if (index < mangaDetail.authors.size - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                         )
                     }
                 }
@@ -1192,9 +1197,9 @@ private fun MangaGenreChip(genre: String) {
 }
 
 @Composable
-private fun MangaAuthorRow(
-    name: String,
-    role: String,
+private fun MangaSimpleInfoRow(
+    label: String,
+    value: String,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -1202,30 +1207,20 @@ private fun MangaAuthorRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = name,
-                fontFamily = PoppinsBold,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = role,
-                fontFamily = PoppinsRegular,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        Icon(
-            imageVector = when {
-                role.contains("Art", ignoreCase = true) -> Icons.Default.Brush
-                role.contains("Story", ignoreCase = true) -> Icons.Default.Create
-                else -> Icons.Default.Person
-            },
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-            modifier = Modifier.size(20.dp)
+        Text(
+            text = label,
+            fontFamily = PoppinsRegular,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            fontFamily = PoppinsBold,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.End,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
