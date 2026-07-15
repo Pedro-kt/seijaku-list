@@ -1208,18 +1208,12 @@ private fun AnimeOverviewTab(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     animeDetail.genres.filterNotNull().forEach { genre ->
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest
-                        ) {
-                            Text(
-                                text = genre.name ?: "",
-                                fontFamily = PoppinsMedium,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                            )
-                        }
+                        CompactGenreCard(
+                            genreName = genre.name ?: "",
+                            modifier = Modifier
+                                .width(110.dp)
+                                .height(40.dp)
+                        )
                     }
                 }
             }
