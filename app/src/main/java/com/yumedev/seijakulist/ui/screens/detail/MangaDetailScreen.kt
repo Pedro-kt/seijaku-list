@@ -92,6 +92,10 @@ fun MangaDetailScreen(
     var selectedTab by remember { mutableStateOf(MangaDetailTab.OVERVIEW) }
     val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+
+    // Modal Bottom Sheet state
+    var showAddToListSheet by remember { mutableStateOf(false) }
 
     // FAB visibility based on scroll
     val showFab by remember {
@@ -131,7 +135,7 @@ fun MangaDetailScreen(
                         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     ) {
                         ExtendedFloatingActionButton(
-                            onClick = { /* TODO: Añadir a lista */ },
+                            onClick = { showAddToListSheet = true },
                             icon = {
                                 Icon(
                                     imageVector = Icons.Default.Favorite,
@@ -234,7 +238,7 @@ fun MangaDetailScreen(
                                         mangaDetail = mangaDetail,
                                         isAdded = false, // TODO: Implementar estado isAdded en el ViewModel
                                         onAddToListClick = {
-                                            // TODO: Navegar a añadir a lista
+                                            showAddToListSheet = true
                                         },
                                         sharedTransitionScope = sharedTransitionScope,
                                         animatedVisibilityScope = animatedVisibilityScope,
@@ -318,6 +322,90 @@ fun MangaDetailScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // Modal Bottom Sheet para añadir/editar manga en la lista (Dialog personalizado sin drag)
+    if (showAddToListSheet && mangaDetail != null) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { showAddToListSheet = false },
+            properties = androidx.compose.ui.window.DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true,
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable(
+                        onClick = { showAddToListSheet = false },
+                        indication = null,
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    ),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.85f)
+                        .clickable(
+                            onClick = { },
+                            indication = null,
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        ),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Column {
+                        // Drag handle visual (no funcional)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(32.dp)
+                                    .height(4.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                        RoundedCornerShape(2.dp)
+                                    )
+                            )
+                        }
+
+                        // Contenido del modal
+                        com.yumedev.seijakulist.ui.screens.add_to_list.AddToListMangaModalContent(
+                            manga = mangaDetail,
+                            existingManga = null, // TODO: Implementar obtención del manga existente
+                            isAdded = false, // TODO: Implementar estado isAdded
+                            onDismiss = { showAddToListSheet = false },
+                            onSave = { status, rating, chapter, volume, rereading, note ->
+                                // TODO: Implementar lógica de guardado
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Guardado: $status - Rating: $rating - Cap: $chapter - Vol: $volume",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                                showAddToListSheet = false
+                            },
+                            onDelete = {
+                                // TODO: Implementar lógica de eliminación
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Manga eliminado de tu lista",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                                showAddToListSheet = false
+                            }
+                        )
                     }
                 }
             }
