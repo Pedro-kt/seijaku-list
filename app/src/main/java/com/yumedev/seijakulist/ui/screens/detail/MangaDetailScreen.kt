@@ -391,10 +391,10 @@ fun MangaDetailScreen(
                                 // TODO: Implementar lógica de guardado
                                 android.widget.Toast.makeText(
                                     context,
-                                    "Guardado: $status - Rating: $rating - Cap: $chapter - Vol: $volume",
+                                    "Manga guardado en tu lista",
                                     android.widget.Toast.LENGTH_SHORT
                                 ).show()
-                                showAddToListSheet = false
+                                // El dismiss se maneja en el componente modal
                             },
                             onDelete = {
                                 // TODO: Implementar lógica de eliminación
@@ -403,7 +403,7 @@ fun MangaDetailScreen(
                                     "Manga eliminado de tu lista",
                                     android.widget.Toast.LENGTH_SHORT
                                 ).show()
-                                showAddToListSheet = false
+                                // El dismiss se maneja en el componente modal
                             }
                         )
                     }

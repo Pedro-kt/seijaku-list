@@ -524,8 +524,15 @@ fun AddToListMangaModalContent(
                     isRereading,
                     if (selectedStatus == "Planeado") plannedNote else opinion
                 )
+                // Cerrar el modal después de guardar
+                onDismiss()
             },
-            onDelete = onDelete,
+            onDelete = {
+                // Ejecutar callback de eliminación
+                onDelete()
+                // Cerrar el modal después de eliminar
+                onDismiss()
+            },
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.background)
                 .padding(horizontal = 20.dp, vertical = 16.dp)

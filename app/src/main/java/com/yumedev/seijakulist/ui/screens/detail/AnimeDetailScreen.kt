@@ -513,32 +513,26 @@ fun AnimeDetailScreen(
                                         plannedNote = note
                                     )
 
-                                    val statusEmoji = when (status) {
-                                        "Viendo" -> "▶️"
-                                        "Completado" -> "✅"
-                                        "Pendiente" -> "⏳"
-                                        "Abandonado" -> "❌"
-                                        "Planeado" -> "📋"
-                                        else -> "📺"
-                                    }
                                     val message = if (isAdded)
-                                        "$statusEmoji Anime actualizado en tu lista como '$status'"
+                                        "Anime actualizado en tu lista como '$status'"
                                     else
-                                        "$statusEmoji Anime añadido a tu lista como '$status'"
+                                        "Anime añadido a tu lista como '$status'"
 
-                                    snackbarHostState.showSnackbar(
-                                        message = message,
-                                        duration = SnackbarDuration.Short
-                                    )
-
-                                    showAddToListSheet = false
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        message,
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             },
                             onDelete = {
                                 scope.launch {
                                     // TODO: Implement delete method
-                                    snackbarHostState.showSnackbar("Anime eliminado de tu lista")
-                                    showAddToListSheet = false
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "Anime eliminado de tu lista",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         )

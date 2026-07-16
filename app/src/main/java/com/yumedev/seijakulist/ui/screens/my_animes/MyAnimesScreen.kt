@@ -83,8 +83,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -170,7 +168,7 @@ fun MyAnimeListScreen(
     )
 
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     val statusAnime = listOf("Viendo", "Completado", "Pendiente", "Abandonado", "Planeado")
 
@@ -194,13 +192,12 @@ fun MyAnimeListScreen(
             // Activar el glow
             glowingAnimeId = event.animeId
 
-            // Mostrar snackbar
-            scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = "¡Completado! Tu anime numero ${event.totalCompleted}",
-                    duration = SnackbarDuration.Short
-                )
-            }
+            // Mostrar toast
+            android.widget.Toast.makeText(
+                context,
+                "¡Completado! Tu anime numero ${event.totalCompleted}",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
 
             // Desactivar el glow después de 1.5 segundos
             delay(1500)
@@ -1082,22 +1079,6 @@ fun MyAnimeListScreen(
         }
         }
 
-        // SnackbarHost para mostrar el mensaje de completado
-        androidx.compose.material3.SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 90.dp)
-        ) { snackbarData ->
-            androidx.compose.material3.Snackbar(
-                snackbarData = snackbarData,
-                containerColor = MaterialTheme.colorScheme.inverseSurface,
-                contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                actionColor = MaterialTheme.colorScheme.inversePrimary,
-                shape = RoundedCornerShape(12.dp)
-            )
-        }
-
         // Botón flotante de "volver arriba" - solo visible cuando hay contenido para mostrar
         if (!isLoading && savedAnimes.isNotEmpty()) {
             AnimatedVisibility(
@@ -1186,13 +1167,11 @@ fun MyAnimeListScreen(
             },
             onConfirm = {
                 viewModel.deleteAnimeToList(animeIdToDelete)
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = "Anime eliminado de tu lista",
-                        actionLabel = "Deshacer",
-                        duration = SnackbarDuration.Long
-                    )
-                }
+                android.widget.Toast.makeText(
+                    context,
+                    "Anime eliminado de tu lista",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             },
             onDismiss = {
                 // Solo cierra el diálogo

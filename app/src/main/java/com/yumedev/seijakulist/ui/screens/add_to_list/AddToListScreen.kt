@@ -41,7 +41,7 @@ fun AddToListScreen(
     val animeDetail by viewModel.animeDetail.collectAsState()
     val existingAnime by viewModel.existingAnime.collectAsState()
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true // Mantiene el modal fijo en su altura inicial
     )
@@ -90,32 +90,28 @@ fun AddToListScreen(
                         plannedNote = note
                     )
 
-                    val statusEmoji = when (status) {
-                        "Viendo" -> "▶️"
-                        "Completado" -> "✅"
-                        "Pendiente" -> "⏳"
-                        "Abandonado" -> "❌"
-                        "Planeado" -> "📋"
-                        else -> "📺"
-                    }
                     val message = if (isAdded)
-                        "$statusEmoji Anime actualizado en tu lista como '$status'"
+                        "Anime actualizado en tu lista como '$status'"
                     else
-                        "$statusEmoji Anime añadido a tu lista como '$status'"
+                        "Anime añadido a tu lista como '$status'"
 
-                    snackbarHostState.showSnackbar(
-                        message = message,
-                        duration = SnackbarDuration.Short
-                    )
-
-                    navController.navigateUp()
+                    android.widget.Toast.makeText(
+                        context,
+                        message,
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    // El dismiss/navigateUp se maneja en el componente modal
                 }
             },
             onDelete = {
                 scope.launch {
                     // TODO: Implement delete method
-                    snackbarHostState.showSnackbar("Anime eliminado de tu lista")
-                    navController.navigateUp()
+                    android.widget.Toast.makeText(
+                        context,
+                        "Anime eliminado de tu lista",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    // El dismiss/navigateUp se maneja en el componente modal
                 }
             }
         )
@@ -273,8 +269,15 @@ fun AddToListModalContent(
                     priorityToPass,
                     noteToPass
                 )
+                // Cerrar el modal después de guardar
+                onDismiss()
             },
-            onDelete = onDelete,
+            onDelete = {
+                // Ejecutar callback de eliminación
+                onDelete()
+                // Cerrar el modal después de eliminar
+                onDismiss()
+            },
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.background)
                 .padding(horizontal = 20.dp, vertical = 16.dp)
