@@ -37,7 +37,8 @@ fun GetMangaDetailsQuery.Media.toMangaDetail(): MangaDetail {
         title = fields.title?.romaji ?: fields.title?.english ?: fields.title?.native ?: "Sin título",
         titleEnglish = fields.title?.english ?: "No encontrado",
         titleJapanese = fields.title?.native ?: "No encontrado",
-        images = fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: fields.bannerImage ?: "",
+        images = fields.coverImage?.extraLarge ?: fields.coverImage?.large ?: "",
+        bannerImage = fields.bannerImage,
         typeManga = fields.format?.name ?: "UNKNOWN",
         source = fields.source?.name ?: "UNKNOWN",
         chapters = this.chapters, // chapters está en GetMangaDetailsQuery.Media, no en MediaFields

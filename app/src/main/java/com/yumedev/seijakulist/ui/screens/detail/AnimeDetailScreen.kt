@@ -29,10 +29,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.*
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -118,16 +121,17 @@ fun AnimeDetailScreen(
     val context = LocalContext.current
     val view = androidx.compose.ui.platform.LocalView.current
 
+    // Modal Bottom Sheet state
+    var showAddToListSheet by remember { mutableStateOf(openSheet) }
+
     // Configurar status bar y navigation bar para esta pantalla
     DisposableEffect(Unit) {
         val window = (context as? android.app.Activity)?.window
         val originalStatusBarColor = window?.statusBarColor
-        val originalNavigationBarColor = window?.navigationBarColor
 
         window?.let {
             WindowCompat.setDecorFitsSystemWindows(it, false)
             it.statusBarColor = android.graphics.Color.TRANSPARENT
-            it.navigationBarColor = android.graphics.Color.TRANSPARENT
         }
 
         onDispose {
@@ -136,9 +140,6 @@ fun AnimeDetailScreen(
                 WindowCompat.setDecorFitsSystemWindows(it, true)
                 originalStatusBarColor?.let { color ->
                     it.statusBarColor = color
-                }
-                originalNavigationBarColor?.let { color ->
-                    it.navigationBarColor = color
                 }
             }
         }
@@ -150,10 +151,8 @@ fun AnimeDetailScreen(
     }
 
     // Handle open sheet parameter
-    LaunchedEffect(openSheet, isLoading, animeDetail) {
-        if (openSheet && !isLoading && animeDetail != null) {
-            navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${animeDetail!!.malId}")
-        }
+    LaunchedEffect(openSheet) {
+        showAddToListSheet = openSheet
     }
 
     // Set initial tab if provided
@@ -199,9 +198,7 @@ fun AnimeDetailScreen(
                             // Estado B: FAB circular "Editar" (56dp)
                             FloatingActionButton(
                                 onClick = {
-                                    animeDetail?.let {
-                                        navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
-                                    }
+                                    showAddToListSheet = true
                                 },
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -225,9 +222,7 @@ fun AnimeDetailScreen(
                             // Estado A: FAB extendido "Añadir a mi lista"
                             ExtendedFloatingActionButton(
                                 onClick = {
-                                    animeDetail?.let {
-                                        navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
-                                    }
+                                    showAddToListSheet = true
                                 },
                                 icon = {
                                     Icon(
@@ -335,9 +330,7 @@ fun AnimeDetailScreen(
                                         animeDetail = animeDetail,
                                         isAdded = isAdded,
                                         onAddToListClick = {
-                                            animeDetail?.let {
-                                                navController.navigate("${AppDestinations.ADD_TO_LIST_ROUTE}/${it.malId}")
-                                            }
+                                            showAddToListSheet = true
                                         },
                                         sharedTransitionScope = sharedTransitionScope,
                                         animatedVisibilityScope = animatedVisibilityScope,
@@ -443,6 +436,106 @@ fun AnimeDetailScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // Modal Bottom Sheet para añadir/editar anime en la lista (Dialog personalizado sin drag)
+    if (showAddToListSheet && animeDetail != null) {
+        Dialog(
+            onDismissRequest = { showAddToListSheet = false },
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true,
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false // No respetar system bars
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable(
+                        onClick = { showAddToListSheet = false },
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.85f) // 85% de altura
+                        .clickable(
+                            onClick = { }, // No hacer nada al hacer clic en el contenido
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ),
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Column {
+                        // Drag handle visual (no funcional)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .width(32.dp)
+                                    .height(4.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                        RoundedCornerShape(2.dp)
+                                    )
+                            )
+                        }
+
+                        // Contenido del modal
+                        com.yumedev.seijakulist.ui.screens.add_to_list.AddToListModalContent(
+                            anime = animeDetail,
+                            existingAnime = existingAnime,
+                            isAdded = isAdded,
+                            onDismiss = { showAddToListSheet = false },
+                            onSave = { status, rating, startDate, endDate, priority, note ->
+                                scope.launch {
+                                    animeDetailViewModel.addAnimeToList(
+                                        userScore = rating,
+                                        userStatus = status ?: "Viendo",
+                                        userOpinion = note,
+                                        startDate = startDate,
+                                        endDate = endDate,
+                                        plannedPriority = priority,
+                                        plannedNote = note
+                                    )
+
+                                    val message = if (isAdded)
+                                        "Anime actualizado en tu lista como '$status'"
+                                    else
+                                        "Anime añadido a tu lista como '$status'"
+
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        message,
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            onDelete = {
+                                scope.launch {
+                                    // TODO: Implement delete method
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "Anime eliminado de tu lista",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -1109,18 +1202,12 @@ private fun AnimeOverviewTab(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     animeDetail.genres.filterNotNull().forEach { genre ->
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest
-                        ) {
-                            Text(
-                                text = genre.name ?: "",
-                                fontFamily = PoppinsMedium,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                            )
-                        }
+                        CompactGenreCard(
+                            genreName = genre.name ?: "",
+                            modifier = Modifier
+                                .width(110.dp)
+                                .height(40.dp)
+                        )
                     }
                 }
             }
