@@ -139,6 +139,8 @@ import com.yumedev.seijakulist.ui.components.MangaPlaceholder
 import com.yumedev.seijakulist.ui.components.NoInternetScreen
 import com.yumedev.seijakulist.ui.components.shimmerBrush
 import com.yumedev.seijakulist.ui.screens.profile.AnimeStats
+import com.yumedev.seijakulist.ui.screens.profile.MangaStats
+import com.yumedev.seijakulist.ui.screens.profile.ProfileUiState
 import com.yumedev.seijakulist.ui.screens.profile.CustomSeijakuTabSelector
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
@@ -431,6 +433,7 @@ fun HomeScreen(
                             onTopMangaFilterSelected = { selectedTopMangaFilter = it },
                             onPublishingMangaFilterSelected = { selectedPublishingMangaFilter = it },
                             navController = navController,
+                            profileUiState = profileUiState,
                             localAnimeStatuses = localAnimeStatuses,
                             heroMangaCards = heroMangaCards,
                             heroMangaIsLoading = heroMangaIsLoading,
@@ -645,6 +648,7 @@ private fun MangaContent(
     onTopMangaFilterSelected: (String?) -> Unit,
     onPublishingMangaFilterSelected: (String?) -> Unit,
     navController: NavController,
+    profileUiState: ProfileUiState,
     localAnimeStatuses: Map<Int, String> = emptyMap(),
     heroMangaCards: List<com.yumedev.seijakulist.domain.models.HeroAnimeItem>? = null,
     heroMangaIsLoading: Boolean = true,
@@ -669,11 +673,20 @@ private fun MangaContent(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // QuickStats Placeholder + Hero Carousel para Manga
-            item(key = "top_section_manga_${heroMangaCards?.size ?: 0}") {
+            // QuickStats + Hero Carousel para Manga
+            item(key = "top_section_manga_${profileUiState.allSavedMangas.size}_${heroMangaCards?.size ?: 0}") {
                 Column {
-                    // QuickStats Placeholder para Manga
-                    MangaQuickStatsPlaceholderHome()
+                    // QuickStats de Manga (real si tiene mangas, placeholder si no)
+                    profileUiState.allSavedMangas.takeIf { it.isNotEmpty() }?.let { savedMangas ->
+                        val recentMangas = savedMangas.filter { it.statusUser == "Leyendo" }.take(3)
+                        MangaQuickStats(
+                            stats = profileUiState.mangaStats,
+                            recentMangas = recentMangas,
+                            navController = navController
+                        )
+                    } ?: run {
+                        MangaQuickStatsPlaceholderHome()
+                    }
 
                     // Hero Carousel
                     HeroCarousel(
@@ -2334,6 +2347,422 @@ private fun MangaQuickStatsPlaceholderHome(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manga QuickStats Real - Tu progreso de lectura
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun MangaQuickStats(
+    stats: MangaStats,
+    recentMangas: List<com.yumedev.seijakulist.data.local.entities.MangaEntity>,
+    navController: NavController
+) {
+    val isDark = isSystemInDarkTheme()
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "Arrow rotation"
+    )
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+
+    val buttonScale = if (!isExpanded) pulseScale else 1f
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Tu Lectura",
+                        fontFamily = PoppinsBold,
+                        fontSize = 16.asp(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 18.asp()
+                    )
+
+                    Surface(
+                        modifier = Modifier
+                            .size(32.adp())
+                            .graphicsLayer {
+                                scaleX = buttonScale
+                                scaleY = buttonScale
+                            },
+                        shape = CircleShape,
+                        color = Color.Transparent,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        onClick = { isExpanded = !isExpanded }
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(18.adp())
+                                    .rotate(rotationAngle),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                data class InsightData(val text: String, val color: Color)
+
+                val insights = remember(stats, isDark) {
+                    buildList {
+                        var insightIndex = 0
+                        val mangaText = if (stats.totalMangas == 1) "manga" else "mangas"
+                        add(InsightData("Llevas ${stats.totalMangas} $mangaText en tu colección", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+
+                        if (stats.totalChaptersRead > 0) {
+                            val capitulosText = if (stats.totalChaptersRead == 1) "capítulo leído" else "capítulos leídos"
+                            add(InsightData("${stats.totalChaptersRead} $capitulosText, ¡qué dedicación!", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                        }
+
+                        if (stats.completedMangas in 1..<10) {
+                            val mangaCompletadoText = if (stats.completedMangas == 1) "manga" else "mangas"
+                            add(InsightData("Ya cerraste ${stats.completedMangas} $mangaCompletadoText, ¿cuál fue tu favorito?", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                        }
+
+                        if (stats.averageScore > 0) {
+                            add(InsightData("Les das un ${String.format("%.1f", stats.averageScore)}/10 en promedio, buen gusto", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                        }
+
+                        val topGenre = stats.genreStats.maxByOrNull { it.value }?.key
+                        if (topGenre != null) {
+                            add(InsightData("$topGenre es tu género de confort", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                        }
+
+                        if (stats.readingMangas > 0) {
+                            val leyendoText = if (stats.readingMangas == 1) "manga" else "mangas"
+                            add(InsightData("Tienes ${stats.readingMangas} $leyendoText leyendo ahora, ¿cuál terminas primero?", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                        }
+
+                        if (stats.completedMangas >= 10) {
+                            val mangaMilestoneText = if (stats.completedMangas == 1) "manga" else "mangas"
+                            add(InsightData("¡Ya completaste ${stats.completedMangas} $mangaMilestoneText! Impresionante", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                        }
+
+                        if (stats.totalChaptersRead >= 100) {
+                            add(InsightData("${stats.totalChaptersRead} capítulos leídos, ¡eres un lector voraz!", SeijakuSemanticColors.insightColor(insightIndex++, isDark)))
+                        }
+                    }
+                }
+
+                var currentInsightIndex by remember { mutableStateOf(0) }
+
+                LaunchedEffect(insights) {
+                    if (insights.isNotEmpty()) {
+                        while (true) {
+                            kotlinx.coroutines.delay(4000)
+                            currentInsightIndex = (currentInsightIndex + 1) % insights.size
+                        }
+                    }
+                }
+
+                if (insights.isNotEmpty()) {
+                    val currentInsight = insights[currentInsightIndex]
+                    val stripeColor by animateColorAsState(
+                        targetValue = currentInsight.color,
+                        animationSpec = tween(600, easing = FastOutSlowInEasing),
+                        label = "stripe_color"
+                    )
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Box(
+                                modifier = Modifier
+                                    .width(3.dp)
+                                    .fillMaxHeight()
+                                    .background(stripeColor)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            ) {
+                                AnimatedContent(
+                                    targetState = currentInsight,
+                                    transitionSpec = {
+                                        (slideInVertically(
+                                            animationSpec = tween(500, easing = EaseOutBack),
+                                            initialOffsetY = { it / 2 }
+                                        ) + fadeIn(
+                                            animationSpec = tween(400)
+                                        )) togetherWith (slideOutVertically(
+                                            animationSpec = tween(400, easing = FastOutSlowInEasing),
+                                            targetOffsetY = { -it / 2 }
+                                        ) + fadeOut(
+                                            animationSpec = tween(300)
+                                        ))
+                                    },
+                                    label = "insight_animation"
+                                ) { insight ->
+                                    val annotatedText = buildAnnotatedString {
+                                        val text = insight.text
+                                        if (text.contains(" es tu género de confort")) {
+                                            val parts = text.split(" es tu género de confort")
+                                            withStyle(SpanStyle(color = insight.color, fontFamily = PoppinsBold)) {
+                                                append(parts[0])
+                                            }
+                                            append(" es tu género de confort")
+                                            append(parts.getOrNull(1) ?: "")
+                                        } else {
+                                            val numberRegex = "\\d+(?:[.,]\\d+)?".toRegex()
+                                            var lastIndex = 0
+                                            numberRegex.findAll(text).forEach { matchResult ->
+                                                append(text.substring(lastIndex, matchResult.range.first))
+                                                withStyle(SpanStyle(color = insight.color, fontFamily = PoppinsBold)) {
+                                                    append(matchResult.value)
+                                                }
+                                                lastIndex = matchResult.range.last + 1
+                                            }
+                                            append(text.substring(lastIndex))
+                                        }
+                                    }
+
+                                    Text(
+                                        text = annotatedText,
+                                        fontFamily = PoppinsMedium,
+                                        fontSize = 12.asp(),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        lineHeight = 16.asp()
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)) + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                if (recentMangas.isNotEmpty()) {
+                    Column {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Continuar leyendo",
+                            fontFamily = PoppinsBold,
+                            fontSize = 16.asp(),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            recentMangas.take(3).forEach { manga ->
+                                EnhancedContinueReadingCard(
+                                    manga = manga,
+                                    navController = navController,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EnhancedContinueReadingCard(
+    manga: com.yumedev.seijakulist.data.local.entities.MangaEntity,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.94f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "scale"
+    )
+
+    val targetProgress = remember(manga.chaptersRead, manga.chapters) {
+        if (manga.chapters != null && manga.chapters > 0) {
+            manga.chaptersRead.toFloat() / manga.chapters.toFloat()
+        } else 0f
+    }
+
+    val progress by animateFloatAsState(
+        targetValue = targetProgress,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "progress_animation"
+    )
+
+    Card(
+        modifier = modifier
+            .height(150.adp())
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        onClick = { navController.navigate("${AppDestinations.MANGA_DETAIL_ROUTE}/${manga.malId}") },
+        interactionSource = interactionSource
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model = manga.imageUrl,
+                contentDescription = manga.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.2f),
+                                Color.Black.copy(alpha = 0.85f)
+                            )
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                Text(
+                    text = manga.title,
+                    style = TextStyle(
+                        fontFamily = PoppinsBold,
+                        fontSize = 12.asp(),
+                        color = Color.White,
+                        shadow = Shadow(Color.Black, Offset(0f, 2f), 4f)
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(progress)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            MaterialTheme.colorScheme.primary,
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                        )
+                                    )
+                                )
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "CAP. ${manga.chaptersRead}",
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                style = TextStyle(
+                                    fontFamily = PoppinsMedium,
+                                    fontSize = 9.asp(),
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                            )
+                        }
+
+                        Text(
+                            text = "${(progress * 100).toInt()}%",
+                            style = TextStyle(
+                                fontFamily = PoppinsBold,
+                                fontSize = 10.asp(),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        )
                     }
                 }
             }

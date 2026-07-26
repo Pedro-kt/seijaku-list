@@ -50,6 +50,18 @@ data class AnimeStats(
     val genreStats: Map<String, Int> = emptyMap()
 )
 
+data class MangaStats(
+    val totalMangas: Int = 0,
+    val completedMangas: Int = 0,
+    val totalChaptersRead: Int = 0,
+    val readingMangas: Int = 0,
+    val plannedMangas: Int = 0,
+    val onHoldMangas: Int = 0,
+    val droppedMangas: Int = 0,
+    val averageScore: Float = 0f,
+    val genreStats: Map<String, Int> = emptyMap()
+)
+
 data class ProfileUiState(
     val isLoading: Boolean = false,
     val isUploadingImage: Boolean = false,
@@ -58,9 +70,11 @@ data class ProfileUiState(
     val profileUpdateSuccess: Boolean = false,
     val top5Animes: List<AnimeEntity> = emptyList(),
     val allSavedAnimes: List<AnimeEntity> = emptyList(),
+    val allSavedMangas: List<com.yumedev.seijakulist.data.local.entities.MangaEntity> = emptyList(),
     val isSavingTop5: Boolean = false,
     val top5UpdateSuccess: Boolean = false,
     val stats: AnimeStats = AnimeStats(),
+    val mangaStats: MangaStats = MangaStats(),
     val isAtTop: Boolean = true  // Estado para el scroll del header
 )
 
@@ -68,7 +82,8 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userProfileLocalRepository: UserProfileLocalRepository,
-    private val animeLocalRepository: AnimeLocalRepository
+    private val animeLocalRepository: AnimeLocalRepository,
+    private val mangaLocalRepository: com.yumedev.seijakulist.data.repository.MangaLocalRepository
 ) : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
@@ -171,6 +186,42 @@ class ProfileViewModel @Inject constructor(
                     genreStats = genreMap
                 )
                 _uiState.update { it.copy(allSavedAnimes = animes, stats = stats) }
+            }
+        }
+
+        // Cargar todos los mangas y calcular estadísticas
+        viewModelScope.launch {
+            mangaLocalRepository.getAllMangas().collect { mangas ->
+                val genreMap = mutableMapOf<String, Int>()
+                mangas.forEach { manga ->
+                    manga.genres.split(",").forEach { genre ->
+                        val trimmedGenre = genre.trim()
+                        if (trimmedGenre.isNotEmpty()) {
+                            genreMap[trimmedGenre] = genreMap.getOrDefault(trimmedGenre, 0) + 1
+                        }
+                    }
+                }
+
+                // Calcular promedio de score (solo mangas con score > 0)
+                val mangasWithScore = mangas.filter { it.userScore > 0f }
+                val averageScore = if (mangasWithScore.isNotEmpty()) {
+                    mangasWithScore.map { it.userScore }.average().toFloat()
+                } else {
+                    0f
+                }
+
+                val mangaStats = MangaStats(
+                    totalMangas = mangas.size,
+                    completedMangas = mangas.count { it.statusUser == "Completado" },
+                    totalChaptersRead = mangas.sumOf { it.chaptersRead },
+                    readingMangas = mangas.count { it.statusUser == "Leyendo" },
+                    plannedMangas = mangas.count { it.statusUser == "Planeado" },
+                    onHoldMangas = mangas.count { it.statusUser == "Pausado" },
+                    droppedMangas = mangas.count { it.statusUser == "Abandonado" },
+                    averageScore = averageScore,
+                    genreStats = genreMap
+                )
+                _uiState.update { it.copy(allSavedMangas = mangas, mangaStats = mangaStats) }
             }
         }
     }
