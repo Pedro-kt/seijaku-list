@@ -5,7 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yumedev.seijakulist.common.RequestThrottler
+import com.yumedev.seijakulist.data.repository.MangaLocalRepository
 import com.yumedev.seijakulist.domain.models.MangaDetail
+import com.yumedev.seijakulist.domain.models.MangaEntityDomain
 import com.yumedev.seijakulist.domain.usecase.anilist.GetMangaDetailAniListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +32,8 @@ import javax.inject.Inject
 class MangaDetailAniListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getMangaDetailAniListUseCase: GetMangaDetailAniListUseCase,
-    private val requestThrottler: RequestThrottler
+    private val requestThrottler: RequestThrottler,
+    private val mangaLocalRepository: MangaLocalRepository
 ) : ViewModel() {
 
     // State para el detalle del manga
@@ -45,6 +48,14 @@ class MangaDetailAniListViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    // State para saber si el manga está en la lista del usuario
+    private val _isMangaInList = MutableStateFlow(false)
+    val isMangaInList: StateFlow<Boolean> = _isMangaInList.asStateFlow()
+
+    // State para el manga guardado localmente (si existe)
+    private val _mangaFromList = MutableStateFlow<MangaEntityDomain?>(null)
+    val mangaFromList: StateFlow<MangaEntityDomain?> = _mangaFromList.asStateFlow()
+
     // ID del manga obtenido de los argumentos de navegación
     private val mangaId: Int = savedStateHandle["mangaId"] ?: 0
 
@@ -52,9 +63,26 @@ class MangaDetailAniListViewModel @Inject constructor(
         Log.d(TAG, "MangaDetailAniListViewModel init - mangaId: $mangaId")
         if (mangaId != 0) {
             loadMangaDetail(mangaId)
+            checkIfMangaInList(mangaId)
         } else {
             Log.e(TAG, "MangaId is 0! Cannot load manga details")
             _errorMessage.value = "ID de manga inválido"
+        }
+    }
+
+    /**
+     * Verifica si el manga está en la lista del usuario
+     */
+    private fun checkIfMangaInList(mangaId: Int) {
+        viewModelScope.launch {
+            mangaLocalRepository.isMangaInList(mangaId).collect { inList ->
+                _isMangaInList.value = inList
+                if (inList) {
+                    _mangaFromList.value = mangaLocalRepository.getMangaById(mangaId)
+                } else {
+                    _mangaFromList.value = null
+                }
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.yumedev.seijakulist.data.local.db.AnimeDatabase
 import com.yumedev.seijakulist.data.local.dao.AnimeDao
+import com.yumedev.seijakulist.data.local.dao.MangaDao
 import com.yumedev.seijakulist.data.local.dao.SearchHistoryDao
 import com.yumedev.seijakulist.data.local.dao.UserProfileDao
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_1_2
@@ -14,6 +15,8 @@ import com.yumedev.seijakulist.data.local.migration.MIGRATION_6_7
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_7_8
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_9_10
 import com.yumedev.seijakulist.data.local.migration.MIGRATION_12_13
+import com.yumedev.seijakulist.data.local.migration.MIGRATION_14_15
+import com.yumedev.seijakulist.data.local.migration.MIGRATION_15_16
 import com.yumedev.seijakulist.data.repository.UserProfileLocalRepository
 import dagger.Module
 import dagger.Provides
@@ -34,7 +37,14 @@ object DatabaseModule {
             AnimeDatabase::class.java,
             "anime_database"
         )
-            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_9_10, MIGRATION_12_13)
+            .addMigrations(
+                MIGRATION_6_7,
+                MIGRATION_7_8,
+                MIGRATION_9_10,
+                MIGRATION_12_13,
+                MIGRATION_14_15,
+                MIGRATION_15_16
+            )
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -52,6 +62,11 @@ object DatabaseModule {
     @Provides
     fun provideSearchHistoryDao(db: AnimeDatabase): SearchHistoryDao {
         return db.searchHistoryDao()
+    }
+
+    @Provides
+    fun provideMangaDao(db: AnimeDatabase): MangaDao {
+        return db.mangaDao()
     }
 
 }

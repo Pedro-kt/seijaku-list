@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.navigation.NavController
 
 import androidx.compose.material.icons.filled.AccountCircle
@@ -388,7 +390,6 @@ fun AppScaffold(
 
                 AppDestinations.MY_MANGAS_ROUTE -> {
                     TopAppBar(
-                        navigationIcon = { ArrowBackTopAppBar(navController) },
                         title = {
                             Text(
                                 text = "Mis mangas",
@@ -397,7 +398,35 @@ fun AppScaffold(
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background
-                        )
+                        ),
+                        navigationIcon = { ArrowBackTopAppBar(navController) },
+                        actions = {
+                            // Solo búsqueda y ordenamiento (sin cambio de vista por ahora)
+                            IconButton(onClick = { isSearching = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Buscar",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            IconButton(onClick = {
+                                sortOrder = when (sortOrder) {
+                                    SortOrder.NONE -> SortOrder.A_TO_Z
+                                    SortOrder.A_TO_Z -> SortOrder.Z_TO_A
+                                    SortOrder.Z_TO_A -> SortOrder.NONE
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = when (sortOrder) {
+                                        SortOrder.A_TO_Z -> Icons.AutoMirrored.Filled.Sort
+                                        SortOrder.Z_TO_A -> Icons.AutoMirrored.Filled.Sort
+                                        SortOrder.NONE -> Icons.AutoMirrored.Outlined.Sort
+                                    },
+                                    contentDescription = "Ordenar",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
                     )
                 }
 

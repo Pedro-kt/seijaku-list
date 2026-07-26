@@ -112,7 +112,7 @@ fun MangaStatusSelector(
     val statusList = listOf(
         "Leyendo" to Icons.Default.MenuBook,
         "Completado" to Icons.Default.CheckCircle,
-        "Pendiente" to Icons.Default.WatchLater,
+        "Pausado" to Icons.Default.WatchLater,
         "Abandonado" to Icons.Default.Close,
         "Planeado" to Icons.Default.EventNote
     )
@@ -421,7 +421,7 @@ fun AddToListMangaModalContent(
     existingManga: Any?, // TODO: Cambiar a MangaEntityDomain cuando esté implementado
     isAdded: Boolean,
     onDismiss: () -> Unit,
-    onSave: (String?, Float, Int, Int, Boolean, String) -> Unit,
+    onSave: (String?, Float, Int, Int, Boolean, String, () -> Unit) -> Unit,
     onDelete: () -> Unit
 ) {
     // Estado del formulario
@@ -474,7 +474,7 @@ fun AddToListMangaModalContent(
                         // Estado vacío, no mostrar nada
                     }
                     else -> {
-                        // Leyendo, Completado, Pendiente, Abandonado
+                        // Leyendo, Completado, Pausado, Abandonado
 
                         // Progreso
                         ProgressSection(
@@ -513,19 +513,29 @@ fun AddToListMangaModalContent(
             isAdded = isAdded,
             selectedStatus = selectedStatus,
             onSave = {
-                // TODO: Implementar lógica de guardado después
-                // Por ahora solo llamar al callback con valores dummy
+                android.util.Log.d("AddToListMangaModal", "=== BOTÓN GUARDAR PRESIONADO ===")
+                android.util.Log.d("AddToListMangaModal", "selectedStatus: $selectedStatus")
+                android.util.Log.d("AddToListMangaModal", "rating: $rating, currentChapter: $currentChapter, currentVolume: $currentVolume")
+                android.util.Log.d("AddToListMangaModal", "isRereading: $isRereading")
+
                 val scoreToPass = if (selectedStatus == "Planeado") 0f else rating
+                android.util.Log.d("AddToListMangaModal", "scoreToPass: $scoreToPass")
+
+                android.util.Log.d("AddToListMangaModal", "Llamando callback onSave...")
                 onSave(
                     selectedStatus,
                     scoreToPass,
                     currentChapter,
                     currentVolume,
                     isRereading,
-                    if (selectedStatus == "Planeado") plannedNote else opinion
+                    if (selectedStatus == "Planeado") plannedNote else opinion,
+                    {
+                        // Este callback se llama cuando se completa el guardado
+                        android.util.Log.d("AddToListMangaModal", "Guardado completado, cerrando modal")
+                        onDismiss()
+                    }
                 )
-                // Cerrar el modal después de guardar
-                onDismiss()
+                android.util.Log.d("AddToListMangaModal", "Callback onSave completado")
             },
             onDelete = {
                 // Ejecutar callback de eliminación

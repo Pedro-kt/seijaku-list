@@ -1,7 +1,10 @@
 package com.yumedev.seijakulist.di
 
+import com.yumedev.seijakulist.data.local.dao.MangaDao
 import com.yumedev.seijakulist.data.local.dao.UserProfileDao
 import com.yumedev.seijakulist.data.repository.FirestoreAnimeRepository
+import com.yumedev.seijakulist.data.repository.FirestoreMangaRepository
+import com.yumedev.seijakulist.data.repository.MangaLocalRepository
 import com.yumedev.seijakulist.data.repository.UserProfileLocalRepository
 import dagger.Module
 import dagger.Provides
@@ -24,5 +27,19 @@ object RepositoryModule {
     @Singleton
     fun provideFirestoreAnimeRepository(): FirestoreAnimeRepository {
         return FirestoreAnimeRepository()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMangaLocalRepository(
+        mangaDao: MangaDao
+    ): MangaLocalRepository {
+        return MangaLocalRepository(mangaDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirestoreMangaRepository(): FirestoreMangaRepository {
+        return FirestoreMangaRepository()
     }
 }

@@ -3,11 +3,13 @@ package com.yumedev.seijakulist.ui.navigation
 object AppDestinations {
     const val HOME = "home"
     const val SEARCH_ANIME_ROUTE = "search_anime_route"
+    const val SEARCH_MANGA_ROUTE = "search_manga_route"
     const val SEARCH_AUTO_EXPAND_KEY = "autoExpand"
     const val ANIME_DETAIL_ROUTE = "anime_detail_route"
     const val ANIME_ID_KEY = "animeId"
 
     const val MANGA_DETAIL_ROUTE = "manga_detail_route"
+    const val MANGA_DETAIL_ANILIST = "manga_detail_anilist"
     const val MANGA_ID_KEY = "mangaId"
 
     const val CHARACTER_DETAIL_ROUTE = "character_detail_route"

@@ -334,7 +334,13 @@ fun AppNavigation(
         composable(
             route = AppDestinations.MY_MANGAS_ROUTE
         ) {
-            MyMangasScreen(navController)
+            MyMangasScreen(
+                navController = navController,
+                isSearching = isSearching,
+                onDismissSearch = onDismissSearch,
+                viewMode = viewMode,
+                sortOrder = sortOrder
+            )
         }
         composable(
             arguments = listOf(

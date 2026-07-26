@@ -25,7 +25,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -59,6 +64,7 @@ import com.yumedev.seijakulist.domain.models.AnimeCharactersDetail
 import com.yumedev.seijakulist.domain.models.MangaDetail
 import com.yumedev.seijakulist.ui.components.LoadingScreen
 import com.yumedev.seijakulist.ui.screens.detail.components.shared.CompactGenreCard
+import com.yumedev.seijakulist.ui.screens.my_mangas.MyMangasViewModel
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
 import com.yumedev.seijakulist.ui.theme.PoppinsMedium
 import com.yumedev.seijakulist.ui.theme.PoppinsRegular
@@ -84,15 +90,21 @@ fun MangaDetailScreen(
     val mangaDetail by mangaDetailViewModel.mangaDetail.collectAsState()
     val isLoading by mangaDetailViewModel.isLoading.collectAsState()
     val errorMessage by mangaDetailViewModel.errorMessage.collectAsState()
+    val isMangaInList by mangaDetailViewModel.isMangaInList.collectAsState()
+    val mangaFromList by mangaDetailViewModel.mangaFromList.collectAsState()
 
     val mangaCharacters by mangaCharacterDetailViewModel.characters.collectAsState()
     val charactersLoading by mangaCharacterDetailViewModel.isLoading.collectAsState()
+
+    // MyMangasViewModel para manejar operaciones de lista
+    val myMangasViewModel: MyMangasViewModel = hiltViewModel()
 
     // UI State
     var selectedTab by remember { mutableStateOf(MangaDetailTab.OVERVIEW) }
     val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     // Modal Bottom Sheet state
     var showAddToListSheet by remember { mutableStateOf(false) }
@@ -384,25 +396,73 @@ fun MangaDetailScreen(
                         // Contenido del modal
                         com.yumedev.seijakulist.ui.screens.add_to_list.AddToListMangaModalContent(
                             manga = mangaDetail,
-                            existingManga = null, // TODO: Implementar obtención del manga existente
-                            isAdded = false, // TODO: Implementar estado isAdded
+                            existingManga = mangaFromList,
+                            isAdded = isMangaInList,
                             onDismiss = { showAddToListSheet = false },
-                            onSave = { status, rating, chapter, volume, rereading, note ->
-                                // TODO: Implementar lógica de guardado
-                                android.widget.Toast.makeText(
-                                    context,
-                                    "Manga guardado en tu lista",
-                                    android.widget.Toast.LENGTH_SHORT
-                                ).show()
-                                // El dismiss se maneja en el componente modal
+                            onSave = { status, rating, chapter, volume, rereading, note, onComplete ->
+                                android.util.Log.d("MangaDetailScreen", "=== CALLBACK onSave LLAMADO ===")
+                                android.util.Log.d("MangaDetailScreen", "status: $status, rating: $rating, chapter: $chapter, volume: $volume")
+
+                                mangaDetail?.let { manga ->
+                                    android.util.Log.d("MangaDetailScreen", "Manga: ${manga.title} (malId: ${manga.malId})")
+                                    val finalStatus = status ?: "Planeado"
+                                    android.util.Log.d("MangaDetailScreen", "finalStatus: $finalStatus, isMangaInList: $isMangaInList")
+
+                                    // Usar coroutineScope para esperar a que se complete
+                                    coroutineScope.launch {
+                                        withContext(Dispatchers.IO) {
+                                            if (isMangaInList) {
+                                                android.util.Log.d("MangaDetailScreen", "Actualizando manga existente")
+                                                // Actualizar manga existente
+                                                myMangasViewModel.updateMangaReview(
+                                                    mangaId = manga.malId,
+                                                    score = rating,
+                                                    opinion = note ?: ""
+                                                )
+                                                myMangasViewModel.updateProgress(
+                                                    mangaId = manga.malId,
+                                                    chaptersRead = chapter,
+                                                    volumesRead = volume
+                                                )
+                                                myMangasViewModel.updateStatus(
+                                                    mangaId = manga.malId,
+                                                    newStatus = finalStatus
+                                                )
+                                            } else {
+                                                android.util.Log.d("MangaDetailScreen", "Agregando nuevo manga a la lista")
+                                                // Agregar nuevo manga y esperar a que termine (pasando el mangaDetail completo)
+                                                myMangasViewModel.addMangaToListSuspend(
+                                                    mangaDetail = manga,
+                                                    status = finalStatus,
+                                                    chaptersRead = chapter,
+                                                    volumesRead = volume,
+                                                    userScore = rating
+                                                )
+                                            }
+                                            // Esperar un poco para asegurar que la BD se actualice
+                                            delay(100)
+                                        }
+
+                                        // Ya en el hilo principal, mostrar toast y cerrar modal
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "Manga guardado en tu lista",
+                                            android.widget.Toast.LENGTH_SHORT
+                                        ).show()
+                                        android.util.Log.d("MangaDetailScreen", "Guardado completado, cerrando modal")
+                                        onComplete()
+                                    }
+                                }
                             },
                             onDelete = {
-                                // TODO: Implementar lógica de eliminación
-                                android.widget.Toast.makeText(
-                                    context,
-                                    "Manga eliminado de tu lista",
-                                    android.widget.Toast.LENGTH_SHORT
-                                ).show()
+                                mangaDetail?.let { manga ->
+                                    myMangasViewModel.deleteManga(manga.malId)
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "Manga eliminado de tu lista",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                                 // El dismiss se maneja en el componente modal
                             }
                         )
