@@ -92,6 +92,9 @@ dependencies {
     ksp(libs.room.ksp)
     implementation(libs.room.ktx)
 
+    // DataStore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
     // Coil
     implementation(libs.coil.compose)
 

@@ -85,11 +85,13 @@ fun ConfigurationScreen(
     if (showSignOutDialog) {
         ConfirmSignOutDialog(
             onConfirm = {
-                // Aquí iría la lógica de sign out
-                navController.navigate(AppDestinations.AUTH_ROUTE) {
-                    popUpTo(navController.graph.startDestinationId) {
-                        inclusive = true
-                    }
+                // Cerrar sesión de Firebase
+                Firebase.auth.signOut()
+                showSignOutDialog = false
+
+                // Navegar al onboarding
+                navController.navigate(AppDestinations.ONBOARDING_ROUTE) {
+                    popUpTo(0) { inclusive = true }
                 }
             },
             onDismiss = { showSignOutDialog = false }
