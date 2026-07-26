@@ -3,16 +3,21 @@ package com.yumedev.seijakulist.ui.screens.my_mangas
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,6 +27,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,7 +36,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -41,7 +49,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.yumedev.seijakulist.data.local.entities.MangaEntity
+import com.yumedev.seijakulist.ui.components.CustomDialog
+import com.yumedev.seijakulist.ui.components.DeleteMyAnime
+import com.yumedev.seijakulist.ui.components.DialogType
 import com.yumedev.seijakulist.ui.components.ViewMode
 import com.yumedev.seijakulist.ui.navigation.AppDestinations
 import com.yumedev.seijakulist.ui.theme.PoppinsBold
@@ -64,11 +76,14 @@ fun MyMangasScreen(
 
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     val statusManga = listOf("Leyendo", "Completado", "Pausado", "Abandonado", "Planeado")
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf<String?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
+    var mangaIdToDelete by remember { mutableStateOf(0) }
 
     // Estado de scroll para vista GRID
     val gridState = rememberLazyGridState()
@@ -244,7 +259,7 @@ fun MyMangasScreen(
                         // Solo vista GRID por ahora
                         LazyVerticalGrid(
                             state = gridState,
-                            columns = GridCells.Adaptive(minSize = 110.dp),
+                            columns = GridCells.Fixed(3),
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -256,10 +271,15 @@ fun MyMangasScreen(
                             )
                         ) {
                             items(displayedMangas) { manga ->
-                                MangaGridItem(
+                                CompactMangaCard(
                                     manga = manga,
-                                    onClick = {
+                                    statusColor = getMangaStatusColor(manga.statusUser),
+                                    onMangaClick = {
                                         navController.navigate("${AppDestinations.MANGA_DETAIL_ANILIST}/${manga.malId}")
+                                    },
+                                    onDeleteConfirmed = {
+                                        showDialog = true
+                                        mangaIdToDelete = manga.malId
                                     }
                                 )
                             }
@@ -311,6 +331,31 @@ fun MyMangasScreen(
                 }
             }
         }
+    }
+
+    // Modal de confirmación de eliminación
+    if (showDialog) {
+        CustomDialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            onConfirm = {
+                viewModel.deleteManga(mangaIdToDelete)
+                android.widget.Toast.makeText(
+                    context,
+                    "Manga eliminado de tu lista",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            },
+            onDismiss = {
+                // Solo cierra el diálogo
+            },
+            title = "Confirmar eliminación",
+            message = "¿Estás seguro de que quieres eliminar este manga de tu lista?\n\nUna vez eliminado tendrás que volver a agregarlo de nuevo a tu lista.",
+            confirmButtonText = "Eliminar",
+            dismissButtonText = "Cancelar",
+            type = DialogType.DELETE
+        )
     }
 }
 
@@ -466,61 +511,147 @@ fun EmptyStateByFilter(selectedFilter: String?) {
 }
 
 @Composable
-fun MangaGridItem(
+fun CompactMangaCard(
     manga: MangaEntity,
-    onClick: () -> Unit
+    statusColor: Color,
+    onMangaClick: () -> Unit,
+    onDeleteConfirmed: () -> Unit
 ) {
-    Card(
+    var isPressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "compact_card_scale"
+    )
+
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp)
+            .height(220.adp())
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    },
+                    onTap = { onMangaClick() }
+                )
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
+        )
     ) {
-        Box {
-            AsyncImage(
-                model = manga.imageUrl,
-                contentDescription = manga.title,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-
-            // Status badge
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(4.dp)
-                    .background(
-                        color = getStatusColor(manga.statusUser),
-                        shape = RoundedCornerShape(4.dp)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Imagen
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.adp())
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(manga.imageUrl),
+                        contentDescription = manga.title,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                        contentScale = ContentScale.Crop
                     )
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = manga.statusUser,
-                    fontSize = 10.sp,
-                    color = Color.White,
-                    fontFamily = PoppinsRegular
-                )
+                }
+
+                // Contenido inferior
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = manga.title,
+                        fontFamily = PoppinsBold,
+                        fontSize = 12.asp(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 14.asp()
+                    )
+
+                    // Progreso y score
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${manga.chaptersRead}/${manga.chapters ?: "?"}",
+                                fontFamily = PoppinsRegular,
+                                fontSize = 10.asp(),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            if (manga.userScore > 0f) {
+                                Text(
+                                    text = "•",
+                                    fontFamily = PoppinsRegular,
+                                    fontSize = 10.asp(),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFFD700),
+                                    modifier = Modifier.size(10.dp)
+                                )
+                                Text(
+                                    text = String.format("%.1f", manga.userScore),
+                                    fontFamily = PoppinsBold,
+                                    fontSize = 10.asp(),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = CircleShape,
+                            color = statusColor.copy(alpha = 0.2f),
+                            modifier = Modifier.size(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(1.dp)
+                                    .background(statusColor, CircleShape)
+                            )
+                        }
+                    }
+                }
             }
 
-            // Title overlay
-            Box(
+            // Botón de eliminar
+            DeleteMyAnime(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.7f))
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = manga.title,
-                    fontSize = 12.sp,
-                    color = Color.White,
-                    fontFamily = PoppinsRegular,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+                    .align(Alignment.TopStart)
+                    .padding(6.dp),
+                onDeleteConfirmed = onDeleteConfirmed
+            )
         }
     }
 }
@@ -572,7 +703,7 @@ fun MangaListItem(
                     ) {
                         // Status chip
                         Surface(
-                            color = getStatusColor(manga.statusUser),
+                            color = getMangaStatusColor(manga.statusUser),
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
@@ -636,13 +767,15 @@ fun MangaListItem(
 }
 
 @Composable
-fun getStatusColor(status: String): Color {
-    return when (status) {
-        "Leyendo" -> Color(0xFF4CAF50)
-        "Completado" -> Color(0xFF2196F3)
-        "Planeado" -> Color(0xFF9C27B0)
-        "Pausado" -> Color(0xFFFFC107)
-        "Abandonado" -> Color(0xFFF44336)
-        else -> Color.Gray
+fun getMangaStatusColor(status: String): Color {
+    val isDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+
+    // Mapear estados de manga a estados de anime para usar los mismos colores
+    val mappedStatus = when (status) {
+        "Leyendo" -> "Viendo"
+        "Pausado" -> "Pendiente"
+        else -> status // "Completado", "Planeado", "Abandonado" son iguales
     }
+
+    return com.yumedev.seijakulist.ui.theme.getAnimeStatusColor(mappedStatus, isDarkTheme)
 }

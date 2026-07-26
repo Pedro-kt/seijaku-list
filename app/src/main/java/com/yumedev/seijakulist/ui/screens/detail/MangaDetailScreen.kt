@@ -439,8 +439,6 @@ fun MangaDetailScreen(
                                                     userScore = rating
                                                 )
                                             }
-                                            // Esperar un poco para asegurar que la BD se actualice
-                                            delay(100)
                                         }
 
                                         // Ya en el hilo principal, mostrar toast y cerrar modal

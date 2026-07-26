@@ -374,22 +374,6 @@ fun SearchScreen(
                                     selectedGenreId
                                 ).size
 
-                                BadgedBox(
-                                    badge = {
-                                        if (activeFiltersCount > 0) {
-                                            Badge(
-                                                containerColor = MaterialTheme.colorScheme.primary,
-                                                contentColor = MaterialTheme.colorScheme.onPrimary
-                                            ) {
-                                                Text(
-                                                    text = activeFiltersCount.toString(),
-                                                    fontSize = 10.asp(),
-                                                    fontFamily = PoppinsBold
-                                                )
-                                            }
-                                        }
-                                    }
-                                ) {
                                     IconButton(onClick = { openFiltersSheet = true }) {
                                         Icon(
                                             imageVector = Icons.Default.FilterList,
@@ -402,7 +386,7 @@ fun SearchScreen(
                                         )
                                     }
                                 }
-                            }
+
 
                             // Botón de limpiar búsqueda
                             if (searchQuery.isNotBlank()) {

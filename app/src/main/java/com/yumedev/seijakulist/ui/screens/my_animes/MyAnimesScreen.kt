@@ -485,8 +485,10 @@ fun MyAnimeListScreen(
                                         val totalActiveFilters = activeFilters.statuses.size +
                                                 activeFilters.genres.size +
                                                 activeFilters.types.size +
-                                                activeFilters.years.size +
-                                                if (activeFilters.scoreRange != 0f..10f) 1 else 0
+                                                (if (activeFilters.yearFrom.isNotEmpty() || activeFilters.yearTo.isNotEmpty()) 1 else 0) +
+                                                (if (activeFilters.minRating > 0) 1 else 0) +
+                                                (if (activeFilters.sortBy.isNotEmpty()) 1 else 0) +
+                                                (if (activeFilters.onlyWithPersonalNote) 1 else 0)
                                         Text(
                                             text = totalActiveFilters.toString(),
                                             fontFamily = PoppinsBold,
@@ -596,24 +598,53 @@ fun MyAnimeListScreen(
                                     activeFilters.types.contains(anime.typeAnime)
 
                             // Filtros avanzados - Años
-                            val matchesYears = activeFilters.years.isEmpty() ||
-                                    (anime.year != null && activeFilters.years.contains(anime.year))
+                            val matchesYears = if (activeFilters.yearFrom.isEmpty() && activeFilters.yearTo.isEmpty()) {
+                                true
+                            } else {
+                                val yearFromInt = activeFilters.yearFrom.toIntOrNull() ?: 0
+                                val yearToInt = activeFilters.yearTo.toIntOrNull() ?: Int.MAX_VALUE
+                                val animeYear = anime.year?.toIntOrNull() ?: 0
+                                animeYear in yearFromInt..yearToInt
+                            }
 
-                            // Filtros avanzados - Puntuación
-                            val matchesScore = anime.userScore >= activeFilters.scoreRange.start &&
-                                    anime.userScore <= activeFilters.scoreRange.endInclusive
+                            // Filtros avanzados - Puntuación mínima
+                            val matchesMinRating = if (activeFilters.minRating == 0) {
+                                true
+                            } else {
+                                anime.userScore >= activeFilters.minRating
+                            }
+
+                            // Filtro - Solo con nota personal
+                            val matchesPersonalNote = if (activeFilters.onlyWithPersonalNote) {
+                                anime.userOpiniun.isNotBlank()
+                            } else {
+                                true
+                            }
 
                             matchesSearch && matchesSimpleStatus && matchesAdvancedStatus &&
-                                    matchesGenres && matchesTypes && matchesYears && matchesScore
+                                    matchesGenres && matchesTypes && matchesYears && matchesMinRating && matchesPersonalNote
                         }
 
-                        when (sortOrder) {
-                            com.yumedev.seijakulist.ui.components.SortOrder.A_TO_Z -> filtered.sortedBy { it.title.lowercase() }
-                            com.yumedev.seijakulist.ui.components.SortOrder.Z_TO_A -> filtered.sortedByDescending { it.title.lowercase() }
-                            com.yumedev.seijakulist.ui.components.SortOrder.NONE -> filtered.sortedWith(
-                                compareByDescending { it.statusUser == "Viendo" }
-                            )
+                        // Aplicar ordenamiento de filtros avanzados si está configurado
+                        val sorted = if (activeFilters.sortBy.isNotEmpty()) {
+                            when (activeFilters.sortBy) {
+                                "Alfabético" -> filtered.sortedBy { it.title.lowercase() }
+                                "Mejor calificados" -> filtered.sortedByDescending { it.userScore }
+                                "Año" -> filtered.sortedByDescending { it.year?.toIntOrNull() ?: 0 }
+                                "Recientes" -> filtered.sortedWith(compareByDescending { it.statusUser == "Viendo" })
+                                else -> filtered
+                            }
+                        } else {
+                            // Ordenamiento normal de la UI
+                            when (sortOrder) {
+                                com.yumedev.seijakulist.ui.components.SortOrder.A_TO_Z -> filtered.sortedBy { it.title.lowercase() }
+                                com.yumedev.seijakulist.ui.components.SortOrder.Z_TO_A -> filtered.sortedByDescending { it.title.lowercase() }
+                                com.yumedev.seijakulist.ui.components.SortOrder.NONE -> filtered.sortedWith(
+                                    compareByDescending { it.statusUser == "Viendo" }
+                                )
+                            }
                         }
+                        sorted
                     }
 
                 // Mostrar empty state personalizado si no hay resultados con filtro activo
