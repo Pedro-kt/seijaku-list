@@ -174,7 +174,7 @@ fun CharacterDetailScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(statusBarHeight + 280.dp)
+                                                .height(statusBarHeight + 320.dp)
                                         ) {
                                             // Banner image con blur
                                             AsyncImage(
@@ -182,23 +182,21 @@ fun CharacterDetailScreen(
                                                 contentDescription = null,
                                                 modifier = Modifier
                                                     .fillMaxSize()
-                                                    .blur(20.dp),
+                                                    .blur(25.dp),
                                                 contentScale = ContentScale.Crop
                                             )
 
-                                            // Gradient overlay (oscuro gradual + transición al background)
+                                            // Gradient overlay
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxSize()
                                                     .background(
                                                         Brush.verticalGradient(
                                                             colors = listOf(
-                                                                Color.Black.copy(alpha = 0.2f),
                                                                 Color.Black.copy(alpha = 0.3f),
                                                                 Color.Black.copy(alpha = 0.4f),
                                                                 Color.Black.copy(alpha = 0.5f),
-                                                                MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
-                                                                MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                                                                MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                                                                 MaterialTheme.colorScheme.background
                                                             )
                                                         )
@@ -309,10 +307,10 @@ fun CharacterDetailScreen(
 // TABS
 // ============================================================================
 
-enum class CharacterDetailTab {
-    OVERVIEW,
-    APPEARANCES,
-    VOICES
+enum class CharacterDetailTab(val title: String) {
+    OVERVIEW("Resumen"),
+    APPEARANCES("Apariciones"),
+    VOICES("Voces")
 }
 
 @Composable
@@ -324,36 +322,31 @@ private fun CharacterDetailTabSelector(
 ) {
     // Determinar qué tabs mostrar según disponibilidad de datos
     val tabs = buildList {
-        add(CharacterDetailTab.OVERVIEW to Icons.Default.Description)
+        add(CharacterDetailTab.OVERVIEW)
         if (characterDetail.animeRelations.isNotEmpty() || characterDetail.mangaRelations.isNotEmpty()) {
-            add(CharacterDetailTab.APPEARANCES to Icons.Default.Tv)
+            add(CharacterDetailTab.APPEARANCES)
         }
         if (characterDetail.voiceActors.isNotEmpty()) {
-            add(CharacterDetailTab.VOICES to Icons.Default.RecordVoiceOver)
+            add(CharacterDetailTab.VOICES)
         }
     }
-
-    // Si solo hay un tab, no mostrar el selector
-    if (tabs.size <= 1) return
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 20.dp, top = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Card(
+        Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shadowElevation = 0.dp
         ) {
             Row(modifier = Modifier.padding(4.dp)) {
-                tabs.forEach { (tab, icon) ->
+                tabs.forEach { tab ->
                     CharacterTabItem(
-                        icon = icon,
+                        text = tab.title,
                         isSelected = selectedTab == tab,
                         onClick = { onTabSelected(tab) },
                         modifier = Modifier.weight(1f)
@@ -366,7 +359,7 @@ private fun CharacterDetailTabSelector(
 
 @Composable
 private fun CharacterTabItem(
-    icon: ImageVector,
+    text: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -376,29 +369,33 @@ private fun CharacterTabItem(
             MaterialTheme.colorScheme.primary
         else
             Color.Transparent,
-        label = "Tab Background Color"
+        label = "Tab Background Color",
+        animationSpec = tween(200)
     )
-    val iconColor by animateColorAsState(
+    val textColor by animateColorAsState(
         targetValue = if (isSelected)
             MaterialTheme.colorScheme.onPrimary
         else
             MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "Tab Icon Color"
+        label = "Tab Text Color",
+        animationSpec = tween(200)
     )
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(backgroundColor)
             .clickable { onClick() }
             .padding(vertical = 10.dp, horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.adp()),
-            tint = iconColor
+        Text(
+            text = text,
+            fontFamily = if (isSelected) PoppinsBold else PoppinsMedium,
+            fontSize = 13.sp,
+            color = textColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -413,105 +410,149 @@ private fun CharacterDetailHeader(
     parsedDescription: com.yumedev.seijakulist.util.ParsedCharacterDescription,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    val context = LocalContext.current
+
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Bottom
     ) {
-        // SECCIÓN PRINCIPAL: Portada circular + Info
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        // PORTADA (a la izquierda, más grande)
+        Card(
+            modifier = Modifier
+                .width(150.dp)
+                .height(215.dp),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            // PORTADA CIRCULAR
-            Surface(
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(characterDetail.images ?: "")
+                    .size(Size.ORIGINAL)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(120.adp()),
-                shape = CircleShape,
-                shadowElevation = 8.dp,
-                border = BorderStroke(3.dp, Color.White.copy(alpha = 0.15f))
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(characterDetail.images ?: "")
-                        .size(Size.ORIGINAL)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        }
 
-            // INFORMACIÓN PRINCIPAL
+        // INFORMACIÓN A LA DERECHA (alineada al bottom)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(120.adp()),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // TÍTULOS Y ESTADO
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // Nombre principal
-                    Text(
-                        text = characterDetail.nameCharacter,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 18.asp(),
-                        fontFamily = PoppinsBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        lineHeight = 22.asp()
-                    )
+                // Nombre principal
+                Text(
+                    text = characterDetail.nameCharacter,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 22.sp,
+                    fontFamily = PoppinsBold,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 26.sp
+                )
 
-                    // Nombre en kanji
-                    if (characterDetail.nameKanjiCharacter.isNotEmpty() &&
-                        characterDetail.nameKanjiCharacter != "N/A") {
-                        Text(
-                            text = characterDetail.nameKanjiCharacter,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 12.asp(),
-                            fontFamily = PoppinsRegular,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                // Nombre en kanji
+                if (characterDetail.nameKanjiCharacter.isNotEmpty() &&
+                    characterDetail.nameKanjiCharacter != "N/A") {
+                    Text(
+                        text = characterDetail.nameKanjiCharacter,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        fontSize = 14.sp,
+                        fontFamily = PoppinsRegular,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // Nicknames y Badge de favoritos
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Primer nickname como badge
+                    if (characterDetail.nicknames.isNotEmpty()) {
+                        CharacterNicknameBadge(characterDetail.nicknames.first())
                     }
 
                     // Badge de favoritos
                     if (characterDetail.favorites > 0) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Favorite,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "%,d favoritos".format(characterDetail.favorites),
-                                    fontFamily = PoppinsBold,
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    letterSpacing = 0.3.sp
-                                )
-                            }
-                        }
+                        CharacterFavoritesBadge(characterDetail.favorites)
                     }
                 }
             }
         }
+    }
+}
 
-        // Nicknames si existen
-        if (characterDetail.nicknames.isNotEmpty()) {
-            CharacterNicknamesRow(characterDetail.nicknames)
+// Badges tipo pill - diseño redondeado y moderno
+@Composable
+private fun CharacterNicknameBadge(nickname: String) {
+    if (nickname.isBlank()) return
+
+    val color = Color(0xFF00BCD4) // Cian
+
+    Surface(
+        shape = RoundedCornerShape(50), // Completamente redondeado (pill)
+        color = color.copy(alpha = 0.2f),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.5.dp,
+            color = color.copy(alpha = 0.5f)
+        )
+    ) {
+        Text(
+            text = nickname,
+            fontFamily = PoppinsBold,
+            fontSize = 11.sp,
+            color = color,
+            letterSpacing = 0.3.sp,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun CharacterFavoritesBadge(favorites: Int) {
+    if (favorites <= 0) return
+
+    val color = Color(0xFFE91E63) // Rosa/Magenta
+
+    Surface(
+        shape = RoundedCornerShape(50), // Completamente redondeado (pill)
+        color = color.copy(alpha = 0.2f),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.5.dp,
+            color = color.copy(alpha = 0.5f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Dot indicator
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(color)
+            )
+            Text(
+                text = "%,d fav.".format(favorites),
+                fontFamily = PoppinsBold,
+                fontSize = 11.sp,
+                color = color,
+                letterSpacing = 0.3.sp
+            )
         }
     }
 }
