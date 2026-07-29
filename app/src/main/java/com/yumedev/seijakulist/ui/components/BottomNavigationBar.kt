@@ -66,13 +66,7 @@ fun BottomNavigationBar(navController: NavController, navItems: List<BottomNavIt
         Surface(
             modifier = Modifier
                 .fillMaxWidth(0.92f) // Efecto flotante (no toca los bordes laterales)
-                .height(64.adp())
-                .shadow(
-                    elevation = 20.dp,
-                    shape = RoundedCornerShape(32.dp),
-                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                ),
+                .height(64.adp()),
             shape = RoundedCornerShape(32.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f), // Glassmorphism ligero
             border = BorderStroke(
