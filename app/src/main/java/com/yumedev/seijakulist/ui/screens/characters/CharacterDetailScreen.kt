@@ -869,127 +869,109 @@ private fun CharacterOverviewTab(
             val clipboardManager = LocalClipboardManager.current
             var expanded by remember { mutableStateOf(false) }
 
-            Card(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .animateContentSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                // Header con título y botones de acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Header con título y botones de acción
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Descripción",
-                            fontSize = 21.sp,
-                            fontFamily = PoppinsBold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            letterSpacing = 0.3.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        // Botones de acción
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // Botón de copiar
-                            FilledTonalIconButton(
-                                onClick = {
-                                    clipboardManager.setText(AnnotatedString(parsedDescription.cleanDescription))
-                                    Toast.makeText(
-                                        context,
-                                        "Descripción copiada al portapapeles",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                },
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copiar descripción",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-
-                            // Botón de traducir
-                            FilledTonalIconButton(
-                                onClick = {
-                                    val description = parsedDescription.cleanDescription
-                                    val textToTranslate = if (description.length > 2000) {
-                                        description.substring(0, 2000) + "..."
-                                    } else {
-                                        description
-                                    }
-                                    val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
-                                    val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
-
-                                    val customTabsIntent = CustomTabsIntent.Builder()
-                                        .setShowTitle(true)
-                                        .build()
-                                    customTabsIntent.launchUrl(context, Uri.parse(url))
-                                },
-                                modifier = Modifier.size(36.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Translate,
-                                    contentDescription = "Traducir descripción",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-                    val hasOverflow = textLayoutResult?.hasVisualOverflow ?: false
-
                     Text(
-                        text = parsedDescription.cleanDescription,
-                        fontFamily = PoppinsRegular,
-                        fontSize = 14.sp,
-                        lineHeight = 23.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = if (expanded) TextAlign.Justify else TextAlign.Start,
-                        maxLines = if (expanded) Int.MAX_VALUE else 6,
-                        overflow = TextOverflow.Ellipsis,
-                        onTextLayout = { textLayoutResult = it }
+                        text = "Descripción",
+                        fontSize = 16.sp,
+                        fontFamily = PoppinsBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    if (hasOverflow || expanded) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
+                    // Botones de acción
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        // Botón de copiar
+                        IconButton(
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString(parsedDescription.cleanDescription))
+                                Toast.makeText(
+                                    context,
+                                    "Descripción copiada",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            FilledTonalButton(
-                                onClick = { expanded = !expanded },
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (expanded)
-                                        Icons.Default.ExpandLess
-                                    else
-                                        Icons.Default.ExpandMore,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = if (expanded) "Ver menos" else "Ver más",
-                                    fontFamily = PoppinsBold,
-                                    fontSize = 13.sp
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = "Copiar descripción",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
+
+                        // Botón de traducir
+                        IconButton(
+                            onClick = {
+                                val description = parsedDescription.cleanDescription
+                                val textToTranslate = if (description.length > 2000) {
+                                    description.substring(0, 2000) + "..."
+                                } else {
+                                    description
+                                }
+                                val encodedText = URLEncoder.encode(textToTranslate, "UTF-8")
+                                val url = "https://translate.google.com/m?sl=en&tl=es&q=$encodedText"
+
+                                val customTabsIntent = CustomTabsIntent.Builder()
+                                    .setShowTitle(true)
+                                    .build()
+                                customTabsIntent.launchUrl(context, Uri.parse(url))
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Translate,
+                                contentDescription = "Traducir descripción",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                val hasOverflow = textLayoutResult?.hasVisualOverflow ?: false
+
+                Text(
+                    text = parsedDescription.cleanDescription,
+                    fontFamily = PoppinsRegular,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (expanded) Int.MAX_VALUE else 6,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { textLayoutResult = it },
+                    modifier = Modifier.animateContentSize()
+                )
+
+                if (hasOverflow || expanded) {
+                    TextButton(
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.align(Alignment.Start)
+                    ) {
+                        Text(
+                            text = if (expanded) "ver menos" else "ver más",
+                            fontFamily = PoppinsMedium,
+                            fontSize = 13.sp
+                        )
+                        Icon(
+                            imageVector = if (expanded)
+                                Icons.Default.ExpandLess
+                            else
+                                Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
@@ -1009,31 +991,17 @@ private fun CharacterInfoSection(
     pairs: List<CharacterInfo>,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "Información",
-                fontFamily = PoppinsBold,
-                fontSize = 21.sp,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                letterSpacing = 0.3.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                pairs.forEach { info ->
-                    CharacterInfoRow(label = info.key, value = info.value)
-                }
+        pairs.forEachIndexed { index, info ->
+            CharacterInfoRow(label = info.key, value = info.value)
+            if (index < pairs.size - 1) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
             }
         }
     }
@@ -1052,14 +1020,10 @@ private fun CharacterInfoRow(
     ) {
         Text(
             text = label,
-            fontFamily = PoppinsMedium,
-            fontSize = 13.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f, fill = false)
+            fontFamily = PoppinsRegular,
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
         Text(
             text = value,
             fontFamily = PoppinsBold,
@@ -1067,8 +1031,7 @@ private fun CharacterInfoRow(
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.End,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false)
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -1078,52 +1041,36 @@ private fun CharacterAllNicknamesSection(
     nicknames: List<String>,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "Todos los alias",
-                fontFamily = PoppinsBold,
-                fontSize = 21.sp,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                letterSpacing = 0.3.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            )
+        Text(
+            text = "Todos los alias",
+            fontFamily = PoppinsBold,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                nicknames.forEach { nickname ->
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    ) {
-                        Text(
-                            text = nickname,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            fontSize = 12.sp,
-                            fontFamily = PoppinsMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            nicknames.forEach { nickname ->
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest
+                ) {
+                    Text(
+                        text = nickname,
+                        fontFamily = PoppinsMedium,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
@@ -1142,144 +1089,72 @@ private fun CharacterAppearancesTab(
     ) {
         // Animes
         if (characterDetail.animeRelations.isNotEmpty()) {
-            Card(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Text(
+                    text = "Animes",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.heightIn(max = 2000.dp),
+                    userScrollEnabled = false
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Animes",
-                            fontFamily = PoppinsBold,
-                            fontSize = 21.sp,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            letterSpacing = 0.3.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                    items(
+                        items = characterDetail.animeRelations,
+                        key = { "anime-${it.malId}" }
+                    ) { anime ->
+                        CharacterAppearanceCard(
+                            title = anime.title,
+                            imageUrl = anime.imageUrl,
+                            role = anime.role,
+                            onClick = {
+                                navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
+                            }
                         )
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        ) {
-                            Text(
-                                text = "${characterDetail.animeRelations.size}",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                fontSize = 12.sp,
-                                fontFamily = PoppinsBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
                     }
-
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .heightIn(max = 2000.dp)
-                            .padding(horizontal = 16.dp),
-                        userScrollEnabled = false
-                    ) {
-                        items(
-                            items = characterDetail.animeRelations,
-                            key = { it.malId }
-                        ) { anime ->
-                            CharacterAppearanceCard(
-                                title = anime.title,
-                                imageUrl = anime.imageUrl,
-                                role = anime.role,
-                                onClick = {
-                                    navController.navigate("${AppDestinations.ANIME_DETAIL_ROUTE}/${anime.malId}")
-                                }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
 
         // Mangas
         if (characterDetail.mangaRelations.isNotEmpty()) {
-            Card(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Text(
+                    text = "Mangas",
+                    fontFamily = PoppinsBold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.heightIn(max = 2000.dp),
+                    userScrollEnabled = false
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Mangas",
-                            fontFamily = PoppinsBold,
-                            fontSize = 21.sp,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            letterSpacing = 0.3.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                    items(
+                        items = characterDetail.mangaRelations,
+                        key = { "manga-${it.title}" }
+                    ) { manga ->
+                        CharacterAppearanceCard(
+                            title = manga.title,
+                            imageUrl = manga.imageUrl,
+                            role = "",
+                            onClick = { /* No navegable por ahora */ }
                         )
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-                        ) {
-                            Text(
-                                text = "${characterDetail.mangaRelations.size}",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                fontSize = 12.sp,
-                                fontFamily = PoppinsBold,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
                     }
-
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .heightIn(max = 2000.dp)
-                            .padding(horizontal = 16.dp),
-                        userScrollEnabled = false
-                    ) {
-                        items(
-                            items = characterDetail.mangaRelations,
-                            key = { it.title }
-                        ) { manga ->
-                            CharacterAppearanceCard(
-                                title = manga.title,
-                                imageUrl = manga.imageUrl,
-                                role = "",
-                                onClick = { /* No navegable por ahora */ }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
@@ -1434,7 +1309,7 @@ private fun CharacterVoicesTab(
         ) {
             items(
                 items = voiceActors,
-                key = { it.name + it.language }
+                key = { "voice-${it.name}-${it.language}" }
             ) { voiceActor ->
                 CharacterVoiceActorCard(voiceActor)
             }
