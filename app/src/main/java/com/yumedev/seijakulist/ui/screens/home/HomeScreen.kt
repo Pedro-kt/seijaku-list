@@ -303,9 +303,21 @@ fun HomeScreen(
     var selectedTabIndex by rememberSaveable { mutableStateOf(savedTabIndex) }
     val tabs = listOf("Anime", "Manga")
 
-    // Guardar el tab seleccionado cuando cambia
+    // Estado del pager para animación horizontal
+    val pagerState = rememberPagerState(
+        initialPage = savedTabIndex,
+        pageCount = { 2 }
+    )
+
+    // Sincronizar pager con el tab seleccionado
     LaunchedEffect(selectedTabIndex) {
+        pagerState.animateScrollToPage(selectedTabIndex)
         prefs.edit().putInt("selected_home_tab", selectedTabIndex).apply()
+    }
+
+    // Sincronizar tab con el pager cuando se desliza
+    LaunchedEffect(pagerState.currentPage) {
+        selectedTabIndex = pagerState.currentPage
     }
 
     // Estado de scroll para el LazyColumn - NO guardar estado entre navegaciones
@@ -367,9 +379,15 @@ fun HomeScreen(
                         onTabSelected = { selectedTabIndex = it }
                     )
 
-                when (selectedTabIndex) {
-                    0 -> {
-                        AnimeContent(
+                    // HorizontalPager para animación de deslizamiento
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        userScrollEnabled = false // Deshabilitar swipe manual
+                    ) { page ->
+                        when (page) {
+                            0 -> {
+                                AnimeContent(
                             animeSeasonNow = animeSeasonNow,
                             topAnimes = topAnimes,
                             animeSeasonUpcoming = animeSeasonUpcoming,
@@ -454,8 +472,9 @@ fun HomeScreen(
                             onRetryPublishingManga = { publishingMangaViewModel.loadPublishingManga() },
                             onRetryTrendingManga = { trendingMangaViewModel.loadTrendingManga() }
                         )
+                            }
+                        }
                     }
-                }
                 }
             } else {
                 // No está cargando pero no hay datos - mostrar error
