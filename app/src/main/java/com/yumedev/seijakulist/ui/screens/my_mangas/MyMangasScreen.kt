@@ -275,7 +275,7 @@ fun MyMangasScreen(
                                     manga = manga,
                                     statusColor = getMangaStatusColor(manga.statusUser),
                                     onMangaClick = {
-                                        navController.navigate("${AppDestinations.MANGA_DETAIL_ANILIST}/${manga.malId}")
+                                        navController.navigate("${AppDestinations.MANGA_DETAIL_ROUTE}/${manga.malId}")
                                     },
                                     onDeleteConfirmed = {
                                         showDialog = true
