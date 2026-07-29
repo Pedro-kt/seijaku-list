@@ -238,7 +238,7 @@ fun ProfileView(
             ProfileTabSelector(
                 selectedTab   = selectedTabIndex,
                 onTabSelected = { selectedTabIndex = it },
-                tabs          = listOf("Anime", "Manga", "General")
+                tabs          = listOf("General", "Anime", "Manga")
             )
         }
 
@@ -253,6 +253,33 @@ fun ProfileView(
             ) { targetIndex ->
                 when (targetIndex) {
                     0 -> { // Tab Anime
+                        Column(
+                            modifier            = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 48.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ShowChart,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.adp()),
+                                tint     = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            )
+                            Text(
+                                "¡General en camino!",
+                                fontSize = 20.asp(),
+                                fontFamily = PoppinsBold,
+                                color      = MaterialTheme.colorScheme.onBackground
+                            )
+                            Text(
+                                "Estamos trabajando para que puedas ver información general aquí!",
+                                fontSize = 14.asp(),
+                                fontFamily = PoppinsRegular,
+                                color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign  = TextAlign.Center
+                            )
+                        }
+                    }
+                    1 -> {
                         Column {
                             // ── Resumen ───────────────────────────────────────
                             val totalMinutes = uiState.stats.totalMinutesWatched
@@ -386,7 +413,7 @@ fun ProfileView(
                             }
                         }
                     }
-                    1 -> {
+                    2 -> { // Tab General
                         Column(
                             modifier            = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 48.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -406,33 +433,6 @@ fun ProfileView(
                             )
                             Text(
                                 "Estamos trabajando para que puedas trackear tus lecturas muy pronto.",
-                                fontSize = 14.asp(),
-                                fontFamily = PoppinsRegular,
-                                color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign  = TextAlign.Center
-                            )
-                        }
-                    }
-                    2 -> { // Tab General
-                        Column(
-                            modifier            = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 48.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ShowChart,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.adp()),
-                                tint     = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                            )
-                            Text(
-                                "¡General en camino!",
-                                fontSize = 20.asp(),
-                                fontFamily = PoppinsBold,
-                                color      = MaterialTheme.colorScheme.onBackground
-                            )
-                            Text(
-                                "Estamos trabajando para que puedas ver información general aquí!",
                                 fontSize = 14.asp(),
                                 fontFamily = PoppinsRegular,
                                 color      = MaterialTheme.colorScheme.onSurfaceVariant,
