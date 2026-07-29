@@ -27,6 +27,7 @@ object AppDestinations {
     const val ANIME_DETAIL_LOCAL_ROUTE = "anime_detail_local_route"
 
     const val AUTH_ROUTE = "auth_route"
+    const val ONBOARDING_ROUTE = "onboarding_route"
 
     const val CONFIGURATION_ROUTE = "configuration_route"
 
