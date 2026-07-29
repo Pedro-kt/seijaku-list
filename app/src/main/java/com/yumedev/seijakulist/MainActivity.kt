@@ -83,6 +83,7 @@ import com.yumedev.seijakulist.ui.theme.SeijakuListTheme
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.yumedev.seijakulist.ui.screens.onboarding.OnboardingScreen
 import com.yumedev.seijakulist.ui.screens.auth_screen.AuthScreen
 import com.yumedev.seijakulist.ui.screens.auth_screen.LoginScreen
 import com.yumedev.seijakulist.ui.screens.auth_screen.RegisterScreen
@@ -281,6 +282,17 @@ fun AppNavigation(
                 navController = navController,
                 settingsViewModel = settingsViewModel
             )
+        }
+        composable(
+            route = AppDestinations.ONBOARDING_ROUTE,
+            enterTransition = {
+                fadeIn(animationSpec = tween(600, easing = FastOutSlowInEasing))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(400, easing = FastOutSlowInEasing))
+            }
+        ) {
+            OnboardingScreen(navController = navController)
         }
         composable(
             route = AppDestinations.CONFIGURATION_ROUTE

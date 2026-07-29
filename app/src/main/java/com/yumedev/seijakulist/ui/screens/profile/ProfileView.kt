@@ -83,8 +83,11 @@ val achievements = listOf(
 //  EmptyProfileScreen
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun EmptyProfileScreen(navController: NavController) {
+private fun EmptyProfileScreen(
+    navController: NavController
+) {
     var screenVisible by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) { kotlinx.coroutines.delay(100); screenVisible = true }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -160,7 +163,10 @@ private fun EmptyProfileScreen(navController: NavController) {
                 )
             ) {
                 Button(
-                    onClick = { navController.navigate(AppDestinations.AUTH_ROUTE) },
+                    onClick = {
+                        // SIEMPRE va al onboarding (sin verificar si ya lo vio)
+                        navController.navigate(AppDestinations.ONBOARDING_ROUTE)
+                    },
                     modifier = Modifier.fillMaxWidth().height(54.adp()),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
