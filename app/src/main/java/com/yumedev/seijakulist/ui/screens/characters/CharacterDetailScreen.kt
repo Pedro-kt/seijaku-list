@@ -1146,13 +1146,15 @@ private fun CharacterAppearancesTab(
                 ) {
                     items(
                         items = characterDetail.mangaRelations,
-                        key = { "manga-${it.title}" }
+                        key = { "manga-${it.malId}" }
                     ) { manga ->
                         CharacterAppearanceCard(
                             title = manga.title,
                             imageUrl = manga.imageUrl,
                             role = "",
-                            onClick = { /* No navegable por ahora */ }
+                            onClick = {
+                                navController.navigate("${AppDestinations.MANGA_DETAIL_ROUTE}/${manga.malId}")
+                            }
                         )
                     }
                 }
